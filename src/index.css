@@ -1,0 +1,11 @@
+@import "tailwindcss";
+
+/*
+ * Phase 0 leaves the token layer empty on purpose (task 0.4, docs/01_ORIENTATION_REVIEW.md §3).
+ * Unsetting the default color scale means no `bg-*`/`text-*`/`border-*` color utility resolves
+ * to anything until Phase 1 defines the real palette — layout/spacing/typography utilities are
+ * untouched and remain usable.
+ */
+@theme {
+  --color-*: initial;
+}
