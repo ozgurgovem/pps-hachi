@@ -115,7 +115,7 @@ rejections, no console noise in production builds.
 
 ## Current state
 
-Phase: 0 of 12
+Phase: 1 of 12
 Stack decision (Tauri vs Electron fallback): Tauri v2, revisit only if Phase 4 stalls
 App name: **PPS Hachi** (八 — eight). Repo `pps-hachi`. Set 2026-08-01, see DECISIONS.md D-29.
 AI layer: specified, not started. Phases 8–10.
@@ -127,3 +127,14 @@ Template geometry: VERIFIED 2026-08-01 against both .xls files. Five errors foun
 Real-world evidence: five completed company A3s were analysed — they are canvases, not
   spreadsheets (see docs/02_REAL_WORLD_FINDINGS.md). Type is sized from a printed-legibility
   floor, not inherited from the template (D-40). Template B geometry stays blocked (D-27).
+Phase 0 scaffold: DONE 2026-08-02, per docs/01_ORIENTATION_REVIEW.md §3 tasks 0.1–0.11.
+  Tauri v2 + React 19 + TS strict + Vite, Tailwind v4 (empty token layer), i18next (tr/en),
+  ESLint (bans `any`/`@ts-ignore`, enforces the src/domain + src/a3 purity boundary),
+  Vitest + cargo test both green, directory skeleton from §2.1 in place. No product UI.
+  Repo: github.com/ozgurgovem/pps-hachi (private). CI: .github/workflows/ci.yml,
+  macos-latest + windows-latest — see D-46/D-44 for why it's a plain build+upload-artifact
+  step rather than tauri-action.
+Known open gap: P-12 (do admin-free NSIS per-user installs actually run under Farplas's
+  AppLocker/WDAC policy?) could NOT be closed from this environment — it needs a real
+  corporate Windows machine. Do not treat Windows distribution as de-risked until that's
+  walked.
