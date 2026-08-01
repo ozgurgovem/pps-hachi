@@ -1,0 +1,31 @@
+# --- OS ---
+.DS_Store
+._*
+Thumbs.db
+
+# --- Local-only reference material -------------------------------------------
+# Five completed company A3s (~110 MB of .xls, mostly embedded screenshots).
+# Analysed 2026-08-01; the conclusions live in docs/02_REAL_WORLD_FINDINGS.md.
+# Deliberately NOT tracked: git never forgets a blob, so committing these would
+# bloat every future clone permanently. See reference/Examples/README.md.
+reference/Examples/
+
+# --- Node / Vite (Phase 0) ---
+node_modules/
+dist/
+dist-ssr/
+*.local
+.vite/
+
+# --- Rust / Tauri (Phase 0) ---
+src-tauri/target/
+src-tauri/gen/
+
+# --- Tooling ---
+.venv/
+venv/
+__pycache__/
+coverage/
+playwright-report/
+test-results/
+*.log
