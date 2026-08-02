@@ -2,7 +2,181 @@
   "app": {
     "title": "PPS Hachi"
   },
-  "scaffold": {
-    "placeholder": "Phase 0 scaffold — no product UI yet."
+  "launch": {
+    "newProject": "New PPS Project",
+    "openProject": "Open Existing Project",
+    "newProjectDialogTitle": "Save new project as",
+    "openProjectDialogTitle": "Open PPS Hachi project",
+    "recent": {
+      "title": "Recent projects",
+      "loading": "Loading recent projects…",
+      "loadError": "Couldn't load recent projects: {{reason}}",
+      "empty": "No projects yet — start with New PPS Project.",
+      "stepProgress": "{{current}} of {{total}} steps have entries"
+    },
+    "errors": {
+      "corrupt": "Couldn't open this file: {{reason}}"
+    }
+  },
+  "project": {
+    "placeholder": {
+      "noProjectLoaded": "No project loaded.",
+      "readOnlyBanner": "Created by a newer version of PPS Hachi — update to edit.",
+      "backToLaunch": "Back to launch screen"
+    }
+  },
+  "workspace": {
+    "backToLaunch": "Back to launch screen",
+    "savedIndicator": "Saved · {{time}}",
+    "savingIndicator": "Saving…",
+    "unsavedIndicator": "Unsaved changes",
+    "conflictIndicator": "Not saved — file changed on disk",
+    "errorIndicator": "Not saved — {{reason}}",
+    "readOnlyIndicator": "Read-only",
+    "undo": "Undo",
+    "redo": "Redo",
+    "stepNavLabel": "Step navigation",
+    "stepAriaLabel": "Step {{step}}: {{name}}",
+    "steps": {
+      "1": { "name": "Clarify the Problem" },
+      "2": { "name": "Break Down the Problem" },
+      "3": { "name": "Set a Target" },
+      "4": { "name": "Root Cause Analysis" },
+      "5": { "name": "Develop Countermeasures" },
+      "6": { "name": "Implement" },
+      "7": { "name": "Monitor Process and Results" },
+      "8": { "name": "Standardize and Share" }
+    },
+    "stepStatus": {
+      "empty": "Empty",
+      "inProgress": "In progress",
+      "complete": "Complete",
+      "flagged": "Flagged"
+    },
+    "entriesBand": {
+      "title": "Entries",
+      "empty": "No entries yet for this step.",
+      "entryCount_one": "{{count}} entry",
+      "entryCount_other": "{{count}} entries",
+      "edit": "Edit",
+      "duplicate": "Duplicate",
+      "delete": "Delete",
+      "deleteConfirmTitle": "Delete this entry?",
+      "deleteConfirmBody": "\"{{title}}\" will be removed from this step. This can be undone.",
+      "deleteConfirmAction": "Delete",
+      "deleteCancelAction": "Cancel",
+      "dragHandleLabel": "Reorder \"{{title}}\"",
+      "moveUp": "Move up",
+      "moveDown": "Move down",
+      "a3Visibility": {
+        "label": "A3 visibility",
+        "primary": "Primary",
+        "appendix": "Appendix",
+        "hidden": "Hidden"
+      }
+    },
+    "unknownMethod": {
+      "badge": "Unknown method",
+      "body": "This entry was created by a method this build doesn't recognize (\"{{methodId}}\"). It can be reordered, hidden or removed, but not opened.",
+      "cannotEdit": "Can't edit — unknown method"
+    },
+    "methodBand": {
+      "title": "Add an entry",
+      "addEntry": "Add entry"
+    },
+    "coachBand": {
+      "show": "Show coaching",
+      "hide": "Hide coaching"
+    },
+    "jumpAdvisory": "Step {{step}} has no entries yet — you can still work on it out of order.",
+    "rightPanel": {
+      "collapse": "Collapse panel",
+      "expand": "Expand panel",
+      "preview": "Preview",
+      "assistant": "Assistant",
+      "previewStub": "The A3 preview renders here once the exporter ships in Phase 4."
+    },
+    "entryDialog": {
+      "createTitle": "New entry",
+      "editTitle": "Edit entry",
+      "titleFieldLabel": "Title",
+      "titlePlaceholder": "e.g. Point of cause note",
+      "save": "Save",
+      "cancel": "Cancel",
+      "close": "Close"
+    }
+  },
+  "methods": {
+    "genericText": {
+      "name": "Free text",
+      "useWhen": "Use this when no dedicated method fits yet — a plain note.",
+      "fieldLabel": "Text"
+    }
+  },
+  "gallery": {
+    "title": "Design system",
+    "subtitle": "Every token, type role and primitive — Phase 1",
+    "backToApp": "Back to app",
+    "sections": {
+      "palette": "Palette",
+      "typography": "Typography",
+      "buttons": "Buttons",
+      "form": "Form controls",
+      "tabs": "Tabs",
+      "overlays": "Tooltip & dialog",
+      "status": "Status & progress"
+    },
+    "palette": {
+      "sheetOnlyNote": "Sheet-only PDCA fills — reserved for the 八 mark, never a UI accent (D-47)."
+    },
+    "typography": {
+      "displayLabel": "Display — Archivo Narrow, tracked-out caps + tabular figures",
+      "displaySample": "PPS Hachi 八",
+      "displaySampleStep": "Step 4 — Analyze root cause",
+      "bodyLabel": "Body — Public Sans",
+      "bodySample": "The point of cause is where the abnormality was first detectable — not where it originated.",
+      "bodySampleMuted": "Coach band copy, method descriptions, and form labels use this weight and size by default.",
+      "monoLabel": "Data / mono — Martian Mono, tabular figures",
+      "monoSample": "32-4471 · Rev. 2026-08-01",
+      "monoSampleMuted": "49.7% / 50.3% · torque 12.4 ± 0.3 N·m"
+    },
+    "buttons": {
+      "primary": "Primary",
+      "secondary": "Secondary",
+      "ghost": "Ghost",
+      "small": "Small",
+      "large": "Large",
+      "disabled": "Disabled"
+    },
+    "form": {
+      "labelField": "Part number",
+      "placeholderField": "e.g. 32-4471",
+      "selectLabel": "Template",
+      "selectPlaceholder": "Choose a template",
+      "selectFarplas7": "Farplas 7-step (TR)",
+      "selectFarplasPlus": "Farplas 7-step plus",
+      "selectPps8": "PPS 8-step (auto)",
+      "checkboxLabel": "Step 3 gate confirmed"
+    },
+    "tabs": {
+      "preview": "Preview",
+      "assistant": "Assistant",
+      "previewBody": "The A3 preview renders here once a project is open.",
+      "assistantBody": "The assistant transcript renders here once AI is configured."
+    },
+    "overlays": {
+      "tooltipTrigger": "Hover for tooltip",
+      "tooltipText": "Non-repro hairline — decorative only",
+      "dialogTrigger": "Open dialog",
+      "dialogTitle": "Example dialog",
+      "dialogDescription": "Radix Dialog primitive, styled entirely from tokens.",
+      "dialogClose": "Close"
+    },
+    "status": {
+      "empty": "Empty",
+      "inProgress": "In progress",
+      "complete": "Complete",
+      "flagged": "Flagged"
+    }
   }
 }

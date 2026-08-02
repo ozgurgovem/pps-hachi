@@ -1,11 +1,149 @@
 @import "tailwindcss";
 
-/*
- * Phase 0 leaves the token layer empty on purpose (task 0.4, docs/01_ORIENTATION_REVIEW.md §3).
- * Unsetting the default color scale means no `bg-*`/`text-*`/`border-*` color utility resolves
- * to anything until Phase 1 defines the real palette — layout/spacing/typography utilities are
- * untouched and remain usable.
- */
+/* Self-hosted, license-clean (OFL) type families — see DECISIONS.md D-48.
+ * Only the weights actually used are imported, to keep the offline bundle small. */
+@import "@fontsource/archivo-narrow/500.css";
+@import "@fontsource/archivo-narrow/600.css";
+@import "@fontsource/archivo-narrow/700.css";
+@import "@fontsource/public-sans/400.css";
+@import "@fontsource/public-sans/500.css";
+@import "@fontsource/public-sans/600.css";
+@import "@fontsource/martian-mono/400.css";
+@import "@fontsource/martian-mono/500.css";
+
+/* Manual dark mode: driven by [data-theme] on <html>, set by ThemeProvider
+ * (system preference by default, user override persisted). Not the media-query
+ * strategy, because the launch screen's quality floor requires an explicit toggle. */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+:root {
+  /* -- Primitives — Phase 1 design plan, see DECISIONS.md D-47/D-48 ------------- *
+   * Named after real drafting-office and shop-floor objects, not decorative swatches.
+   */
+
+  /* Vellum — tracing-paper surface tone. Cool gray-green, not the AI-default cream. */
+  --vellum: #e7e8e2;
+  --vellum-raised: #f1f1ec;
+
+  /* Graphite — pencil-lead ink. Never pure black. */
+  --graphite: #20241f;
+  --graphite-muted: #5c5f55;
+
+  /* Non-Repro — named for "non-photo blue" drafting pencil: a guide-mark color
+   * historically chosen NOT to reproduce. Decorative structure only (grid,
+   * watermark hairlines) — never a functional/interactive border, its contrast
+   * against Vellum falls short of WCAG 1.4.11's 3:1 for meaningful UI boundaries. */
+  --non-repro: #88afd6;
+
+  /* Steel — the same blue family, deepened, for borders that must carry
+   * information (inputs, focus rings) and therefore need 3:1 against Vellum. */
+  --steel: #4a6e93;
+
+  /* Indelible — named for the indelible/copying pencil used on shipping tags and
+   * triplicate shop-floor paperwork. The one bold accent. Deliberately NOT blue
+   * (the single most common generic-SaaS primary-action color) and NOT any of
+   * the four PDCA phase colors the exported sheet already uses for meaning. */
+  --indelible: #5f4470;
+  --indelible-ink: #ffffff;
+
+  /* Kraft — kraft-paper / parts-tag tone. Secondary chrome only. */
+  --kraft: #b8ae93;
+
+  /* -- Semantic (light) ---------------------------------------------------- */
+  --surface: var(--vellum);
+  --surface-raised: var(--vellum-raised);
+  --ink: var(--graphite);
+  --ink-muted: var(--graphite-muted);
+  --line: var(--non-repro);
+  --border: var(--steel);
+  --accent: var(--indelible);
+  --accent-ink: var(--indelible-ink);
+  --muted: var(--kraft);
+  /* Deliberately NOT --color-plan (FF0000): a UI "flagged/error" state must not
+   * borrow the sheet's own Plan-red, or the two meanings collide (D-47). */
+  --danger: #a6303f;
+}
+
+[data-theme="dark"] {
+  --surface: #1b1e1c;
+  --surface-raised: #242822;
+  --ink: #ecead2;
+  --ink-muted: #a7aca0;
+  --line: #7fa8cc;
+  --border: #7fa8cc;
+  --accent: #b79acb;
+  --accent-ink: #241a2b;
+  --muted: #c9be9e;
+  --danger: #e08a93;
+}
+
 @theme {
   --color-*: initial;
+
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-line: var(--line);
+  --color-border: var(--border);
+  --color-accent: var(--accent);
+  --color-accent-ink: var(--accent-ink);
+  --color-muted: var(--muted);
+  --color-danger: var(--danger);
+
+  /* Sheet-only colors: the exported A3's own PDCA fills (reference/TEMPLATE_ANALYSIS.md
+   * §3). Never used as UI accent — reserved for the 八 mark's ring segments and any
+   * literal preview of the exported sheet. */
+  --color-plan: #ff0000;
+  --color-do: #ffff00;
+  --color-check: #00ccff;
+  --color-act: #008000;
+
+  /* -- Typography — three roles, see DECISIONS.md D-48 ---------------------- */
+  --font-display: "Archivo Narrow", sans-serif;
+  --font-body: "Public Sans", sans-serif;
+  --font-mono: "Martian Mono", monospace;
+
+  /* -- Type scale ------------------------------------------------------------ */
+  --text-2xs: 0.6875rem; /* 11px — data-mono captions, part-number tags */
+  --text-xs: 0.75rem; /* 12px */
+  --text-sm: 0.8125rem; /* 13px */
+  --text-base: 0.9375rem; /* 15px — body default */
+  --text-lg: 1.0625rem; /* 17px */
+  --text-xl: 1.375rem; /* 22px — section headers */
+  --text-2xl: 1.75rem; /* 28px */
+  --text-3xl: 2.5rem; /* 40px — workspace step titles */
+  --text-4xl: 3.5rem; /* 56px — launch-screen wordmark */
+
+  /* -- Radius — deliberately not zero everywhere (that reads as the banned
+   * broadsheet cliché); "instrument" is for register tables / tick rails that
+   * echo the sheet itself, "control" is for buttons, inputs, cards. */
+  --radius-instrument: 2px;
+  --radius-control: 6px;
+}
+
+body {
+  background-color: var(--color-surface);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+}
+
+/* Launch screen's one orchestrated entrance (SPEC.md §2.1) — gated inside
+ * the media query itself, not via a motion-safe: variant, so a reduced-motion
+ * preference leaves the rule absent entirely rather than merely skipped. */
+@keyframes launch-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .launch-enter {
+    animation: launch-enter 420ms ease-out both;
+  }
 }

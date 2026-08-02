@@ -33,6 +33,32 @@ const pureModuleBoundary = {
   },
 }
 
+// D-57: migration functions may not import the current model schema from
+// src/domain/model — a migration typed against the live schema silently
+// changes meaning every time that schema is edited later. Scoped to
+// production code only: a *test* importing the live schema/CURRENT_SCHEMA_VERSION
+// is the point (D-62's contiguity test checks the real registry against the
+// real current version), and a broken test on a schema change is exactly the
+// loud signal this rule exists to get instead of a silent one.
+const migrationsModelBoundary = {
+  files: ['src/domain/migrations/**/*.{ts,tsx}'],
+  ignores: ['src/domain/migrations/**/*.test.{ts,tsx}'],
+  rules: {
+    'no-restricted-imports': [
+      'error',
+      {
+        patterns: [
+          {
+            group: ['**/model', '**/model/*'],
+            message:
+              'Migrations may not import the current model schema (D-57) — embed a frozen copy of whatever shape this migration depends on instead.',
+          },
+        ],
+      },
+    ],
+  },
+}
+
 export default tseslint.config(
   { ignores: ['dist', 'src-tauri/target'] },
   {
@@ -55,4 +81,5 @@ export default tseslint.config(
     },
   },
   pureModuleBoundary,
+  migrationsModelBoundary,
 )

@@ -1,7 +1,19 @@
+pub mod ppsx;
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_dialog::init())
+        .invoke_handler(tauri::generate_handler![
+            ppsx::commands::ppsx_read,
+            ppsx::commands::ppsx_write,
+            ppsx::commands::recent_list,
+            ppsx::commands::recent_upsert,
+            ppsx::commands::history_list,
+            ppsx::commands::history_save,
+            ppsx::commands::history_read,
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

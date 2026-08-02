@@ -2,7 +2,181 @@
   "app": {
     "title": "PPS Hachi"
   },
-  "scaffold": {
-    "placeholder": "Faz 0 iskeleti — henüz ürün arayüzü yok."
+  "launch": {
+    "newProject": "Yeni PPS Projesi",
+    "openProject": "Mevcut Projeyi Aç",
+    "newProjectDialogTitle": "Yeni projeyi kaydet",
+    "openProjectDialogTitle": "PPS Hachi projesi aç",
+    "recent": {
+      "title": "Son projeler",
+      "loading": "Son projeler yükleniyor…",
+      "loadError": "Son projeler yüklenemedi: {{reason}}",
+      "empty": "Henüz proje yok — Yeni PPS Projesi ile başlayın.",
+      "stepProgress": "{{total}} adımın {{current}} tanesinde giriş var"
+    },
+    "errors": {
+      "corrupt": "Bu dosya açılamadı: {{reason}}"
+    }
+  },
+  "project": {
+    "placeholder": {
+      "noProjectLoaded": "Yüklenmiş bir proje yok.",
+      "readOnlyBanner": "PPS Hachi'nin daha yeni bir sürümünde oluşturuldu — düzenlemek için güncelleyin.",
+      "backToLaunch": "Başlangıç ekranına dön"
+    }
+  },
+  "workspace": {
+    "backToLaunch": "Başlangıç ekranına dön",
+    "savedIndicator": "Kaydedildi · {{time}}",
+    "savingIndicator": "Kaydediliyor…",
+    "unsavedIndicator": "Kaydedilmemiş değişiklikler",
+    "conflictIndicator": "Kaydedilmedi — dosya diskte değişti",
+    "errorIndicator": "Kaydedilmedi — {{reason}}",
+    "readOnlyIndicator": "Salt okunur",
+    "undo": "Geri al",
+    "redo": "Yinele",
+    "stepNavLabel": "Adım gezinmesi",
+    "stepAriaLabel": "Adım {{step}}: {{name}}",
+    "steps": {
+      "1": { "name": "Problemi Netleştir" },
+      "2": { "name": "Problemi Parçalara Ayır" },
+      "3": { "name": "Hedef Belirle" },
+      "4": { "name": "Kök Neden Analizi" },
+      "5": { "name": "Karşı Önlem Geliştir" },
+      "6": { "name": "Uygulama" },
+      "7": { "name": "Sonuçları Kontrol Et" },
+      "8": { "name": "Standardizasyon ve Yaygınlaştırma" }
+    },
+    "stepStatus": {
+      "empty": "Boş",
+      "inProgress": "Devam ediyor",
+      "complete": "Tamamlandı",
+      "flagged": "İşaretlendi"
+    },
+    "entriesBand": {
+      "title": "Girişler",
+      "empty": "Bu adımda henüz giriş yok.",
+      "entryCount_one": "{{count}} giriş",
+      "entryCount_other": "{{count}} giriş",
+      "edit": "Düzenle",
+      "duplicate": "Çoğalt",
+      "delete": "Sil",
+      "deleteConfirmTitle": "Bu giriş silinsin mi?",
+      "deleteConfirmBody": "\"{{title}}\" bu adımdan kaldırılacak. Bu işlem geri alınabilir.",
+      "deleteConfirmAction": "Sil",
+      "deleteCancelAction": "Vazgeç",
+      "dragHandleLabel": "\"{{title}}\" sırasını değiştir",
+      "moveUp": "Yukarı taşı",
+      "moveDown": "Aşağı taşı",
+      "a3Visibility": {
+        "label": "A3 görünürlüğü",
+        "primary": "Birincil",
+        "appendix": "Ek",
+        "hidden": "Gizli"
+      }
+    },
+    "unknownMethod": {
+      "badge": "Bilinmeyen method",
+      "body": "Bu giriş, bu sürümün tanımadığı bir method (\"{{methodId}}\") tarafından oluşturuldu. Sırası değiştirilebilir, gizlenebilir veya silinebilir, ancak açılamaz.",
+      "cannotEdit": "Düzenlenemez — bilinmeyen method"
+    },
+    "methodBand": {
+      "title": "Giriş ekle",
+      "addEntry": "Giriş ekle"
+    },
+    "coachBand": {
+      "show": "Rehberliği göster",
+      "hide": "Rehberliği gizle"
+    },
+    "jumpAdvisory": "{{step}}. adımda henüz giriş yok — yine de sırayla ilerlemeden çalışabilirsiniz.",
+    "rightPanel": {
+      "collapse": "Paneli daralt",
+      "expand": "Paneli genişlet",
+      "preview": "Önizleme",
+      "assistant": "Asistan",
+      "previewStub": "A3 önizlemesi, dışa aktarıcı Faz 4'te gelince burada görünecek."
+    },
+    "entryDialog": {
+      "createTitle": "Yeni giriş",
+      "editTitle": "Girişi düzenle",
+      "titleFieldLabel": "Başlık",
+      "titlePlaceholder": "örn. Sebep noktası notu",
+      "save": "Kaydet",
+      "cancel": "Vazgeç",
+      "close": "Kapat"
+    }
+  },
+  "methods": {
+    "genericText": {
+      "name": "Serbest metin",
+      "useWhen": "Henüz uygun bir method yokken kullanın — düz bir not.",
+      "fieldLabel": "Metin"
+    }
+  },
+  "gallery": {
+    "title": "Tasarım sistemi",
+    "subtitle": "Her token, tip rolü ve primitive — Faz 1",
+    "backToApp": "Uygulamaya dön",
+    "sections": {
+      "palette": "Palet",
+      "typography": "Tipografi",
+      "buttons": "Butonlar",
+      "form": "Form kontrolleri",
+      "tabs": "Sekmeler",
+      "overlays": "Tooltip ve dialog",
+      "status": "Durum ve ilerleme"
+    },
+    "palette": {
+      "sheetOnlyNote": "Yalnızca sayfaya ait PDCA renkleri — 八 işareti için ayrıldı, hiçbir zaman UI vurgusu değil (D-47)."
+    },
+    "typography": {
+      "displayLabel": "Display — Archivo Narrow, aralıklı büyük harf + tablo rakamları",
+      "displaySample": "PPS Hachi 八",
+      "displaySampleStep": "Adım 4 — Kök nedeni analiz et",
+      "bodyLabel": "Body — Public Sans",
+      "bodySample": "Sebep noktası, anormalliğin ilk fark edilebildiği yerdir — kaynaklandığı yer değil.",
+      "bodySampleMuted": "Coach band metni, method açıklamaları ve form etiketleri varsayılan olarak bu ağırlığı ve boyutu kullanır.",
+      "monoLabel": "Data / mono — Martian Mono, tablo rakamları",
+      "monoSample": "32-4471 · Rev. 2026-08-01",
+      "monoSampleMuted": "%49.7 / %50.3 · tork 12.4 ± 0.3 N·m"
+    },
+    "buttons": {
+      "primary": "Birincil",
+      "secondary": "İkincil",
+      "ghost": "Hayalet",
+      "small": "Küçük",
+      "large": "Büyük",
+      "disabled": "Devre dışı"
+    },
+    "form": {
+      "labelField": "Parça numarası",
+      "placeholderField": "örn. 32-4471",
+      "selectLabel": "Şablon",
+      "selectPlaceholder": "Bir şablon seç",
+      "selectFarplas7": "Farplas 7 adım (TR)",
+      "selectFarplasPlus": "Farplas 7 adım plus",
+      "selectPps8": "PPS 8 adım (auto)",
+      "checkboxLabel": "Adım 3 kapısı onaylandı"
+    },
+    "tabs": {
+      "preview": "Önizleme",
+      "assistant": "Asistan",
+      "previewBody": "Bir proje açıldığında A3 önizlemesi burada görünür.",
+      "assistantBody": "AI yapılandırıldığında asistan dökümü burada görünür."
+    },
+    "overlays": {
+      "tooltipTrigger": "Tooltip için üzerine gel",
+      "tooltipText": "Non-repro ince çizgi — yalnızca dekoratif",
+      "dialogTrigger": "Dialog aç",
+      "dialogTitle": "Örnek dialog",
+      "dialogDescription": "Radix Dialog primitive'i, tamamen token'lardan stillendirildi.",
+      "dialogClose": "Kapat"
+    },
+    "status": {
+      "empty": "Boş",
+      "inProgress": "Devam ediyor",
+      "complete": "Tamamlandı",
+      "flagged": "İşaretlendi"
+    }
   }
 }
