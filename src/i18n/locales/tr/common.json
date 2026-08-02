@@ -94,7 +94,13 @@
       "expand": "Paneli genişlet",
       "preview": "Önizleme",
       "assistant": "Asistan",
-      "previewStub": "A3 önizlemesi, dışa aktarıcı Faz 4'te gelince burada görünecek."
+      "previewStub": "A3 önizlemesi, dışa aktarıcı Faz 4'te gelince burada görünecek.",
+      "screenMode": "Ekran",
+      "printMode": "Baskı",
+      "export": "A3'ü dışa aktar",
+      "exporting": "Dışa aktarılıyor…",
+      "exportDialogTitle": "A3'ü Excel olarak dışa aktar",
+      "previewError": "Bu proje için A3 önizlemesi oluşturulamadı."
     },
     "entryDialog": {
       "createTitle": "Yeni giriş",

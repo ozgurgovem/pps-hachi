@@ -94,7 +94,13 @@
       "expand": "Expand panel",
       "preview": "Preview",
       "assistant": "Assistant",
-      "previewStub": "The A3 preview renders here once the exporter ships in Phase 4."
+      "previewStub": "The A3 preview renders here once the exporter ships in Phase 4.",
+      "screenMode": "Screen",
+      "printMode": "Print",
+      "export": "Export A3",
+      "exporting": "Exporting…",
+      "exportDialogTitle": "Export A3 as Excel",
+      "previewError": "The A3 preview could not be built for this project."
     },
     "entryDialog": {
       "createTitle": "New entry",

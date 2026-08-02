@@ -1,4 +1,6 @@
+pub mod commands;
 pub mod ppsx;
+pub mod xlsx;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -13,6 +15,7 @@ pub fn run() {
             ppsx::commands::history_list,
             ppsx::commands::history_save,
             ppsx::commands::history_read,
+            commands::xlsx::xlsx_export,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

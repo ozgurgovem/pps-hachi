@@ -80,8 +80,12 @@ describe("WorkspaceScreen — Phase 3 done-condition", () => {
       await user.click(screen.getByRole("button", { name: new RegExp(`^Step ${stepId}:`) }));
       await addGenericTextEntry(user, `Step ${stepId} note A`);
       await addGenericTextEntry(user, `Step ${stepId} note B`);
-      expect(screen.getByText(`Step ${stepId} note A`)).toBeTruthy();
-      expect(screen.getByText(`Step ${stepId} note B`)).toBeTruthy();
+      // Phase 4's live A3 preview (RightPanel) can render the same entry
+      // title again — scope to the entries band so this stays a query about
+      // EntriesBand, not about the preview.
+      const main = within(screen.getByRole("main"));
+      expect(main.getByText(`Step ${stepId} note A`)).toBeTruthy();
+      expect(main.getByText(`Step ${stepId} note B`)).toBeTruthy();
     }
   });
 
@@ -92,14 +96,15 @@ describe("WorkspaceScreen — Phase 3 done-condition", () => {
     await addGenericTextEntry(user, "First entry");
     await addGenericTextEntry(user, "Second entry");
 
-    const entriesBefore = screen.getAllByText(/^(First|Second) entry$/).map((el) => el.textContent);
+    const main = within(screen.getByRole("main"));
+    const entriesBefore = main.getAllByText(/^(First|Second) entry$/).map((el) => el.textContent);
     expect(entriesBefore).toEqual(["First entry", "Second entry"]);
 
     const [firstMoveDown] = screen.getAllByRole("button", { name: "Move down" });
     if (!firstMoveDown) throw new Error("expected at least one Move down button");
     await user.click(firstMoveDown);
 
-    const entriesAfter = screen.getAllByText(/^(First|Second) entry$/).map((el) => el.textContent);
+    const entriesAfter = main.getAllByText(/^(First|Second) entry$/).map((el) => el.textContent);
     expect(entriesAfter).toEqual(["Second entry", "First entry"]);
   });
 
@@ -184,7 +189,7 @@ describe("WorkspaceScreen — Phase 3 done-condition", () => {
     await user.click(await screen.findByRole("button", { name: /^Step 3:/ }));
 
     expect(await screen.findByText("Unknown method")).toBeTruthy();
-    expect(screen.getByText("A future method entry")).toBeTruthy();
+    expect(within(screen.getByRole("main")).getByText("A future method entry")).toBeTruthy();
     expect(screen.queryByRole("button", { name: "Edit" })).toBeFalsy();
     expect(screen.getByRole("button", { name: "Delete" })).toBeTruthy();
   });

@@ -7,8 +7,17 @@ import tseslint from 'typescript-eslint'
 // src/domain and src/a3 must stay pure (§2.1 of docs/01_ORIENTATION_REVIEW.md):
 // no React, no Tauri, no i18next. This is what keeps buildA3Layout golden-testable
 // and keeps layout logic out of Rust.
+//
+// D-94: src/a3/render/** is carved out of this boundary. It renders an
+// already-computed A3LayoutDescriptor to CSS Grid — the frontend analogue of
+// D-04's "Rust is a dumb serializer of the descriptor," so it needs React the
+// same way the Rust xlsx writer needs rust_xlsxwriter. The invariant this
+// boundary actually protects is "no layout DECISIONS outside buildA3Layout,"
+// not "no React under src/a3" — HtmlA3Renderer must map the descriptor 1:1
+// onto markup, never compute placement, budget, or overflow itself.
 const pureModuleBoundary = {
   files: ['src/domain/**/*.{ts,tsx}', 'src/a3/**/*.{ts,tsx}'],
+  ignores: ['src/a3/render/**/*.{ts,tsx}'],
   rules: {
     'no-restricted-imports': [
       'error',

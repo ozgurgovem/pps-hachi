@@ -25,4 +25,9 @@ serde_json = "1"
 zip = { version = "8.6.0", default-features = false, features = ["deflate"] }
 thiserror = "2.0.19"
 tauri-plugin-dialog = "2.7.2"
+rust_xlsxwriter = "0.97.0"
+base64 = "0.23.0"
+
+[dev-dependencies]
+calamine = "0.36.1"
 

@@ -1,5 +1,6 @@
 import type { ComponentType } from "react";
 import type { ZodType } from "zod";
+import type { A3BlockContent, A3EntrySummary } from "../a3/methodContract";
 import type { StepId } from "../domain/model";
 
 /**
@@ -8,11 +9,11 @@ import type { StepId } from "../domain/model";
  * domain/a3 purity boundary (D-43) bans importing `react` from `src/domain`,
  * and a method registry that owns editor UI can never be pure in that sense.
  *
- * `renderToA3` and `readiness` are deliberately absent here. Phase 3 only
- * needs `schema` + `Editor` to prove the CRUD/reorder pipeline; the A3
- * renderer (Phase 4) and gate rules (Phase 7) add their own plugin fields
- * when those phases actually consume them, the same staged-rollout shape
- * D-52 already used for `Entry.payload`.
+ * `renderToA3` was added in Phase 4 (`src/a3/methodContract.ts` — a pure,
+ * React-free contract `buildA3Layout` depends on instead of on this file
+ * directly, keeping `src/a3` inside the D-43/D-94 purity boundary).
+ * `readiness` (Phase 7's gate rules) is still deliberately absent, the same
+ * staged-rollout shape D-52 already used for `Entry.payload`.
  */
 export interface MethodEditorProps<TPayload> {
   payload: TPayload;
@@ -30,6 +31,8 @@ export interface MethodPlugin<TPayload> {
   readonly Editor: ComponentType<MethodEditorProps<TPayload>>;
   /** Produces a fresh, schema-valid payload for a brand-new entry. */
   readonly createEmptyPayload: () => TPayload;
+  /** Renders this method's payload into the A3 sheet — see `src/a3/methodContract.ts`. */
+  readonly renderToA3: (payload: TPayload, entry: A3EntrySummary) => A3BlockContent;
 }
 
 /**
@@ -46,11 +49,12 @@ export interface MethodPlugin<TPayload> {
  */
 export type ErasedMethodPlugin = Omit<
   MethodPlugin<unknown>,
-  "schema" | "Editor" | "createEmptyPayload"
+  "schema" | "Editor" | "createEmptyPayload" | "renderToA3"
 > & {
   readonly schema: ZodType<unknown>;
   readonly Editor: ComponentType<MethodEditorProps<unknown>>;
   readonly createEmptyPayload: () => unknown;
+  readonly renderToA3: (payload: unknown, entry: A3EntrySummary) => A3BlockContent;
 };
 
 export function registerMethod<TPayload>(plugin: MethodPlugin<TPayload>): ErasedMethodPlugin {

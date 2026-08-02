@@ -544,14 +544,14 @@ Ship something runnable at the end of every phase. Do not build the whole thing 
 | 1 | Design system: tokens, type scale, components, dark/light | A component gallery route renders every primitive |
 | 2 | Launch screen + project create/open/save `.ppsx` + recent list | A project survives quit and reopen with all fields intact |
 | 3 | Workspace shell, 8-step navigation, coach band, entry CRUD, autosave, undo | User can create and reorder entries in all 8 steps with a generic text method |
-| 4 | **A3 descriptor + HTML preview + xlsx export + the `farplas-7step-tr` template** | A project round-trips to `.xlsx`, and a **fidelity test** renders both the export and the original `PPS_A3_Format_TR.xls` to PDF and diffs the images — grid, merges, fills, fonts and print setup must be indistinguishable |
+| 4 | **A3 descriptor + HTML preview + xlsx export + the `farplas-7step-tr` template** | A project round-trips to `.xlsx`, and a **fidelity test** verifies grid, merges, fills, fonts and print setup against the template geometry via a normalized structural comparison (DECISIONS.md D-97/P-08 — a literal PDF-diff against `PPS_A3_Format_TR.xls` needs a LibreOffice-headless pipeline not available in CI; do a one-time manual open-side-by-side check before calling this phase visually done) |
 | 5 | Method plugins wave 1: **5G + 5N1K** (Step 1 default), Pareto, Trend, Is/Is-Not, SMART Target, Fishbone, 5-Why, 3-Legged 5-Why | Each has an editor, a Zod schema, and an A3 renderer |
 | 6 | Method plugins wave 2: everything remaining in §1.3 | Method registry complete |
 | 7 | Coaching content, readiness rules, traceability view, step-7→4 loop, appendix overflow | All gate rules fire correctly against a deliberately-bad test project |
 | 8 | **AI foundation**: provider abstraction, keychain storage, Settings tab, connection test, model discovery, streaming chat panel, provenance plumbing | All three providers answer a trivial prompt through the same interface; keys are provably absent from disk, logs and the webview |
 | 9 | **AI structured generation**: `generateStructured` per provider, per-step prompt library, proposal→accept/edit/reject flow, file & image ingestion, redaction layer | The assistant can propose a valid Pareto entry from an uploaded xlsx and the user can accept it into the project with correct provenance |
 | 10 | **AI review & layout**: A3 placement optimizer, condensation to cell budget, mock-auditor review, TR↔EN translation, cost meter | Assistant rewrites an overflowing A3 into budget without losing meaning, and flags a weak root cause on a deliberately-bad project |
-| 11 | Remaining templates (`farplas-7step-en`, `pps-8step-auto`), template switching, `BenefitCase` and the `Onay formu` calculator | Switching a project between all three templates preserves every entry and warns before anything moves to an appendix |
+| 11 | Remaining templates (`farplas-7step-plus`, `farplas-7step-en`, `pps-8step-auto`), template switching, `BenefitCase` and the `Onay formu` calculator | Switching a project between all four templates preserves every entry and warns before anything moves to an appendix |
 | 12 | Polish, i18n TR/EN complete, PDF/PNG export, packaging, signing, auto-update | Signed installers for both platforms |
 
 Phases 8–10 are additive. Everything before them must remain fully functional with AI

@@ -1,0 +1,1013 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`buildA3Layout > matches the golden-file snapshot for a representative project 1`] = `
+{
+  "language": "tr",
+  "overflowWarnings": [
+    {
+      "budgetPt": 153.75,
+      "contentPt": 0,
+      "droppedEntryIds": [
+        "target-entry",
+      ],
+      "overflowByPt": 0,
+      "stepIds": [
+        3,
+      ],
+    },
+  ],
+  "sheets": {
+    "a3": {
+      "cells": [
+        {
+          "ref": "B1",
+          "styleId": "title",
+          "value": "Kapı Panel Gürültü Problemi",
+        },
+        {
+          "ref": "B2",
+          "styleId": "fieldLabel",
+          "value": "Sorumlu",
+        },
+        {
+          "ref": "D2",
+          "styleId": "fieldValue",
+          "value": "Ayşe Yılmaz",
+        },
+        {
+          "ref": "G2",
+          "styleId": "fieldLabel",
+          "value": "Kaizen No",
+        },
+        {
+          "ref": "H2",
+          "styleId": "fieldValue",
+          "value": "KZ-2026-014",
+        },
+        {
+          "ref": "K2",
+          "styleId": "fieldLabel",
+          "value": "Konu",
+        },
+        {
+          "ref": "P2",
+          "styleId": "fieldLabel",
+          "value": "Müdürlük",
+        },
+        {
+          "ref": "R2",
+          "styleId": "fieldValue",
+          "value": "Kalite",
+        },
+        {
+          "ref": "J59",
+          "styleId": "footerLabel",
+          "value": "GERÇEKLEŞEN GETİRİ",
+        },
+        {
+          "ref": "R59",
+          "styleId": "footerLabel",
+          "value": "ONAY 1",
+        },
+        {
+          "ref": "U59",
+          "styleId": "footerLabel",
+          "value": "ONAY 2",
+        },
+        {
+          "ref": "Y59",
+          "styleId": "footerLabel",
+          "value": "MÜD-YÖN. ONAYI",
+        },
+        {
+          "ref": "T2",
+          "styleId": "lossTypeLabel",
+          "value": "Kayıp Cinsi",
+        },
+        {
+          "ref": "U2",
+          "styleId": "lossTypeCategory",
+          "value": "İş Güvenliği",
+        },
+        {
+          "ref": "V2",
+          "styleId": "lossTypeCategory",
+          "value": "Maliyet",
+        },
+        {
+          "ref": "W2",
+          "styleId": "lossTypeCategory",
+          "value": "Verimlilik",
+        },
+        {
+          "ref": "X2",
+          "styleId": "lossTypeCategory",
+          "value": "Kalite",
+        },
+        {
+          "ref": "Y2",
+          "styleId": "lossTypeCategory",
+          "value": "Bağı. Bakım",
+        },
+        {
+          "ref": "Z2",
+          "styleId": "lossTypeCategory",
+          "value": "Prof. Bakım",
+        },
+        {
+          "ref": "AA2",
+          "styleId": "lossTypeCategory",
+          "value": "İnsan Kayn.",
+        },
+        {
+          "ref": "AB2",
+          "styleId": "lossTypeCategory",
+          "value": "Çevre",
+        },
+        {
+          "ref": "T4",
+          "styleId": "fieldLabel",
+          "value": "Çalışma Planı",
+        },
+        {
+          "ref": "U4",
+          "styleId": "lossTypeCategory",
+          "value": "1.Adım",
+        },
+        {
+          "ref": "V4",
+          "styleId": "lossTypeCategory",
+          "value": "2.Adım",
+        },
+        {
+          "ref": "W4",
+          "styleId": "lossTypeCategory",
+          "value": "3.Adım",
+        },
+        {
+          "ref": "X4",
+          "styleId": "lossTypeCategory",
+          "value": "4.Adım",
+        },
+        {
+          "ref": "Y4",
+          "styleId": "lossTypeCategory",
+          "value": "5.Adım",
+        },
+        {
+          "ref": "Z4",
+          "styleId": "lossTypeCategory",
+          "value": "6.Adım",
+        },
+        {
+          "ref": "AA4",
+          "styleId": "lossTypeCategory",
+          "value": "7.Adım",
+        },
+        {
+          "ref": "AB4",
+          "styleId": "lossTypeCategory",
+          "value": "Sunum",
+        },
+        {
+          "ref": "B4",
+          "styleId": "fieldLabel",
+          "value": "Çalışma Ekibi",
+        },
+        {
+          "ref": "B59",
+          "styleId": "footerLabel",
+          "value": "KAZANÇ",
+        },
+        {
+          "ref": "F59",
+          "styleId": "footerLabel",
+          "value": "MALİYET",
+        },
+        {
+          "ref": "AB59",
+          "styleId": "footerLabel",
+          "value": "ONAY TARİHİ",
+        },
+        {
+          "ref": "B7",
+          "styleId": "blockHeaderPlan",
+          "value": "1. PROBLEMİN TANIMLANMASI",
+        },
+        {
+          "ref": "B8",
+          "styleId": "entryContentBold",
+          "value": "Problem Tanımı",
+        },
+        {
+          "ref": "B9",
+          "styleId": "entryContent",
+          "value": "Ön kapı panelinde gürültü tespit edildi.",
+        },
+        {
+          "ref": "B22",
+          "styleId": "blockHeaderPlan",
+          "value": "2. MEVCUT DURUM ANALİZİ",
+        },
+        {
+          "ref": "B57",
+          "styleId": "blockHeaderPlan",
+          "value": "3. HEDEF BELİRLEME",
+        },
+        {
+          "ref": "P7",
+          "styleId": "blockHeaderPlan",
+          "value": "4. KÖK NEDEN ANALİZİ",
+        },
+        {
+          "ref": "P22",
+          "styleId": "blockHeaderDo",
+          "value": "5. KARŞI ÖNLEMLERİN BELİRLENMESİ VE FAALİYET PLANLARI",
+        },
+        {
+          "ref": "P36",
+          "styleId": "blockHeaderCheck",
+          "value": "6. SONUÇLARIN KONTROLÜ",
+        },
+        {
+          "ref": "P55",
+          "styleId": "blockHeaderAct",
+          "value": "7. STANDARDİZASYON",
+        },
+      ],
+      "columns": [
+        {
+          "charWidth": 1.54,
+          "key": "A",
+        },
+        {
+          "charWidth": 20.73,
+          "key": "B",
+        },
+        {
+          "charWidth": 20.73,
+          "key": "C",
+        },
+        {
+          "charWidth": 2.27,
+          "key": "D",
+        },
+        {
+          "charWidth": 23.63,
+          "key": "E",
+        },
+        {
+          "charWidth": 22.63,
+          "key": "F",
+        },
+        {
+          "charWidth": 22.63,
+          "key": "G",
+        },
+        {
+          "charWidth": 2.73,
+          "key": "H",
+        },
+        {
+          "charWidth": 23.63,
+          "key": "I",
+        },
+        {
+          "charWidth": 22.63,
+          "key": "J",
+        },
+        {
+          "charWidth": 22.63,
+          "key": "K",
+        },
+        {
+          "charWidth": 2.73,
+          "key": "L",
+        },
+        {
+          "charWidth": 23.63,
+          "key": "M",
+        },
+        {
+          "charWidth": 44.63,
+          "key": "N",
+        },
+        {
+          "charWidth": 0.82,
+          "key": "O",
+        },
+        {
+          "charWidth": 3.27,
+          "key": "P",
+        },
+        {
+          "charWidth": 23.63,
+          "key": "Q",
+        },
+        {
+          "charWidth": 22.63,
+          "key": "R",
+        },
+        {
+          "charWidth": 22.63,
+          "key": "S",
+        },
+        {
+          "charWidth": 22,
+          "key": "T",
+        },
+        {
+          "charWidth": 20.63,
+          "key": "U",
+        },
+        {
+          "charWidth": 20.63,
+          "key": "V",
+        },
+        {
+          "charWidth": 20.63,
+          "key": "W",
+        },
+        {
+          "charWidth": 20.63,
+          "key": "X",
+        },
+        {
+          "charWidth": 20.63,
+          "key": "Y",
+        },
+        {
+          "charWidth": 20.63,
+          "key": "Z",
+        },
+        {
+          "charWidth": 20.63,
+          "key": "AA",
+        },
+        {
+          "charWidth": 20.63,
+          "key": "AB",
+        },
+        {
+          "charWidth": 2,
+          "key": "AC",
+        },
+      ],
+      "freezePanes": false,
+      "gridlinesVisible": false,
+      "images": [],
+      "merges": [
+        {
+          "range": "B1:AB1",
+        },
+        {
+          "range": "B2:C3",
+        },
+        {
+          "range": "D2:F3",
+        },
+        {
+          "range": "G2:G3",
+        },
+        {
+          "range": "H2:J3",
+        },
+        {
+          "range": "K2:K3",
+        },
+        {
+          "range": "L2:O3",
+        },
+        {
+          "range": "P2:Q3",
+        },
+        {
+          "range": "R2:S3",
+        },
+        {
+          "range": "T2:T3",
+        },
+        {
+          "range": "B4:C6",
+        },
+        {
+          "range": "D4:E4",
+        },
+        {
+          "range": "F4:G4",
+        },
+        {
+          "range": "J4:K4",
+        },
+        {
+          "range": "N4:O4",
+        },
+        {
+          "range": "R4:S4",
+        },
+        {
+          "range": "T4:T6",
+        },
+        {
+          "range": "F5:G5",
+        },
+        {
+          "range": "J5:K5",
+        },
+        {
+          "range": "N5:O5",
+        },
+        {
+          "range": "R5:S5",
+        },
+        {
+          "range": "F6:G6",
+        },
+        {
+          "range": "J6:K6",
+        },
+        {
+          "range": "N6:O6",
+        },
+        {
+          "range": "R6:S6",
+        },
+        {
+          "range": "U5:U6",
+        },
+        {
+          "range": "V5:V6",
+        },
+        {
+          "range": "W5:W6",
+        },
+        {
+          "range": "X5:X6",
+        },
+        {
+          "range": "Y5:Y6",
+        },
+        {
+          "range": "Z5:Z6",
+        },
+        {
+          "range": "AA5:AA6",
+        },
+        {
+          "range": "AB5:AB6",
+        },
+        {
+          "range": "B7:O7",
+        },
+        {
+          "range": "P7:AB7",
+        },
+        {
+          "range": "B22:O22",
+        },
+        {
+          "range": "P22:AB22",
+        },
+        {
+          "range": "P36:AB36",
+        },
+        {
+          "range": "P55:AB55",
+        },
+        {
+          "range": "B57:O57",
+        },
+        {
+          "range": "B58:O58",
+        },
+        {
+          "range": "J59:M59",
+        },
+        {
+          "range": "N59:Q59",
+        },
+        {
+          "range": "R59:T59",
+        },
+        {
+          "range": "U59:X59",
+        },
+        {
+          "range": "Y59:AA59",
+        },
+        {
+          "range": "B8:O8",
+        },
+        {
+          "range": "B9:O9",
+        },
+      ],
+      "name": "A3",
+      "pageSetup": {
+        "fitToHeight": 1,
+        "fitToPage": true,
+        "fitToWidth": 1,
+        "marginsIn": {
+          "bottom": 0.1969,
+          "left": 0.2362,
+          "right": 0.2362,
+          "top": 0.1969,
+        },
+        "orientation": "landscape",
+        "paperSize": "A3",
+        "printArea": "B1:AB62",
+        "zoomPercent": 70,
+      },
+      "rows": [
+        {
+          "heightPt": 38.5,
+          "index": 1,
+        },
+        {
+          "heightPt": 20.15,
+          "index": 2,
+        },
+        {
+          "heightPt": 20.15,
+          "index": 3,
+        },
+        {
+          "heightPt": 20.15,
+          "index": 4,
+        },
+        {
+          "heightPt": 20.15,
+          "index": 5,
+        },
+        {
+          "heightPt": 20.15,
+          "index": 6,
+        },
+        {
+          "heightPt": 30,
+          "index": 7,
+        },
+        {
+          "heightPt": 30,
+          "index": 8,
+        },
+        {
+          "heightPt": 30,
+          "index": 9,
+        },
+        {
+          "heightPt": 30,
+          "index": 10,
+        },
+        {
+          "heightPt": 30,
+          "index": 11,
+        },
+        {
+          "heightPt": 30,
+          "index": 12,
+        },
+        {
+          "heightPt": 30,
+          "index": 13,
+        },
+        {
+          "heightPt": 30,
+          "index": 14,
+        },
+        {
+          "heightPt": 30,
+          "index": 15,
+        },
+        {
+          "heightPt": 30,
+          "index": 16,
+        },
+        {
+          "heightPt": 30,
+          "index": 17,
+        },
+        {
+          "heightPt": 30,
+          "index": 18,
+        },
+        {
+          "heightPt": 30,
+          "index": 19,
+        },
+        {
+          "heightPt": 30,
+          "index": 20,
+        },
+        {
+          "heightPt": 30,
+          "index": 21,
+        },
+        {
+          "heightPt": 30,
+          "index": 22,
+        },
+        {
+          "heightPt": 30,
+          "index": 23,
+        },
+        {
+          "heightPt": 30,
+          "index": 24,
+        },
+        {
+          "heightPt": 30,
+          "index": 25,
+        },
+        {
+          "heightPt": 30,
+          "index": 26,
+        },
+        {
+          "heightPt": 30,
+          "index": 27,
+        },
+        {
+          "heightPt": 30,
+          "index": 28,
+        },
+        {
+          "heightPt": 30,
+          "index": 29,
+        },
+        {
+          "heightPt": 30,
+          "index": 30,
+        },
+        {
+          "heightPt": 30,
+          "index": 31,
+        },
+        {
+          "heightPt": 30,
+          "index": 32,
+        },
+        {
+          "heightPt": 30,
+          "index": 33,
+        },
+        {
+          "heightPt": 30,
+          "index": 34,
+        },
+        {
+          "heightPt": 30,
+          "index": 35,
+        },
+        {
+          "heightPt": 30,
+          "index": 36,
+        },
+        {
+          "heightPt": 30,
+          "index": 37,
+        },
+        {
+          "heightPt": 30,
+          "index": 38,
+        },
+        {
+          "heightPt": 30,
+          "index": 39,
+        },
+        {
+          "heightPt": 30,
+          "index": 40,
+        },
+        {
+          "heightPt": 30,
+          "index": 41,
+        },
+        {
+          "heightPt": 30,
+          "index": 42,
+        },
+        {
+          "heightPt": 30,
+          "index": 43,
+        },
+        {
+          "heightPt": 30,
+          "index": 44,
+        },
+        {
+          "heightPt": 30,
+          "index": 45,
+        },
+        {
+          "heightPt": 30,
+          "index": 46,
+        },
+        {
+          "heightPt": 30,
+          "index": 47,
+        },
+        {
+          "heightPt": 30,
+          "index": 48,
+        },
+        {
+          "heightPt": 30,
+          "index": 49,
+        },
+        {
+          "heightPt": 30,
+          "index": 50,
+        },
+        {
+          "heightPt": 30,
+          "index": 51,
+        },
+        {
+          "heightPt": 30,
+          "index": 52,
+        },
+        {
+          "heightPt": 30,
+          "index": 53,
+        },
+        {
+          "heightPt": 30,
+          "index": 54,
+        },
+        {
+          "heightPt": 30,
+          "index": 55,
+        },
+        {
+          "heightPt": 93.75,
+          "index": 56,
+        },
+        {
+          "heightPt": 30,
+          "index": 57,
+        },
+        {
+          "heightPt": 153.75,
+          "index": 58,
+        },
+        {
+          "heightPt": 18,
+          "index": 59,
+        },
+        {
+          "heightPt": 17.5,
+          "index": 60,
+        },
+        {
+          "heightPt": 18.5,
+          "index": 61,
+        },
+        {
+          "heightPt": 18,
+          "index": 62,
+        },
+      ],
+    },
+    "appendices": [
+      {
+        "cells": [
+          {
+            "ref": "B2",
+            "styleId": "entryContentBold",
+            "value": "Hedef",
+          },
+          {
+            "ref": "B4",
+            "styleId": "entryContentBold",
+            "value": "Hedef",
+          },
+          {
+            "ref": "B5",
+            "styleId": "entryContent",
+            "value": "Gürültü seviyesini 4 haftada %90 azalt.",
+          },
+        ],
+        "columns": [
+          {
+            "charWidth": 2,
+            "key": "A",
+          },
+          {
+            "charWidth": 80,
+            "key": "B",
+          },
+        ],
+        "freezePanes": false,
+        "gridlinesVisible": false,
+        "images": [],
+        "merges": [],
+        "name": "Appendix A1",
+        "pageSetup": {
+          "fitToHeight": 1,
+          "fitToPage": true,
+          "fitToWidth": 1,
+          "marginsIn": {
+            "bottom": 0.1969,
+            "left": 0.2362,
+            "right": 0.2362,
+            "top": 0.1969,
+          },
+          "orientation": "landscape",
+          "paperSize": "A3",
+          "printArea": "A1:B100",
+          "zoomPercent": 100,
+        },
+        "rows": [
+          {
+            "heightPt": 24,
+            "index": 2,
+          },
+          {
+            "heightPt": 20,
+            "index": 4,
+          },
+          {
+            "heightPt": 20,
+            "index": 5,
+          },
+        ],
+      },
+    ],
+  },
+  "styles": [
+    {
+      "border": {
+        "bottom": "medium",
+        "left": "medium",
+        "right": "medium",
+        "top": "medium",
+      },
+      "font": {
+        "bold": true,
+        "name": "Tahoma",
+        "sizePt": 20,
+      },
+      "horizontalAlign": "center",
+      "id": "title",
+      "verticalAlign": "center",
+    },
+    {
+      "fillColor": "FFC0C0C0",
+      "font": {
+        "bold": true,
+        "name": "Tahoma",
+        "sizePt": 18,
+      },
+      "horizontalAlign": "left",
+      "id": "fieldLabel",
+      "verticalAlign": "center",
+      "wrapText": true,
+    },
+    {
+      "font": {
+        "bold": true,
+        "name": "Tahoma",
+        "sizePt": 12,
+      },
+      "horizontalAlign": "center",
+      "id": "fieldValue",
+      "verticalAlign": "center",
+    },
+    {
+      "font": {
+        "bold": true,
+        "name": "Tahoma",
+        "sizePt": 14,
+      },
+      "horizontalAlign": "left",
+      "id": "lossTypeLabel",
+      "verticalAlign": "center",
+      "wrapText": true,
+    },
+    {
+      "font": {
+        "name": "Tahoma",
+        "sizePt": 11,
+      },
+      "horizontalAlign": "center",
+      "id": "lossTypeCategory",
+      "verticalAlign": "center",
+      "wrapText": true,
+    },
+    {
+      "fillColor": "FFFF0000",
+      "font": {
+        "bold": true,
+        "color": "FFFFFFFF",
+        "name": "Tahoma",
+        "sizePt": 18,
+      },
+      "horizontalAlign": "left",
+      "id": "blockHeaderPlan",
+      "verticalAlign": "bottom",
+      "wrapText": true,
+    },
+    {
+      "fillColor": "FFFFFF00",
+      "font": {
+        "bold": true,
+        "color": "FF000000",
+        "name": "Tahoma",
+        "sizePt": 18,
+      },
+      "horizontalAlign": "left",
+      "id": "blockHeaderDo",
+      "verticalAlign": "bottom",
+      "wrapText": true,
+    },
+    {
+      "fillColor": "FF00CCFF",
+      "font": {
+        "bold": true,
+        "color": "FF000000",
+        "name": "Tahoma",
+        "sizePt": 18,
+      },
+      "horizontalAlign": "left",
+      "id": "blockHeaderCheck",
+      "verticalAlign": "bottom",
+      "wrapText": true,
+    },
+    {
+      "fillColor": "FF008000",
+      "font": {
+        "bold": true,
+        "color": "FF000000",
+        "name": "Tahoma",
+        "sizePt": 18,
+      },
+      "horizontalAlign": "left",
+      "id": "blockHeaderAct",
+      "verticalAlign": "bottom",
+      "wrapText": true,
+    },
+    {
+      "font": {
+        "name": "Tahoma",
+        "sizePt": 14,
+      },
+      "horizontalAlign": "left",
+      "id": "bodyCell",
+      "verticalAlign": "top",
+      "wrapText": true,
+    },
+    {
+      "font": {
+        "name": "Tahoma",
+        "sizePt": 19,
+      },
+      "horizontalAlign": "left",
+      "id": "entryContent",
+      "verticalAlign": "top",
+      "wrapText": true,
+    },
+    {
+      "font": {
+        "bold": true,
+        "name": "Tahoma",
+        "sizePt": 19,
+      },
+      "horizontalAlign": "left",
+      "id": "entryContentBold",
+      "verticalAlign": "top",
+      "wrapText": true,
+    },
+    {
+      "font": {
+        "bold": true,
+        "name": "Tahoma",
+        "sizePt": 14,
+      },
+      "horizontalAlign": "left",
+      "id": "footerLabel",
+      "verticalAlign": "center",
+      "wrapText": true,
+    },
+    {
+      "font": {
+        "name": "Tahoma",
+        "sizePt": 12,
+      },
+      "horizontalAlign": "center",
+      "id": "footerValue",
+      "verticalAlign": "center",
+    },
+    {
+      "font": {
+        "name": "Tahoma",
+        "sizePt": 12,
+      },
+      "horizontalAlign": "center",
+      "id": "footerDateValue",
+      "verticalAlign": "center",
+    },
+  ],
+  "templateId": "farplas-7step-tr",
+}
+`;
