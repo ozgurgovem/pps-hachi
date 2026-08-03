@@ -1,3 +1,4 @@
+import { columnLetterToIndex, parseRange } from "./cellRef";
 import { STEP_IDS, type Entry, type ProjectModel, type StepId } from "../domain/model";
 import type {
   A3LayoutDescriptor,
@@ -58,7 +59,7 @@ export function buildA3Layout(
   const allEntries = flattenEntries(project);
 
   const cells: CellData[] = [];
-  const merges: MergedRange[] = [...template.merges];
+  const dynamicMerges: MergedRange[] = [];
   const overflowWarnings: OverflowWarning[] = [];
   const droppedEntryIds = new Set<string>();
   const pendingImages: PendingImageSlot[] = [];
@@ -116,7 +117,7 @@ export function buildA3Layout(
     );
 
     cells.push(...placement.cells);
-    merges.push(...placement.merges);
+    dynamicMerges.push(...placement.merges);
     pendingImages.push(...placement.pendingImages);
 
     const budget = computeBlockBudget(template, block);
@@ -128,6 +129,20 @@ export function buildA3Layout(
       }
     }
   }
+
+  // Static template merges (`template.merges`) include a whole-row merge for
+  // some single-row content blocks (e.g. Step 3's B58:O58) — correct geometry
+  // for an empty block or one holding a plain lines-based entry, but D-102's
+  // `zones` mechanism can split that same row into narrower merges
+  // (SMART Target's B58:F58/M58:O58). rust_xlsxwriter rejects two merges
+  // whose ranges partially overlap, so any static merge overlapping a
+  // dynamically-placed one is dropped in favor of the dynamic one — never
+  // hardcoded to Step 3 or any one method, since any future zoned or
+  // otherwise sub-divided block hits the same static/dynamic collision.
+  const staticMerges = template.merges.filter(
+    (staticMerge) => !dynamicMerges.some((dynamicMerge) => rangesOverlap(staticMerge.range, dynamicMerge.range)),
+  );
+  const merges: MergedRange[] = [...staticMerges, ...dynamicMerges];
 
   const a3Sheet: SheetDescriptor = {
     name: "A3",
@@ -274,6 +289,16 @@ function flattenContentForAppendix(content: A3BlockContent): readonly A3TextLine
 
 function topLeft(range: string): string {
   return range.split(":")[0] ?? range;
+}
+
+function rangesOverlap(a: string, b: string): boolean {
+  const rangeA = parseRange(a);
+  const rangeB = parseRange(b);
+  const colsOverlap =
+    columnLetterToIndex(rangeA.start.column) <= columnLetterToIndex(rangeB.end.column) &&
+    columnLetterToIndex(rangeB.start.column) <= columnLetterToIndex(rangeA.end.column);
+  const rowsOverlap = rangeA.start.row <= rangeB.end.row && rangeB.start.row <= rangeA.end.row;
+  return colsOverlap && rowsOverlap;
 }
 
 function columnWidthsInRange(

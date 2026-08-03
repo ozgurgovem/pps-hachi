@@ -667,9 +667,6 @@
           "range": "B57:O57"
         },
         {
-          "range": "B58:O58"
-        },
-        {
           "range": "J59:M59"
         },
         {
@@ -951,7 +948,7 @@
       "images": [
         {
           "id": "img-1",
-          "data": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=",
+          "data": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVR4nGNYxcAAAAICAKtef57WAAAAAElFTkSuQmCC",
           "mimeType": "image/png",
           "anchorCell": "B9",
           "widthPt": 40,
@@ -959,7 +956,7 @@
         },
         {
           "id": "s2-e1-pareto-chart",
-          "data": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=",
+          "data": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVR4nGMQcHgPAAGjAUCjI8YQAAAAAElFTkSuQmCC",
           "mimeType": "image/png",
           "anchorCell": "B24",
           "widthPt": 1394.25,
@@ -967,7 +964,7 @@
         },
         {
           "id": "s2-e2-trend-chart",
-          "data": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=",
+          "data": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVR4nGNQcLgPAAHDAUD5e5G8AAAAAElFTkSuQmCC",
           "mimeType": "image/png",
           "anchorCell": "B35",
           "widthPt": 1394.25,
@@ -975,7 +972,7 @@
         },
         {
           "id": "s3-e1-trajectory-chart",
-          "data": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=",
+          "data": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVR4nGMwcDgPAAHjAUAVQ7wKAAAAAElFTkSuQmCC",
           "mimeType": "image/png",
           "anchorCell": "G58",
           "widthPt": 530.25,
@@ -983,7 +980,7 @@
         },
         {
           "id": "s4-e1-fishbone-diagram",
-          "data": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=",
+          "data": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVR4nGNwcNgPAAIDAUBzJmZUAAAAAElFTkSuQmCC",
           "mimeType": "image/png",
           "anchorCell": "P9",
           "widthPt": 1406.25,

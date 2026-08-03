@@ -18,9 +18,9 @@ import type { PendingImageSlot } from "../layout/place";
  * `src/a3` itself — only from the composition root (`a3Preview.ts`), which
  * owns the async/impure boundary.
  *
- * Two timing hazards this function exists to defeat, both invisible to
- * jsdom tests (which mock `html-to-image`) and both empirically confirmed
- * during the Phase 5 architecture review:
+ * Three hazards this function exists to defeat, all invisible to jsdom
+ * tests (which mock `html-to-image`) and all empirically confirmed by
+ * actually running this in a real Chromium — P-21's own "yürütülmemiş yol":
  *
  *   1. `createRoot(host).render(node)` does **not** commit synchronously,
  *      and has still not committed one microtask later — measured, not
@@ -35,6 +35,18 @@ import type { PendingImageSlot } from "../layout/place";
  *      `A3ImageSize`) rather than relying on `ResponsiveContainer`, so a
  *      missed measurement degrades to "correct size, maybe unpolished"
  *      instead of "zero-sized, blank".
+ *   3. A host positioned far outside the viewport (`top`/`left` several
+ *      hundred px or more off-screen) captures as **blank** in a real
+ *      browser even after (1) and (2) are fixed — confirmed with a
+ *      real-Chromium offset sweep: 0px off-screen captures full content,
+ *      -100px is already partially blank, -1000px and beyond are
+ *      uniformly white. This is a paint/rasterization-time viewport
+ *      culling behavior, not a React timing issue, and is exactly why (1)
+ *      and (2) alone were not enough. The host is instead kept at *on-screen*
+ *      coordinates (`top: 0; left: 0`) inside a zero-size,
+ *      `overflow: hidden` ancestor — invisible to the user, but never
+ *      culled, since "on-screen but clipped to nothing" and "off-screen"
+ *      are not the same thing to the renderer.
  */
 const RASTER_SCALE = 3;
 const PT_TO_PX = 96 / 72;
@@ -74,14 +86,23 @@ export async function rasterizePendingImage(
   const widthPx = Math.max(1, Math.round(slot.widthPt * PT_TO_PX));
   const heightPx = Math.max(1, Math.round(slot.heightPt * PT_TO_PX));
 
+  // Hazard 3 (see the file comment): stay on-screen at (0, 0) so nothing
+  // culls the paint, but clip it to nothing via a zero-size overflow:hidden
+  // ancestor so it is never visible to the user.
+  const clipWrapper = document.createElement("div");
+  clipWrapper.style.position = "fixed";
+  clipWrapper.style.top = "0";
+  clipWrapper.style.left = "0";
+  clipWrapper.style.width = "0";
+  clipWrapper.style.height = "0";
+  clipWrapper.style.overflow = "hidden";
+
   const host = document.createElement("div");
-  host.style.position = "fixed";
-  host.style.top = "-10000px";
-  host.style.left = "-10000px";
   host.style.width = `${widthPx}px`;
   host.style.height = `${heightPx}px`;
   host.style.backgroundColor = "#FFFFFF";
-  document.body.appendChild(host);
+  clipWrapper.appendChild(host);
+  document.body.appendChild(clipWrapper);
 
   const root = createRoot(host);
   try {
@@ -109,7 +130,7 @@ export async function rasterizePendingImage(
     };
   } finally {
     root.unmount();
-    host.remove();
+    clipWrapper.remove();
   }
 }
 

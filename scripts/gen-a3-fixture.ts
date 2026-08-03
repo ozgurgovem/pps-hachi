@@ -18,17 +18,65 @@
  */
 import { writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
+import { deflateSync } from "node:zlib";
 import { buildA3Layout } from "../src/a3/buildA3Layout";
 import type { ImagePlacement } from "../src/a3/descriptor";
 import { farplas7StepTr } from "../src/a3/templates/farplas-7step-tr";
 import type { ProjectModel, StepState } from "../src/domain/model";
 import { getA3RendererMap } from "../src/methods/registry";
 
-// A well-known minimal valid 1x1 PNG, used only to prove image placement
-// round-trips through the descriptor -> Rust writer -> a real xlsx file —
-// never real chart pixels (this script has no DOM/canvas to rasterize with).
-const ONE_PIXEL_PNG_BASE64 =
-  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=";
+const CRC_TABLE = buildCrc32Table();
+
+function buildCrc32Table(): Uint32Array {
+  const table = new Uint32Array(256);
+  for (let n = 0; n < 256; n += 1) {
+    let c = n;
+    for (let k = 0; k < 8; k += 1) {
+      c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
+    }
+    table[n] = c >>> 0;
+  }
+  return table;
+}
+
+function crc32(bytes: Buffer): number {
+  let crc = 0xffffffff;
+  for (const byte of bytes) {
+    crc = CRC_TABLE[(crc ^ byte) & 0xff]! ^ (crc >>> 8);
+  }
+  return (crc ^ 0xffffffff) >>> 0;
+}
+
+function pngChunk(type: string, data: Buffer): Buffer {
+  const typeBytes = Buffer.from(type, "ascii");
+  const length = Buffer.alloc(4);
+  length.writeUInt32BE(data.length);
+  const crc = Buffer.alloc(4);
+  crc.writeUInt32BE(crc32(Buffer.concat([typeBytes, data])));
+  return Buffer.concat([length, typeBytes, data, crc]);
+}
+
+/**
+ * A valid, minimal 1x1 RGB PNG carrying the given color, base64-encoded.
+ * Real charts differ in pixel content between images; a fixture that reused
+ * one byte-identical placeholder across every slot would let
+ * `rust_xlsxwriter`'s real media-deduplication (same bytes -> one physical
+ * file, many drawing anchors — correct OOXML behavior) collapse N descriptor
+ * images into 1 media file, defeating this fixture's job of exercising
+ * "N images in, N media files out" (`xlsx.rs`'s
+ * `embedded_images_land_in_the_workbook_as_real_media`).
+ */
+function onePixelPngBase64(r: number, g: number, b: number): string {
+  const signature = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+  const ihdrData = Buffer.from([0, 0, 0, 1, 0, 0, 0, 1, 8, 2, 0, 0, 0]);
+  const idatData = deflateSync(Buffer.from([0, r, g, b]));
+  return Buffer.concat([
+    signature,
+    pngChunk("IHDR", ihdrData),
+    pngChunk("IDAT", idatData),
+    pngChunk("IEND", Buffer.alloc(0)),
+  ]).toString("base64");
+}
 
 const rendererMap = getA3RendererMap();
 
@@ -171,15 +219,17 @@ const first = buildA3Layout(project, farplas7StepTr, { rendererMap });
 const images: ImagePlacement[] = [
   {
     id: "img-1",
-    data: ONE_PIXEL_PNG_BASE64,
+    data: onePixelPngBase64(0xaa, 0x00, 0x00),
     mimeType: "image/png",
     anchorCell: "B9",
     widthPt: 40,
     heightPt: 30,
   },
-  ...first.pendingImages.map((slot) => ({
+  ...first.pendingImages.map((slot, index) => ({
     id: `${slot.entryId}-${slot.kind}`,
-    data: ONE_PIXEL_PNG_BASE64,
+    // Index-derived color keeps every slot's bytes distinct from the others
+    // and from img-1 above — see onePixelPngBase64's doc comment.
+    data: onePixelPngBase64(0x10 * (index + 1), 0x40, 0xff - 0x10 * (index + 1)),
     mimeType: "image/png" as const,
     anchorCell: slot.anchorCell,
     widthPt: slot.widthPt,
