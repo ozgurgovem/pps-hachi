@@ -232,6 +232,134 @@
         "physicalEvidence": "Physical Evidence",
         "productivity": "Productivity"
       }
+    },
+    "rowTable": {
+      "addRow": "Add row",
+      "removeRow": "Remove row"
+    },
+    "gapStatement": {
+      "name": "Gap statement",
+      "useWhen": "Use this to state the problem as the distance between the ideal and actual condition.",
+      "idealLabel": "Ideal",
+      "actualLabel": "Actual",
+      "gapLabel": "Gap"
+    },
+    "fiveW2H": {
+      "name": "5W2H",
+      "useWhen": "Use this as a broad problem-clarification checklist covering what, where, when, who, which, how and how much.",
+      "fields": {
+        "what": "What",
+        "where": "Where",
+        "when": "When",
+        "who": "Who",
+        "which": "Which",
+        "how": "How",
+        "howMuch": "How much"
+      }
+    },
+    "problemTypeClassifier": {
+      "name": "Problem type classifier",
+      "useWhen": "Use this to classify the problem before choosing a method — a standard that was never met, a standard worth raising, or performance that varies.",
+      "classificationLabel": "Classification",
+      "noteLabel": "Note",
+      "classifications": {
+        "belowStandard": "Below standard",
+        "raiseTheStandard": "Raise the standard",
+        "inconsistentPerformance": "Inconsistent performance"
+      }
+    },
+    "tpmLossTaxonomy": {
+      "name": "TPM loss taxonomy",
+      "useWhen": "Use this to tag which company-reported loss categories this problem affects, and how severely.",
+      "severityLabel": "Severity",
+      "categories": {
+        "workSafety": "Work Safety",
+        "cost": "Cost",
+        "productivity": "Productivity",
+        "quality": "Quality",
+        "maintenance": "Maintenance",
+        "humanResources": "Human Resources",
+        "environment": "Environment"
+      },
+      "severities": {
+        "low": "Low",
+        "medium": "Medium",
+        "high": "High"
+      }
+    },
+    "vocComplaint": {
+      "name": "VOC / complaint record",
+      "useWhen": "Use this to log customer complaints behind this problem — one row per claim.",
+      "columns": {
+        "customer": "Customer",
+        "claimNo": "Claim no.",
+        "partNo": "Part no.",
+        "ppm": "PPM",
+        "date": "Date"
+      }
+    },
+    "containmentIca": {
+      "name": "Containment / ICA",
+      "useWhen": "Use this to log interim containment actions while the root cause is still being worked — automotive standard.",
+      "columns": {
+        "action": "Action",
+        "owner": "Owner",
+        "startDate": "Start date",
+        "effectivenessCheck": "Effectiveness check",
+        "exitCriteria": "Exit criteria"
+      }
+    },
+    "stratificationMatrix": {
+      "name": "Stratification matrix",
+      "useWhen": "Use this to break occurrences down by line, shift, machine, cavity, operator, supplier, date or product — before guessing at a cause.",
+      "columns": {
+        "line": "Line",
+        "shift": "Shift",
+        "machine": "Machine",
+        "cavity": "Cavity",
+        "operator": "Operator",
+        "supplier": "Supplier",
+        "date": "Date",
+        "product": "Product",
+        "count": "Count"
+      }
+    },
+    "checkSheet": {
+      "name": "Check sheet",
+      "useWhen": "Use this as a tally sheet for counting how often each defect type occurs.",
+      "columns": {
+        "item": "Item",
+        "count": "Count",
+        "date": "Date",
+        "note": "Note"
+      }
+    },
+    "processFlowSipoc": {
+      "name": "Process flow / SIPOC",
+      "useWhen": "Use this to map the process — Supplier, Input, Process, Output, Customer — one row per step.",
+      "columns": {
+        "step": "Step",
+        "supplier": "Supplier",
+        "input": "Input",
+        "process": "Process",
+        "output": "Output",
+        "customer": "Customer"
+      }
+    },
+    "msaGageRr": {
+      "name": "MSA / Gage R&R note",
+      "useWhen": "Use this to record whether the measurement system itself is trustworthy before trusting the data it produced.",
+      "methodLabel": "Method",
+      "evaluatorLabel": "Evaluator",
+      "dateLabel": "Date",
+      "percentGrrLabel": "% GRR",
+      "verdictLabel": "Verdict",
+      "noteLabel": "Note",
+      "verdicts": {
+        "trustworthy": "Trustworthy",
+        "notTrustworthy": "Not trustworthy",
+        "inconclusive": "Inconclusive"
+      }
     }
   },
   "gallery": {

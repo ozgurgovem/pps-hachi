@@ -1,0 +1,25 @@
+import { describe, expect, it } from "vitest";
+import { renderGapStatementToA3 } from "./renderToA3";
+import type { GapStatementPayload } from "./schema";
+
+function emptyPayload(): GapStatementPayload {
+  return { ideal: "", actual: "", gap: "" };
+}
+
+describe("renderGapStatementToA3", () => {
+  it("renders only the non-blank fields as labeled lines, after the bold title", () => {
+    const payload: GapStatementPayload = { ...emptyPayload(), ideal: "Zero leaks", gap: "3 PPM" };
+    const content = renderGapStatementToA3(payload, { id: "e1", title: "Leak at final test" });
+
+    expect(content.lines).toEqual([
+      { text: "Leak at final test", bold: true },
+      { text: "Ideal: Zero leaks" },
+      { text: "Gap: 3 PPM" },
+    ]);
+  });
+
+  it("renders only the title line when every field is blank", () => {
+    const content = renderGapStatementToA3(emptyPayload(), { id: "e1", title: "Leak at final test" });
+    expect(content.lines).toEqual([{ text: "Leak at final test", bold: true }]);
+  });
+});

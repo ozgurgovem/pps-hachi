@@ -1,22 +1,32 @@
 import type { ReactNode } from "react";
 import type { A3EntryRendererMap, A3ImageKind, A3ImageSize } from "../a3/methodContract";
 import type { StepId } from "../domain/model";
+import { checkSheetMethod } from "./checkSheet";
+import { containmentIcaMethod } from "./containmentIca";
 import { fishboneMethod } from "./fishbone";
 import { fiveG5N1KMethod } from "./fiveG5N1K";
+import { fiveW2HMethod } from "./fiveW2H";
 import { fiveWhyMethod } from "./fiveWhy";
+import { gapStatementMethod } from "./gapStatement";
 import { genericTextMethod } from "./genericText";
 import { isIsNotMethod } from "./isIsNot";
+import { msaGageRrMethod } from "./msaGageRr";
 import { paretoMethod } from "./pareto";
+import { problemTypeClassifierMethod } from "./problemTypeClassifier";
+import { processFlowSipocMethod } from "./processFlowSipoc";
 import { smartTargetMethod } from "./smartTarget";
+import { stratificationMatrixMethod } from "./stratificationMatrix";
 import { threeLeggedFiveWhyMethod } from "./threeLeggedFiveWhy";
+import { tpmLossTaxonomyMethod } from "./tpmLossTaxonomy";
 import { trendMethod } from "./trend";
 import { registerMethod, type ErasedMethodPlugin } from "./types";
+import { vocComplaintMethod } from "./vocComplaint";
 
 /**
  * D-07: adding a method must never require touching the step page, the
  * preview, or the exporter — this array is the one place a new plugin is
- * registered. Phase 3 shipped exactly one plugin; Phase 5 adds the rest of
- * SPEC.md §6's wave 1 list.
+ * registered. Phase 3 shipped exactly one plugin; Phase 5 added SPEC.md §6's
+ * wave 1; Phase 6a (D-114) adds Steps 1–2's remaining ten.
  */
 export const METHOD_REGISTRY: readonly ErasedMethodPlugin[] = [
   registerMethod(genericTextMethod),
@@ -28,6 +38,16 @@ export const METHOD_REGISTRY: readonly ErasedMethodPlugin[] = [
   registerMethod(smartTargetMethod),
   registerMethod(fiveWhyMethod),
   registerMethod(threeLeggedFiveWhyMethod),
+  registerMethod(gapStatementMethod),
+  registerMethod(fiveW2HMethod),
+  registerMethod(problemTypeClassifierMethod),
+  registerMethod(tpmLossTaxonomyMethod),
+  registerMethod(vocComplaintMethod),
+  registerMethod(containmentIcaMethod),
+  registerMethod(stratificationMatrixMethod),
+  registerMethod(checkSheetMethod),
+  registerMethod(processFlowSipocMethod),
+  registerMethod(msaGageRrMethod),
 ];
 
 export function getMethodsForStep(stepId: StepId): readonly ErasedMethodPlugin[] {

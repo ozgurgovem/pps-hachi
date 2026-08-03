@@ -232,6 +232,134 @@
         "physicalEvidence": "Fiziksel Kanıt",
         "productivity": "Verimlilik"
       }
+    },
+    "rowTable": {
+      "addRow": "Satır ekle",
+      "removeRow": "Satırı kaldır"
+    },
+    "gapStatement": {
+      "name": "Boşluk ifadesi",
+      "useWhen": "Problemi ideal durum ile mevcut durum arasındaki fark olarak ifade etmek için kullanın.",
+      "idealLabel": "İdeal",
+      "actualLabel": "Mevcut",
+      "gapLabel": "Boşluk"
+    },
+    "fiveW2H": {
+      "name": "5W2H",
+      "useWhen": "Ne, nerede, ne zaman, kim, hangisi, nasıl ve ne kadar sorularını kapsayan geniş bir problem netleştirme kontrol listesi olarak kullanın.",
+      "fields": {
+        "what": "Ne",
+        "where": "Nerede",
+        "when": "Ne zaman",
+        "who": "Kim",
+        "which": "Hangisi",
+        "how": "Nasıl",
+        "howMuch": "Ne kadar"
+      }
+    },
+    "problemTypeClassifier": {
+      "name": "Problem tipi sınıflandırıcı",
+      "useWhen": "Bir method seçmeden önce problemi sınıflandırmak için kullanın — hiç karşılanmamış bir standart, yükseltilmeye değer bir standart veya değişken performans.",
+      "classificationLabel": "Sınıflandırma",
+      "noteLabel": "Not",
+      "classifications": {
+        "belowStandard": "Standardın altında",
+        "raiseTheStandard": "Standardı yükselt",
+        "inconsistentPerformance": "Tutarsız performans"
+      }
+    },
+    "tpmLossTaxonomy": {
+      "name": "TPM kayıp taksonomisi",
+      "useWhen": "Bu problemin şirketin raporladığı hangi kayıp kategorilerini, ne şiddette etkilediğini işaretlemek için kullanın.",
+      "severityLabel": "Şiddet",
+      "categories": {
+        "workSafety": "İş Güvenliği",
+        "cost": "Maliyet",
+        "productivity": "Verimlilik",
+        "quality": "Kalite",
+        "maintenance": "Bakım",
+        "humanResources": "İnsan Kaynakları",
+        "environment": "Çevre"
+      },
+      "severities": {
+        "low": "Düşük",
+        "medium": "Orta",
+        "high": "Yüksek"
+      }
+    },
+    "vocComplaint": {
+      "name": "VOC / şikâyet kaydı",
+      "useWhen": "Bu problemin arkasındaki müşteri şikâyetlerini kaydetmek için kullanın — her talep bir satır.",
+      "columns": {
+        "customer": "Müşteri",
+        "claimNo": "Talep no.",
+        "partNo": "Parça no.",
+        "ppm": "PPM",
+        "date": "Tarih"
+      }
+    },
+    "containmentIca": {
+      "name": "Containment / ICA",
+      "useWhen": "Kök neden üzerinde hâlâ çalışılırken geçici containment aksiyonlarını kaydetmek için kullanın — otomotiv standardı.",
+      "columns": {
+        "action": "Aksiyon",
+        "owner": "Sorumlu",
+        "startDate": "Başlangıç tarihi",
+        "effectivenessCheck": "Etkinlik kontrolü",
+        "exitCriteria": "Çıkış kriteri"
+      }
+    },
+    "stratificationMatrix": {
+      "name": "Stratifikasyon matrisi",
+      "useWhen": "Bir nedeni tahmin etmeden önce oluşumları hat, vardiya, makine, göz, operatör, tedarikçi, tarih veya ürüne göre kırılımlamak için kullanın.",
+      "columns": {
+        "line": "Hat",
+        "shift": "Vardiya",
+        "machine": "Makine",
+        "cavity": "Göz",
+        "operator": "Operatör",
+        "supplier": "Tedarikçi",
+        "date": "Tarih",
+        "product": "Ürün",
+        "count": "Adet"
+      }
+    },
+    "checkSheet": {
+      "name": "Check sheet",
+      "useWhen": "Her hata tipinin ne sıklıkta oluştuğunu saymak için bir tally sheet olarak kullanın.",
+      "columns": {
+        "item": "Kalem",
+        "count": "Adet",
+        "date": "Tarih",
+        "note": "Not"
+      }
+    },
+    "processFlowSipoc": {
+      "name": "Süreç akışı / SIPOC",
+      "useWhen": "Süreci haritalamak için kullanın — Tedarikçi, Girdi, Süreç, Çıktı, Müşteri — her adım bir satır.",
+      "columns": {
+        "step": "Adım",
+        "supplier": "Tedarikçi",
+        "input": "Girdi",
+        "process": "Süreç",
+        "output": "Çıktı",
+        "customer": "Müşteri"
+      }
+    },
+    "msaGageRr": {
+      "name": "MSA / Gage R&R notu",
+      "useWhen": "Üretilen veriye güvenmeden önce ölçüm sisteminin kendisinin güvenilir olup olmadığını kaydetmek için kullanın.",
+      "methodLabel": "Yöntem",
+      "evaluatorLabel": "Değerlendiren",
+      "dateLabel": "Tarih",
+      "percentGrrLabel": "% GRR",
+      "verdictLabel": "Sonuç",
+      "noteLabel": "Not",
+      "verdicts": {
+        "trustworthy": "Güvenilir",
+        "notTrustworthy": "Güvenilir değil",
+        "inconclusive": "Belirsiz"
+      }
     }
   },
   "gallery": {
