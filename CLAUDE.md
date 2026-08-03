@@ -392,3 +392,33 @@ Phase 5 (method plugins wave 1 — 5G+5N1K, Pareto, Trend, Is/Is-Not, SMART Targ
   capture path, but no chart has ever been rasterized in a real browser or Tauri webview in any
   session — jsdom cannot produce a PNG. The one thing that would actually confirm charts export
   correctly is opening the app, adding a Pareto entry and exporting (P-21).
+Phase 6 entry gates (P-19, P-21): CLOSED 2026-08-03, see D-110–D-113. The Rust toolchain was
+  reachable all along (a missing `PATH` entry, not a missing install — D-110); running `cargo
+  test` for the first time found a real merge-overlap defect between static template merges and
+  D-102 zones, fixed generically in `buildA3Layout.ts` (D-111), and a fixture realism gap in
+  `scripts/gen-a3-fixture.ts` that the strengthened xlsx image-count test then caught for real
+  (D-112). Rasterizing in a real Chromium found a third capture hazard beneath D-105's two —
+  viewport culling of an off-screen host positioned at a large negative offset — fixed in
+  `rasterize.ts` by mounting on-screen inside a zero-size `overflow: hidden` wrapper (D-113).
+Phase 6a (Steps 1–2's remaining ten methods): DONE 2026-08-03, per D-114's approved five-slice
+  split — 6a only, no new subsystem. `src/methods/shared/rowTable.ts` + `RowTableEditor.tsx`
+  (D-115): a generic "row list, caller-configured columns" substrate extracted before the
+  second repetition, mirroring Phase 5's `whyChain.ts`/`WhyChainEditor.tsx` shared-editor shape.
+  Ten new plugins under `src/methods/`, each following Phase 5's file shape (`index.ts`/
+  `schema.ts`/`Editor.tsx`/`renderToA3.ts` + a schema test, an Editor test and a renderToA3
+  test): `gapStatement`, `fiveW2H`, `problemTypeClassifier` (fixed-field forms, Step 1);
+  `tpmLossTaxonomy` (SPEC §3.0's SQDCM→TPM correction, a fixed seven-category grid, not a row
+  table — D-122); `vocComplaint`, `containmentIca` (Step 1, wrap `RowTableEditor`);
+  `stratificationMatrix` (Step 2, wraps `RowTableEditor`, gained an implied `count` column not
+  named in SPEC.md — D-121), `checkSheet`, `processFlowSipoc` (Step 2, wrap `RowTableEditor`);
+  `msaGageRr` (Step 2, fixed-field form). Row-table fields are uniformly `string`-typed,
+  including PPM and tally counts — D-120. `getMethodsForStep` now returns more methods per step
+  for Steps 1 and 2; `WorkspaceScreen.test.tsx`'s existing scoped queries (Phase 5's D-102
+  test-scoping lesson) needed no changes — already scoped to a specific method card / used
+  `getAllByRole` with a length check rather than an exact count. TR/EN i18n keys added together
+  for every new method and for the shared `methods.rowTable.addRow`/`removeRow` labels.
+  `npm test` 379/379 (103 files), `npm run lint` clean (the one pre-existing ThemeProvider
+  warning), `npm run build` green (same pre-existing chunk-size warning as Phase 3/4/5).
+  `cargo test` 89/89, `cargo clippy --all-targets -- -D warnings` and `cargo fmt -- --check`
+  both clean — Rust untouched by 6a, as expected (TS-only method plugins). Not yet committed
+  to git.

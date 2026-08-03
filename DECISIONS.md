@@ -267,6 +267,25 @@ and the stakeholder note all closed in Phase 5.
 
 ---
 
+## Phase 6a — Steps 1–2's ten plain methods, 2026-08-03
+
+DONE. Ten methods against D-114's 6a scope, following Phase 5's exact file
+shape (`index.ts`/`schema.ts`/`Editor.tsx`/`renderToA3.ts` + a schema test, an
+Editor test and a renderToA3 test each) — Gap Statement, 5W2H, Problem type
+classifier, TPM loss taxonomy, VOC/complaint record, Containment/ICA (Step
+1); Stratification matrix, Check sheet, Process flow/SIPOC, MSA/Gage R&R note
+(Step 2). No new subsystem: every method is payload → schema → Editor →
+`renderToA3` text lines, the same pattern Phase 5 established, plus one
+abstraction (D-115) pulled forward one repetition early. `references[]`
+(D-116), image ingestion (D-118) and the distribution-chart `ChartSpec`
+extension are untouched, exactly as scoped.
+
+| D-120 | 2026-08-03 | **Every field in a row-table row (`rowTable.ts`, D-115) is a plain `string` — including PPM, tally counts and dates.** No per-column numeric or `Date` typing. | These fields are recorded, never computed on (nothing sums a PPM column or sorts a date column yet), so a numeric/date type would buy nothing beyond D-51's loose `z.string()` default while adding per-field type branching to one shared editor and formatter that has to stay generic across five different row shapes. `<input type="date">` already round-trips a plain ISO string with no parsing on either side. Revisit only if a future method needs to aggregate a row-table column (a real Check Sheet total, say) — that method can layer its own numeric parsing over the still-string-typed field without changing the shared substrate. | LOCKED |
+| D-121 | 2026-08-03 | **The stratification matrix gets a ninth `count` column beyond `SPEC.md` §1.3's eight named dimensions (line/shift/machine/cavity/operator/supplier/date/product).** | A stratification matrix that only classifies occurrences by stratum, with nothing recording how many occurrences fall in each stratum, cannot show which stratum accounts for most of the problem — the entire reason to stratify in the first place. `SPEC.md` describes the dimensions, not the full field list, the same gap D-38/D-98 already filled elsewhere by adding an implied-but-unstated field. | LOCKED |
+| D-122 | 2026-08-03 | **TPM loss taxonomy (D-110's §3.0 category set) is a fixed seven-row grid — each category a `{ applies: boolean, severity }` tag — not a row table.** Mirrors `isIsNot`'s fixed-dimension shape (Phase 5), not D-115's variable-length row list. | The seven categories are a closed domain taxonomy the company already reports against, not a user-extensible list — nothing about the tool calls for adding an eighth category or removing "Cost". A row table would let a user rename or delete a company-standard category by accident; a fixed grid can't. | LOCKED |
+
+---
+
 ## Pending — raised, not yet decided
 
 | # | Date | Question | Blocking |
