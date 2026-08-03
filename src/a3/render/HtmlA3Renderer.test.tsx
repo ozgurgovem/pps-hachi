@@ -50,7 +50,7 @@ function fixtureProject(): ProjectModel {
 
 describe("HtmlA3Renderer", () => {
   it("renders the title and every block header from the descriptor", () => {
-    const descriptor = buildA3Layout(fixtureProject(), farplas7StepTr, { rendererMap });
+    const { descriptor } = buildA3Layout(fixtureProject(), farplas7StepTr, { rendererMap });
     render(<HtmlA3Renderer descriptor={descriptor} mode="screen" />);
 
     expect(screen.getByText("Kapı Panel Gürültü Problemi")).toBeDefined();
@@ -59,7 +59,7 @@ describe("HtmlA3Renderer", () => {
   });
 
   it("renders visibly smaller in print mode than in screen mode (D-34: ~41.5% fit scale)", () => {
-    const descriptor = buildA3Layout(fixtureProject(), farplas7StepTr, { rendererMap });
+    const { descriptor } = buildA3Layout(fixtureProject(), farplas7StepTr, { rendererMap });
 
     const { container: screenContainer } = render(
       <HtmlA3Renderer descriptor={descriptor} mode="screen" />,

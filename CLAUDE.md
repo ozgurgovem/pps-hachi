@@ -117,7 +117,7 @@ rejections, no console noise in production builds.
 
 ## Current state
 
-Phase: 4 of 12
+Phase: 5 of 12
 Stack decision (Tauri vs Electron fallback): Tauri v2, revisit only if Phase 4 stalls
 App name: **PPS Hachi** (八 — eight). Repo `pps-hachi`. Set 2026-08-01, see DECISIONS.md D-29.
 AI layer: specified, not started. Phases 8–10.
@@ -293,3 +293,102 @@ Phase 4 (A3 descriptor + HTML preview + xlsx export + `farplas-7step-tr`): DONE 
   `cargo test` 89/89 (80 lib + 2 `.ppsx`-fixture integration + 7 xlsx-fidelity integration),
   `cargo clippy --all-targets -- -D warnings` and `cargo fmt -- --check` both clean.
   Not yet committed to git.
+Phase 5 (method plugins wave 1 — 5G+5N1K, Pareto, Trend, Is/Is-Not, SMART Target, Fishbone,
+  5-Why, 3-Legged 5-Why): DONE 2026-08-03, per SPEC.md §6's Phase 5 row. Two open design
+  questions were resolved with Barış's sign-off before any implementation (per CLAUDE.md's
+  "before writing code for a new area, write a short plan and let me approve it") — D-102
+  (how a method contributes a chart/diagram image to its block) and D-103/D-104 (Fishbone's
+  data shape and its 6M/8P category labels, neither defined in SPEC.md). Pareto and Fishbone
+  were built first as the two reference implementations proving the chart-image and
+  graph/diagram-image patterns; the remaining six were built against the now-settled pattern.
+  Model-routing note: D-28's own routing asked for Opus on this design work plus Pareto/
+  Fishbone, then Sonnet for the rest — this session ran entirely on Sonnet 5 (no mid-session
+  model switch is possible), and Barış chose to proceed on Sonnet 5 throughout rather than
+  pause, so all eight methods were designed and built on Sonnet 5 — flagged in D-102.
+  `src/a3/methodContract.ts`: `A3BlockContent` gained `image?: A3ImageRequest` (a chart/
+  diagram consuming `rowSpan` content rows in the existing vertical text-line stack) and
+  `zones?: readonly A3ContentZone[]` (a horizontal partition of one reserved row-span into
+  text/image sub-regions — generic, not hardcoded to any step; D-38's Step 3 three-zone strip
+  is simply the first user). `src/a3/layout/place.ts` gained image-row-span reservation using
+  the block's *real* per-row heights (not a flat scalar — Step 2's block ends on a 93.75 pt
+  row, Step 3's is one 153.75 pt row); `src/a3/layout/placeZones.ts` (new) snaps each zone's
+  `widthFraction` to whole-column boundaries and lays zones out horizontally. `buildA3Layout`'s
+  return type changed from `A3LayoutDescriptor` to `{ descriptor, pendingImages }` — a
+  Phase-4-code-touching change, flagged in D-102 — discovered in the same block-iteration pass
+  that produces the descriptor, so geometry can never disagree between the two. The composition
+  root (`src/app/routes/workspace/a3Preview.ts`) calls `buildA3Layout` once with no images,
+  rasterizes each pending slot's spec to PNG off-screen (new `src/a3/render/rasterize.ts`, a
+  D-94-style purity-boundary carve-out using `html-to-image` — one capture path for both
+  Recharts' pure-SVG output and React Flow's mixed DOM/SVG output), then calls `buildA3Layout`
+  again with the bytes — the final, fully-baked descriptor both `HtmlA3Renderer` and the Rust
+  writer consume unchanged. `RightPanel.tsx`'s descriptor build moved from a synchronous
+  `useMemo` to an effect with a `cancelled` guard, since the second pass is genuinely async, and
+  gained a `loading` state alongside `ok`/`error`. Which React node renders a given
+  `A3ImageKind` is dependency-injected the same way `renderToA3` already is (D-99): `MethodPlugin`
+  gained optional `imageKind`/`renderImage` fields, and `src/methods/registry.ts`'s new
+  `getA3ImageRendererMap()` assembles the map `rasterize.ts` receives as a parameter.
+  New deps: `recharts`, `@xyflow/react`, `html-to-image`.
+  Eight new plugins under `src/methods/` (`fiveG5N1K`, `pareto`, `fishbone`, `trend`,
+  `isIsNot`, `smartTarget`, `fiveWhy`, `threeLeggedFiveWhy`), each following `genericText`'s
+  file shape (`index.ts`/`schema.ts`/`Editor.tsx`/`renderToA3.ts`) plus a schema test, an
+  Editor test and a renderToA3 test — none of which `genericText` itself had (Phase 3
+  predates that explicit requirement); `src/methods/shared/` (new) holds `whyChain.ts` and
+  `WhyChainEditor.tsx`, shared by `fiveWhy` and `threeLeggedFiveWhy`'s three parallel legs,
+  and `src/methods/chartSpec.ts` holds the discriminated `ChartSpec` union (`ParetoChartSpec`/
+  `TrendChartSpec`/`TrajectoryChartSpec`) Pareto/Trend/SMART Target's charts and the AI layer's
+  future spec-emission (SPEC.md §8.8) are meant to converge on. Fishbone's Zod schema stores a
+  fixed, algorithmically-positioned category spine (never persisted, never draggable) plus
+  freeform React-Flow-shaped cause nodes (`{id, categoryId, parentCauseId?, text, position?}`,
+  one level of sub-cause nesting); edges are always *derived* from `categoryId`/`parentCauseId`
+  at render time, never stored, per D-71's lesson about two representations of one relationship
+  with no precedence rule. `getMethodsForStep` now returns more than one plugin for Steps 1
+  (`generic-text` + `five-g-5n1k`), 2 (+ `pareto`, `trend`, `is-is-not`), 3 (+ `smart-target`)
+  and 4 (+ `fishbone`, `five-why`, `three-legged-five-why`) for the first time — this exposed
+  and fixed a real pre-existing test-scoping bug in `WorkspaceScreen.test.tsx` (queries for the
+  single "Add entry" button/"Free text" card were ambiguous the moment a step legitimately
+  offered a second method or already had an entry; both fixed to scope to the method band's own
+  section / assert every "Add entry" button, not silently narrowed to keep the old query passing).
+  Pareto/Trend/SMART Target's chart survival into the xlsx export is proven two ways: a
+  dedicated `xlsxSurvival.test.ts` per method (TypeScript, exercising the real plugin through
+  `buildA3Layout`'s two-call pattern with a synthetic PNG standing in for a rasterized chart —
+  the same "prove the pipeline, not pixel content" philosophy D-97 already established) and by
+  extending `scripts/gen-a3-fixture.ts` to use the real method registry (`getA3RendererMap()`)
+  with Pareto/Trend/SMART Target/Fishbone entries instead of a hand-rolled fake renderer map —
+  the checked-in `a3-layout-descriptor.json` fixture now carries 5 embedded images (was 1), and
+  `src-tauri/tests/xlsx.rs`'s image test was strengthened from "at least one" to an exact
+  per-image media count. Known scope gaps, documented not dropped: an image-bearing entry
+  dropped to an appendix loses its image there — for SMART Target specifically (whose
+  `renderToA3` always returns empty `lines`) this means the appendix entry is completely
+  blank, not just missing its chart (P-20); Fishbone's editor manages top-level cause add/
+  remove/reposition only — the schema supports one level of sub-cause nesting but the UI for
+  "add as a sub-cause of X" is out of scope this phase, not silently dropped.
+  Post-implementation architecture review (independent Opus pass, 2026-08-03, requested before
+  starting Phase 6 — same practice as Phases 2 and 3, and warranted here because D-102 was both
+  a brand-new mechanism and a change to already-shipped Phase 4 code, designed end-to-end on
+  Sonnet rather than the Opus D-28 asks for on architecture). Ran probe tests against the real
+  functions rather than reading code. Found five defects, all reproduced before being fixed —
+  D-105 through D-109. The headline one (D-105): `rasterize.ts` captured the off-screen host
+  before React had committed to it, so **every exported chart and diagram would have been a
+  blank PNG** — measured, not theorized (`innerHTML` is `""` immediately after `render()` and
+  after one microtask; it only populates a macrotask later), and structurally invisible to the
+  test suite because `rasterize.test.ts` mocks `html-to-image`. Fixed with `flushSync` + a
+  layout-settle yield, and structurally by giving every chart an **explicit pixel box**
+  (`A3ImageSize` → `renderImage(spec, size)`) instead of Recharts' `ResponsiveContainer`, plus
+  `isAnimationActive={false}` on every series. Also fixed: a zero-height image slot anchored
+  outside its own block (D-106), silent loss of surplus zones when a block has fewer columns
+  than zones (D-107 — the exact SPEC.md §2.3 truncation D-100 exists to prevent, sitting in the
+  *generic* mechanism), a completely blank appendix sheet for zone-only entries like the
+  mandatory SMART Target (D-108), and `Promise.all` letting one failed chart destroy the whole
+  preview (D-109). Nine regression tests added, each verified to fail against the unfixed code.
+  `npm test` 296/296 (71 files), `npm run lint` clean (the one pre-existing ThemeProvider
+  warning), `npm run build` green (same pre-existing chunk-size warning as Phase 3/4, larger
+  now with Recharts/React Flow). `cargo test`/`cargo clippy --all-targets -- -D warnings`/
+  `cargo fmt -- --check` could **not** be run this session — this environment's shell has no
+  Rust toolchain installed at all (`cargo`/`rustc` not found), a hard environment gap rather
+  than a result — see DECISIONS.md P-19. The `xlsx.rs` diff itself is small and mechanical
+  (verified by reading, not execution); Barış should run the three cargo commands locally
+  before treating Phase 5's Rust side as verified rather than merely read.
+  **Still owed, and deliberately not claimed as done:** D-105's fix restores a *correct*
+  capture path, but no chart has ever been rasterized in a real browser or Tauri webview in any
+  session — jsdom cannot produce a PNG. The one thing that would actually confirm charts export
+  correctly is opening the app, adding a Pareto entry and exporting (P-21).

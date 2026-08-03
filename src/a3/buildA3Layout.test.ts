@@ -99,14 +99,14 @@ describe("buildA3Layout", () => {
       },
     });
 
-    const descriptor = buildA3Layout(project, farplas7StepTr, { rendererMap });
+    const { descriptor } = buildA3Layout(project, farplas7StepTr, { rendererMap });
 
     expect(descriptor).toMatchSnapshot();
   });
 
   it("carries all 46 template merges plus any content merges added during placement", () => {
     const project = fixtureProject();
-    const descriptor = buildA3Layout(project, farplas7StepTr, { rendererMap });
+    const { descriptor } = buildA3Layout(project, farplas7StepTr, { rendererMap });
 
     const templateMergeCount = farplas7StepTr.merges.length;
     expect(templateMergeCount).toBe(46);
@@ -130,7 +130,7 @@ describe("buildA3Layout", () => {
       },
     });
 
-    const descriptor = buildA3Layout(project, farplas7StepTr, { rendererMap });
+    const { descriptor } = buildA3Layout(project, farplas7StepTr, { rendererMap });
 
     const a3CellValues = descriptor.sheets.a3.cells.map((cell) => cell.value);
     expect(a3CellValues).not.toContain("Detaylı Analiz");
@@ -158,7 +158,7 @@ describe("buildA3Layout", () => {
       },
     });
 
-    const descriptor = buildA3Layout(project, farplas7StepTr, { rendererMap });
+    const { descriptor } = buildA3Layout(project, farplas7StepTr, { rendererMap });
 
     expect(descriptor.overflowWarnings.length).toBeGreaterThan(0);
     const warning = descriptor.overflowWarnings.find((w) => w.stepIds.includes(3));
@@ -174,9 +174,51 @@ describe("buildA3Layout", () => {
     }
   });
 
+  it("appendixes a zones-only entry's content instead of producing a blank sheet", () => {
+    // Phase 5 review regression: `buildAppendixSheets` read only
+    // `content.lines`, so a method whose content lives entirely in `zones`
+    // (SMART Target returns `lines: []` by design) appendixed as a
+    // completely empty sheet — losing exactly what the appendix exists to
+    // preserve (SPEC.md §2.3).
+    const zonesRendererMap: A3EntryRendererMap = {
+      "smart-target": () => ({
+        lines: [],
+        zones: [
+          { widthFraction: 0.5, lines: [{ text: "Panel rezonansını azalt" }] },
+          { widthFraction: 0.5, image: { kind: "trajectory-chart", spec: {} } },
+        ],
+      }),
+    };
+
+    const project = fixtureProject({
+      steps: {
+        ...fixtureProject().steps,
+        3: {
+          entries: [
+            fixtureEntry({
+              id: "zoned-appendix-entry",
+              methodId: "smart-target",
+              title: "Hedef Kartı",
+              a3Visibility: "appendix",
+            }),
+          ],
+        },
+      },
+    });
+
+    const { descriptor } = buildA3Layout(project, farplas7StepTr, {
+      rendererMap: zonesRendererMap,
+    });
+
+    expect(descriptor.sheets.appendices).toHaveLength(1);
+    const values = descriptor.sheets.appendices[0]!.cells.map((cell) => cell.value);
+    expect(values).toContain("Hedef Kartı");
+    expect(values).toContain("Panel rezonansını azalt");
+  });
+
   it("resolves header and footer fields from project meta and sign-off", () => {
     const project = fixtureProject();
-    const descriptor = buildA3Layout(project, farplas7StepTr, { rendererMap });
+    const { descriptor } = buildA3Layout(project, farplas7StepTr, { rendererMap });
 
     const cellByRef = (ref: string) =>
       descriptor.sheets.a3.cells.find((cell) => cell.ref === ref)?.value;

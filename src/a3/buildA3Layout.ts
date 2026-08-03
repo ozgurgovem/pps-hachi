@@ -5,13 +5,15 @@ import type {
   ImagePlacement,
   MergedRange,
   OverflowWarning,
+  RowDef,
   SheetDescriptor,
 } from "./descriptor";
 import { computeBlockBudget } from "./layout/budget";
+import type { ColumnWidth } from "./layout/contentStyle";
 import { excelColumnWidthToPt } from "./layout/measure";
 import { computeOverflowWarning } from "./layout/overflow";
-import { placeBlockContent } from "./layout/place";
-import type { A3EntryRendererMap } from "./methodContract";
+import { placeBlockContent, type PendingImageSlot } from "./layout/place";
+import type { A3BlockContent, A3EntryRendererMap, A3TextLine } from "./methodContract";
 import type { A3Template, TemplateBlock } from "./templates/types";
 
 export interface BuildA3LayoutOptions {
@@ -19,16 +21,32 @@ export interface BuildA3LayoutOptions {
   /**
    * Already-encoded image bytes to place on the A3 sheet. `buildA3Layout` is
    * pure and has no filesystem access (D-04) — resolving `Entry.images`
-   * asset paths to bytes is the (impure) caller's job, done before this is
-   * invoked. Empty by default; Phase 4 does not yet ingest photos from
-   * entries — see DECISIONS.md.
+   * asset paths to bytes, and rasterizing a chart/diagram method's
+   * `pendingImages` request to PNG (D-102), are both the (impure) caller's
+   * job, done before this is invoked. Empty by default.
    */
   readonly images?: readonly ImagePlacement[];
 }
 
+export interface BuildA3LayoutResult {
+  readonly descriptor: A3LayoutDescriptor;
+  /**
+   * D-102: chart/diagram slots discovered while placing content, not yet
+   * backed by pixels — geometry only. The caller rasterizes each one's
+   * `spec` (impure, off-screen) and calls `buildA3Layout` again with the
+   * bytes in `options.images` to get the final, fully-baked descriptor both
+   * `HtmlA3Renderer` and the Rust writer consume. Never crosses the Tauri
+   * IPC boundary itself — only the final descriptor does. Known gap: an
+   * image-bearing entry that overflows to an appendix sheet currently loses
+   * its image there (appendix sheets only carry text) — same class of gap
+   * as Phase 4's un-ingested `Entry.images` (P-18), not solved this phase.
+   */
+  readonly pendingImages: readonly PendingImageSlot[];
+}
+
 /**
  * D-03/D-04: pure and deterministic — same `project`/`template`/`options`
- * always produce a byte-identical descriptor. No `Date.now()`, no
+ * always produce a byte-identical result. No `Date.now()`, no
  * `crypto.randomUUID()`, no `Intl`/locale defaults, no filesystem or network
  * access. This is what makes the golden-file test meaningful.
  */
@@ -36,13 +54,14 @@ export function buildA3Layout(
   project: ProjectModel,
   template: A3Template,
   options: BuildA3LayoutOptions,
-): A3LayoutDescriptor {
+): BuildA3LayoutResult {
   const allEntries = flattenEntries(project);
 
   const cells: CellData[] = [];
   const merges: MergedRange[] = [...template.merges];
   const overflowWarnings: OverflowWarning[] = [];
   const droppedEntryIds = new Set<string>();
+  const pendingImages: PendingImageSlot[] = [];
 
   cells.push({ ref: topLeft(template.titleRange), value: project.meta.title, styleId: "title" });
 
@@ -82,20 +101,23 @@ export function buildA3Layout(
     });
 
     const blockEntries = entriesForBlock(allEntries, block);
-    const blockWidthPt = sumColumnWidthPt(
+    const contentColumnWidths = columnWidthsInRange(
       template,
       block.contentColumns.first,
       block.contentColumns.last,
     );
+    const contentRows = rowsInBlockRange(template, block);
     const placement = placeBlockContent(
       blockEntries,
       block,
-      blockWidthPt,
+      contentRows,
+      contentColumnWidths,
       options.rendererMap,
     );
 
     cells.push(...placement.cells);
     merges.push(...placement.merges);
+    pendingImages.push(...placement.pendingImages);
 
     const budget = computeBlockBudget(template, block);
     const warning = computeOverflowWarning(block, budget, placement);
@@ -131,11 +153,14 @@ export function buildA3Layout(
   const appendices = buildAppendixSheets(allEntries, droppedEntryIds, options.rendererMap);
 
   return {
-    templateId: template.id,
-    language: template.language,
-    styles: template.styles,
-    sheets: { a3: a3Sheet, appendices },
-    overflowWarnings,
+    descriptor: {
+      templateId: template.id,
+      language: template.language,
+      styles: template.styles,
+      sheets: { a3: a3Sheet, appendices },
+      overflowWarnings,
+    },
+    pendingImages,
   };
 }
 
@@ -183,9 +208,11 @@ function buildAppendixSheets(
       ? renderer(entry.payload, { id: entry.id, title: entry.title })
       : { lines: [{ text: entry.title, bold: true }] };
 
+    const appendixLines = flattenContentForAppendix(content);
+
     const cells: CellData[] = [
       { ref: "B2", value: entry.title, styleId: "entryContentBold" },
-      ...content.lines.map((line, lineIndex) => ({
+      ...appendixLines.map((line, lineIndex) => ({
         ref: `B${4 + lineIndex}`,
         value: line.text,
         styleId: line.bold ? "entryContentBold" : "entryContent",
@@ -197,7 +224,7 @@ function buildAppendixSheets(
       columns: [{ key: "A", charWidth: 2 }, { key: "B", charWidth: 80 }],
       rows: [
         { index: 2, heightPt: 24 },
-        ...content.lines.map((_, lineIndex) => ({ index: 4 + lineIndex, heightPt: 20 })),
+        ...appendixLines.map((_, lineIndex) => ({ index: 4 + lineIndex, heightPt: 20 })),
       ],
       merges: [],
       cells,
@@ -218,16 +245,54 @@ function buildAppendixSheets(
   });
 }
 
+/**
+ * SPEC.md §2.3 ("the export must never silently truncate content") applied
+ * to D-102's non-text content shapes. An appendix sheet carries text only,
+ * but a method whose content lives entirely in `zones` (SMART Target, whose
+ * `renderToA3` returns `lines: []` by design) would otherwise appendix as a
+ * completely blank sheet — losing the very content the appendix exists to
+ * preserve. Zone text is flattened in reading order; a chart/diagram is
+ * noted as a placeholder line rather than silently vanishing, since an
+ * appendix sheet has no image placement of its own yet (see P-20).
+ */
+function flattenContentForAppendix(content: A3BlockContent): readonly A3TextLine[] {
+  const lines: A3TextLine[] = [...content.lines];
+
+  if (content.image) {
+    lines.push({ text: `[${content.image.kind}]` });
+  }
+
+  for (const zone of content.zones ?? []) {
+    lines.push(...(zone.lines ?? []));
+    if (zone.image) {
+      lines.push({ text: `[${zone.image.kind}]` });
+    }
+  }
+
+  return lines;
+}
+
 function topLeft(range: string): string {
   return range.split(":")[0] ?? range;
 }
 
-function sumColumnWidthPt(template: A3Template, firstKey: string, lastKey: string): number {
+function columnWidthsInRange(
+  template: A3Template,
+  firstKey: string,
+  lastKey: string,
+): readonly ColumnWidth[] {
   const firstIndex = template.columns.findIndex((column) => column.key === firstKey);
   const lastIndex = template.columns.findIndex((column) => column.key === lastKey);
-  return template.columns
-    .slice(firstIndex, lastIndex + 1)
-    .reduce((total, column) => total + excelColumnWidthToPt(column.charWidth), 0);
+  return template.columns.slice(firstIndex, lastIndex + 1).map((column) => ({
+    key: column.key,
+    widthPt: excelColumnWidthToPt(column.charWidth),
+  }));
+}
+
+function rowsInBlockRange(template: A3Template, block: TemplateBlock): readonly RowDef[] {
+  return template.rows.filter(
+    (row) => row.index >= block.contentRows.start && row.index <= block.contentRows.end,
+  );
 }
 
 function resolveHeaderFieldValue(fieldId: string, project: ProjectModel): string {

@@ -41,7 +41,15 @@ function renderWorkspace(overrides: { readOnly?: boolean } = {}) {
 }
 
 async function addGenericTextEntry(user: ReturnType<typeof userEvent.setup>, title: string) {
-  await user.click(screen.getByRole("button", { name: "Add entry" }));
+  // Phase 5 gave some steps a second method card (e.g. Pareto on step 2),
+  // each with its own identically-labeled "Add entry" button per CLAUDE.md's
+  // "same action keeps the same name" copy rule, and EntryRow also renders a
+  // plugin's display name as a per-entry label — scope to the method band's
+  // own section, then to the Free text card within it, so this stays
+  // unambiguous regardless of how many methods or entries already exist.
+  const methodBand = screen.getByRole("heading", { name: "Add an entry" }).closest("section");
+  const freeTextCard = within(methodBand!).getByText("Free text").closest("div");
+  await user.click(within(freeTextCard!).getByRole("button", { name: "Add entry" }));
   const dialog = await screen.findByRole("dialog");
   await user.type(within(dialog).getByLabelText("Title"), title);
   await user.type(within(dialog).getByLabelText("Text"), `${title} body`);
@@ -198,6 +206,10 @@ describe("WorkspaceScreen — Phase 3 done-condition", () => {
     renderWorkspace({ readOnly: true });
 
     expect(await screen.findByText(/newer version of PPS Hachi/)).toBeTruthy();
-    expect((screen.getByRole("button", { name: "Add entry" }) as HTMLButtonElement).disabled).toBe(true);
+    // Step 1 now offers more than one method card (Phase 5) — every "Add
+    // entry" button on the page must be disabled, not just the first one.
+    const addEntryButtons = screen.getAllByRole("button", { name: "Add entry" }) as HTMLButtonElement[];
+    expect(addEntryButtons.length).toBeGreaterThan(0);
+    expect(addEntryButtons.every((button) => button.disabled)).toBe(true);
   });
 });

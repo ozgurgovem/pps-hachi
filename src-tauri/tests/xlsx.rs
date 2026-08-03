@@ -192,21 +192,35 @@ fn styles_carry_the_documented_fonts_and_pdca_fill_colors() {
 
 /// Fidelity (images): the descriptor's embedded photo/chart PNGs must
 /// actually land in the workbook as real media, anchored — not floating,
-/// per CLAUDE.md's "Image anchoring in xlsx" warning.
+/// per CLAUDE.md's "Image anchoring in xlsx" warning. Phase 5 (D-102): the
+/// fixture now carries five images — one synthetic placement plus one per
+/// chart/diagram method (Pareto, Trend, SMART Target's trajectory chart,
+/// Fishbone) — proving the `pendingImages` → rasterize → second
+/// `buildA3Layout` call pipeline is source-agnostic to Rust by the time it
+/// reaches `ImagePlacement`: every declared image lands as real media, not
+/// just "at least one."
 #[test]
 fn embedded_images_land_in_the_workbook_as_real_media() {
     let descriptor = load_descriptor();
     assert!(
-        !descriptor.sheets.a3.images.is_empty(),
-        "fixture should carry at least one image — see scripts/gen-a3-fixture.ts"
+        descriptor.sheets.a3.images.len() >= 5,
+        "fixture should carry the synthetic image plus one per chart/diagram \
+         method (Pareto, Trend, SMART Target, Fishbone) — see scripts/gen-a3-fixture.ts, \
+         got {} images",
+        descriptor.sheets.a3.images.len()
     );
 
     let bytes = write_a3_workbook(&descriptor).expect("workbook should write");
     let entries = zip_entry_names(&bytes);
+    let media_count = entries
+        .iter()
+        .filter(|name| name.starts_with("xl/media/"))
+        .count();
 
-    assert!(
-        entries.iter().any(|name| name.starts_with("xl/media/")),
-        "expected an embedded image under xl/media/, got: {entries:?}"
+    assert_eq!(
+        media_count,
+        descriptor.sheets.a3.images.len(),
+        "expected one embedded media file per descriptor image, got entries: {entries:?}"
     );
 }
 

@@ -1,14 +1,20 @@
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { save } from "@tauri-apps/plugin-dialog";
 import { useProjectStore } from "../../../state";
 import { Button, TabsContent, TabsList, TabsRoot, TabsTrigger } from "../../../ui";
 import { HtmlA3Renderer } from "../../../a3/render/HtmlA3Renderer";
+import type { A3LayoutDescriptor } from "../../../a3/descriptor";
 import { errorMessage } from "../launch/errorMessage";
 import { buildProjectA3Layout } from "./a3Preview";
 import { xlsxExport } from "./xlsxIpc";
 
 const XLSX_FILTER = [{ name: "Excel Workbook", extensions: ["xlsx"] }];
+
+type DescriptorResult =
+  | { readonly status: "loading" }
+  | { readonly status: "ok"; readonly descriptor: A3LayoutDescriptor }
+  | { readonly status: "error"; readonly error: unknown };
 
 /**
  * SPEC.md §2.2: collapsible, two tabs. "Assistant" only exists when AI is
@@ -16,6 +22,10 @@ const XLSX_FILTER = [{ name: "Excel Workbook", extensions: ["xlsx"] }];
  * the branch is wired now so Phase 8 doesn't have to touch this file.
  * "A3 Preview" now renders the real `A3LayoutDescriptor` via
  * `HtmlA3Renderer` (Phase 4) — D-34's screen/print modes are a toggle here.
+ * D-102: `buildProjectA3Layout` is async (a project with a chart/diagram
+ * entry needs an off-screen rasterization pass), so the descriptor is
+ * effect-driven rather than a `useMemo` — the `requestId` guard discards a
+ * stale in-flight build if `project` changes again before it resolves.
  */
 export function RightPanel() {
   const { t } = useTranslation();
@@ -24,16 +34,29 @@ export function RightPanel() {
   const [previewMode, setPreviewMode] = useState<"screen" | "print">("screen");
   const [isExporting, setIsExporting] = useState(false);
   const [exportError, setExportError] = useState<string | null>(null);
+  const [descriptorResult, setDescriptorResult] = useState<DescriptorResult>({ status: "loading" });
 
-  const descriptorResult = useMemo(() => {
+  useEffect(() => {
     if (!project) {
-      return null;
+      return;
     }
-    try {
-      return { ok: true as const, descriptor: buildProjectA3Layout(project) };
-    } catch (error) {
-      return { ok: false as const, error };
-    }
+    let cancelled = false;
+    setDescriptorResult({ status: "loading" });
+    buildProjectA3Layout(project).then(
+      (descriptor) => {
+        if (!cancelled) {
+          setDescriptorResult({ status: "ok", descriptor });
+        }
+      },
+      (error: unknown) => {
+        if (!cancelled) {
+          setDescriptorResult({ status: "error", error });
+        }
+      },
+    );
+    return () => {
+      cancelled = true;
+    };
   }, [project]);
 
   if (!project) {
@@ -58,7 +81,7 @@ export function RightPanel() {
   const aiEnabled = project.meta.ai.enabled;
 
   async function handleExport() {
-    if (!descriptorResult?.ok) {
+    if (descriptorResult.status !== "ok") {
       return;
     }
     setExportError(null);
@@ -120,7 +143,7 @@ export function RightPanel() {
                 variant="primary"
                 size="sm"
                 onClick={handleExport}
-                disabled={!descriptorResult?.ok || isExporting}
+                disabled={descriptorResult.status !== "ok" || isExporting}
               >
                 {isExporting ? t("workspace.rightPanel.exporting") : t("workspace.rightPanel.export")}
               </Button>
@@ -131,9 +154,15 @@ export function RightPanel() {
               </p>
             )}
             <div className="overflow-auto rounded border border-border">
-              {descriptorResult?.ok ? (
+              {descriptorResult.status === "ok" && (
                 <HtmlA3Renderer descriptor={descriptorResult.descriptor} mode={previewMode} />
-              ) : (
+              )}
+              {descriptorResult.status === "loading" && (
+                <p className="p-3 font-body text-sm text-ink-muted">
+                  {t("workspace.rightPanel.previewLoading")}
+                </p>
+              )}
+              {descriptorResult.status === "error" && (
                 <p className="p-3 font-body text-sm text-ink-muted">
                   {t("workspace.rightPanel.previewError")}
                 </p>

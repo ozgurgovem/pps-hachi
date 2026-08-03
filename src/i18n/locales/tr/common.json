@@ -100,7 +100,8 @@
       "export": "A3'ü dışa aktar",
       "exporting": "Dışa aktarılıyor…",
       "exportDialogTitle": "A3'ü Excel olarak dışa aktar",
-      "previewError": "Bu proje için A3 önizlemesi oluşturulamadı."
+      "previewError": "Bu proje için A3 önizlemesi oluşturulamadı.",
+      "previewLoading": "A3 önizlemesi hazırlanıyor…"
     },
     "entryDialog": {
       "createTitle": "Yeni giriş",
@@ -117,6 +118,120 @@
       "name": "Serbest metin",
       "useWhen": "Henüz uygun bir method yokken kullanın — düz bir not.",
       "fieldLabel": "Metin"
+    },
+    "pareto": {
+      "name": "Pareto grafiği",
+      "useWhen": "Etkinin çoğunu taşıyan az sayıdaki hayati nedeni bulmak için kullanın — 80/20 görünümü.",
+      "unitLabel": "Birim",
+      "categoryLabel": "Kategori",
+      "countLabel": "Adet",
+      "addCategory": "Kategori ekle",
+      "removeCategory": "Kategoriyi kaldır"
+    },
+    "whyChain": {
+      "whyLabel": "Neden {{count}}",
+      "addWhy": "Neden ekle",
+      "removeWhy": "Nedeni kaldır"
+    },
+    "fiveWhy": {
+      "name": "5 Neden",
+      "useWhen": "Basit, doğrusal bir nedensellik zinciri için kullanın — yalnızca Adım 4.",
+      "problemStatementLabel": "Problem tanımı"
+    },
+    "threeLeggedFiveWhy": {
+      "name": "3 Bacaklı 5 Neden",
+      "useWhen": "Müşteri şikayetleri için kullanın — otomotiv varsayılanı. Oluşumu, tespiti ve sistemik/yönetimsel boşluğu paralel test eder.",
+      "problemStatementLabel": "Problem tanımı",
+      "occurrenceLabel": "Oluşum",
+      "detectionLabel": "Tespit",
+      "systemicLabel": "Sistemik"
+    },
+    "smartTarget": {
+      "name": "SMART hedef kartı",
+      "useWhen": "Adım 3 için kullanın — 8 adımlı yöntemi 7 adımlıdan ayıran zorunlu hedef.",
+      "metricLabel": "Metrik",
+      "unitLabel": "Birim",
+      "ownerLabel": "Sorumlu",
+      "baselineLabel": "Başlangıç",
+      "targetLabel": "Hedef",
+      "dueDateLabel": "Bitiş tarihi",
+      "prioritizedItemsLabel": "Önceliklendirilmiş maddeler",
+      "prioritizedItemLabel": "Öncelikli madde",
+      "addItem": "Madde ekle",
+      "removeItem": "Maddeyi kaldır",
+      "stakeholderNoteLabel": "Paydaş uyum notu"
+    },
+    "isIsNot": {
+      "name": "Is / Is-Not",
+      "useWhen": "Problemi kesin sınırlarıyla tanımlamak için kullanın — ne olduğu ile olabilecekken olmadığı, nerede/ne zaman/kapsam boyutlarıyla.",
+      "isLabel": "Is (Öyle)",
+      "isNotLabel": "Is Not (Değil)",
+      "dimensions": {
+        "what": "What (Ne)",
+        "where": "Where (Nerede)",
+        "when": "When (Ne zaman)",
+        "extent": "Extent (Kapsam)"
+      }
+    },
+    "trend": {
+      "name": "Trend / seyir grafiği",
+      "useWhen": "Metriğin zaman içinde gerçekten hareket edip etmediğini bir hedefe ve bilinen olaylara karşı görmek için kullanın.",
+      "unitLabel": "Birim",
+      "targetValueLabel": "Hedef değer",
+      "targetLabelLabel": "Hedef etiketi",
+      "pointsLabel": "Veri noktaları",
+      "pointLabel": "Dönem",
+      "pointValueLabel": "Değer",
+      "addPoint": "Nokta ekle",
+      "removePoint": "Noktayı kaldır",
+      "eventsLabel": "Olay işaretleri",
+      "eventLabelLabel": "Olay",
+      "eventAtLabel": "Dönemde",
+      "addEvent": "Olay ekle",
+      "removeEvent": "Olayı kaldır"
+    },
+    "fiveG5N1K": {
+      "name": "5G + 5N1K",
+      "useWhen": "Problemi netleştirmenin varsayılan yolu olarak kullanın — gerçek yeri, nesneyi ve verileri görün, sonra ne/nerede/nasıl/ne zaman/ne kadar/kim sorularını yanıtlayın.",
+      "fields": {
+        "gemba": "Gemba (gerçek yer)",
+        "gembutsu": "Gembutsu (gerçek nesne)",
+        "genjitsu": "Genjitsu (gerçek veriler)",
+        "genri": "Genri (teori / ilke)",
+        "gensoku": "Gensoku (kural / standart)",
+        "ne": "Ne",
+        "nerede": "Nerede",
+        "nasil": "Nasıl",
+        "neZaman": "Ne zaman",
+        "neKadar": "Ne kadar",
+        "kim": "Kim"
+      }
+    },
+    "fishbone": {
+      "name": "Balık kılçığı (Ishikawa)",
+      "useWhen": "Test etmeden önce olası kök nedenleri kategoriye göre haritalamak için kullanın — yalnızca Adım 4.",
+      "categorySetLabel": "Kategori seti",
+      "categoryLabel": "Kategori",
+      "causeLabel": "Neden",
+      "addCause": "Neden ekle",
+      "removeCause": "Nedeni kaldır",
+      "categories": {
+        "man": "İnsan",
+        "machine": "Makine",
+        "material": "Malzeme",
+        "method": "Metot",
+        "measurement": "Ölçüm",
+        "environment": "Çevre",
+        "management": "Yönetim",
+        "price": "Fiyat",
+        "product": "Ürün",
+        "place": "Yer",
+        "promotion": "Tutundurma",
+        "people": "İnsanlar",
+        "process": "Süreç",
+        "physicalEvidence": "Fiziksel Kanıt",
+        "productivity": "Verimlilik"
+      }
     }
   },
   "gallery": {

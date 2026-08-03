@@ -100,7 +100,8 @@
       "export": "Export A3",
       "exporting": "Exporting…",
       "exportDialogTitle": "Export A3 as Excel",
-      "previewError": "The A3 preview could not be built for this project."
+      "previewError": "The A3 preview could not be built for this project.",
+      "previewLoading": "Building the A3 preview…"
     },
     "entryDialog": {
       "createTitle": "New entry",
@@ -117,6 +118,120 @@
       "name": "Free text",
       "useWhen": "Use this when no dedicated method fits yet — a plain note.",
       "fieldLabel": "Text"
+    },
+    "pareto": {
+      "name": "Pareto chart",
+      "useWhen": "Use this to find the vital few causes carrying most of the effect — the 80/20 view.",
+      "unitLabel": "Unit",
+      "categoryLabel": "Category",
+      "countLabel": "Count",
+      "addCategory": "Add category",
+      "removeCategory": "Remove category"
+    },
+    "whyChain": {
+      "whyLabel": "Why {{count}}",
+      "addWhy": "Add why",
+      "removeWhy": "Remove why"
+    },
+    "fiveWhy": {
+      "name": "5 Why",
+      "useWhen": "Use this for a straightforward, linear chain of causality — Step 4 only.",
+      "problemStatementLabel": "Problem statement"
+    },
+    "threeLeggedFiveWhy": {
+      "name": "3-Legged 5 Why",
+      "useWhen": "Use this for customer complaints — the automotive default. Tests occurrence, detection and the systemic/management gap in parallel.",
+      "problemStatementLabel": "Problem statement",
+      "occurrenceLabel": "Occurrence",
+      "detectionLabel": "Detection",
+      "systemicLabel": "Systemic"
+    },
+    "smartTarget": {
+      "name": "SMART target card",
+      "useWhen": "Use this for Step 3 — the mandatory target that distinguishes an 8-step problem from a 7-step one.",
+      "metricLabel": "Metric",
+      "unitLabel": "Unit",
+      "ownerLabel": "Owner",
+      "baselineLabel": "Baseline",
+      "targetLabel": "Target",
+      "dueDateLabel": "Due date",
+      "prioritizedItemsLabel": "Prioritised items",
+      "prioritizedItemLabel": "Prioritised item",
+      "addItem": "Add item",
+      "removeItem": "Remove item",
+      "stakeholderNoteLabel": "Stakeholder alignment note"
+    },
+    "isIsNot": {
+      "name": "Is / Is-Not",
+      "useWhen": "Use this to bound the problem precisely — what it is versus what it could be but isn't, by where, when and extent.",
+      "isLabel": "Is",
+      "isNotLabel": "Is Not",
+      "dimensions": {
+        "what": "What",
+        "where": "Where",
+        "when": "When",
+        "extent": "Extent"
+      }
+    },
+    "trend": {
+      "name": "Trend / run chart",
+      "useWhen": "Use this to see whether the metric is actually moving over time, against a target and known events.",
+      "unitLabel": "Unit",
+      "targetValueLabel": "Target value",
+      "targetLabelLabel": "Target label",
+      "pointsLabel": "Data points",
+      "pointLabel": "Period",
+      "pointValueLabel": "Value",
+      "addPoint": "Add point",
+      "removePoint": "Remove point",
+      "eventsLabel": "Event markers",
+      "eventLabelLabel": "Event",
+      "eventAtLabel": "At period",
+      "addEvent": "Add event",
+      "removeEvent": "Remove event"
+    },
+    "fiveG5N1K": {
+      "name": "5G + 5N1K",
+      "useWhen": "Use this as the default way to clarify a problem — go see the actual place, thing and facts, then answer what/where/how/when/how much/who.",
+      "fields": {
+        "gemba": "Gemba (the actual place)",
+        "gembutsu": "Gembutsu (the actual thing)",
+        "genjitsu": "Genjitsu (the actual facts)",
+        "genri": "Genri (theory / principle)",
+        "gensoku": "Gensoku (rule / standard)",
+        "ne": "What",
+        "nerede": "Where",
+        "nasil": "How",
+        "neZaman": "When",
+        "neKadar": "How much",
+        "kim": "Who"
+      }
+    },
+    "fishbone": {
+      "name": "Fishbone (Ishikawa)",
+      "useWhen": "Use this to map candidate root causes by category before testing them — Step 4 only.",
+      "categorySetLabel": "Category set",
+      "categoryLabel": "Category",
+      "causeLabel": "Cause",
+      "addCause": "Add cause",
+      "removeCause": "Remove cause",
+      "categories": {
+        "man": "Man",
+        "machine": "Machine",
+        "material": "Material",
+        "method": "Method",
+        "measurement": "Measurement",
+        "environment": "Environment",
+        "management": "Management",
+        "price": "Price",
+        "product": "Product",
+        "place": "Place",
+        "promotion": "Promotion",
+        "people": "People",
+        "process": "Process",
+        "physicalEvidence": "Physical Evidence",
+        "productivity": "Productivity"
+      }
     }
   },
   "gallery": {
