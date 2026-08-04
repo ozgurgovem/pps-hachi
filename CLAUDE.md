@@ -117,7 +117,7 @@ rejections, no console noise in production builds.
 
 ## Current state
 
-Phase: 5 of 12
+Phase: 6 of 12 (slice 6b of D-114's five; 6c–6e remain)
 Stack decision (Tauri vs Electron fallback): Tauri v2, revisit only if Phase 4 stalls
 App name: **PPS Hachi** (八 — eight). Repo `pps-hachi`. Set 2026-08-01, see DECISIONS.md D-29.
 AI layer: specified, not started. Phases 8–10.
@@ -422,3 +422,77 @@ Phase 6a (Steps 1–2's remaining ten methods): DONE 2026-08-03, per D-114's app
   `cargo test` 89/89, `cargo clippy --all-targets -- -D warnings` and `cargo fmt -- --check`
   both clean — Rust untouched by 6a, as expected (TS-only method plugins). Not yet committed
   to git.
+Phase 6b (cross-step reference subsystem + ten methods): DONE 2026-08-04, per D-114's 6b
+  scope. Scope was re-derived from `SPEC.md` §1.3 line by line against Phases 5/6a rather
+  than from the slice sketch, which surfaced D-123: the Step 4 PFMEA linkage holds **no**
+  `Entry.references[]` — a PFMEA is an external controlled document and §4.2 houses those in
+  `meta.linkedRecords[]` — so it counts as one of Step 4's five *plain* methods, and the
+  fifth reference-bearing method is Step 6's action plan. That is the only reading under
+  which both of D-114's own counts hold. Two design questions went to Barış before any code
+  (D-123 scope, D-124 granularity); both answers are what shipped.
+  **New subsystem — the first since D-102, and it touches the already-shipped `Entry` type.**
+  `src/domain/model/reference.ts`: `EntryReference` (`{ role, targetEntryId }`, loose per
+  D-51) plus `REFERENCE_ROLES` — `pointOfCause`/`rootCause`/`countermeasure` from §4.2, plus
+  `containment` as a fourth constant added with no schema change and no migration (D-126,
+  D-116's loose-`role` design paying off). `Entry.references?` is optional and omitted rather
+  than `[]` (D-128), so every pre-6b `.ppsx` parses unchanged and serializes identically.
+  `src/domain/selectors/findOrphanedReferences.ts` (new dir): `findOrphanedReferences`,
+  `findReferencesTo`, `listReferenceableEntries` — all derived, nothing stored, nothing
+  checked at load (D-117 + D-59's read-only-open promise). Deleting a referenced entry is
+  permitted, leaves the referrer untouched and dangling, and undo resolves it again with no
+  compensating logic — proven end to end through the real store in
+  `entryReferences.integration.test.tsx`. Commands: `buildAddEntryCommand`/
+  `buildUpdateEntryCommand` gained `references`; an update that omits it leaves existing
+  references alone, one that passes `[]` clears the key.
+  UI: the picker is **generic shell UI**, not plugin UI (D-125) — `MethodPlugin` gained
+  `referenceRoles: { role, labelKey, emptyKey, fromSteps, multiple }[]`, and
+  `EntryEditorDialog` renders one `src/app/routes/workspace/EntryReferenceField.tsx` per
+  declared role beside the title field. No method's `Editor` touches references (its props
+  are payload-only and references sit outside `payload`). Built from Phase 1 primitives —
+  filter `Input` + a listbox of buttons — rather than a combobox dependency. A dangling
+  reference is shown as missing and stays unlinkable-by-hand, never silently dropped.
+  Picking dispatches `entry.update` directly rather than through D-84's coalescing.
+  D-124's granularity call: one traceable node = one `Entry`, so the countermeasure "list",
+  the action plan "table" and the ICA→PCA tracker are one entry per record — the entries band
+  is the list §1.3 names. Forced by references living on the `Entry`: §1.2 S5/S6 are
+  per-countermeasure and per-action rules that a union of links cannot answer.
+  Two new shared substrates, both extracted before their second repetition (D-127):
+  `src/methods/shared/fieldForm.ts` + `FieldFormEditor.tsx` (one record, fixed fields — reuses
+  `rowTable`'s `RowFieldType` rather than restating it) and `shared/nodeTree.ts` +
+  `NodeTreeEditor.tsx` (branching `parentId` list, flat storage with edges derived at render
+  time per D-71). 6a's four hand-rolled fixed-field editors are deliberately not retrofitted
+  (P-23).
+  Ten new plugins, each following Phase 5/6a's file shape plus a schema, Editor and
+  renderToA3 test: `pointOfCause` (Step 2, the chain's origin — a target, never a referrer);
+  `whyWhyTree`, `faultTree`, `causeEffectMatrix`, `pfmeaLinkage`, `comparativeAnalysis`
+  (Step 4, plain); `hypothesisVerification` (Step 4, `pointOfCause` role); `countermeasure`
+  (Step 5, `rootCause` role, multi-valued); `actionItem` (Step 6, `countermeasure` role);
+  `icaPcaTransition` (Step 6, the only two-role method). `causeEffectMatrix` is the one
+  method that computes on its own fields, which D-120 explicitly anticipated: values stay
+  string-typed in the schema and `score.ts` parses at render time, so a blank cell stays
+  unscored rather than becoming a zero that out-ranks a genuinely low score.
+  `registry.test.ts` gained five cross-registry assertions, including one for a silent
+  failure class no plugin's own tests can see: a role pointing at a step with no method to
+  target renders a picker that says "nothing to link to" forever.
+  D-129 extends the D-62 fixture corpus rather than adding a fifth file: `fully-populated.ppsx`
+  now carries a Step 5 countermeasure with two `rootCause` references, one resolving and one
+  **permanently dangling**. That is what turns D-117's "a `.ppsx` with a dangling reference
+  must still open" from an in-memory assertion into one observed through the real Rust writer
+  and reader — and it makes a future load-time integrity check fail loudly instead of quietly
+  breaking D-59. Only `fully-populated.ppsx` changed on regeneration; the other three are
+  byte-identical, as the deterministic writer should give.
+  Known scope gaps, documented not dropped: the action plan's **Gantt** half (P-22 — a new
+  `ChartSpec` variant, and D-114 caps a slice at one new mechanism); 6a's four editors not
+  migrated (P-23); the picker has never been used in a real Tauri webview (P-24 — its
+  persistence half is now closed by D-129, what remains is UX: whether one-entry-per-record
+  is tolerable for a twelve-action plan, and how the candidate filter reads with Turkish
+  i/İ titles). The countermeasure deliberately carries no error-proofing level — §1.3 makes
+  the hierarchy selector its own method, which is 6c's.
+  Verification note: every test that passed on first run was mutation-checked before being
+  trusted, per Anayasa §3b's "'temiz' en tehlikeli çıktıdır" — drop the create-mode
+  `references` wiring → 2 integration tests fail; disable the orphan predicate → 4 fail;
+  replay the fixture round-trip against the pre-6b binary → 2 fail.
+  `npm test` 543/543 (140 files), `npm run lint` clean (the one pre-existing ThemeProvider
+  warning), `npm run build` green (same pre-existing chunk-size warning as Phase 3/4/5/6a).
+  `cargo test` 89/89, `cargo clippy --all-targets -- -D warnings` and `cargo fmt -- --check`
+  all clean — Rust untouched by 6b, as expected. Not yet committed to git.
