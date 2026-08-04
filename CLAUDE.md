@@ -483,11 +483,8 @@ Phase 6b (cross-step reference subsystem + ten methods): DONE 2026-08-04, per D-
   byte-identical, as the deterministic writer should give.
   Known scope gaps, documented not dropped: the action plan's **Gantt** half (P-22 — a new
   `ChartSpec` variant, and D-114 caps a slice at one new mechanism); 6a's four editors not
-  migrated (P-23); the picker has never been used in a real Tauri webview (P-24 — its
-  persistence half is now closed by D-129, what remains is UX: whether one-entry-per-record
-  is tolerable for a twelve-action plan, and how the candidate filter reads with Turkish
-  i/İ titles). The countermeasure deliberately carries no error-proofing level — §1.3 makes
-  the hierarchy selector its own method, which is 6c's.
+  migrated (P-23). The countermeasure deliberately carries no error-proofing level — §1.3
+  makes the hierarchy selector its own method, which is 6c's.
   Verification note: every test that passed on first run was mutation-checked before being
   trusted, per Anayasa §3b's "'temiz' en tehlikeli çıktıdır" — drop the create-mode
   `references` wiring → 2 integration tests fail; disable the orphan predicate → 4 fail;
@@ -495,4 +492,29 @@ Phase 6b (cross-step reference subsystem + ten methods): DONE 2026-08-04, per D-
   `npm test` 543/543 (140 files), `npm run lint` clean (the one pre-existing ThemeProvider
   warning), `npm run build` green (same pre-existing chunk-size warning as Phase 3/4/5/6a).
   `cargo test` 89/89, `cargo clippy --all-targets -- -D warnings` and `cargo fmt -- --check`
-  all clean — Rust untouched by 6b, as expected. Not yet committed to git.
+  all clean — Rust untouched by 6b, as expected.
+Post-6b real-app walkthrough: 2026-08-04, Barış walked the picker and chart export in the
+  real Tauri webview for the first time this session (`npm run tauri dev` needed D-62's second
+  binary given a `default-run` key, src-tauri/Cargo.toml — `cargo run` cannot pick between two
+  binaries unassisted; CI never caught this since `tauri build` has no such ambiguity).
+  **P-24 CLOSED**, both halves — the picker, D-124's one-entry-per-record granularity, D-117's
+  dangling-reference display and undo all confirmed correct against real use; Barış explicitly
+  preferred the one-entry-per-record shape over a free-form alternative. Two real UI bugs found
+  and fixed: **D-130** — `DialogContent` (`src/ui/Dialog.tsx`, Phase 1/D-49) had no height cap;
+  Fishbone's growing cause list was the first content ever tall enough to push the Title and
+  Save/Cancel off-screen with no scrollbar to reach them — fixed with `max-h-[85vh]` and a
+  scrolling body, title/description `shrink-0`. **D-131** — `RightPanel`'s fixed 320px could
+  not show a real ~1394pt-wide A3 sheet at a readable size; gained a widen/narrow toggle
+  (`w-[70vw]`), orthogonal to the pre-existing collapse toggle, Barış's choice over a
+  drag-resizable panel or a wider fixed default (AskUserQuestion).
+  **P-21 partially re-opened**: page setup confirmed correct (A3 landscape) and 3 embedded
+  images confirmed non-blank and correctly anchored to Steps 2/3/4 by drawing-XML cell range —
+  but only 3 of the 4 expected chart images are present. **P-25 (new, open)**: the Step 2 block
+  holds two image-bearing entries (Pareto + Trend), both primary, both with their text on the
+  sheet, but only one embedded image — not an appendix-overflow case (the workbook has exactly
+  one worksheet). Not root-caused; candidate suspects by proximity are `src/a3/layout/place.ts`'s
+  per-block image-row-span reservation (D-102) and the merge-overlap area D-111 touched, but
+  this needs a PROBE test against the real two-entry case, not a guess.
+  `npm test` 548/548 (141 files, +1 for `RightPanel.test.tsx`), `npm run lint` clean, `npm run
+  build` green. `cargo test` 89/89, `cargo clippy` and `cargo fmt` clean (`Cargo.toml`'s
+  `default-run` is metadata-only). Not yet committed to git.
