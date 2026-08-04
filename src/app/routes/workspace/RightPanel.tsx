@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { save } from "@tauri-apps/plugin-dialog";
 import { useProjectStore } from "../../../state";
-import { Button, TabsContent, TabsList, TabsRoot, TabsTrigger } from "../../../ui";
+import { Button, TabsContent, TabsList, TabsRoot, TabsTrigger, cn } from "../../../ui";
 import { HtmlA3Renderer } from "../../../a3/render/HtmlA3Renderer";
 import type { A3LayoutDescriptor } from "../../../a3/descriptor";
 import { errorMessage } from "../launch/errorMessage";
@@ -31,6 +31,11 @@ export function RightPanel() {
   const { t } = useTranslation();
   const project = useProjectStore((s) => s.project);
   const [collapsed, setCollapsed] = useState(false);
+  // A fixed 320px panel cannot show a real A3 sheet (~1394pt wide at Step 2)
+  // at a size a human can actually read — found walking the real app
+  // (Anayasa §3b). Orthogonal to `collapsed`: this toggle only matters while
+  // the panel is shown.
+  const [widened, setWidened] = useState(false);
   const [previewMode, setPreviewMode] = useState<"screen" | "print">("screen");
   const [isExporting, setIsExporting] = useState(false);
   const [exportError, setExportError] = useState<string | null>(null);
@@ -104,8 +109,22 @@ export function RightPanel() {
   }
 
   return (
-    <aside className="flex w-80 shrink-0 flex-col border-l border-border bg-surface-raised">
-      <div className="flex justify-end border-b border-border p-2">
+    <aside
+      className={cn(
+        "flex shrink-0 flex-col border-l border-border bg-surface-raised",
+        widened ? "w-[70vw]" : "w-80",
+      )}
+    >
+      <div className="flex justify-end gap-1 border-b border-border p-2">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setWidened((current) => !current)}
+          aria-pressed={widened}
+          aria-label={t(widened ? "workspace.rightPanel.narrow" : "workspace.rightPanel.widen")}
+        >
+          {widened ? t("workspace.rightPanel.narrow") : t("workspace.rightPanel.widen")}
+        </Button>
         <Button
           variant="ghost"
           size="sm"

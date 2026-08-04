@@ -108,6 +108,8 @@
     "rightPanel": {
       "collapse": "Paneli daralt",
       "expand": "Paneli genişlet",
+      "widen": "Önizlemeyi büyüt",
+      "narrow": "Önizlemeyi küçült",
       "preview": "Önizleme",
       "assistant": "Asistan",
       "previewStub": "A3 önizlemesi, dışa aktarıcı Faz 4'te gelince burada görünecek.",

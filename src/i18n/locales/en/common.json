@@ -108,6 +108,8 @@
     "rightPanel": {
       "collapse": "Collapse panel",
       "expand": "Expand panel",
+      "widen": "Widen preview",
+      "narrow": "Narrow preview",
       "preview": "Preview",
       "assistant": "Assistant",
       "previewStub": "The A3 preview renders here once the exporter ships in Phase 4.",
