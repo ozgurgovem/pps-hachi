@@ -38,14 +38,30 @@
     "stepNavLabel": "Step navigation",
     "stepAriaLabel": "Step {{step}}: {{name}}",
     "steps": {
-      "1": { "name": "Clarify the Problem" },
-      "2": { "name": "Break Down the Problem" },
-      "3": { "name": "Set a Target" },
-      "4": { "name": "Root Cause Analysis" },
-      "5": { "name": "Develop Countermeasures" },
-      "6": { "name": "Implement" },
-      "7": { "name": "Monitor Process and Results" },
-      "8": { "name": "Standardize and Share" }
+      "1": {
+        "name": "Clarify the Problem"
+      },
+      "2": {
+        "name": "Break Down the Problem"
+      },
+      "3": {
+        "name": "Set a Target"
+      },
+      "4": {
+        "name": "Root Cause Analysis"
+      },
+      "5": {
+        "name": "Develop Countermeasures"
+      },
+      "6": {
+        "name": "Implement"
+      },
+      "7": {
+        "name": "Monitor Process and Results"
+      },
+      "8": {
+        "name": "Standardize and Share"
+      }
     },
     "stepStatus": {
       "empty": "Empty",
@@ -111,6 +127,15 @@
       "save": "Save",
       "cancel": "Cancel",
       "close": "Close"
+    },
+    "references": {
+      "searchLabel": "Find an entry",
+      "searchPlaceholder": "Filter by title",
+      "noCandidates": "Nothing to link to yet — add the entry it depends on first.",
+      "noMatches": "No entry matches that filter.",
+      "missing": "Referenced entry no longer exists ({{id}})",
+      "remove": "Unlink \"{{title}}\"",
+      "removeShort": "Unlink"
     }
   },
   "methods": {
@@ -359,6 +384,170 @@
         "trustworthy": "Trustworthy",
         "notTrustworthy": "Not trustworthy",
         "inconclusive": "Inconclusive"
+      }
+    },
+    "nodeTree": {
+      "addChild": "Add cause under this",
+      "addRoot": "Add branch",
+      "removeNode": "Remove this branch"
+    },
+    "pointOfCause": {
+      "name": "Point of cause",
+      "useWhen": "Use this to nominate where in the process the problem first becomes observable — the mandatory output of Step 2.",
+      "fields": {
+        "processStep": "Process step",
+        "location": "Location",
+        "occursWhen": "Occurs when",
+        "evidence": "Evidence",
+        "observedAt": "Observed on",
+        "observedBy": "Observed by"
+      }
+    },
+    "whyWhyTree": {
+      "name": "Why-Why logic tree",
+      "useWhen": "Use this when a why has more than one credible answer and a linear 5-Why chain would force you to drop one.",
+      "nodeLabel": "Why"
+    },
+    "faultTree": {
+      "name": "Fault tree (FTA)",
+      "useWhen": "Use this when several conditions must coincide (AND) or any one suffices (OR) for the failure to occur.",
+      "nodeLabel": "Event",
+      "gateLabel": "Gate",
+      "gates": {
+        "basic": "Basic event",
+        "and": "AND",
+        "or": "OR"
+      }
+    },
+    "causeEffectMatrix": {
+      "name": "Cause & effect (X-Y) matrix",
+      "useWhen": "Use this to rank process inputs by how strongly they drive the outputs the customer cares about.",
+      "outputsHeading": "Outputs (Y) and weights",
+      "inputsHeading": "Inputs (X) and scores",
+      "outputName": "Output",
+      "outputWeight": "Weight",
+      "inputName": "Input",
+      "unnamedOutput": "Unnamed output",
+      "addOutput": "Add output",
+      "addInput": "Add input",
+      "removeOutput": "Remove output \"{{name}}\"",
+      "removeInput": "Remove input \"{{name}}\"",
+      "total": "Total {{total}}"
+    },
+    "pfmeaLinkage": {
+      "name": "PFMEA linkage",
+      "useWhen": "Use this to tie the failure mode under analysis to its PFMEA line and its current O/D ratings.",
+      "fields": {
+        "documentNo": "PFMEA no",
+        "revision": "Revision",
+        "processStep": "Process step",
+        "failureMode": "Failure mode",
+        "effect": "Effect",
+        "severity": "Severity (S)",
+        "occurrence": "Occurrence (O)",
+        "detection": "Detection (D)",
+        "currentControls": "Current controls",
+        "note": "Note"
+      }
+    },
+    "hypothesisVerification": {
+      "name": "Hypothesis verification table",
+      "useWhen": "Use this to prove or reject each candidate cause with evidence — a cause becomes a root cause only when confirmed.",
+      "columns": {
+        "candidateCause": "Candidate cause",
+        "verificationMethod": "Verification method",
+        "evidence": "Evidence",
+        "verdict": "Verdict"
+      },
+      "verdicts": {
+        "confirmed": "Confirmed",
+        "rejected": "Rejected",
+        "inconclusive": "Inconclusive"
+      },
+      "references": {
+        "pointOfCause": {
+          "label": "Point of cause verified",
+          "empty": "No point of cause linked yet."
+        }
+      }
+    },
+    "comparativeAnalysis": {
+      "name": "Comparative analysis",
+      "useWhen": "Use this to compare a good case against a bad one — good part vs bad part, good line vs bad line.",
+      "subjectLabel": "What is being compared",
+      "subjectPlaceholder": "e.g. Cavity 2 vs cavity 4",
+      "columns": {
+        "characteristic": "Characteristic",
+        "goodCase": "Good case",
+        "badCase": "Bad case",
+        "difference": "Difference"
+      }
+    },
+    "countermeasure": {
+      "name": "Countermeasure",
+      "useWhen": "Use this for one countermeasure, linked to the verified root causes it addresses.",
+      "fields": {
+        "description": "Countermeasure",
+        "expectedEffect": "Expected effect",
+        "owner": "Owner",
+        "targetDate": "Target date",
+        "status": "Status"
+      },
+      "statuses": {
+        "proposed": "Proposed",
+        "approved": "Approved",
+        "rejected": "Rejected"
+      },
+      "references": {
+        "rootCause": {
+          "label": "Root causes addressed",
+          "empty": "No root cause linked yet — a countermeasure with no root cause is a guess."
+        }
+      }
+    },
+    "actionItem": {
+      "name": "Action",
+      "useWhen": "Use this for one implementation action — who does what, by when, and what proves it was done.",
+      "fields": {
+        "action": "Action",
+        "owner": "Owner",
+        "startDate": "Start",
+        "dueDate": "Due",
+        "percentComplete": "Status %",
+        "evidence": "Evidence"
+      },
+      "references": {
+        "countermeasure": {
+          "label": "Countermeasure implemented",
+          "empty": "No countermeasure linked yet."
+        }
+      }
+    },
+    "icaPcaTransition": {
+      "name": "ICA → PCA transition",
+      "useWhen": "Use this to track when an interim containment action can come off, and whether it actually did.",
+      "fields": {
+        "exitCriteria": "Exit criteria",
+        "verificationEvidence": "Verification evidence",
+        "plannedRemovalDate": "Planned removal",
+        "actualRemovalDate": "Actual removal",
+        "owner": "Owner",
+        "status": "Status"
+      },
+      "statuses": {
+        "icaActive": "ICA active",
+        "pcaInPlace": "PCA in place",
+        "icaRemoved": "ICA removed"
+      },
+      "references": {
+        "containment": {
+          "label": "Interim containment action",
+          "empty": "No containment action linked yet."
+        },
+        "countermeasure": {
+          "label": "Permanent countermeasure",
+          "empty": "No permanent countermeasure linked yet."
+        }
       }
     }
   },

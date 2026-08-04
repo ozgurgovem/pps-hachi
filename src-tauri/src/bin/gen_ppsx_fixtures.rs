@@ -88,6 +88,36 @@ fn fully_populated_project(id: &str) -> Value {
         })
     };
 
+    // D-116/D-117 (Phase 6b): one countermeasure carrying two cross-step
+    // references — one that resolves to the Step 4 entry above, and one
+    // deliberately left **dangling**. The dangling half is the point: D-117
+    // says referential integrity is never checked at load, so a `.ppsx`
+    // written before its target was deleted must still open cleanly through
+    // both the real Rust reader and Zod. Baking it into the corpus makes that
+    // promise permanent rather than something a future phase can quietly drop.
+    let countermeasure = json!({
+        "id": "entry-step5-countermeasure",
+        "methodId": "countermeasure",
+        "title": "Fikstüre varlık sensörü tak",
+        "order": 0,
+        "a3Visibility": "primary",
+        "payload": {
+            "description": "Fikstüre varlık sensörü takılacak",
+            "expectedEffect": "Eksik parça ile çevrim başlatılamaz",
+            "owner": "A. Yılmaz",
+            "targetDate": "2026-09-15",
+            "status": "approved"
+        },
+        "images": [],
+        "createdAt": now,
+        "updatedAt": now,
+        "provenance": { "origin": "human" },
+        "references": [
+            { "role": "rootCause", "targetEntryId": "entry-step4" },
+            { "role": "rootCause", "targetEntryId": "entry-deleted-long-ago" }
+        ]
+    });
+
     json!({
         "id": id,
         "schemaVersion": 1,
@@ -116,7 +146,7 @@ fn fully_populated_project(id: &str) -> Value {
             "2": {"entries": [entry("step2")]},
             "3": {"entries": []},
             "4": {"entries": [entry("step4")]},
-            "5": {"entries": []},
+            "5": {"entries": [countermeasure]},
             "6": {"entries": []},
             "7": {"entries": []},
             "8": {"entries": []}

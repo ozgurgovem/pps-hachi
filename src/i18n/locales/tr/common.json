@@ -38,14 +38,30 @@
     "stepNavLabel": "Adım gezinmesi",
     "stepAriaLabel": "Adım {{step}}: {{name}}",
     "steps": {
-      "1": { "name": "Problemi Netleştir" },
-      "2": { "name": "Problemi Parçalara Ayır" },
-      "3": { "name": "Hedef Belirle" },
-      "4": { "name": "Kök Neden Analizi" },
-      "5": { "name": "Karşı Önlem Geliştir" },
-      "6": { "name": "Uygulama" },
-      "7": { "name": "Sonuçları Kontrol Et" },
-      "8": { "name": "Standardizasyon ve Yaygınlaştırma" }
+      "1": {
+        "name": "Problemi Netleştir"
+      },
+      "2": {
+        "name": "Problemi Parçalara Ayır"
+      },
+      "3": {
+        "name": "Hedef Belirle"
+      },
+      "4": {
+        "name": "Kök Neden Analizi"
+      },
+      "5": {
+        "name": "Karşı Önlem Geliştir"
+      },
+      "6": {
+        "name": "Uygulama"
+      },
+      "7": {
+        "name": "Sonuçları Kontrol Et"
+      },
+      "8": {
+        "name": "Standardizasyon ve Yaygınlaştırma"
+      }
     },
     "stepStatus": {
       "empty": "Boş",
@@ -111,6 +127,15 @@
       "save": "Kaydet",
       "cancel": "Vazgeç",
       "close": "Kapat"
+    },
+    "references": {
+      "searchLabel": "Kayıt bul",
+      "searchPlaceholder": "Başlığa göre filtrele",
+      "noCandidates": "Henüz bağlanacak kayıt yok — önce bağlı olduğu kaydı ekleyin.",
+      "noMatches": "Bu filtreye uyan kayıt yok.",
+      "missing": "Bağlanan kayıt artık mevcut değil ({{id}})",
+      "remove": "\"{{title}}\" bağını kaldır",
+      "removeShort": "Bağı kaldır"
     }
   },
   "methods": {
@@ -359,6 +384,170 @@
         "trustworthy": "Güvenilir",
         "notTrustworthy": "Güvenilir değil",
         "inconclusive": "Belirsiz"
+      }
+    },
+    "nodeTree": {
+      "addChild": "Altına neden ekle",
+      "addRoot": "Dal ekle",
+      "removeNode": "Bu dalı kaldır"
+    },
+    "pointOfCause": {
+      "name": "Oluşum noktası",
+      "useWhen": "Problemin süreçte ilk nerede görünür hâle geldiğini belirlemek için kullanın — 2. adımın zorunlu çıktısı.",
+      "fields": {
+        "processStep": "Proses adımı",
+        "location": "Yer",
+        "occursWhen": "Ne zaman oluşuyor",
+        "evidence": "Kanıt",
+        "observedAt": "Gözlem tarihi",
+        "observedBy": "Gözlemleyen"
+      }
+    },
+    "whyWhyTree": {
+      "name": "Neden-neden mantık ağacı",
+      "useWhen": "Bir \"neden\"in birden fazla makul cevabı varsa ve doğrusal 5 Neden zinciri birini elemeye zorluyorsa kullanın.",
+      "nodeLabel": "Neden"
+    },
+    "faultTree": {
+      "name": "Hata ağacı (FTA)",
+      "useWhen": "Hatanın oluşması için birden çok koşulun birlikte (VE) ya da herhangi birinin tek başına (VEYA) yetmesi durumunda kullanın.",
+      "nodeLabel": "Olay",
+      "gateLabel": "Kapı",
+      "gates": {
+        "basic": "Temel olay",
+        "and": "VE",
+        "or": "VEYA"
+      }
+    },
+    "causeEffectMatrix": {
+      "name": "Sebep-sonuç (X-Y) matrisi",
+      "useWhen": "Proses girdilerini, müşterinin önemsediği çıktıları ne kadar etkilediklerine göre sıralamak için kullanın.",
+      "outputsHeading": "Çıktılar (Y) ve ağırlıklar",
+      "inputsHeading": "Girdiler (X) ve puanlar",
+      "outputName": "Çıktı",
+      "outputWeight": "Ağırlık",
+      "inputName": "Girdi",
+      "unnamedOutput": "Adsız çıktı",
+      "addOutput": "Çıktı ekle",
+      "addInput": "Girdi ekle",
+      "removeOutput": "\"{{name}}\" çıktısını kaldır",
+      "removeInput": "\"{{name}}\" girdisini kaldır",
+      "total": "Toplam {{total}}"
+    },
+    "pfmeaLinkage": {
+      "name": "PFMEA bağlantısı",
+      "useWhen": "İncelenen hata türünü PFMEA satırına ve güncel O/D derecelerine bağlamak için kullanın.",
+      "fields": {
+        "documentNo": "PFMEA no",
+        "revision": "Revizyon",
+        "processStep": "Proses adımı",
+        "failureMode": "Hata türü",
+        "effect": "Etki",
+        "severity": "Şiddet (S)",
+        "occurrence": "Oluşum (O)",
+        "detection": "Tespit (D)",
+        "currentControls": "Mevcut kontroller",
+        "note": "Not"
+      }
+    },
+    "hypothesisVerification": {
+      "name": "Hipotez doğrulama tablosu",
+      "useWhen": "Her aday nedeni kanıtla doğrulamak ya da elemek için kullanın — bir neden ancak doğrulandığında kök neden olur.",
+      "columns": {
+        "candidateCause": "Aday neden",
+        "verificationMethod": "Doğrulama yöntemi",
+        "evidence": "Kanıt",
+        "verdict": "Sonuç"
+      },
+      "verdicts": {
+        "confirmed": "Doğrulandı",
+        "rejected": "Elendi",
+        "inconclusive": "Sonuçsuz"
+      },
+      "references": {
+        "pointOfCause": {
+          "label": "Doğrulanan oluşum noktası",
+          "empty": "Henüz bir oluşum noktası bağlanmadı."
+        }
+      }
+    },
+    "comparativeAnalysis": {
+      "name": "Karşılaştırmalı analiz",
+      "useWhen": "İyi bir durumu kötü olanla karşılaştırmak için kullanın — iyi parça/kötü parça, iyi hat/kötü hat.",
+      "subjectLabel": "Neler karşılaştırılıyor",
+      "subjectPlaceholder": "örn. Göz 2 ile göz 4",
+      "columns": {
+        "characteristic": "Özellik",
+        "goodCase": "İyi durum",
+        "badCase": "Kötü durum",
+        "difference": "Fark"
+      }
+    },
+    "countermeasure": {
+      "name": "Karşı önlem",
+      "useWhen": "Tek bir karşı önlem için kullanın; giderdiği doğrulanmış kök nedenlere bağlayın.",
+      "fields": {
+        "description": "Karşı önlem",
+        "expectedEffect": "Beklenen etki",
+        "owner": "Sorumlu",
+        "targetDate": "Hedef tarih",
+        "status": "Durum"
+      },
+      "statuses": {
+        "proposed": "Önerildi",
+        "approved": "Onaylandı",
+        "rejected": "Reddedildi"
+      },
+      "references": {
+        "rootCause": {
+          "label": "Giderilen kök nedenler",
+          "empty": "Henüz kök neden bağlanmadı — kök nedensiz karşı önlem tahmindir."
+        }
+      }
+    },
+    "actionItem": {
+      "name": "Aksiyon",
+      "useWhen": "Tek bir uygulama aksiyonu için kullanın — kim, neyi, ne zamana kadar ve yapıldığını ne kanıtlıyor.",
+      "fields": {
+        "action": "Aksiyon",
+        "owner": "Sorumlu",
+        "startDate": "Başlangıç",
+        "dueDate": "Termin",
+        "percentComplete": "Durum %",
+        "evidence": "Kanıt"
+      },
+      "references": {
+        "countermeasure": {
+          "label": "Uygulanan karşı önlem",
+          "empty": "Henüz bir karşı önlem bağlanmadı."
+        }
+      }
+    },
+    "icaPcaTransition": {
+      "name": "ICA → PCA geçişi",
+      "useWhen": "Geçici önlemin ne zaman kaldırılabileceğini ve gerçekten kaldırılıp kaldırılmadığını izlemek için kullanın.",
+      "fields": {
+        "exitCriteria": "Çıkış kriterleri",
+        "verificationEvidence": "Doğrulama kanıtı",
+        "plannedRemovalDate": "Planlanan kaldırma",
+        "actualRemovalDate": "Gerçekleşen kaldırma",
+        "owner": "Sorumlu",
+        "status": "Durum"
+      },
+      "statuses": {
+        "icaActive": "ICA yürürlükte",
+        "pcaInPlace": "PCA devrede",
+        "icaRemoved": "ICA kaldırıldı"
+      },
+      "references": {
+        "containment": {
+          "label": "Geçici önlem (ICA)",
+          "empty": "Henüz bir geçici önlem bağlanmadı."
+        },
+        "countermeasure": {
+          "label": "Kalıcı karşı önlem (PCA)",
+          "empty": "Henüz kalıcı karşı önlem bağlanmadı."
+        }
       }
     }
   },

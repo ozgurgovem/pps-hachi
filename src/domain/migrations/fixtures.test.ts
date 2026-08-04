@@ -4,6 +4,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { strFromU8, unzipSync } from "fflate";
 import { ProjectModelSchema } from "../model/projectModel";
+import { findOrphanedReferences } from "../selectors";
 
 /**
  * D-62: the container-level half of this guarantee (does the zip open, do
@@ -52,6 +53,54 @@ describe("ppsx fixture corpus (D-62)", () => {
     expect(project.steps[4].entries).toHaveLength(1);
     expect(project.signOff.approvedBy?.name).toBe("C. Demir");
     expect(project.rounds).toHaveLength(1);
+  });
+
+  /**
+   * D-116 (Phase 6b): `Entry.references[]` has to survive the **real** writer
+   * and the real reader, not just an in-memory command round-trip. Rust never
+   * parses entries — it treats `project.json` as bytes — so this is the test
+   * that turns "it survives by construction" into an observation.
+   */
+  test("fully-populated.ppsx round-trips cross-step references exactly", () => {
+    const project = ProjectModelSchema.parse(loadFixtureProject("fully-populated.ppsx"));
+    const countermeasure = project.steps[5].entries[0];
+
+    expect(countermeasure?.methodId).toBe("countermeasure");
+    expect(countermeasure?.references).toEqual([
+      { role: "rootCause", targetEntryId: "entry-step4" },
+      { role: "rootCause", targetEntryId: "entry-deleted-long-ago" },
+    ]);
+  });
+
+  /**
+   * D-117: referential integrity is *not* checked at load. A file whose
+   * reference target was deleted before it was last saved must open exactly
+   * as cleanly as one whose targets all resolve — D-59's read-only-open
+   * promise depends on it.
+   */
+  test("fully-populated.ppsx opens cleanly despite carrying a dangling reference", () => {
+    const result = ProjectModelSchema.safeParse(loadFixtureProject("fully-populated.ppsx"));
+
+    expect(result.success).toBe(true);
+  });
+
+  test("the dangling reference is surfaced by the derived selector, not by the parser", () => {
+    const project = ProjectModelSchema.parse(loadFixtureProject("fully-populated.ppsx"));
+    const orphans = findOrphanedReferences(project);
+
+    expect(orphans).toHaveLength(1);
+    expect(orphans[0]).toMatchObject({
+      stepId: 5,
+      entryId: "entry-step5-countermeasure",
+      reference: { role: "rootCause", targetEntryId: "entry-deleted-long-ago" },
+    });
+  });
+
+  /** D-128: an entry from a method with no reference roles carries no key at all. */
+  test("entries written by methods with no reference roles carry no references key", () => {
+    const project = ProjectModelSchema.parse(loadFixtureProject("fully-populated.ppsx"));
+
+    expect("references" in project.steps[4].entries[0]!).toBe(false);
   });
 
   test("turkish-text.ppsx parses and preserves Turkish characters exactly", () => {

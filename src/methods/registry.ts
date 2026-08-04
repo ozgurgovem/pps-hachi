@@ -1,6 +1,9 @@
 import type { ReactNode } from "react";
 import type { A3EntryRendererMap, A3ImageKind, A3ImageSize } from "../a3/methodContract";
 import type { StepId } from "../domain/model";
+import { actionItemMethod } from "./actionItem";
+import { causeEffectMatrixMethod } from "./causeEffectMatrix";
+import { comparativeAnalysisMethod } from "./comparativeAnalysis";
 import { checkSheetMethod } from "./checkSheet";
 import { containmentIcaMethod } from "./containmentIca";
 import { fishboneMethod } from "./fishbone";
@@ -19,6 +22,13 @@ import { stratificationMatrixMethod } from "./stratificationMatrix";
 import { threeLeggedFiveWhyMethod } from "./threeLeggedFiveWhy";
 import { tpmLossTaxonomyMethod } from "./tpmLossTaxonomy";
 import { trendMethod } from "./trend";
+import { countermeasureMethod } from "./countermeasure";
+import { faultTreeMethod } from "./faultTree";
+import { hypothesisVerificationMethod } from "./hypothesisVerification";
+import { icaPcaTransitionMethod } from "./icaPcaTransition";
+import { pfmeaLinkageMethod } from "./pfmeaLinkage";
+import { pointOfCauseMethod } from "./pointOfCause";
+import { whyWhyTreeMethod } from "./whyWhyTree";
 import { registerMethod, type ErasedMethodPlugin } from "./types";
 import { vocComplaintMethod } from "./vocComplaint";
 
@@ -26,7 +36,8 @@ import { vocComplaintMethod } from "./vocComplaint";
  * D-07: adding a method must never require touching the step page, the
  * preview, or the exporter — this array is the one place a new plugin is
  * registered. Phase 3 shipped exactly one plugin; Phase 5 added SPEC.md §6's
- * wave 1; Phase 6a (D-114) adds Steps 1–2's remaining ten.
+ * wave 1; Phase 6a (D-114) added Steps 1–2's remaining ten; Phase 6b adds the
+ * five reference-bearing methods (D-116) plus Step 4's five plain ones.
  */
 export const METHOD_REGISTRY: readonly ErasedMethodPlugin[] = [
   registerMethod(genericTextMethod),
@@ -48,6 +59,16 @@ export const METHOD_REGISTRY: readonly ErasedMethodPlugin[] = [
   registerMethod(checkSheetMethod),
   registerMethod(processFlowSipocMethod),
   registerMethod(msaGageRrMethod),
+  registerMethod(pointOfCauseMethod),
+  registerMethod(whyWhyTreeMethod),
+  registerMethod(faultTreeMethod),
+  registerMethod(causeEffectMatrixMethod),
+  registerMethod(pfmeaLinkageMethod),
+  registerMethod(hypothesisVerificationMethod),
+  registerMethod(comparativeAnalysisMethod),
+  registerMethod(countermeasureMethod),
+  registerMethod(actionItemMethod),
+  registerMethod(icaPcaTransitionMethod),
 ];
 
 export function getMethodsForStep(stepId: StepId): readonly ErasedMethodPlugin[] {

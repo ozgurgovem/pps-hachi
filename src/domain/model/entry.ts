@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { ProvenanceSchema } from "./provenance";
+import { EntryReferenceSchema } from "./reference";
 
 export const A3VisibilitySchema = z.enum(["primary", "appendix", "hidden"]);
 export type A3Visibility = z.infer<typeof A3VisibilitySchema>;
@@ -18,6 +19,13 @@ const ImageRefSchema = z.looseObject({
  *
  * D-58: `roundId` links an entry to a `Round`; `Round` itself holds no
  * snapshot of the entries opened under it.
+ *
+ * D-116: `references` is optional and absent on every entry written before
+ * Phase 6b — an older `.ppsx` opens with no migration, which is the whole
+ * point of putting the relation on `Entry` rather than inside `payload`.
+ * D-117: nothing here checks that a `targetEntryId` resolves. A dangling
+ * reference is a *derived* condition (`findOrphanedReferences`), never a
+ * load-time failure.
  */
 export const EntrySchema = z.looseObject({
   id: z.string(),
@@ -32,6 +40,7 @@ export const EntrySchema = z.looseObject({
   author: z.string().optional(),
   provenance: ProvenanceSchema,
   roundId: z.string().optional(),
+  references: z.array(EntryReferenceSchema).optional(),
 });
 
 export type Entry = z.infer<typeof EntrySchema>;

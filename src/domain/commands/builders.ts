@@ -1,4 +1,4 @@
-import type { A3Visibility, Entry, StepId, StepState } from "../model";
+import type { A3Visibility, Entry, EntryReference, StepId, StepState } from "../model";
 import {
   type EntryInsertCommand,
   type EntryRemoveCommand,
@@ -29,6 +29,29 @@ export interface AddEntryInput {
   title: string;
   payload: unknown;
   now: string;
+  /**
+   * D-116: cross-step references travel on the `Entry`, beside `payload`
+   * rather than inside it. Omitted (not `[]`) when the method declares no
+   * reference roles, so an entry from a method that holds no relation is
+   * byte-identical to one written before 6b existed.
+   */
+  references?: readonly EntryReference[] | undefined;
+}
+
+/** Drops an empty list rather than storing `references: []` — see `AddEntryInput.references`. */
+function referenceFields(references: readonly EntryReference[] | undefined): Pick<Entry, "references"> | undefined {
+  return references && references.length > 0 ? { references: [...references] } : undefined;
+}
+
+/**
+ * Clearing the last reference must remove the key entirely, not leave
+ * `references: []` — an entry that never held one and an entry whose last
+ * one was removed have to serialize identically.
+ */
+function withoutReferences(entry: Entry): Entry {
+  const copy: Entry = { ...entry };
+  delete copy.references;
+  return copy;
 }
 
 export function buildAddEntryCommand(step: StepState, stepId: StepId, input: AddEntryInput): EntryInsertCommand {
@@ -43,6 +66,7 @@ export function buildAddEntryCommand(step: StepState, stepId: StepId, input: Add
     createdAt: input.now,
     updatedAt: input.now,
     provenance: { origin: "human" },
+    ...referenceFields(input.references),
   };
   return { type: "entry.insert", stepId, entry, index: step.entries.length, undoable: true };
 }
@@ -51,6 +75,13 @@ export interface UpdateEntryInput {
   title: string;
   payload: unknown;
   now: string;
+  /**
+   * Absent means "leave whatever references this entry already has alone" —
+   * the title and payload edit paths (`EntryEditorDialog`) each call this
+   * builder without knowing about references. Present (including empty)
+   * replaces the whole list, which is how the picker clears the last one.
+   */
+  references?: readonly EntryReference[] | undefined;
 }
 
 export function buildUpdateEntryCommand(
@@ -60,7 +91,14 @@ export function buildUpdateEntryCommand(
   input: UpdateEntryInput,
 ): EntryUpdateCommand {
   const before = findEntryOrThrow(step, entryId);
-  const after: Entry = { ...before, title: input.title, payload: input.payload, updatedAt: input.now };
+  const next = input.references === undefined ? before.references : input.references;
+  const after: Entry = {
+    ...withoutReferences(before),
+    title: input.title,
+    payload: input.payload,
+    updatedAt: input.now,
+    ...referenceFields(next),
+  };
   return { type: "entry.update", stepId, entryId, before, after, undoable: true };
 }
 

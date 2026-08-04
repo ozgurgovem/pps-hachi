@@ -1,0 +1,57 @@
+import type { FieldFormField } from "../shared/fieldForm";
+
+export type CountermeasureFieldKey =
+  | "description"
+  | "expectedEffect"
+  | "owner"
+  | "targetDate"
+  | "status";
+
+export const COUNTERMEASURE_STATUS_OPTIONS = [
+  { value: "proposed", labelKey: "methods.countermeasure.statuses.proposed" },
+  { value: "approved", labelKey: "methods.countermeasure.statuses.approved" },
+  { value: "rejected", labelKey: "methods.countermeasure.statuses.rejected" },
+] as const;
+
+/** A3-side labels — `renderToA3` is i18n-free (D-43). */
+export const COUNTERMEASURE_STATUS_EXPORT_LABELS: Readonly<Record<string, string>> = {
+  proposed: "Proposed",
+  approved: "Approved",
+  rejected: "Rejected",
+};
+
+/**
+ * SPEC.md §1.3 (Step 5): "Countermeasure list, each linked to one or more
+ * verified root causes."
+ *
+ * Deliberately narrow. §1.3 lists the error-proofing hierarchy selector, the
+ * impact/effort matrix, the Pugh matrix, the side-effect assessment, the
+ * trial plan and the cost/approval fields as **separate methods**, which
+ * D-114 places in slice 6c. Absorbing any of them here would quietly move
+ * 6c's scope into 6b and leave two editors competing to own the same field.
+ */
+export const COUNTERMEASURE_FIELDS = [
+  {
+    key: "description",
+    labelKey: "methods.countermeasure.fields.description",
+    exportLabel: "Countermeasure",
+    type: "textarea",
+    wide: true,
+  },
+  {
+    key: "expectedEffect",
+    labelKey: "methods.countermeasure.fields.expectedEffect",
+    exportLabel: "Expected effect",
+    type: "textarea",
+    wide: true,
+  },
+  { key: "owner", labelKey: "methods.countermeasure.fields.owner", exportLabel: "Owner", type: "text" },
+  { key: "targetDate", labelKey: "methods.countermeasure.fields.targetDate", exportLabel: "Target", type: "date" },
+  {
+    key: "status",
+    labelKey: "methods.countermeasure.fields.status",
+    exportLabel: "Status",
+    type: "select",
+    options: COUNTERMEASURE_STATUS_OPTIONS,
+  },
+] as const satisfies readonly FieldFormField<CountermeasureFieldKey>[];

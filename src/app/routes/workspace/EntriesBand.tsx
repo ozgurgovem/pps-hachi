@@ -124,6 +124,7 @@ export function EntriesBand({ stepId }: EntriesBandProps) {
             entryId: editingEntry.id,
             initialTitle: editingEntry.title,
             initialPayload: editingEntry.payload,
+            initialReferences: editingEntry.references,
           }}
           open
           onOpenChange={(open) => {

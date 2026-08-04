@@ -20,6 +20,32 @@ export interface MethodEditorProps<TPayload> {
   onChange: (payload: TPayload) => void;
 }
 
+/**
+ * D-116: a method **declares** which cross-step relations its entries hold;
+ * it never renders the picker itself. The picker is generic, lives in the
+ * workspace shell beside the title field, and writes `Entry.references[]` —
+ * which sits outside `payload` and therefore outside `MethodEditorProps`
+ * entirely. That split is the point of the decision: a reference stays
+ * visible to generic code (orphan detection, Phase 7's traceability view)
+ * without any of that code knowing one method's payload shape.
+ *
+ * `fromSteps` scopes the candidate list. A countermeasure targets root
+ * causes, which live in Step 4 — offering it every entry in the project
+ * would make the right choice harder to find, not easier.
+ */
+export interface MethodReferenceRole {
+  /** One of `REFERENCE_ROLES`, or a new documented constant. */
+  readonly role: string;
+  /** i18next key for the field label ("Addresses root cause"). */
+  readonly labelKey: string;
+  /** i18next key for the empty-state line under the field. */
+  readonly emptyKey: string;
+  /** Which steps' entries may be targeted. */
+  readonly fromSteps: readonly StepId[];
+  /** `false` narrows the field to a single target, replacing on each pick. */
+  readonly multiple: boolean;
+}
+
 export interface MethodPlugin<TPayload> {
   readonly id: string;
   readonly steps: readonly StepId[];
@@ -51,6 +77,13 @@ export interface MethodPlugin<TPayload> {
    * `src/a3/render/rasterize.ts`.
    */
   readonly renderImage?: (spec: unknown, size: A3ImageSize) => ReactNode;
+  /**
+   * D-116: the cross-step relations an entry of this method may hold.
+   * Absent for the great majority of methods — including the Step 4 PFMEA
+   * linkage, whose "reference" is to an external document and belongs in
+   * `meta.linkedRecords[]` (SPEC.md §4.2), not to another entry.
+   */
+  readonly referenceRoles?: readonly MethodReferenceRole[] | undefined;
 }
 
 /**
