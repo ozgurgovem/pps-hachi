@@ -515,6 +515,48 @@ Post-6b real-app walkthrough: 2026-08-04, Barış walked the picker and chart ex
   one worksheet). Not root-caused; candidate suspects by proximity are `src/a3/layout/place.ts`'s
   per-block image-row-span reservation (D-102) and the merge-overlap area D-111 touched, but
   this needs a PROBE test against the real two-entry case, not a guess.
-  `npm test` 548/548 (141 files, +1 for `RightPanel.test.tsx`), `npm run lint` clean, `npm run
-  build` green. `cargo test` 89/89, `cargo clippy` and `cargo fmt` clean (`Cargo.toml`'s
-  `default-run` is metadata-only). Not yet committed to git.
+  **D-132 (new Step 2 method, `category-breakdown`)**: Barış's walkthrough also surfaced a real
+  methodology question — his team's own practice runs 5M (Man/Machine/Material/Method/
+  Measurement) *stratification* in Step 2, pure 5-Why in Step 4, distinct from D-11's canonical-
+  TBP framing (Fishbone-in-Step-4-as-cause-hypothesis-generator) the app currently teaches in
+  its Step 2/4 coaching copy. Both are legitimate, real industry practices; D-11 stays LOCKED
+  (Fishbone unchanged, Step 4 only) and a new, independent Step 2 method is added instead of
+  reversing it — `SPEC.md` §1.3 now names it. Fixed 5M list, `RowTableEditor` with a
+  `select`-typed category column (no diagram, no `categorySet` flexibility — YAGNI, see D-132).
+  `npm test` 561/561 (144 files), `npm run lint` clean, `npm run build` green. `cargo test`
+  89/89, `cargo clippy` and `cargo fmt` clean (`Cargo.toml`'s `default-run` is metadata-only;
+  Rust otherwise untouched).
+**D-133 (pop-out A3 preview window, superseding D-131)**: 2026-08-04, same-session follow-up —
+  Barış tried D-131's `w-[70vw]` widen and it still could not show a real A3 sheet at a readable
+  size (bigger box, no zoom/fit). New route `src/app/routes/a3PreviewWindow/` opens a real Tauri
+  `WebviewWindow` (label `a3-preview`) with its own least-privilege capability file
+  (`src-tauri/capabilities/a3-preview.json` — never gets `dialog:default`/`opener:default`) and
+  its own zoom/pan/fit-to-window controls (`zoomMath.ts`, pure functions — mouse wheel zooms at
+  the cursor, left/middle-button drag pans, Fit to Window applies automatically only on the
+  first descriptor a freshly opened window receives). `RightPanel`'s in-panel widen/narrow
+  toggle is removed, replaced by a single "Open in new window" button; the in-panel preview
+  itself (with Export A3) stays as the quick/at-a-glance option.
+  Cross-window architecture: a second `WebviewWindow` is a fully separate JS runtime with no
+  shared Zustand store, so `RightPanel` pushes the **already-built** `A3LayoutDescriptor`
+  (never the raw `ProjectModel`) via `emitTo` whenever it rebuilds one — the preview window
+  needs zero knowledge of `src/methods`/the plugin registry and never re-runs D-102's
+  rasterization pass a second time, it just feeds the descriptor straight into the unmodified
+  `HtmlA3Renderer` (D-94's dumb-renderer contract untouched). A ready handshake
+  (`A3_PREVIEW_READY_EVENT`, preview → main, broadcast rather than targeted since the preview
+  window has no reliable way to learn the main window's real label) closes a real race:
+  `new WebviewWindow(...)` creates the window asynchronously, so a push sent immediately after
+  opening it can arrive before that window's own `listen()` is registered and be silently lost.
+  Verified, not just reasoned: `window.test.ts` asserts the listen-before-emit ordering directly
+  (mocking `@tauri-apps/api/webviewWindow`/`event`); `zoomMath.test.ts` asserts the zoom-at-
+  cursor math's actual claim — the content pixel under the cursor stays under the cursor through
+  a zoom — plus fit-to-window, clamping, and centering, 17 tests total, no DOM needed since it's
+  pure math. `cargo check` confirms both capability JSON files are schema-valid.
+  Also opened **P-26** (not investigated, explicitly deferred by Barış): the exported A3 mixes
+  Turkish template labels with English method-content text, and some content doesn't land
+  inside its intended block. Two likely separate defect classes — i18n (every `renderToA3`
+  hardcodes English export labels, D-43) and layout/alignment (template geometry) — neither
+  triaged this session; flagged for whichever future phase actually takes Turkish export and
+  visual fidelity seriously.
+  `npm test` 592/592 (147 files), `npm run lint` clean, `npm run build` green. `cargo check`/
+  `cargo test` (89/89)/`cargo clippy`/`cargo fmt` all clean — capability JSON is the only Rust-
+  adjacent change. Not yet committed to git.
