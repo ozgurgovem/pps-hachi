@@ -4,6 +4,12 @@ version = "0.1.0"
 description = "PPS Hachi — an 8-step Toyota Practical Problem Solving A3 report tool"
 authors = ["PPS Hachi"]
 edition = "2021"
+# D-62 added a second binary (gen_ppsx_fixtures, src/bin/) back in Phase 2/3.
+# `tauri dev`'s DevCommand invokes bare `cargo run`, which cannot pick between
+# two binaries without this — `npm run tauri dev` has been broken since
+# Phase 2/3 without anyone noticing, since CI only ever runs `tauri build`
+# (one binary, no ambiguity) and this is the first session to walk `tauri dev`.
+default-run = "pps-hachi"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
