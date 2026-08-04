@@ -68,6 +68,38 @@ describe("openOrFocusA3PreviewWindow", () => {
     expect(constructorCalls).toHaveLength(0);
     expect(setFocusMock).toHaveBeenCalledOnce();
   });
+
+  /**
+   * The exact bug found 2026-08-04: `default.json` granted the wrong
+   * permission (`core:window:allow-create`, for a command this code never
+   * calls) instead of the one `new WebviewWindow(...)` actually needs
+   * (`core:webview:allow-create-webview-window`). The `invoke()` underneath
+   * rejected, and since the button's `onClick` calls this with a bare
+   * `void`, the rejection had nowhere to go — clicking did visibly nothing,
+   * which read at first like a CSS hit-test bug. This test proves the
+   * function itself never lets that happen again, independent of whether
+   * the capability file is ever misconfigured the same way twice.
+   */
+  it("never lets a rejected getByLabel call escape as an unhandled rejection", async () => {
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+    getByLabelMock.mockRejectedValue(new Error("core:webview:allow-create-webview-window not permitted"));
+
+    await expect(openOrFocusA3PreviewWindow()).resolves.toBeUndefined();
+
+    expect(consoleError).toHaveBeenCalled();
+    consoleError.mockRestore();
+  });
+
+  it("never lets a rejected setFocus call escape as an unhandled rejection", async () => {
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+    setFocusMock.mockRejectedValue(new Error("core:window:allow-set-focus not permitted"));
+    getByLabelMock.mockResolvedValue({ setFocus: setFocusMock });
+
+    await expect(openOrFocusA3PreviewWindow()).resolves.toBeUndefined();
+
+    expect(consoleError).toHaveBeenCalled();
+    consoleError.mockRestore();
+  });
 });
 
 describe("pushDescriptorToPreviewWindow", () => {
@@ -85,6 +117,17 @@ describe("pushDescriptorToPreviewWindow", () => {
     await pushDescriptorToPreviewWindow(descriptor);
 
     expect(emitToMock).toHaveBeenCalledWith(A3_PREVIEW_WINDOW_LABEL, A3_PREVIEW_DESCRIPTOR_EVENT, descriptor);
+  });
+
+  it("never lets a rejected emitTo call escape as an unhandled rejection", async () => {
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+    getByLabelMock.mockResolvedValue({});
+    emitToMock.mockRejectedValue(new Error("denied"));
+
+    await expect(pushDescriptorToPreviewWindow(descriptor)).resolves.toBeUndefined();
+
+    expect(consoleError).toHaveBeenCalled();
+    consoleError.mockRestore();
   });
 });
 

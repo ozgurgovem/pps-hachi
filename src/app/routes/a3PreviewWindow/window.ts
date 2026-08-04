@@ -38,28 +38,57 @@ export const A3_PREVIEW_READY_EVENT = "a3-preview:ready";
  * for a real OS window over widening the in-panel preview further, since
  * even `w-[70vw]` (D-131) still could not show the whole A3 sheet at a
  * readable size).
+ *
+ * Every Tauri call here maps to a *specific* command, each gated by its own
+ * permission — matching the wrong one is silent, not a build error, and was
+ * a real bug: `getByLabel`/`setFocus` felt like they "should" fall under a
+ * generic window permission, but each invokes its own named command:
+ *   - `WebviewWindow.getByLabel` → `plugin:window|get_all_windows`
+ *     → covered by `core:default` (`core:window:default` already includes
+ *       `allow-get-all-windows`).
+ *   - `new WebviewWindow(...)` → `plugin:webview|create_webview_window`
+ *     → **not** covered by `core:default` — needs the explicit
+ *       `core:webview:allow-create-webview-window` in `default.json`.
+ *   - `existing.setFocus()` → `plugin:window|set_focus`
+ *     → **not** covered by `core:default` either (its window defaults are
+ *       read-only queries: `is-focused`, `is-visible`, … not `set-focus`) —
+ *       needs the explicit `core:window:allow-set-focus`.
+ * Getting either of the last two wrong doesn't throw where you'd notice: the
+ * `invoke()` call underneath simply rejects, and a bare
+ * `void openOrFocusA3PreviewWindow()` at the call site swallows that
+ * silently — clicking the button does visibly nothing. Caught this way
+ * 2026-08-04: Barış reported the button as "unclickable," which read at
+ * first like a CSS hit-test bug (Anayasa D-12's class) and was actually a
+ * missing-permission rejection with no error surfaced anywhere.
  */
 export async function openOrFocusA3PreviewWindow(): Promise<void> {
-  const existing = await WebviewWindow.getByLabel(A3_PREVIEW_WINDOW_LABEL);
-  if (existing) {
-    await existing.setFocus();
-    return;
-  }
+  try {
+    const existing = await WebviewWindow.getByLabel(A3_PREVIEW_WINDOW_LABEL);
+    if (existing) {
+      await existing.setFocus();
+      return;
+    }
 
-  const created = new WebviewWindow(A3_PREVIEW_WINDOW_LABEL, {
-    url: "index.html#/a3-preview",
-    title: "PPS Hachi — A3 Preview",
-    width: 1100,
-    height: 850,
-    focus: true,
-  });
-  // Construction is fire-and-forget on the JS side; the backend creates the
-  // native window asynchronously. Never silently swallow a creation failure
-  // (a capability/permission mismatch, most likely) — there is no dedicated
-  // UI surface for this yet, so a console error is the honest minimum.
-  created.once("tauri://error", (event) => {
-    console.error("Failed to open the A3 preview window", event);
-  });
+    const created = new WebviewWindow(A3_PREVIEW_WINDOW_LABEL, {
+      url: "index.html#/a3-preview",
+      title: "PPS Hachi — A3 Preview",
+      width: 1100,
+      height: 850,
+      focus: true,
+    });
+    // Construction is fire-and-forget on the JS side; the backend creates
+    // the native window asynchronously — this covers failures reported
+    // *after* construction (e.g. the webview process itself crashing),
+    // distinct from the synchronous-ish rejections the try/catch below
+    // covers (a denied `invoke`, most commonly a permission mismatch).
+    created.once("tauri://error", (event) => {
+      console.error("Failed to open the A3 preview window", event);
+    });
+  } catch (error) {
+    // Never silently swallow — see the permission-mapping note above for
+    // why this specific call is the one most likely to fail quietly.
+    console.error("Failed to open or focus the A3 preview window", error);
+  }
 }
 
 /**
@@ -69,11 +98,18 @@ export async function openOrFocusA3PreviewWindow(): Promise<void> {
  * every keystroke.
  */
 export async function pushDescriptorToPreviewWindow(descriptor: A3LayoutDescriptor): Promise<void> {
-  const existing = await WebviewWindow.getByLabel(A3_PREVIEW_WINDOW_LABEL);
-  if (!existing) {
-    return;
+  try {
+    const existing = await WebviewWindow.getByLabel(A3_PREVIEW_WINDOW_LABEL);
+    if (!existing) {
+      return;
+    }
+    await emitTo(A3_PREVIEW_WINDOW_LABEL, A3_PREVIEW_DESCRIPTOR_EVENT, descriptor);
+  } catch (error) {
+    // Every call site fires this with `void` on every descriptor rebuild —
+    // never let a rejection here vanish silently, even though a single
+    // missed push self-heals on the next edit.
+    console.error("Failed to push the A3 descriptor to the preview window", error);
   }
-  await emitTo(A3_PREVIEW_WINDOW_LABEL, A3_PREVIEW_DESCRIPTOR_EVENT, descriptor);
 }
 
 /** Main window (`RightPanel`) side of the ready handshake — see `A3_PREVIEW_READY_EVENT`. */

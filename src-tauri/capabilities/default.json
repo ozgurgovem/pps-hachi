@@ -7,9 +7,7 @@
     "core:default",
     "opener:default",
     "dialog:default",
-    "core:window:allow-create",
-    "core:event:allow-emit-to",
-    "core:event:allow-listen",
-    "core:event:allow-unlisten"
+    "core:webview:allow-create-webview-window",
+    "core:window:allow-set-focus"
   ]
 }
