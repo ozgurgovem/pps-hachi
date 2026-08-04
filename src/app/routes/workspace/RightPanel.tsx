@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { save } from "@tauri-apps/plugin-dialog";
 import { useProjectStore } from "../../../state";
-import { Button, TabsContent, TabsList, TabsRoot, TabsTrigger, cn } from "../../../ui";
+import { Button, TabsContent, TabsList, TabsRoot, TabsTrigger } from "../../../ui";
 import { HtmlA3Renderer } from "../../../a3/render/HtmlA3Renderer";
 import type { A3LayoutDescriptor } from "../../../a3/descriptor";
+import { openOrFocusA3PreviewWindow, listenForPreviewReady, pushDescriptorToPreviewWindow } from "../a3PreviewWindow/window";
 import { errorMessage } from "../launch/errorMessage";
 import { buildProjectA3Layout } from "./a3Preview";
 import { xlsxExport } from "./xlsxIpc";
@@ -31,15 +32,12 @@ export function RightPanel() {
   const { t } = useTranslation();
   const project = useProjectStore((s) => s.project);
   const [collapsed, setCollapsed] = useState(false);
-  // A fixed 320px panel cannot show a real A3 sheet (~1394pt wide at Step 2)
-  // at a size a human can actually read — found walking the real app
-  // (Anayasa §3b). Orthogonal to `collapsed`: this toggle only matters while
-  // the panel is shown.
-  const [widened, setWidened] = useState(false);
   const [previewMode, setPreviewMode] = useState<"screen" | "print">("screen");
   const [isExporting, setIsExporting] = useState(false);
   const [exportError, setExportError] = useState<string | null>(null);
   const [descriptorResult, setDescriptorResult] = useState<DescriptorResult>({ status: "loading" });
+  const latestDescriptorResult = useRef(descriptorResult);
+  latestDescriptorResult.current = descriptorResult;
 
   useEffect(() => {
     if (!project) {
@@ -51,6 +49,11 @@ export function RightPanel() {
       (descriptor) => {
         if (!cancelled) {
           setDescriptorResult({ status: "ok", descriptor });
+          // Fire-and-forget: no-ops if the pop-out window isn't open (D-131
+          // is superseded by it, see DECISIONS.md). Every rebuild pushes,
+          // not just the first — the preview window stays live as the user
+          // keeps editing in the main window.
+          void pushDescriptorToPreviewWindow(descriptor);
         }
       },
       (error: unknown) => {
@@ -63,6 +66,24 @@ export function RightPanel() {
       cancelled = true;
     };
   }, [project]);
+
+  // The other half of the ready handshake (`window.ts`): whenever the
+  // preview window announces it's listening — on first open, or if it ever
+  // reloads — resend whatever descriptor is currently built, rather than
+  // leaving it blank until the next edit happens to trigger a rebuild.
+  // Registered once (reads the latest result from a ref) rather than
+  // re-subscribing on every rebuild.
+  useEffect(() => {
+    const unlisten = listenForPreviewReady(() => {
+      const current = latestDescriptorResult.current;
+      if (current.status === "ok") {
+        void pushDescriptorToPreviewWindow(current.descriptor);
+      }
+    });
+    return () => {
+      unlisten.then((fn) => fn());
+    };
+  }, []);
 
   if (!project) {
     return null;
@@ -109,21 +130,10 @@ export function RightPanel() {
   }
 
   return (
-    <aside
-      className={cn(
-        "flex shrink-0 flex-col border-l border-border bg-surface-raised",
-        widened ? "w-[70vw]" : "w-80",
-      )}
-    >
+    <aside className="flex w-80 shrink-0 flex-col border-l border-border bg-surface-raised">
       <div className="flex justify-end gap-1 border-b border-border p-2">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => setWidened((current) => !current)}
-          aria-pressed={widened}
-          aria-label={t(widened ? "workspace.rightPanel.narrow" : "workspace.rightPanel.widen")}
-        >
-          {widened ? t("workspace.rightPanel.narrow") : t("workspace.rightPanel.widen")}
+        <Button variant="ghost" size="sm" onClick={() => void openOrFocusA3PreviewWindow()}>
+          {t("workspace.rightPanel.openInNewWindow")}
         </Button>
         <Button
           variant="ghost"

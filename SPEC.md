@@ -95,6 +95,9 @@ renderer into the A3 grid. This is the core extensibility mechanism.
 
 **Step 2 — Break Down the Problem / Mevcut Durum Analizi**
 - Stratification matrix (by line / shift / machine / cavity / operator / supplier / date / product)
+- Category breakdown (5M: Man/Machine/Material/Method/Measurement) — sub-problems and their
+  effects sorted by category; stratification, not root-cause hypothesis generation (that stays
+  Step 4's Fishbone, D-11)
 - Pareto chart (with cumulative % line and 80% cut)
 - Trend / run chart (time series with target line and event markers)
 - Check sheet / tally sheet

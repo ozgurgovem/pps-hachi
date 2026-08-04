@@ -108,8 +108,7 @@
     "rightPanel": {
       "collapse": "Collapse panel",
       "expand": "Expand panel",
-      "widen": "Widen preview",
-      "narrow": "Narrow preview",
+      "openInNewWindow": "Open in new window",
       "preview": "Preview",
       "assistant": "Assistant",
       "previewStub": "The A3 preview renders here once the exporter ships in Phase 4.",
@@ -551,6 +550,22 @@
           "empty": "No permanent countermeasure linked yet."
         }
       }
+    },
+    "categoryBreakdown": {
+      "name": "Category breakdown (5M)",
+      "useWhen": "Use this in Step 2 to sort what you're seeing by category — Man, Machine, Material, Method, Measurement — sub-problems and their effects. This is stratification, not root-cause analysis; save \"why\" for Step 4's Fishbone and 5-Why.",
+      "categories": {
+        "man": "Man",
+        "machine": "Machine",
+        "material": "Material",
+        "method": "Method",
+        "measurement": "Measurement"
+      },
+      "columns": {
+        "category": "Category",
+        "subProblem": "Sub-problem",
+        "effect": "Effect"
+      }
     }
   },
   "gallery": {
@@ -618,5 +633,9 @@
       "complete": "Complete",
       "flagged": "Flagged"
     }
+  },
+  "a3PreviewWindow": {
+    "fitToWindow": "Fit to window",
+    "waiting": "Waiting for the main window…"
   }
 }

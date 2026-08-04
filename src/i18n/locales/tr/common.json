@@ -108,8 +108,7 @@
     "rightPanel": {
       "collapse": "Paneli daralt",
       "expand": "Paneli genişlet",
-      "widen": "Önizlemeyi büyüt",
-      "narrow": "Önizlemeyi küçült",
+      "openInNewWindow": "Yeni pencerede aç",
       "preview": "Önizleme",
       "assistant": "Asistan",
       "previewStub": "A3 önizlemesi, dışa aktarıcı Faz 4'te gelince burada görünecek.",
@@ -551,6 +550,22 @@
           "empty": "Henüz kalıcı karşı önlem bağlanmadı."
         }
       }
+    },
+    "categoryBreakdown": {
+      "name": "Kategori dökümü (5M)",
+      "useWhen": "Adım 2'de gördüklerinizi kategoriye göre ayırmak için kullanın — İnsan, Makine, Malzeme, Metot, Ölçüm — alt problemler ve etkileri. Bu stratifikasyondur, kök neden analizi değil; \"neden\" sorusunu Adım 4'ün Balık Kılçığı ve 5 Neden'ine saklayın.",
+      "categories": {
+        "man": "İnsan",
+        "machine": "Makine",
+        "material": "Malzeme",
+        "method": "Metot",
+        "measurement": "Ölçüm"
+      },
+      "columns": {
+        "category": "Kategori",
+        "subProblem": "Alt problem",
+        "effect": "Etki"
+      }
     }
   },
   "gallery": {
@@ -618,5 +633,9 @@
       "complete": "Tamamlandı",
       "flagged": "İşaretlendi"
     }
+  },
+  "a3PreviewWindow": {
+    "fitToWindow": "Pencereye sığdır",
+    "waiting": "Ana pencere bekleniyor…"
   }
 }

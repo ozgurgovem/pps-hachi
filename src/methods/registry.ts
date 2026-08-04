@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import type { A3EntryRendererMap, A3ImageKind, A3ImageSize } from "../a3/methodContract";
 import type { StepId } from "../domain/model";
 import { actionItemMethod } from "./actionItem";
+import { categoryBreakdownMethod } from "./categoryBreakdown";
 import { causeEffectMatrixMethod } from "./causeEffectMatrix";
 import { comparativeAnalysisMethod } from "./comparativeAnalysis";
 import { checkSheetMethod } from "./checkSheet";
@@ -69,6 +70,7 @@ export const METHOD_REGISTRY: readonly ErasedMethodPlugin[] = [
   registerMethod(countermeasureMethod),
   registerMethod(actionItemMethod),
   registerMethod(icaPcaTransitionMethod),
+  registerMethod(categoryBreakdownMethod),
 ];
 
 export function getMethodsForStep(stepId: StepId): readonly ErasedMethodPlugin[] {

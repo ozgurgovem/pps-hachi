@@ -1,0 +1,134 @@
+import { describe, expect, it, vi, beforeEach } from "vitest";
+
+const getByLabelMock = vi.fn();
+const setFocusMock = vi.fn();
+const onceMock = vi.fn();
+const constructorCalls: Array<{ label: string; options: unknown }> = [];
+
+vi.mock("@tauri-apps/api/webviewWindow", () => {
+  class MockWebviewWindow {
+    label: string;
+    once = onceMock;
+    setFocus = setFocusMock;
+    static getByLabel = getByLabelMock;
+
+    constructor(label: string, options?: unknown) {
+      this.label = label;
+      constructorCalls.push({ label, options });
+    }
+  }
+  return { WebviewWindow: MockWebviewWindow };
+});
+
+const emitMock = vi.fn();
+const emitToMock = vi.fn();
+const listenMock = vi.fn();
+
+vi.mock("@tauri-apps/api/event", () => ({
+  emit: emitMock,
+  emitTo: emitToMock,
+  listen: listenMock,
+}));
+
+const {
+  A3_PREVIEW_WINDOW_LABEL,
+  A3_PREVIEW_DESCRIPTOR_EVENT,
+  A3_PREVIEW_READY_EVENT,
+  openOrFocusA3PreviewWindow,
+  pushDescriptorToPreviewWindow,
+  listenForPreviewReady,
+  listenForDescriptorPush,
+} = await import("./window");
+
+beforeEach(() => {
+  getByLabelMock.mockReset().mockResolvedValue(null);
+  setFocusMock.mockReset();
+  onceMock.mockReset();
+  emitMock.mockReset();
+  emitToMock.mockReset();
+  listenMock.mockReset().mockResolvedValue(vi.fn());
+  constructorCalls.length = 0;
+});
+
+describe("openOrFocusA3PreviewWindow", () => {
+  it("creates a new window at the expected label and route when none exists", async () => {
+    await openOrFocusA3PreviewWindow();
+
+    expect(constructorCalls).toHaveLength(1);
+    expect(constructorCalls[0]?.label).toBe(A3_PREVIEW_WINDOW_LABEL);
+    expect(constructorCalls[0]?.options).toMatchObject({ url: "index.html#/a3-preview" });
+  });
+
+  /** A second `WebviewWindow` with a label already in use throws — this must never happen. */
+  it("focuses the existing window instead of constructing a second one", async () => {
+    getByLabelMock.mockResolvedValue({ setFocus: setFocusMock });
+
+    await openOrFocusA3PreviewWindow();
+
+    expect(constructorCalls).toHaveLength(0);
+    expect(setFocusMock).toHaveBeenCalledOnce();
+  });
+});
+
+describe("pushDescriptorToPreviewWindow", () => {
+  const descriptor = { templateId: "t", language: "en", styles: [], sheets: {} } as never;
+
+  it("does nothing when the preview window is not open", async () => {
+    await pushDescriptorToPreviewWindow(descriptor);
+
+    expect(emitToMock).not.toHaveBeenCalled();
+  });
+
+  it("emits the descriptor to the preview window's label when it is open", async () => {
+    getByLabelMock.mockResolvedValue({});
+
+    await pushDescriptorToPreviewWindow(descriptor);
+
+    expect(emitToMock).toHaveBeenCalledWith(A3_PREVIEW_WINDOW_LABEL, A3_PREVIEW_DESCRIPTOR_EVENT, descriptor);
+  });
+});
+
+describe("the ready handshake", () => {
+  it("listenForPreviewReady subscribes to the ready event", async () => {
+    await listenForPreviewReady(vi.fn());
+
+    expect(listenMock).toHaveBeenCalledWith(A3_PREVIEW_READY_EVENT, expect.any(Function));
+  });
+
+  /**
+   * The whole reason this handshake exists: `new WebviewWindow(...)` creates
+   * the window asynchronously, so a push sent immediately after opening it
+   * can arrive before the new window's own listener is registered and be
+   * silently lost. Announcing readiness only after the listener is live
+   * closes that race.
+   */
+  it("listenForDescriptorPush registers its listener before announcing readiness", async () => {
+    const callOrder: string[] = [];
+    listenMock.mockImplementation(async () => {
+      callOrder.push("listen");
+      return vi.fn();
+    });
+    emitMock.mockImplementation(async () => {
+      callOrder.push("emit");
+    });
+
+    await listenForDescriptorPush(vi.fn());
+
+    expect(callOrder).toEqual(["listen", "emit"]);
+    expect(emitMock).toHaveBeenCalledWith(A3_PREVIEW_READY_EVENT);
+  });
+
+  it("listenForDescriptorPush forwards the event payload to the callback", async () => {
+    let capturedHandler: ((event: { payload: unknown }) => void) | undefined;
+    listenMock.mockImplementation(async (_name: string, handler: (event: { payload: unknown }) => void) => {
+      capturedHandler = handler;
+      return vi.fn();
+    });
+    const onDescriptor = vi.fn();
+
+    await listenForDescriptorPush(onDescriptor);
+    capturedHandler?.({ payload: { templateId: "t" } });
+
+    expect(onDescriptor).toHaveBeenCalledWith({ templateId: "t" });
+  });
+});
