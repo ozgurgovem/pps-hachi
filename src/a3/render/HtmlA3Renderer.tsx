@@ -152,6 +152,17 @@ export function HtmlA3Renderer({ descriptor, mode }: HtmlA3RendererProps) {
         gridTemplateColumns,
         gridTemplateRows,
         background: "#ffffff",
+        // A3 sheet is white paper / black ink by convention, never the
+        // app's own theme — `background` was already hardcoded this way,
+        // `color` was not, so any style with no explicit `font.color`
+        // (`entryContent`, `bodyCell`, `title`, `fieldLabel`, … 11 of the
+        // template's 15 styles, see D-135) fell through to CSS inheritance
+        // and picked up `--color-ink`, which is near-white in dark theme —
+        // unreadable on this always-white background. An inline
+        // `cellStyleToCss` color always wins over this regardless (the four
+        // PDCA header styles set their own white/black explicitly), so this
+        // only ever affects cells that had no color decided for them.
+        color: "#000000",
       }}
     >
       {renderableCells.map((cell) => {

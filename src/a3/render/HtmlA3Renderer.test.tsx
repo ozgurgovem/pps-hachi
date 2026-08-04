@@ -78,4 +78,36 @@ describe("HtmlA3Renderer", () => {
     const firstPrintWidth = Number.parseFloat(printRoot.style.gridTemplateColumns);
     expect(firstPrintWidth).toBeLessThan(firstScreenWidth);
   });
+
+  /**
+   * D-135: 11 of the template's 15 cell styles (`entryContent`, `bodyCell`,
+   * `title`, `fieldLabel`, …) declare no explicit `font.color`. Found
+   * walking the real pop-out preview window in dark theme: that text
+   * inherited the app's theme-aware `--color-ink` (near-white in dark mode)
+   * onto the sheet's hardcoded white background — unreadable. The sheet is
+   * white paper / black ink always, never the app's theme.
+   */
+  it("defaults to black text so a style with no explicit font color stays readable on the white sheet", () => {
+    const { descriptor } = buildA3Layout(fixtureProject(), farplas7StepTr, { rendererMap });
+    const { container } = render(<HtmlA3Renderer descriptor={descriptor} mode="screen" />);
+
+    const root = container.firstElementChild as HTMLElement;
+    expect(root.style.color).toBe("rgb(0, 0, 0)");
+
+    // `title`'s style declares no font.color of its own — it must inherit
+    // black from the root rather than resolving to nothing (which is what
+    // let `--color-ink` leak in before this fix).
+    const titleCell = screen.getByText("Kapı Panel Gürültü Problemi");
+    expect(titleCell.style.color).toBe("");
+    expect(getComputedStyle(titleCell).color).toBe("rgb(0, 0, 0)");
+  });
+
+  /** The fix must not touch cells that already decided their own color (D-96's PDCA headers). */
+  it("leaves a header's own explicit font color untouched", () => {
+    const { descriptor } = buildA3Layout(fixtureProject(), farplas7StepTr, { rendererMap });
+    render(<HtmlA3Renderer descriptor={descriptor} mode="screen" />);
+
+    const header = screen.getByText("1. PROBLEMİN TANIMLANMASI");
+    expect(header.style.color).toBe("rgb(255, 255, 255)");
+  });
 });
