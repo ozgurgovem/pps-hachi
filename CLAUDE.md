@@ -559,4 +559,27 @@ Post-6b real-app walkthrough: 2026-08-04, Barış walked the picker and chart ex
   visual fidelity seriously.
   `npm test` 592/592 (147 files), `npm run lint` clean, `npm run build` green. `cargo check`/
   `cargo test` (89/89)/`cargo clippy`/`cargo fmt` all clean — capability JSON is the only Rust-
-  adjacent change. Not yet committed to git.
+  adjacent change.
+**D-134 (permission fix, same day)**: Barış actually clicked "Open in new window" and nothing
+  happened. `default.json` had the wrong permission — `core:window:allow-create` gates a command
+  (`plugin:window|create`) this code never calls; the real calls need
+  `core:webview:allow-create-webview-window` (window construction) and `core:window:allow-set-focus`
+  (focusing an existing one), neither covered by `core:default`. Every gate that ran, including
+  `cargo check`, passed anyway — the capability file was schema-*valid*, just semantically wrong,
+  and nothing short of a human clicking the real button exercises the actual `invoke()` call
+  against a real ACL. Fixed both permissions, wrapped every Tauri call in `openOrFocusA3PreviewWindow`/
+  `pushDescriptorToPreviewWindow` in `try`/`catch` (a `void`-called async function's rejection was
+  vanishing as an unhandled rejection with zero visible symptom), and simplified `a3-preview.json`
+  to just `core:default` (D-133's explicit `core:event:*` grants there were already redundant).
+  3 regression tests added (rejected `getByLabel`/`setFocus`/`emitTo` no longer escape silently),
+  mutation-verified.
+**D-135 (unreadable A3 text in dark theme, same day)**: with the window actually open, Barış
+  reported the gray text on the white sheet as unreadable. 11 of the template's 15 cell styles
+  (`entryContent`, `bodyCell`, `title`, `fieldLabel`, …) declare no `font.color`; those cells
+  inherited the app's theme-aware `--color-ink` (near-white in dark mode) onto the sheet's
+  hardcoded white background. Fixed with one line at `HtmlA3Renderer`'s render root
+  (`color: "#000000"`, matching `background: "#ffffff"`'s existing non-theme-aware treatment) —
+  an inline color on any cell (the four PDCA headers) always wins over this, so nothing that was
+  already correct changed. 2 regression tests added, mutation-verified.
+  `npm test` 597/597 (147 files), `npm run lint` clean, `npm run build` green, `cargo test`
+  (89/89)/`cargo clippy`/`cargo fmt` clean (Rust untouched by this fix). Not yet committed to git.
