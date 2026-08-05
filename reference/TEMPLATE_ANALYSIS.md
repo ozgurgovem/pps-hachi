@@ -1133,3 +1133,129 @@ biri büyürse esnek tahsis ADIM 2 veya 3'ten satır almak zorundadır — sessi
 **Değişmeyenler:** §12.1–§12.3'ün sayfa sözleşmesi (kenar boşlukları, kolonlar, katlama,
 795.00 pt) bu düzeltmeden etkilenmez — esneklik yalnızca 650 pt'nin *içinde* çalışır.
 Grafik alabilen bloklar yine ADIM 1, 2, 4; sağ kolonun dört izleme bloğu için P-31 açık.
+
+---
+
+## 13. Altı çalışma sayfası + `Lists & Settings` — Oturum B1 çıktısı, 2026-08-06
+
+> D-149'un dört oturumundan **ikincisi**, iki alt oturuma bölündü (bütçe gerekçesi
+> Barış'a soruldu, onay alındı — aşağıdaki `oturumlar/B-adim-anatomisi.md` notuna bkz.).
+> **B1 — bu bölüm:** P-30'u kapatır, altı çalışma sayfasını + `Lists & Settings`'i çözer.
+> **B2 — ayrı, temiz oturum:** blok görsel dili (§5.2), adım arayüzü (§5.3), esnek tahsis
+> arayüzü (§5.4) — kendi başlangıç promptu `docs/oturumlar/B2-gorsel-dil-arayuz.md`.
+
+**Yöntem:** §9/§12 ile aynı disiplin. `xl/worksheets/sheet{2..8}.xml` + `xl/sharedStrings.xml`
+doğrudan okundu (sheet1 = `A3 Summary`, zaten §11/§12'de çözüldü). Parser gerçek dosya
+açılmadan önce **8/8 sabit-örnek öz-testinden** geçti: zengin-metin (`<r><t>`) shared-string
+birleştirme, aralık-dışı shared-string indeksi RAISE, `inlineStr` hücre, `dataValidation`
+`formula1`'in tırnaklı-literal-liste ile aralık-referansı (`'Sayfa Adı'!$A$2:$A$9`) ayrımı,
+bozuk XML RAISE, **0 satır ayrıştırma RAISE** (temiz değil, arıza), `mergeCell` aralığı.
+Taranan öğe sayıları: 7 sayfa, 183 satır, 2257 hücre, 24 birleştirme, **15 `dataValidation`**.
+
+### 13.0 Genel bulgu — form TEK yaşam-döngüsü tablosu tutuyor, uygulama adım-kapsamlı `Entry` kullanıyor
+
+Bu, tek tek sayfalarda tekrar etmeden önce kayda geçmesi gereken çapraz-kesen bir bulgu.
+Rev00'ın çalışma sayfaları PPS'i 8 ayrı adım olarak değil, **üç uzun, PDCA boyunca süren
+tablo** olarak modelliyor:
+
+- `Data Analysis` (sayfa 3) tek bir KPI-gözlem tablosu tutuyor, her satır bir `Phase`
+  (**Baseline · Containment · Post-Action · Sustain**) etiketiyle işaretli — Adım 2'nin
+  trend'i ile Adım 7'nin "post-action/sustain" izlemesi **aynı tabloda**, farklı satırlarda.
+- `Action Plan & Containment Tracker` (sayfa 5) tek bir aksiyon tablosu tutuyor, her satır
+  bir `Type` (**Containment · Corrective · Preventive · Standardization · Yokoten**)
+  etiketiyle işaretli — bizim `containmentIca` (Adım 1), `actionItem` (Adım 6) ve Yokoten
+  (Adım 8, henüz plugin yok) olarak ayırdığımız üç şey formda **tek tablo, tek şema**.
+- `Root Cause Analysis` (sayfa 4) benzer şekilde hipotez üretimi, 5 Neden zincirleri ve
+  doğrulama/onayı üç ayrı bant olarak tutuyor ama hepsi tek sayfada, tek `Cause ID` anahtarı
+  üzerinden ilişkili.
+
+**Bu bir tasarım hedefi değil, bir gözlemdir** (statü tablosu: bu sayfalar artık **ÖLÇÜLDÜ**,
+ama `PPS_A3_Problem_Solving_Template_Rev00.xlsx`'in tasarım hedefi statüsü yalnızca `A3
+Summary` sayfası içindir, D-150). `CLAUDE.md`'nin kendi ilkesi zaten bunu çözüyor: *"The
+supplied company templates are 7-step; the app's model is 8-step. A template is a projection
+of the model onto a sheet, never the other way round."* D-124 (bir izlenebilir düğüm = bir
+`Entry`) ve D-116'nın referans mimarisi bu formun tek-tablo yaklaşımını **zaten** adım-kapsamlı
+`Entry` + `references[]` ilişkisine çeviriyor — mimari değişmez. Değer, formun *hangi
+alanları* ve *hangi sözlükleri* beklediğini bilmekte; yapısını kopyalamakta değil.
+
+### 13.1 Sayfa sayfa veri modeli
+
+| Sayfa | Uygulamadaki karşılığı | Alanlar (kısaltılmış) | Açılır liste sözlüğü | Not |
+|---|---|---|---|---|
+| **Problem Definition** | ADIM 1 (5W2H/Scope, Is/Is-Not) + ADIM 2 (Problem Breakdown) | 5W2H: Field·Entry·Evidence — What/Where/When-frequency/Who affected/How many/How much cost·risk. Is/Is-Not: Dimension·IS·IS NOT·Boundary (Product/Process step/Location/Time/Population). Breakdown: Segment·Measure·Baseline·Defects·Volume·Rate·Share·Priority·Selected?·Evidence·Owner·Notes (Product/Process/Shift/Machine/Supplier lot/Customer/Other) | `Priority`: Critical/High/Medium/Low · `Selected?`: Yes/No | Şipping edilmiş `fiveW2H`, `isIsNot`, `stratificationMatrix` alan setleriyle büyük ölçüde örtüşüyor — yeni alan yok, doğrulama. |
+| **Data Analysis** | ADIM 2 `trend` (+ ADIM 7'nin sustain izlemesiyle aynı tablo, §13.0) | Date·KPI·Actual·Target·Unit·Phase·Product/Line·Source-Evidence·Defects·Volume·Rate·Comment | `Phase`: Baseline/Containment/Post-Action/Sustain | Bizim `trend` şeması `Phase` alanı taşımıyor — tek entry'nin yaşam boyu birden fazla fazı etiketleme ihtiyacı yok, çünkü biz fazı adım/round ile ayırıyoruz (D-58 `roundId`). Şema değişikliği önerilmiyor, yalnızca kayda geçti. |
+| **Root Cause Analysis** | ADIM 4 (Fishbone, 5 Why, 3-Legged 5 Why) | Ishikawa: Cause ID·Category·Potential cause·Occurrence/Escape/Systemic·Evidence for/against·Test method/owner/due date·Result·Verification·Selected root?·Risk·Notes. 5 Why: Chain·Cause type·Problem·Why 1–5·Root cause statement·Evidence·Can switch on/off?·Verification·Cause ID·Owner. Onay: Cause ID·Verified root cause·Type·Evidence summary·Reproduction test·Result·**Confidence %**·Approver·Approval date·Decision·Linked action IDs·**Residual uncertainty**·**Customer relevance**·Notes | Category: **Man/Machine/Method/Material/Measurement/Environment/Management System (7)** · Occurrence/Escape/Systemic(/Direct/Contributing) · Verification: Not Tested/Planned/Verified/Rejected · Approval: Draft/Under Review/Approved/Rejected | **Doğrulama, gap değil:** 7 kategori sevk edilmiş `fishbone/categories.ts`'in `6M` setiyle (`man,machine,material,method,measurement,environment,management` — D-104'ün notu doğru: "6M" adı 7 öğeli) **birebir eşleşiyor**. Onay bandının `Confidence %`/`Residual uncertainty`/`Customer relevance` alanları hiçbir şipping edilmiş plugin'de yok — Oturum C adayı, burada yalnızca kayıt (D-124 uyarınca kapsam dışı). |
+| **Action Plan & Containment Tracker** | ADIM 1 `containmentIca` + ADIM 6 `actionItem` (+ Yokoten, §13.0) | Action ID·Type·Action/countermeasure·Cause ID·Owner·Planned start·Due date·Actual finish·Status·Priority·**Days late**·**RAG**·Completion evidence·Effectiveness evidence·**Customer approval** | Type: Containment/Corrective/Preventive/Standardization/Yokoten · Status: Not Started/In Progress/Blocked/Complete/Cancelled · Priority: Critical/High/Medium/Low | `RAG` sütunu formda **hiç `dataValidation` almıyor** (elle serbest metin, seed değerleri hep "Green") — form bile bunu bağlamamış, biz de bağlamak zorunda değiliz ama D-153'ün `A3 Summary` başlık bandındaki **"Genel RAG"** alanı için sözlük ihtiyacı burada doğrulanıyor (§13.2). `Days late`/`Customer approval` şipping edilmiş `actionItem`'da yok — Oturum C adayı. |
+| **Effectiveness Check** | ADIM 7 (henüz karşılığı olmayan "Sustainment Audits" hariç) | KPI Verification: KPI·Definition·Baseline·Target·Post-action·Sustain·Unit·Improvement %·Target met?·Verification window·Evidence URL·Conclusion. **Sustainment Audits** (yeni kavram): Audit date·Area/line·Standard checked·Sample size·Conforming·Nonconforming·Compliance %·Auditor·Finding·Reaction action ID·Next audit·Status | Target met?: Yes/No · Audit Status: Planned/Verified/Rejected | "Sustainment Audits" bandının şipping edilmiş hiçbir plugin'de karşılığı yok — periyodik denetim/izleme kavramı bizim tek-seferlik `checkSheet`'ten farklı. Oturum C adayı. |
+| **Standardization, Yokoten & Lessons Learned** | ADIM 8 | Document Updates (**7 sabit satır**: PFMEA·Control Plan·Work Instruction·Inspection Standard·Training/Competence·Layered Process Audit·APQP/PPAP record — her biri Update required?/Doc ID/Current-New revision/Owner/Due-Completion date/Status/Approval/Evidence/Customer submission?). Yokoten: Site/line/product·Applicability·Risk reviewed·Action required·Owner·Due date·Status·Completion evidence·Effectiveness checked·Check date·Result·Approval·Notes. Lessons Learned (**8 sabit soru**): What went well? / What failed or was delayed? / What evidence changed our thinking? / What should be reused? / What should be avoided? / Coaching-capability lesson / Customer communication lesson / Final closure rationale | Update required?: Yes/No · Status: Not Started/In Progress/Blocked/Complete/Cancelled · Approval: Draft/Under Review/Approved/Rejected | Şipping edilmiş `pfmeaLinkage` tek belgeye odaklı; form **7 sabit belge türünü** ayrı ayrı izliyor — daha geniş. Yokoten'in kendi izleme tablosu ve 8 soruluk yapılandırılmış "lessons learned" checklist'i hiçbir şipping edilmiş plugin'de yok. Üçü de Oturum C adayı. |
+
+### 13.2 Ortak sözlük — `Lists & Settings`
+
+**Önemli mimari bulgu:** `Lists & Settings`'teki yedi sütun, sayfa 2–7'nin 15
+`dataValidation`'ından **hiçbirine formülle bağlı değil** — hepsi kendi sayfasında tırnaklı
+literal liste (`"Critical,High,Medium,Low"` gibi), `'Lists & Settings'!$A$2:$A$9` tarzı bir
+aralık referansı **sıfır kez** görüldü (doğrulama: `grep <formula1>` sayfa 2–7'nin tamamında,
+7 sonucun hepsi literal). Yani bu sayfa canlı bir veri kaynağı değil, **insan-okunur bir
+sözlük/lejant** — her yerde tekrarlanan literal listelerin tek bir yerde özetlenmiş hali.
+
+| Sözlük | Değerler | Nerede kullanılıyor |
+|---|---|---|
+| Status | Not Started · In Progress · Blocked · Complete · Cancelled | Action Plan, Root Cause (dolaylı), Standardization |
+| Priority | Critical · High · Medium · Low | Problem Definition, Action Plan |
+| **RAG** | Red · Amber · Green | Yalnızca `Lists & Settings`'te tanımlı; Action Plan'ın `RAG` sütunu **bağlanmamış** (§13.1) |
+| Verification | Not Tested · Planned · Verified · Rejected | Root Cause Analysis, Effectiveness Check |
+| Yes/No | Yes · No | Problem Definition, Root Cause, Standardization |
+| Cause Type | Occurrence · Escape · Systemic · Direct · Contributing | Root Cause Analysis (5 öğeli hipotez seti; 5 Why alt-kümesi yalnız ilk 3'ünü kullanıyor) |
+| Approval | Draft · Under Review · Approved · Rejected | Root Cause, Standardization |
+
+`Guidance` sütunu (liste değil, beş serbest-metin kural) — kayda değer, coaching içeriğine
+yakın: *"Yellow cells are user inputs; blue/gray cells are calculated or instructional." ·
+"Dates use ISO display (yyyy-mm-dd)." · "Enter facts and evidence; avoid conclusions in the
+problem statement." · "No macros are used. Formulas and validation remain auditable." ·
+"Update PFMEA, Control Plan and work instructions when the verified cause affects risk
+controls."* Sonuncusu `pfmeaLinkage`'ın referans rolüyle zaten örtüşüyor (D-125); üçüncüsü
+Adım 1 coaching metnine eklenebilecek bir cümle (Oturum C/içerik işi, burada yalnızca kayıt).
+
+### 13.3 Doğrulanan (gap değil)
+
+- **Fishbone `6M` kategori seti Rev00'ın 7 kategorisiyle birebir eşleşiyor** (§13.1) — D-11/
+  D-104 sağlam, herhangi bir düzeltme gerekmiyor.
+- **`five-g-5n1k` şipping edilmiş plugin'i formda karşılığı olmayan bir alan seti taşıyor**
+  (5G: Gemba/Gembutsu/Genjitsu/Genri/Gensoku) — Rev00'ın hiçbir sayfası 5G'yi adlandırmıyor.
+  Bu bir hata değil: 5G, sevk edilmiş uygulamanın kendi `SPEC.md` §3.0 kararı (5W2H yerine),
+  Rev00'ın kapsamadığı ayrı bir katkı. B2'nin 5N1K kararına (ayrı yeni format, bu oturumda
+  Barış onayladı) etkisi yok, ama 5G'nin ADIM 1'in üç zorunlu panelinden (D-159) hiçbirine
+  girmediği doğrulandı — B2'nin çözmesi gereken açık uç olarak kayda geçti.
+
+### 13.4 Yeni yöntem adayları — Oturum C'nin kapsamı, burada yalnızca kayıt
+
+D-149/§6'nın "plugin ekleme/silme Oturum C'dir" sınırı gereği aşağıdakiler **karar değil,
+bulgu**:
+
+1. **Sustainment Audits** (ADIM 7) — periyodik denetim izleme, tek-seferlik `checkSheet`'ten
+   farklı bir tekrarlı-kayıt şekli ister.
+2. **Sabit 7 belge türlü Document/System Updates izleyicisi** (ADIM 8) — şipping edilmiş
+   `pfmeaLinkage` tek belgeye odaklı, form yedi türü (PFMEA, Control Plan, Work Instruction,
+   Inspection Standard, Training/Competence, Layered Process Audit, APQP/PPAP) ayrı ayrı ister.
+3. **Yokoten (yatay yayılım) izleyicisi** (ADIM 8) — hiçbir şipping edilmiş plugin karşılamıyor.
+4. **8 soruluk yapılandırılmış Lessons Learned checklist'i** (ADIM 8) — şipping edilmiş hiçbir
+   plugin bu sabit soru setini karşılamıyor.
+5. **Root cause onay bandına `Confidence %` / `Residual uncertainty` / `Customer relevance`
+   alanları** — mevcut root-cause plugin'lerinde yok.
+6. **`actionItem`'a `Days late` (hesaplanan) / `Customer approval` alanları** — mevcut
+   şemada yok.
+7. **`Genel RAG` (D-153 başlık alanı) için sözlük** — Red/Amber/Green, §13.2'den doğrudan.
+
+### 13.5 P-30 CAPANDI
+
+Altı çalışma sayfası + `Lists & Settings` çözüldü — bu bölümün kendisi. `reference/README.md`
+statüsü güncellendi (ANALİZ EDİLMEDİ → ÖLÇÜLDÜ).
+
+### 13.6 B2'ye kalan — bu oturumun KAPSAMADIĞI
+
+`docs/oturumlar/B-adim-anatomisi.md` §5.2 (blok görsel dili, palet çakışması dahil) · §5.3
+(adım sayfası arayüzü) · §5.4 (esnek tahsis arayüzü). Barış'ın bu oturumda verdiği üç tasarım
+kararı (renk bandı: `gapStatement`'ın 3 alanlı şemasına dokunmadan yalnızca render'a renk
+bandı eklenir — Ultimate Goal alanı eklenmez; 5N1K: ayrı yeni format; esnek tahsis: ikisi
+birden — varsayılan otomatik + manuel override) `DECISIONS.md`'ye D-162–D-164 olarak yazıldı;
+B2 bunları yeniden sormadan girdi olarak alır.

@@ -719,3 +719,33 @@ Phase 6c (Step 2's distribution chart + Steps 5–6's remaining plain methods): 
   and the fact that five blocks sharing the right column's 650 pt makes the shipped
   `CHART_ROW_SPAN = 10` geometrically impossible there — P-31, Oturum B's to answer.
   Also closed: P-29 (Rev00 *is* the approved Farplas form → D-157 moves D-10's default).
+**Oturum B1 — six working sheets + `Lists & Settings` (D-149's second of four, first
+  half): DONE 2026-08-06.** No code written. Oturum B split into B1/B2 at its own opening
+  budget check (D-161, Barış approved via AskUserQuestion) — B2 (`docs/oturumlar/
+  B2-gorsel-dil-arayuz.md`) covers §5.2–§5.4 (block visual language, step-page interface,
+  elastic-allocation interface) in its own clean session. `reference/TEMPLATE_ANALYSIS.md`
+  §13 is this session's deliverable, closing P-30. A hand-rolled OOXML reader (no openpyxl
+  in this environment — raw `sheetN.xml`/`sharedStrings.xml`, same method as §9/§12) passed
+  an 8/8 fixed-sample selftest before the real file was opened, then scanned all 7 remaining
+  sheets: 183 rows, 2257 cells, 24 merges, 15 `dataValidation` elements. Two findings worth
+  carrying: (1) the six working sheets model PPS as **three PDCA-long lifecycle tables**
+  (a KPI-trend table tagged by `Phase`, one unified action table tagged by `Type`, a
+  root-cause hypothesis→verification chain) rather than 8 step-scoped forms — confirms
+  rather than threatens the app's `Entry`+`references[]` architecture (D-116/D-124), since
+  `CLAUDE.md`'s own "template is a projection of the model, never the reverse" already
+  covers this; (2) `Lists & Settings` is a static human-readable legend, not a live formula
+  source — verified directly (all 15 `dataValidation` `formula1`s are literal comma lists;
+  zero range references to it exist anywhere in the workbook). Confirmed, not a gap: the
+  shipped fishbone `6M` category set matches Rev00's own 7-item Ishikawa category list
+  exactly. Seven new-method candidates surfaced for **Oturum C** (not decided here):
+  Sustainment Audits, a 7-fixed-document tracker, a Yokoten tracker, an 8-question Lessons
+  Learned checklist, three new root-cause-verification fields, two new `actionItem` fields,
+  and confirmation that D-153's "Genel RAG" header field needs a Red/Amber/Green vocabulary
+  nothing currently provides. While answering Oturum B's own three open design questions
+  (asked once, up front, per the session prompt's own §9), Barış made three decisions now
+  binding for B2: the problem-statement panel stays `gapStatement`'s already-shipped 3 fields
+  with no schema change (D-162), ADIM 1's 5N1K panel is a new plugin rather than a reuse of
+  the shipped `five-g-5n1k` — which was also found to carry a different field set than the
+  reference visual (D-163), and elastic allocation is automatic-by-default plus a manual
+  override (D-164). `reference/README.md`'s status table updated (six sheets: ANALİZ
+  EDİLMEDİ → ÖLÇÜLDÜ). Not yet committed to git.

@@ -18,7 +18,7 @@ zorunda kaldığı hata sınıfının kendisidir.
 | Dosya | Statü | Ne |
 |---|---|---|
 | `PPS_A3_Problem_Solving_Template_Rev00.xlsx` | **ÖLÇÜLDÜ** | **REFERANS FORMAT** (D-150). Boş, 8 adımlı, hücre ızgarası — 136 birleştirme, 0 kayan şekil, 50 KB. `A3 Summary` sayfasının geometrisi `TEMPLATE_ANALYSIS.md` §11'de; uygulamanın kurulduğu sayfa sözleşmesi **§12**'de. P-29 (D-157): Farplas'ın ONAYLADIĞI form. |
-| ↳ altı çalışma sayfası + `Lists & Settings` | **ANALİZ EDİLMEDİ** | P-30 — **Oturum B'nin ilk işi**. Adım başına veri modelini ve açılır liste sözlüklerini tanımlıyor olması muhtemel. |
+| ↳ altı çalışma sayfası + `Lists & Settings` | **ÖLÇÜLDÜ** | P-30 kapandı (2026-08-06, Oturum B1) — öz-testli OOXML okuyucu ile çözüldü. Adım başına veri modeli + açılır liste sözlükleri: `TEMPLATE_ANALYSIS.md` §13. |
 
 ## Görsel dil referansı
 
