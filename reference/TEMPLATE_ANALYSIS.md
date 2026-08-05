@@ -702,3 +702,138 @@ At 10 pt margins the same arithmetic gives 1170.75 × 822.05 pt and 2.1 % less p
   example ("Examp"), and a blank would be a better source than a filled one.
 - Whether the 8.3 MB file should stay in the repo at full size once the geometry is recorded
   here (62 MB uncompressed, mostly embedded photos and two data sheets).
+
+---
+
+## 11. **REFERANS FORMAT** — `PPS_A3_Problem_Solving_Template_Rev00.xlsx`, verified 2026-08-05
+
+**This is the format the application is built on.** Barış designated it as the reference for
+all further work, superseding §10's candidate (`PPS_A3_Format_Examp_FINAL.xlsx`) and displacing
+the Farplas `.xls` forms of §3 from the design-target role — those remain the record of the
+*existing company form*, not the target. Verified with the same method as §9/§10: OOXML
+`<cols>`/`<row ht>`/`<mergeCells>`/`<pageSetup>` read directly, parser self-tested 8/8 before
+the file was opened.
+
+**Finally a real blank form.** 50 KB, no embedded photos, no leftover objects, no hidden data
+sheets — the opposite of §10's 8.3 MB filled example. **It is a cell grid, not a canvas:**
+136 merged ranges, 279 populated cells, 0 floating shapes. That matters architecturally: §8's
+`A3Template` type (columns, rows, blocks with `CellRange`, merges, styles) can be transcribed
+from it directly, which was impossible for §10's 107-shape canvas.
+
+Workbook: `A3 Summary` (the report, `Print_Area = $A$1:$Y$45`) plus six per-step working sheets
+(`Problem Definition`, `Data Analysis`, `Root Cause Analysis`, `Action Plan`,
+`Effectiveness Check`, `Lessons Learned`) and `Lists & Settings`.
+
+### 11.1 The three claims, tested
+
+| Claim | Verdict |
+|---|---|
+| 8 adımlı | ✅ **True.** Eight numbered step blocks, `ADIM 1`…`ADIM 8`, Turkish throughout |
+| Ortadan katlanabilir | ✅ **True, and exactly** — see 11.2 |
+| A3 kağıda tam oturur | ❌ **Not as delivered** — 150.48 pt of horizontal slack, see 11.4 |
+
+### 11.2 Column geometry — the fold is exact
+
+```
+A..L   12 columns × 41.25 pt = 495.00 pt     left half
+M       1 column               9.75 pt       divider — labelled "KAT" in M3
+N..Y   12 columns × 41.25 pt = 495.00 pt     right half
+                              ─────────
+total A..Y                     999.75 pt
+```
+
+The split is **exactly 50.0 / 50.0** — not §3's 49.7/50.3, and deliberately so: the divider is
+its own column and the sheet's midpoint is **499.875 pt**, which is the **exact centre of
+column M** (M spans 495.00 → 504.75). Folding the sheet in half lands precisely on the gutter.
+The template's own author named the column `KAT`. This is the property §10's candidate failed
+by 232 pt, and it is what D-145 chose two columns to preserve.
+
+### 11.3 Row geometry and block budget
+
+45 rows, **789.00 pt** total. Both columns share the title band, the case-information band and
+the approval band; the eight step blocks divide the middle.
+
+| Band | Rows | Height | Spans |
+|---|---|---|---|
+| Title | 1–2 | 32 pt | both |
+| `VAKA BİLGİLERİ` / header fields | 3–6 | 71 pt | both |
+| Step blocks | 7–42 | **644 pt** | split L/R |
+| `Hazırlayan · Kontrol Eden · Onaylayan · İmza · Tarih` | 43–45 | 42 pt | both |
+
+**Left column (A:L) — 3 blocks · Right column (N:Y) — 5 blocks**, 644 pt of block area each:
+
+| Block | Rows | Height | % of block area |
+|---|---|---|---|
+| ADIM 1 — Problemi netleştirin | 7–15 | 162 pt | 25.2 % |
+| ADIM 2 — Problemi parçalara ayırın | 16–36 | 383 pt | **59.5 %** |
+| ADIM 3 — Hedef belirleyin | 37–42 | 99 pt | 15.4 % |
+| ADIM 4 — Kök nedeni analiz edin | 7–20 | 252 pt | 39.1 % |
+| ADIM 5 — Uygulama planı | 21–26 | 108 pt | 16.8 % |
+| ADIM 6 — Çözümleri uygulama | 27–32 | 113 pt | 17.5 % |
+| ADIM 7 — Sonuçları izleme | 33–38 | 108 pt | 16.8 % |
+| ADIM 8 — Standardizasyon / kurumsallaştırma | 39–42 | 63 pt | 9.8 % |
+
+**Header fields** (rows 4–5): PPS ID · Problem Başlığı · Problem Sahibi · Müşteri/Tesis ·
+Hat/Makine · Öncelik · Bölüm · Parça/Proses · Açılış Tarihi · Revizyon · Hedef Kapanış ·
+Genel RAG. **This restores a header identity band and an approval footer** — D-148 deferred
+both because §10's candidate had neither; this format has both, so D-148 is superseded (D-153).
+Note what is *not* here relative to §3: no TPM `Kayıp Cinsi` taxonomy (D-36), no 8-slot team
+roster, no Work-Plan Gantt strip, and no benefit/cost/B-C financial footer.
+
+**Two budget observations for Oturum A, both measurable, neither fatal:**
+
+- **ADIM 2 takes 59.5 %** of its column — the same over-allocation §6 criticised in Template A
+  (65.4 %), and the same shape §10's candidate had corrected to 35.1 %.
+- **ADIM 8 gets 63 pt** — four rows for standardisation, read-across and yokoten, the block
+  §6 item 7 already called under-structured.
+
+### 11.4 The A3 fit gap — measured, and it cannot be fixed with margins
+
+```
+page setup   paperSize 8 (A3), landscape, fitToPage 1, autoPageBreaks 0, no explicit scale
+margins      0.28 in = 20.16 pt on all four sides;  horizontallyCentered + verticallyCentered
+printable    1150.23 × 801.57 pt        aspect 1.43497
+content       999.75 × 789.00 pt        aspect 1.26711
+```
+
+Excel's fit-to-page **only shrinks** — it never enlarges — so the effective scale is 100 %, and
+the sheet prints as authored. Centred on the page that leaves:
+
+```
+horizontal slack 150.48 pt      vertical slack 12.57 pt
+printed margins  left/right ≈ 95.4 pt (33.7 mm)   top/bottom ≈ 26.4 pt (9.3 mm)
+```
+
+**3.6× more margin on the sides than top and bottom.** The sheet fills the height and floats in
+the width.
+
+**No choice of equal margins can correct this.** With equal margins `m`, the printable aspect is
+`(1190.55−2m)/(841.89−2m)`, which is minimised at **1.4141** when `m = 0` and grows from there.
+The content's 1.26711 is below that floor, so the fix must widen the content, not adjust the
+page. Keeping all 45 row heights and the fold symmetry, widening the 24 content columns from
+41.25 pt to **46.50 pt** (62 px) reaches aspect ≈ 1.4325 with the divider re-cut to suit; the
+fold stays exactly on the divider's midpoint by construction, because both halves grow equally.
+**The exact final grid is Oturum A's deliverable, not this document's** — §11 states the
+constraint and the measurement; Oturum A cuts the numbers.
+
+### 11.5 What carries over from §10, and what does not
+
+- **D-146's 1:1 authoring principle is confirmed by this file**: 789 pt of content against
+  801.57 pt of printable height is authored essentially at real size, not the 2.4×-oversized,
+  shrink-to-41 % canvas of §3. Authored pt ≈ printed pt, so D-40's legibility floor stays at
+  **≥ 8 pt authored**, not 19.3.
+- **D-146's specific 5 pt margin figure is not what this file uses** (it uses 20.16 pt). Which
+  margin wins is an Oturum A decision; §11.4 shows the aspect fix is required either way.
+- §10 (the `Examp` candidate) is retained as evidence — its Step-3 budget finding and its
+  §10.5 correction to D-27 stand — but it is **no longer the design target**.
+
+### 11.6 Open
+
+- **P-29** — is `Rev00` an *approved company form*, or an ideal target we are designing to?
+  D-10's rationale for defaulting to the Farplas form is adoption ("an app that outputs a
+  non-standard A3 does not get adopted"). The title reads `OTOMOTİV PPS`, not Farplas-branded,
+  and the header field set differs from §3's. This changes what `farplas-7step-tr` is *for*.
+- Cell styles, fills, borders and fonts were not inventoried this pass — only geometry, merges,
+  text and page setup. PDCA colour coding not checked.
+- The six per-step working sheets and `Lists & Settings` were not analysed; they likely define
+  the per-step data model and the dropdown vocabularies, which is direct input to Oturum B.

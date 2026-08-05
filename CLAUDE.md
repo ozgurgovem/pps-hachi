@@ -22,9 +22,17 @@ the terminology. Write the UI for them, not for a beginner.
 - **Method plugins:** every PPS method is a plugin with `{ id, step, schema, Editor,
   renderToA3, readiness }`. Adding a method must never require touching the step page,
   the preview, or the exporter.
+- **The reference format is `reference/PPS_A3_Problem_Solving_Template_Rev00.xlsx`** (D-150,
+  2026-08-05). It is natively 8-step, two-column, foldable exactly in half (495 | 9.75 | 495 pt,
+  the gutter column is literally named `KAT`), and a real blank cell grid rather than a canvas.
+  **Build against it.** Geometry: `TEMPLATE_ANALYSIS.md` §11. Two things it does not yet do:
+  fit A3 exactly (D-152 — needs a width change, not a margin change) and answer whether it is
+  the form Farplas actually approves (P-29).
 - **The supplied company templates are 7-step; the app's model is 8-step.** A template is a
   projection of the model onto a sheet, never the other way round. Geometry lives in
   `reference/TEMPLATE_ANALYSIS.md` and is authoritative — do not eyeball it from the .xls.
+  §3 (the Farplas `.xls` forms) is now the record of the *existing* company form, not the
+  design target; §10 is evidence only; **§11 is the target.**
 - **Default template is `farplas-7step-tr`, then `farplas-7step-plus` once the fidelity test passes and `-plus` exists.** The company standard
   wins. `-plus` isn't built until Phase 11 (D-95) — until then the default stays `-tr`
   regardless of fidelity-test outcome. Template B (`pps-8step-auto`) is an option the user
