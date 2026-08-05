@@ -491,3 +491,214 @@ B4 Çalışma Ekibi   D4/I4/M4/Q4 Sicil   F4/J4/N4/R4 Ad Soyad   T4 Çalışma P
 - The stray Calibri cell reported at ENG `B59` was not re-checked.
 - Embedded instruction images on the `STEP-1`…`STEP-7` sheets were not extracted.
 - Conditional formatting and data validation rules were not inspected.
+
+---
+
+## 10. Candidate template — `PPS_A3_Format_Examp_FINAL.xlsx`, verified 2026-08-05
+
+Supplied by Barış mid-session during Phase 6c and deferred to its own clean session (Anayasa
+Madde 4). Verified with the same discipline as §9: geometry read from the file's own records,
+never eyeballed. The `.xlsx` equivalent of §9's `COLINFO`/`ROW` walk is the OOXML
+`<cols>`/`<row ht>`/`<mergeCells>`/`<pageSetup>` elements plus the `xl/drawings` anchor tree.
+
+**Method and its self-test.** A `<col>` record carries `min`/`max` and covers a **range** —
+the exact shape of the parser bug §9.2 caught, which invented the phantom 59/41 split by
+applying each record to its first column only. The reader used here expands `min..max` and
+was self-tested against a synthetic fixture (8/8, including that range case, a default
+fallback, and hidden rows/columns counting as 0) **before the real file was opened**, per
+Anayasa §4's "the scanner itself must be verified — 'clean' is the most dangerous output."
+Column widths are converted to points with the exact Excel formula
+`px = int(((256·w + int(128/MDW))/256)·MDW)`, `MDW = 7`, `pt = px · 0.75` — not the raw
+character-unit sums §3 used. Re-running that conversion over §3's corrected ENG/TR width
+tables reproduces **49.6 / 50.4** (ENG) and **49.7 / 50.3** (TR): **D-35 is confirmed a
+second time, by a second method.**
+
+### 10.1 What the file actually is
+
+**A completed A3, not a blank form.** Sheet `TBP` (Toyota Business Practice) carries a real
+Farplas project — scrap-rate reduction on moulds EK-5188/EK-5492. The other 15 sheets are its
+working data (machine/mould stoppage breakdowns, `karşı önlem`, `FireNedenleri`, `Hedef`), two
+of them very large (7 MB and 36 MB of XML) and hidden.
+
+**It is a canvas, not a cell grid** — the same finding `docs/02_REAL_WORLD_FINDINGS.md`
+records for the five real company A3s, one layer more extreme:
+
+| | Template A (`PPS_A3_Format_TR/ENG.xls`) | Candidate (`TBP`) |
+|---|---|---|
+| Merged ranges | 46 | **8** |
+| Non-empty cells on the A3 sheet | full form | **20** |
+| Floating drawing objects | few | **107** |
+
+Nothing in it is a reusable blank. The block *geometry* is derivable (the bands are
+column-aligned and the rows are regular); the *content* is not — it is 107 hand-placed shapes.
+
+### 10.2 Measured geometry
+
+`Print_Area = TBP!$A$3:$AN$97`. Blocks located from the step-header shape anchors, not by eye:
+
+| Band | Columns | Width | Blocks |
+|---|---|---|---|
+| 1 | C:O | 614.25 pt — **36.4 %** | Adım 1, Adım 2, Adım 3 |
+| 2 | P:Z | 604.50 pt — **35.8 %** | Adım 4, **Adım 5-6** |
+| 3 | AA:AM | 469.50 pt — **27.8 %** | Adım 7, Adım 8 |
+
+Each band's content height is **exactly 1301.25 pt** — a disciplined three-band grid. But the
+bands are **not** equal in width: band 3 is ~145 pt narrower than band 1.
+
+**Block shares of their own band**, against §3's Template A figures for the same measure:
+
+| Block | Candidate | Template A equivalent |
+|---|---|---|
+| Adım 1 | 451.50 pt — 34.7 % | 420 pt — 25.3 % |
+| Adım 2 | 456.75 pt — 35.1 % | 1083.75 pt — 65.4 % |
+| **Adım 3 (Hedef)** | **393.00 pt — 30.2 %** | **153.75 pt — 9.3 %** |
+| Adım 4 | 594.75 pt — 45.7 % | 420 pt — 25.8 % |
+| Adım 5-6 | 706.50 pt — 54.3 % | 390 pt — 24.0 % |
+| Adım 7 | 837.00 pt — 64.3 % | 540 pt — 33.2 % |
+| Adım 8 | 464.25 pt — 35.7 % | 277.5 pt — 17.1 % |
+
+**§6's number-one criticism is fixed here.** §6 called Step 3's 9.3 % "the single biggest
+weakness … a target written in a 153 pt box is a slogan, not a SMART commitment." The
+candidate gives Target **30.2 %** of its band — and at **393 pt** it lands within 4.5 pt of
+the **397.5 pt** §7 proposed for Template B, derived independently. That is real corroborating
+evidence for §7's Step 3 budget.
+
+**It is 7 blocks for 8 steps, not 8 blocks.** The block is labelled `Adım 5-6: Karşı Önlem
+Geliştirme & Aksiyon Planı Uygulama` — develop and implement are still merged, exactly as in
+Template A. Eight steps are *numbered*, seven blocks are *printed*. That is §6b's
+**Template A′ / `farplas-7step-plus`** — "seven printed blocks, eight disciplines" — realised
+by the company itself, without §6b's 5a/5b sub-bands.
+
+### 10.3 The three-column question — measured, not argued
+
+Fold axis (the physical middle of the sheet; `printOptions horizontalCentered="1"`, all
+margins 0, so the print area's midpoint *is* the page's midpoint) sits at **x = 874.88 pt**.
+That is **232 pt inside band 2**. Folding the sheet in half cuts through four objects:
+
+- `Adım 4: Kök Neden Analizi` block header
+- `Adım 5-6: Karşı Önlem…` block header
+- the root-cause SmartArt diagram (`graphicFrame`, x 642.6 → 1224.4)
+- the title (expected — titles span the sheet in any template)
+
+For comparison, Template A's fold axis misses its column divider by **9.75 pt out of 2712**
+(0.36 %) — for practical purposes it lands exactly on the divider.
+
+Only **one** vertical rule is drawn on the candidate, at x = 642.8 (the band 1 | band 2
+boundary). There is **no** rule at the band 2 | band 3 boundary.
+
+Band 3 is **not** a separate approval or annex strip — it carries Adım 7 and Adım 8 as full
+content blocks. It is a genuine third content column.
+
+**Why three columns exist, and what reducing them costs.** It is a trade, not a defect:
+
+| | Candidate | Template A ENG |
+|---|---|---|
+| Authored content | 1749.75 × 1392 pt | 2712 × 1958 pt |
+| Fit-to-page scale | **60.5 %** | 41.6 % |
+| 11 pt authored prints at | **6.65 pt** | 4.57 pt |
+| D-40's 8 pt printed floor needs | ≥ **13.2 pt** authored | ≥ 19.3 pt authored |
+
+The stored `scale="60"` corroborates the computed 60.5 %, exactly as §9.4's stored 40 %
+corroborated Template A's 41.5 %. More columns means shorter columns means a larger print
+scale: reflowing the same content into two columns at a fixed page roughly multiplies column
+height by 1.5 and returns the scale to ~41 % — losing the one measurable thing that makes this
+file better. Merging bands 2+3 instead gives 36/64, nowhere near any balance.
+
+### 10.4 What the candidate loses
+
+- **No header identity band on the A3.** No Sorumlu, Kaizen No, Konu, Müdürlük, **Kayıp Cinsi**
+  (the TPM loss taxonomy D-36 locks as a per-template list), 8-slot Çalışma Ekibi, or Çalışma
+  Planı Gantt strip. The header band rows carry the title and nothing else.
+- **No footer band on the A3.** No benefit / cost / B-C ratio, no approval signatures, no
+  approval date. `SPEC.md` §3.0 instructs porting these; §5 calls the financial spine "the
+  reason management signs these off."
+- The workbook does carry identity and approval data — on a **separate A4-portrait sheet**
+  (`head`, `paperSize="9"`, outside the print area): Şirket Adı / İsim Soyisim / Görev, an
+  English project title, and a **Süpervizör · Mentör · Hazırlayan** row with roles
+  (COO · T1 Fabrika Müdürü · Teknik Tkm Yön.) and a Rev. Date. Note the *mentor* — a genuine
+  TBP practice Template A has no field for. There is no financial data anywhere in the file.
+- **10 leftover objects from a different, English OEE A3** (Farplas Group & Supplied Toyota
+  locations, `OEE = Availability * Performance * Quality`, Year-to-Date OEE, Risk Points) are
+  parked in the hidden zero-width columns past the print area. Dead weight carried in the file.
+- Printed body text is still **below D-40's floor** (6.05–6.65 pt against 8 pt) — ~15 % better
+  than Template A, not a solution.
+
+### 10.5 Correction to §9.3 / D-27 — 1747.5 pt **is** in the files
+
+§9.3 states "the figure 1747.5 appears in no file and is not a budget," and D-27 blocks
+Template B's geometry on that basis. Recomputed from §9.1's own verified ENG row heights:
+
+```
+rows 8..56  49 × 30.00 = 1470.00
+row  57                =   93.75
+row  58                =   30.00
+row  59                =  153.75
+                         ─────────
+rows 8..59             = 1747.50 pt      ← the full block band, block header rows included
+  less left  column's 3 block headers × 30 =  90 → 1657.50   (§3's left  figure)
+  less right column's 4 block headers × 30 = 120 → 1627.50   (§3's right figure)
+```
+
+**1747.5 is the gross band height; 1657.5 / 1627.5 are net of block headers.** §9.3 compared a
+gross figure against two net ones and read the difference as an error. §7's "same 1747.5 pt
+block budget per column" is therefore *correct as stated*, and D-27's stated reason for
+blocking Template B does not hold. Template B may still need re-cutting — but not for this
+reason. **D-27's rationale is superseded by D-147; the block itself is lifted.**
+
+### 10.6 Decisions taken from this evaluation (2026-08-05, Barış)
+
+1. **D-95's ordering is respected.** The candidate is recorded here as a verified geometry
+   source. No template file is authored this session; the default stays `farplas-7step-tr`.
+2. **Two columns, not three** (D-145). The candidate's three-band geometry is evidence for the
+   *block budget*, not the column count.
+3. **Exact A3 fit is now a first-class constraint** (D-146) — see §10.7. Margins are 5 pt on
+   all four sides, equal.
+4. **No header or footer band for now** (D-148). The A3 is blocks only; a header/footer band
+   is added later if it proves needed. This supersedes `SPEC.md` §3.0's "port the header and
+   the benefit/cost footer" as a Phase-11 default, without deleting the underlying data model.
+
+### 10.7 The A3-exact page contract — derived, for whichever phase authors the template
+
+This is the binding arithmetic, not a sketch.
+
+```
+A3 landscape                 1190.551 × 841.890 pt   (420 × 297 mm)
+margins, all four sides             5 pt
+printed content area         1180.551 × 831.890 pt
+required aspect ratio             1.419120
+```
+
+Excel quantises column widths to whole pixels (0.75 pt) and row heights to 1/20 pt (0.05 pt).
+Under that quantisation the closest **1:1** canvas is:
+
+```
+authored canvas              1180.50 × 831.85 pt   (1574 px of column width)
+achieved aspect                   1.419126   (error 0.000006)
+fit-to-page scale                 100.004 %
+column split, D-35's 49.7/50.3    left 586.50 pt  |  right 594.00 pt
+fold axis                         590.25 pt — 3.75 pt from the divider (0.3 %)
+block band height                 831.85 pt per column (no header/footer band)
+```
+
+**The consequence that matters most: authored pt == printed pt.** D-40's legibility floor
+collapses from "≥ 19.3 pt authored for an 8 pt printed floor" to **≥ 8 pt authored**. The A3
+stops being a 2.4×-oversized canvas that shrinks to 41 %, and becomes a real-size page. The
+cost is that the sheet is now genuinely small in authored units — 1180 × 832 pt against
+Template A's 2712 × 1958 — so how much content a block can hold becomes a hard geometric
+limit rather than a styling preference. That limit is a **product** question (which methods,
+how many entries per step), which is why it is coupled to the interface work Barış opened at
+the end of this session.
+
+At 10 pt margins the same arithmetic gives 1170.75 × 822.05 pt and 2.1 % less printed area;
+5 pt was chosen for the extra room.
+
+### 10.8 Still unverified / open
+
+- Cell **styles** on the candidate (fills, borders, fonts per style id) were not inventoried;
+  only the font *table* and the drawing text sizes were read. Its PDCA colour coding was not
+  checked against §3's `FF0000` / `FFFF00` / `00CCFF` / `008000`.
+- The two large hidden data sheets (7 MB, 36 MB) were not opened.
+- Whether the company has a **blank** version of this format — this file is a completed
+  example ("Examp"), and a blank would be a better source than a filled one.
+- Whether the 8.3 MB file should stay in the repo at full size once the geometry is recorded
+  here (62 MB uncompressed, mostly embedded photos and two data sheets).
