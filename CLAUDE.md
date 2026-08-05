@@ -25,18 +25,26 @@ the terminology. Write the UI for them, not for a beginner.
 - **The reference format is `reference/PPS_A3_Problem_Solving_Template_Rev00.xlsx`** (D-150,
   2026-08-05). It is natively 8-step, two-column, foldable exactly in half (495 | 9.75 | 495 pt,
   the gutter column is literally named `KAT`), and a real blank cell grid rather than a canvas.
-  **Build against it.** Geometry: `TEMPLATE_ANALYSIS.md` §11. Two things it does not yet do:
-  fit A3 exactly (D-152 — needs a width change, not a margin change) and answer whether it is
-  the form Farplas actually approves (P-29).
+  **Build against it.** Geometry as delivered: `TEMPLATE_ANALYSIS.md` §11. **The page contract
+  the app actually builds to is §12** (D-154/D-155/D-156, Oturum A): 0.32 in margins, 24 body
+  columns of 47.25 pt + the 9.75 pt `KAT` divider = 1143.75 pt, 795.00 pt of rows, fold centre
+  exact, 100 % fit. §11's two gaps are both closed — A3 fit (D-152 → D-154) and whether Farplas
+  approves the form (P-29 → D-157: it does).
+  **Transcription trap (D-154):** `A3Template.charWidth` takes the *visible-character* value
+  (8.285714), never the OOXML stored `width` (7.83203125). The two differ by 5 px per column;
+  copying the stored value makes the sheet 90 pt too wide and the A3 fit fails silently.
 - **The supplied company templates are 7-step; the app's model is 8-step.** A template is a
   projection of the model onto a sheet, never the other way round. Geometry lives in
   `reference/TEMPLATE_ANALYSIS.md` and is authoritative — do not eyeball it from the .xls.
   §3 (the Farplas `.xls` forms) is now the record of the *existing* company form, not the
-  design target; §10 is evidence only; **§11 is the target.**
-- **Default template is `farplas-7step-tr`, then `farplas-7step-plus` once the fidelity test passes and `-plus` exists.** The company standard
-  wins. `-plus` isn't built until Phase 11 (D-95) — until then the default stays `-tr`
-  regardless of fidelity-test outcome. Template B (`pps-8step-auto`) is an option the user
-  chooses, not an upgrade we impose.
+  design target; §10 is evidence only; §11 is the reference format as delivered;
+  **§12 is the page contract we build to.**
+- **Default template moves to the Rev00-based 8-step template once Phase 11 builds it** (D-157,
+  P-29 closed: Rev00 *is* the form Farplas approves, so D-10's own adoption argument now points
+  at it). `farplas-7step-tr` is demoted to a legacy-compatibility template — it stays in the
+  registry so existing 7-step A3s open and export, but new projects don't start on it. Nothing
+  changes operationally until Phase 11: per D-95, `-tr` is still the only template that exists.
+  Template B (`pps-8step-auto`) is an option the user chooses, not an upgrade we impose.
 - **Fishbone belongs to Step 4, not Step 2.** Step 2 is data-based stratification and
   localization. Getting this wrong teaches the method wrong.
 - **Step 3 (Set a Target) is mandatory.** It is the step that distinguishes Toyota's
@@ -681,3 +689,19 @@ Phase 6c (Step 2's distribution chart + Steps 5–6's remaining plain methods): 
   warning). `npm run build` green (same pre-existing chunk-size warning). `cargo test` 89/89,
   `cargo clippy --all-targets -- -D warnings` and `cargo fmt -- check` all clean — Rust
   untouched by 6c, as expected. Not yet committed to git.
+**Oturum A — page contract (D-149's first of four): DONE 2026-08-05.** No code written; a
+  measurement-and-decision session. `reference/TEMPLATE_ANALYSIS.md` §12 is the deliverable.
+  Parser self-tested 20/20 on fixed inline samples before the real file was opened (§9's own
+  method), including the §9.2 range-record bug as an explicit case. Produced: (1) the A3-exact
+  grid closing D-152 — 0.32 in margins chosen on a *hardware* constraint (D-146's 5 pt sits
+  inside most A3 lasers' ~5 mm unprintable border and would be clipped), width gained by
+  widening the 24 body columns 41.25 → 47.25 pt with the `KAT` divider untouched, printed
+  margins equal to within 0.0155 mm, fold centre exact, fit scale 100 % so D-146's 1:1 and
+  D-40's 8 pt floor both survive (D-154); (2) the block budget, Barış choosing "targeted
+  correction" over literal fidelity — ADIM 2 59.5 → 48 %, ADIM 3 15.4 → 22 %, ADIM 8 9.8 → 14 %
+  (D-155); (3) the per-block capacity ceiling table, every constant read from shipped code
+  rather than estimated (D-156). Two findings worth carrying: the OOXML stored-width vs
+  visible-character unit trap, which silently breaks the A3 fit if transcribed wrong (D-154),
+  and the fact that five blocks sharing the right column's 650 pt makes the shipped
+  `CHART_ROW_SPAN = 10` geometrically impossible there — P-31, Oturum B's to answer.
+  Also closed: P-29 (Rev00 *is* the approved Farplas form → D-157 moves D-10's default).

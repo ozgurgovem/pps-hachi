@@ -837,3 +837,230 @@ constraint and the measurement; Oturum A cuts the numbers.
   text and page setup. PDCA colour coding not checked.
 - The six per-step working sheets and `Lists & Settings` were not analysed; they likely define
   the per-step data model and the dropdown vocabularies, which is direct input to Oturum B.
+
+---
+
+## 12. **SAYFA SÖZLEŞMESİ** — Oturum A çıktısı, 2026-08-05
+
+D-149'un dört oturumundan ilki. §11 kısıtı ve ölçümü koydu; bu bölüm sayıları keser.
+Oturum B (adım sayfası anatomisi) buradaki kapasite tablosunu girdi olarak alır.
+
+**Yöntem:** §9/§11 ile aynı. `xl/worksheets/sheet1.xml` OOXML kayıtları (`<cols>`,
+`<row ht>`, `<mergeCells>`, `<sheetFormatPr>`, `<sheetPr><pageSetUpPr>`, `<pageSetup>`,
+`<pageMargins>`, `<printOptions>`) doğrudan okundu; parser gerçek dosya açılmadan önce
+**20/20 sabit-örnek öz-testinden geçti** (R1 aralık-kaydı hatası — §9.2'nin tam olarak
+düştüğü tuzak, R2 kayıtsız kolon, R3 `ht`siz satır, R4 dönüşüm çapaları, R5 bozuk XML
+RAISE etmeli, R6 boş ayrıştırma RAISE etmeli). Taranan öğe sayıları rapor edildi:
+3 `<col>` kaydı, 45 `<row>`, 136 birleştirme.
+
+### 12.0 Önce bir düzeltme: `width` iki farklı birimde yaşar
+
+Bu oturumun ilk okuması §11.2 ile çelişti — kolonlar 45.00 pt çıktı, 41.25 değil. Sebep
+parser hatası değil, **birim karışıklığıydı**, ve şablon yazılırken tekrar edilirse tüm
+sayfayı %9.4 bozar:
+
+| Birim | Nerede | Rev00 gövde kolonu | → px |
+|---|---|---|---|
+| **Saklanan** (OOXML `<col width>`) | dosyanın içi | `7.83203125` | ECMA-376 §18.3.1.13: `trunc(((256w + trunc(128/MDW))/256)·MDW)` = **55 px** |
+| **Görünür karakter** (Excel arayüzü, `rust_xlsxwriter::set_column_width`) | bizim `A3Template.charWidth` alanımız | `8.285714` (yeni ızgara) | `round(w·7 + 5)` = **63 px** |
+
+Hangisinin doğru olduğu tartışmayla değil çapayla belirlendi: Excel'in belgelenmiş
+varsayılan kolonu arayüzde `8.43` karakter, dosyada `9.140625`, ekranda **64 px**. ECMA
+formülü `9.140625 → 64 px` verir ✅; `round(w·7+5)` formülü `69 px` verir ❌. Ters yön de
+tutar: `trunc((8.43·7+5)/7·256)/256 = 9.140625` tam olarak.
+
+**Sonuç:** `src/a3/layout/measure.ts`'in `excelColumnWidthToPt` fonksiyonu **doğrudur** —
+o *görünür karakter* birimini çevirir ve D-101 zaten `charWidth`'i `set_column_width`'e
+aynen geçirir. Hata olmadı. Ama **şablon yazılırken OOXML'den okunan saklanan değer
+`charWidth` alanına doğrudan kopyalanamaz**; her kolon 5 px (3.75 pt) geniş olur, sayfa
+1143.75 yerine 1233.75 pt'ye çıkar ve A3'e oturmaz. §11.2'nin 41.25 / 9.75 / 999.75 pt
+rakamları **doğrulandı**.
+
+### 12.1 A3 tam-oturma ızgarası
+
+Dört kenarda eşit basılı boşluk isteniyorsa (D-146, Barış'ın koşulu) tek bir özdeşlik
+bağlar — sayfanın uzun kenarı eksi kısa kenarı sabittir:
+
+```
+içerik_genişlik − içerik_yükseklik = 420 mm − 297 mm = 348.6619 pt     (SABİT)
+kenar boşluğu m = (841.8910 − içerik_yükseklik) / 2
+```
+
+Yani yükseklik seçilir, genişlik ve kenar boşluğu **türetilir**. Kuantalama gerçek:
+kolonlar 0.75 pt (1 px), satırlar 0.05 pt.
+
+**Kenar boşluğu kararı — donanım kısıtı, tercih değil.** D-146 5 pt (1.76 mm) demişti;
+çoğu A3 lazer yazıcının fiziksel basılamaz kenarı ~5 mm (≈14.17 pt), bazı cihazlarda arka
+kenarda 6 mm. **5 pt kırpılır.** Aday ızgaralar tarandı:
+
+| gövde kolonu | ayraç | içerik gen. | gerekli yük. | m (pt) | m (mm) | hüküm |
+|---|---|---|---|---|---|---|
+| 48.00 pt (64 px) | 9.75 | 1161.75 | 813.09 | 14.40 | 5.08 | donanım tabanında, pay yok |
+| 48.00 pt | 13.50 | 1165.50 | 816.84 | 12.53 | 4.42 | **KIRPILIR** |
+| **47.25 pt (63 px)** | **9.75** | **1143.75** | **795.09** | **23.40** | **8.26** | ✅ seçildi |
+| 46.50 pt (62 px) | 13.50 | 1129.50 | 780.84 | 30.53 | 10.77 | güvenli ama israf |
+
+Seçilen: **`pageMargins` dört kenarda 0.32 in = 23.04 pt = 8.13 mm.** 5 mm donanım
+tabanının 3.13 mm üstünde, Rev00'ın kendi 0.28 in'inden 1.02 mm daha ihtiyatlı, ve
+inç cinsinden temiz bir değer (Excel kenar boşluklarını inç saklar).
+
+**Genişlik nasıl kazanılıyor:** 24 gövde kolonu **41.25 → 47.25 pt** (55 → 63 px, +%14.5).
+Ayraç `KAT` kolonu Rev00'ın ölçülen **9.75 pt** değerinde bırakıldı — D-151 katlamayı
+*doğrulanmış yapısal özellik* olarak kilitledi, genişletmek bir tasarım eylemi olurdu.
+
+**Reddedilen iki alternatif, gerekçesi sayısal:**
+
+- **Kolon eklemek** (12+1+12 → 13+1+13): 136 birleştirmenin **hepsi** 12'li ızgarada
+  ifade edilmiş; 13. kolon her birini elle yeniden kesmeyi gerektirir — bu "bunun üzerine
+  kurmak" (D-150) değil, yeniden yazmaktır. Dahası **13 asal sayıdır**: D-102'nin `zones`
+  mekanizması `widthFraction`'ı tam kolon sınırına yapıştırır, 12 ise yarım/üçte/dörtte/
+  altıda birleri tam verir (6·4·3·2). 13'te hiçbir temiz kesir yoktur — gerileme olurdu.
+- **Satır yüksekliğini düşürerek genişlik kazanmak:** m = 0.32 in'de gereken oran 1.4381;
+  999.75 pt genişlikte kalınsaydı yükseklik 695.2 pt'ye inerdi — blok bandından **−94 pt
+  (%14.6 kapasite kaybı)**, üstelik kolonlar hâlâ 41.25 pt basılırdı. Her eksende daha kötü.
+
+### 12.2 Kolon tablosu
+
+| Kolon | Görünür karakter | px | pt | Kümülatif pt |
+|---|---|---|---|---|
+| A…L (12) | 8.285714 | 63 | 47.25 | 567.00 |
+| **M (`KAT`)** | 1.142857 | 13 | 9.75 | 576.75 |
+| N…Y (12) | 8.285714 | 63 | 47.25 | **1143.75** |
+
+`charWidth` alanına **8.285714** ve **1.142857** yazılır (§12.0). Gidiş-dönüş kararlıdır:
+`8.285714 → saklanan 9.0 → 63 px`, `1.142857 → saklanan 1.85546875 → 13 px`.
+
+**Katlama simetrisi (D-151) korundu ve TAM:** sol yarı 567.00 pt, ayraç 567.00 → 576.75 pt,
+ayracın merkezi **571.875 pt**, sayfa ortası 1143.75/2 = **571.875 pt**. Eşitlik yapı
+gereği kesindir — iki yarı eşit kolon sayısı ve eşit genişlikte olduğu sürece herhangi bir
+`(c, d)` çifti için sağlanır.
+
+### 12.3 Satır bandları ve ulaşılan oran
+
+| Band | pt | Rev00 | Not |
+|---|---|---|---|
+| Başlık | 32.00 | 32.00 | değişmedi |
+| `VAKA BİLGİLERİ` (D-153 kimlik bandı) | 71.00 | 71.00 | değişmedi |
+| **Blok bandı** | **650.00** | 644.00 | +6.00 pt — kazanılan yüksekliğin tamamı buraya |
+| Onay altbandı (D-153) | 42.00 | 42.00 | değişmedi |
+| **Toplam** | **795.00** | 789.00 | |
+
+```
+basılabilir alan (0.32 in)   1144.4730 × 795.8110 pt    oran 1.438122
+içerik                       1143.75   × 795.00   pt    oran 1.438679
+fit ölçeği                   min(1.000632, 1.001020) = 1.000632 → Excel yalnızca küçültür, %100
+basılan boşluk  sol/sağ      23.4015 pt (8.256 mm)
+                üst/alt      23.4455 pt (8.271 mm)
+                fark          0.0440 pt (0.0155 mm)
+```
+
+**D-152'nin açığı kapandı.** §11.4'ün 150.48 pt yatay boşluğu 0.72 pt'ye indi; dört kenar
+arasındaki fark 0.0155 mm — ölçülemez. Fit ölçeği %100 olduğu için **D-146'nın 1:1 yazımı
+korunur**, yani D-40'ın okunabilirlik tabanı **8 pt yazılmış** olarak kalır (19.3 değil).
+
+### 12.4 Blok bütçesi — Barış'ın kararı: **B, iki uçtan düzeltme**
+
+Blok bandı 650.00 pt = **50 satır × 13.00 pt**. 13 pt satır, 8 pt yazıya 1.63× satır arası
+verir ve 650'yi tam böler. (Rev00'ın 18 pt satırı 36.11 satır verirdi — tam bölmez ve 11 pt
+yazı için ölçülmüştü; 1:1 yazımda 8 pt taban geçerli olduğundan 18 pt satır %38 israftır.)
+
+Üç seçenek sayısallaştırılıp Barış'a soruldu (A: referansa birebir · B: iki uçtan düzeltme ·
+C: her adıma görsel). **Seçilen: B.** §11.3'ün kendi işaretlediği iki aşırılık düzeltilir,
+gerisi referansta kalır.
+
+| Blok | Satır | pt | % | Rev00 % | Değişim |
+|---|---|---|---|---|---|
+| ADIM 1 — Problemi netleştirin | 15 | 195 | 30.0 % | 25.2 % | +4.8 |
+| **ADIM 2 — Problemi parçalara ayırın** | 24 | 312 | **48.0 %** | **59.5 %** | **−11.5** |
+| ADIM 3 — Hedef belirleyin | 11 | 143 | 22.0 % | 15.4 % | +6.6 |
+| ADIM 4 — Kök nedeni analiz edin | 19 | 247 | 38.0 % | 39.1 % | −1.1 |
+| ADIM 5 — Uygulama planı | 8 | 104 | 16.0 % | 16.8 % | −0.8 |
+| ADIM 6 — Çözümleri uygulama | 8 | 104 | 16.0 % | 17.5 % | −1.5 |
+| ADIM 7 — Sonuçları izleme | 8 | 104 | 16.0 % | 16.8 % | −0.8 |
+| **ADIM 8 — Standardizasyon** | 7 | 91 | **14.0 %** | **9.8 %** | **+4.2** |
+
+Sol 15+24+11 = 50 satır ✅ · Sağ 19+8+8+8+7 = 50 satır ✅
+
+**Rev00'ın blok anatomisi — §11.3'te olmayan ölçüm.** Her blok bir kartuş satırı (`ADIM n
+— …`) artı bir etiket satırı taşır; kalanı tuvaldir. Sağ kolon aslında bir **tablo
+kolonudur**: ADIM 5 (`ID · Aksiyon · Sorumlu · Termin · Durum`), ADIM 6 (`Aksiyon ID ·
+Kanıt · Tarih · Sorun`), ADIM 7 (`KPI · Önce · Hedef · Sonra · Sürdürme · Sonuç`), ADIM 8
+(`Standart · Güncellendi? · Sorumlu/tarih · Yatay yayılım`) — Rev00 bunlara sırasıyla
+4 · 4 · 4 · 2 gövde satırı vermiş. Sol kolon serbest tuval + ADIM 2 içinde bir alt tablo
+(`Alt Problem · Etki · Öncelik · Kanıt`, satır 32–36). **Bu, formun "hangi boşluğa ne
+girer" sorusuna kendi cevabıdır** ve Oturum B'nin başlangıç noktasıdır.
+
+§11.3'e küçük bir düzeltme: satır 43'ün **sol yarısı** (`Hedef tarihi / takip sıklığı /
+veri kaynağı:`) onay bandına değil ADIM 3'e aittir; sağ yarısı boştur. Band bölümü
+(bloklar 7–42, onay 43–45) yapısal sözleşme olarak korunuyor, ama transkripsiyonda bu
+etiketin ADIM 3'ün kuyruğu olduğu bilinmelidir.
+
+### 12.5 Blok başına içerik kapasitesi — asıl çıktı
+
+Sabitler, hepsi sevk edilmiş koddan okundu, tahmin değil:
+`CHART_ROW_SPAN = 10` (`pareto`/`trend`/`distributionChart`) · giriş = 1 başlık satırı +
+alan başına 1 satır (`fieldFormLines`, boş alanlar düşer) — sevk edilmiş yöntemlerde 3–6
+alan, **medyan giriş = 6 satır**, yalın giriş = 4 satır · D-100: içerik satırı başına bir
+sarılmış metin satırı · tuval genişliği 567.00 pt → `estimateCharsPerLine` 8 pt'de **128
+karakter/satır** (9 pt'de 114, 10 pt'de 103).
+
+**Tavan tablosu:**
+
+| Blok | Tuval satırı | Tuval pt | Giriş (6 sat.) | Giriş (4 sat.) | Tam boy grafik? | Grafik + giriş |
+|---|---|---|---|---|---|---|
+| ADIM 1 | 13 | 169 | **2** | 3 | ✅ | 1 grafik + 0 giriş |
+| ADIM 2 | 22 | 286 | **3** | 5 | ✅ | **1 grafik + 3 giriş** |
+| ADIM 3 | 9 | 117 | **1** | 2 | ❌ (10 gerekir) | — |
+| ADIM 4 | 17 | 221 | **2** | 4 | ✅ | **1 grafik + 1 giriş** |
+| ADIM 5 | 6 | 78 | **1** | 1 | ❌ | — |
+| ADIM 6 | 6 | 78 | **1** | 1 | ❌ | — |
+| ADIM 7 | 6 | 78 | **1** | 1 | ❌ | — |
+| ADIM 8 | 5 | 65 | **0** | 1 | ❌ | — |
+
+**Sayfa sözleşmesinin söylediği sert gerçek:** 650 pt'yi sağ kolonda **beş** blok
+paylaşıyor. `CHART_ROW_SPAN = 10` sabiti sağ kolonun dört izleme bloğuna **geometrik
+olarak sığmaz** — ADIM 5/6/7 altı, ADIM 8 beş tuval satırı alır. "Her adıma tam boy
+grafik" bu sayfada mümkün değildir; C seçeneği de bunu çözemedi, sadece görünür kıldı.
+Oturum B'nin cevaplaması gereken soru bu yüzden "hangi yöntem" değil, **"sağ kolonun dört
+bloğu için kısaltılmış görsel dili ne"** (5–7 satırlık KPI şeridi / durum çubuğu /
+sparkline) — ya da `CHART_ROW_SPAN`'in blok başına parametreleşmesi.
+
+### 12.6 Tuval oranları — Oturum B'nin doğrudan girdisi
+
+Tuval genişliği her blokta 567.00 pt. Yükseklik değiştiği için **her bloğun kutu oranı
+farklı**, ve bir görselin o kutuya oturup oturmadığını belirleyen budur:
+
+| Blok | Tuval (G × Y) | Oran G:Y | Ne oturur |
+|---|---|---|---|
+| ADIM 1 | 567 × 169 | **3.36 : 1** | geniş şerit — 3×2 ızgara, akış şeridi |
+| ADIM 2 | 567 × 286 | **1.98 : 1** | grafik + tablo, iki bölgeli yerleşim |
+| ADIM 3 | 567 × 117 | **4.85 : 1** | üç bölgeli yatay şerit (D-38) |
+| ADIM 4 | 567 × 221 | **2.57 : 1** | balık kılçığı / ağaç diyagramı |
+| ADIM 5/6/7 | 567 × 78 | **7.27 : 1** | yalnız tablo |
+| ADIM 8 | 567 × 65 | **8.72 : 1** | yalnız tablo |
+
+Barış'ın oturum içinde verdiği 5N1K örneği (merkezî daire + altı yaprak) bu sayılarla
+somut bir cevap alıyor: dairesel düzen ~1:1'dir, ADIM 1'in 3.36:1 kutusunda **alanın
+%30'unu kullanır, %70'i boş kalır.** "Daire yerine dikdörtgen" içgüdüsü geometrik olarak
+doğrudur — aynı kutudaki seçenekler:
+
+| Yerleşim | Hücre | Oran |
+|---|---|---|
+| 6×1 | 94.50 × 169.00 pt | 0.56 |
+| **3×2** | **189.00 × 84.50 pt** | **2.24** |
+| 2×3 | 283.50 × 56.33 pt | 5.03 |
+| 1×6 | 567.00 × 28.17 pt | 20.13 |
+
+3×2 ızgara hem kutu oranına en yakın, hem hücre başına 84.50 pt ile 8 pt yazıda bir
+başlık + 4–5 satır metin taşır. **Hangi görselin seçileceği Oturum B'nin kararıdır**;
+burada kayda geçen yalnızca geometrik zarftır.
+
+### 12.7 Bu oturumun KAPSAMADIĞI
+
+- Şablon dosyası yazılmadı (`src/a3/templates/*`) — D-95 Faz 11, değişmedi. Bu oturumda
+  **hiç kod yazılmadı**; ölçüm ve karar oturumuydu.
+- Hücre stilleri, dolgular, kenarlıklar, yazı tipleri envanteri çıkarılmadı (§11.6'dan
+  devreden açık iş). Varsayılan yazı tipi **Carlito 11** olarak ölçüldü (LibreOffice'in
+  Calibri metrik eşleniği — MDW = 7 px varsayımı bu yüzden geçerli).
+- Altı adım çalışma sayfası ve `Lists & Settings` analiz edilmedi — P-30, Oturum B.
+- Arayüz/IA kararları — Oturum B. Yöntem plugin'i ekleme/silme — Oturum C. P-26 — Oturum D.
