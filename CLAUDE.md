@@ -112,6 +112,15 @@ Keyboard navigable end to end, visible focus rings, WCAG AA contrast, reduced mo
 respected, light and dark themes, no layout shift on load, no unhandled promise
 rejections, no console noise in production builds.
 
+**The printed A3 has its own bar: it must read as orderly and spare.** Barış set this
+2026-08-05 against the Lean Enterprise UK worked example (P-32) — one visual language
+across all eight blocks, panels aligned, nothing floating, no block overloaded. Two
+things already enforce it structurally rather than by discipline: every panel snaps to a
+cell boundary (D-102 `zones` quantises `widthFraction` to whole columns), and D-156's
+capacity ceiling makes overfilling a block geometrically impossible. What is *not*
+enforced is consistency between blocks — eight blocks each inventing their own visual
+language is the real threat to this bar, and it is Oturum B's job.
+
 ## Things that will break if you are careless
 
 - Excel print setup (page size A3, landscape, fit to one page, margins, print area).
