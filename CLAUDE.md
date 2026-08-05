@@ -583,3 +583,25 @@ Post-6b real-app walkthrough: 2026-08-04, Barış walked the picker and chart ex
   already correct changed. 2 regression tests added, mutation-verified.
   `npm test` 597/597 (147 files), `npm run lint` clean, `npm run build` green, `cargo test`
   (89/89)/`cargo clippy`/`cargo fmt` clean (Rust untouched by this fix). Not yet committed to git.
+**P-25 CLOSED (D-136, 2026-08-05)**: root-cause session for "Step 2 block with two chart entries
+  (Pareto + Trend) embeds only one image." Ruled out both named suspects with real, non-mocked
+  evidence at every layer: a permanent PROBE test (`src/a3/p25TwoImageEntries.probe.test.ts`)
+  proves `place.ts`/`buildA3Layout`'s per-block image-row-span math (D-102) produces 2 correct,
+  non-colliding anchors for the real Pareto+Trend two-entry case; a temporary Playwright harness
+  (D-113's own practice, deleted after use) drove the real registry's real charts through real
+  `html-to-image` in a real cached Chromium — both rasterized every run; a temporary Rust probe
+  (also deleted) fed those real PNG bytes through the real `write_a3_workbook` — `drawing1.xml`
+  came back with exactly 2 correctly-anchored `<xdr:pic>` elements. Everything reachable without
+  a live macOS Tauri window (WKWebView, not Chromium) checks out. Fixed instead, in
+  `src/a3/render/rasterize.ts`: `rasterizePendingImages` ran every pending chart's off-screen
+  render + layout-settle + capture **concurrently** and silently dropped a per-slot failure with
+  zero trace (no log, no descriptor field) — now sequential (one slot fully finishes before the
+  next starts) and a failure is `console.error`-logged with the entry id and image kind, same
+  discipline D-134 already established for a vanishing rejection one layer over. This targets the
+  one piece of the pipeline D-105/D-113 already proved fragile in the real WKWebView twice before,
+  now under untested concurrent load — **not a confirmed fix of the exact WKWebView failure**,
+  which this environment cannot reproduce; re-open if a future real-webview walkthrough still
+  drops an image. 2 new regression tests (no-interleaving, failure-is-logged), both run RED
+  against the pre-fix code before the fix and GREEN after.
+  `npm test` 601/601 (148 files), `npm run lint` clean, `npm run build` green, `cargo test`
+  (89/89)/`cargo clippy`/`cargo fmt` clean (Rust untouched by this fix). Not yet committed to git.

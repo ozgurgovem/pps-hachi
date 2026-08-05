@@ -135,21 +135,47 @@ export async function rasterizePendingImage(
 }
 
 /**
- * Rasterizes every slot, **isolating failures per image**: one chart that
- * throws (a bad spec, a font fetch blocked by the Tauri CSP) must not cost
- * the user the entire A3 preview/export, which is what a bare
- * `Promise.all` would do. A failed image is simply absent from the result —
- * its block still renders its text, and the descriptor stays valid.
+ * Rasterizes every slot **sequentially, isolating failures per image**: one
+ * chart that throws (a bad spec, a font fetch blocked by the Tauri CSP)
+ * must not cost the user the entire A3 preview/export, which is what a bare
+ * `Promise.all` would do. A failed image is absent from the result — its
+ * block still renders its text, and the descriptor stays valid — but the
+ * failure is logged with the entry/kind that caused it (D-134's own lesson,
+ * one layer over: a rejection that vanishes with zero visible symptom is a
+ * bug in itself, not just the failure that caused it).
+ *
+ * P-25 (DECISIONS.md): a Step 2 block holding two chart-bearing entries
+ * (Pareto + Trend) shipped only one embedded image in the real Tauri
+ * webview, with no error anywhere — the earlier `Promise.all`-of-all-slots
+ * shape rasterized every pending image **concurrently**, running N
+ * independent off-screen React roots, layout-settle waits and
+ * `html-to-image` captures in parallel. D-105 and D-113 already found two
+ * webview-specific (WKWebView on macOS) capture hazards in this exact
+ * function under a *single* concurrent render; this removes the untested
+ * variable — N simultaneous renders — for the one step in the pipeline
+ * already proven fragile under real webview conditions twice before,
+ * without weakening the per-image failure isolation D-109 exists for.
  */
 export async function rasterizePendingImages(
   pendingImages: readonly PendingImageSlot[],
   rendererMap: A3ImageRendererMap,
 ): Promise<readonly ImagePlacement[]> {
-  const settled = await Promise.allSettled(
-    pendingImages.map((slot) => rasterizePendingImage(slot, rendererMap)),
-  );
+  const images: ImagePlacement[] = [];
 
-  return settled.flatMap((result) =>
-    result.status === "fulfilled" && result.value !== undefined ? [result.value] : [],
-  );
+  for (const slot of pendingImages) {
+    try {
+      const image = await rasterizePendingImage(slot, rendererMap);
+      if (image !== undefined) {
+        images.push(image);
+      }
+    } catch (error) {
+      console.error(
+        `[a3] failed to rasterize "${slot.kind}" for entry "${slot.entryId}" — the chart's text ` +
+          `stays on the sheet, but its image will be missing from the A3 preview/export:`,
+        error,
+      );
+    }
+  }
+
+  return images;
 }

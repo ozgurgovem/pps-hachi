@@ -112,6 +112,7 @@ describe("rasterizePendingImages (D-102)", () => {
   });
 
   it("isolates a failing image instead of losing every other chart with it", async () => {
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
     toPngMock.mockImplementationOnce(async () => {
       throw new Error("one bad chart");
     });
@@ -123,5 +124,62 @@ describe("rasterizePendingImages (D-102)", () => {
 
     expect(results).toHaveLength(1);
     expect(results[0]!.id).toBe("good-pareto-chart");
+    consoleError.mockRestore();
+  });
+
+  it("logs a failing image instead of dropping it with zero trace (P-25)", async () => {
+    // D-134's own lesson one layer over: a rejection that silently vanishes
+    // is a bug in itself. Before this fix, a slot that threw during
+    // rasterization left absolutely no signal anywhere — this is what made
+    // P-25 (one of two Step 2 chart images missing from the real export)
+    // impossible to diagnose from the exported file alone.
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+    toPngMock.mockImplementationOnce(async () => {
+      throw new Error("one bad chart");
+    });
+
+    await rasterizePendingImages([slot({ entryId: "bad", kind: "pareto-chart" })], {
+      "pareto-chart": () => "chart" as never,
+    });
+
+    expect(consoleError).toHaveBeenCalledTimes(1);
+    const [message] = consoleError.mock.calls[0]!;
+    expect(String(message)).toContain("bad");
+    expect(String(message)).toContain("pareto-chart");
+    consoleError.mockRestore();
+  });
+
+  it("rasterizes slots one at a time, never starting the next before the previous finishes (P-25)", async () => {
+    // The pre-fix implementation ran every pending image's off-screen
+    // render + layout-settle + capture concurrently via
+    // `Promise.allSettled(pendingImages.map(...))`. That concurrency was
+    // never exercised by a real multi-image case in this suite (every
+    // existing test above uses a single slot, or a single failing slot),
+    // so it survived even though D-105/D-113 already found the real
+    // Tauri webview unreliable under a *single* concurrent render. This
+    // pins down the fix's actual claim: no two slots are ever in flight
+    // at once.
+    const events: string[] = [];
+    let inFlight = 0;
+
+    toPngMock.mockImplementation(async () => {
+      inFlight += 1;
+      events.push(`start:${inFlight}`);
+      await Promise.resolve();
+      events.push(`end:${inFlight}`);
+      inFlight -= 1;
+      return "data:image/png;base64,AAAA";
+    });
+
+    const results = await rasterizePendingImages(
+      [slot({ entryId: "a" }), slot({ entryId: "b" })],
+      { "pareto-chart": () => "chart" as never },
+    );
+
+    expect(results).toHaveLength(2);
+    // If both captures were in flight at once, a second "start" would be
+    // recorded before the first "end" — the interleaving this asserts
+    // against.
+    expect(events).toEqual(["start:1", "end:1", "start:1", "end:1"]);
   });
 });
