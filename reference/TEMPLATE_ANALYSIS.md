@@ -960,6 +960,9 @@ korunur**, yani D-40'ın okunabilirlik tabanı **8 pt yazılmış** olarak kalı
 
 ### 12.4 Blok bütçesi — Barış'ın kararı: **B, iki uçtan düzeltme**
 
+> ⚠️ **§12.4–§12.6'nın sayıları §12.8 ile GEÇERSİZ KILINDI** (aynı gün, D-158/D-159).
+> Aşağıdakiler kararın nasıl alındığının kaydıdır; bağlayıcı tablo §12.8'dedir.
+
 Blok bandı 650.00 pt = **50 satır × 13.00 pt**. 13 pt satır, 8 pt yazıya 1.63× satır arası
 verir ve 650'yi tam böler. (Rev00'ın 18 pt satırı 36.11 satır verirdi — tam bölmez ve 11 pt
 yazı için ölçülmüştü; 1:1 yazımda 8 pt taban geçerli olduğundan 18 pt satır %38 israftır.)
@@ -1064,3 +1067,69 @@ burada kayda geçen yalnızca geometrik zarftır.
   Calibri metrik eşleniği — MDW = 7 px varsayımı bu yüzden geçerli).
 - Altı adım çalışma sayfası ve `Lists & Settings` analiz edilmedi — P-30, Oturum B.
 - Arayüz/IA kararları — Oturum B. Yöntem plugin'i ekleme/silme — Oturum C. P-26 — Oturum D.
+
+### 12.8 Bütçenin DÜZELTİLMESİ — esnek tahsis (D-158/D-159, §12.4–§12.6'yı geçersiz kılar)
+
+Barış aynı oturumda iki düzeltme verdi; ikisi de bu oturumun sahip olmadığı alan bilgisiydi.
+
+**1 — ADIM 2 ve ADIM 4 bilerek büyük.** "En çok giriş o alanlara giriliyor." §11.3'ün
+%59.5'i bir tasarım kararıdır, §6'nın Template A'da eleştirdiği aşırı tahsis değil. §12.4'ün
+çerçevesi (bu belgenin yazarınınki) yanıltıcıydı ve D-155 o çerçeveyle seçilmişti.
+
+**2 — Üst ve alt çizgi hiç kaymamalı, ama adımlar arası alanlar bilgiye göre değişebilir.**
+Bu, blok bütçesinin *cinsini* değiştirir: sabit bir şablon sabiti değil, **toplamı sabit bir
+yerleşim-anı tahsisi**. Şablonun sakladığı şey artık bir yükseklik değil, bir **varsayılan**
+ve bir **alt sınır**.
+
+```
+DEĞİŞMEZ   her kolon tam olarak 50 satır = 650.00 pt
+           → blok bandının üst ve alt kenarı iki kolonda AYNI, kayma yapı gereği imkânsız
+ESNEK      adımlar arası sınırlar içeriğe göre kayar; kolon toplamı asla değişmez
+```
+
+| Blok | Varsayılan | Alt sınır | pt | % | Rev00 % | Fark | Tuval | Tuval pt | Oran | Grafik? |
+|---|---|---|---|---|---|---|---|---|---|---|
+| ADIM 1 | **14** | 8 | 182 | 28.0 | 25.2 | +2.8 | 12 | 156 | 3.63 | ✅ |
+| ADIM 2 | **28** | 20 | 364 | 56.0 | 59.5 | −3.5 | 26 | 338 | 1.68 | ✅ |
+| ADIM 3 | **8** | 8 | 104 | 16.0 | 15.4 | +0.6 | 6 | 78 | 7.27 | ❌ |
+| ADIM 4 | **20** | 14 | 260 | 40.0 | 39.1 | +0.9 | 18 | 234 | 2.42 | ✅ |
+| ADIM 5 | **8** | 6 | 104 | 16.0 | 16.8 | −0.8 | 6 | 78 | 7.27 | ❌ |
+| ADIM 6 | **8** | 6 | 104 | 16.0 | 17.5 | −1.5 | 6 | 78 | 7.27 | ❌ |
+| ADIM 7 | **8** | 6 | 104 | 16.0 | 16.8 | −0.8 | 6 | 78 | 7.27 | ❌ |
+| ADIM 8 | **6** | 5 | 78 | 12.0 | 9.8 | +2.2 | 4 | 52 | 10.90 | ❌ |
+
+Sol 14+28+8 = 50 ✅ · Sağ 20+8+8+8+6 = 50 ✅
+Sol alt sınırlar 37/50 → **13 satır esnek** · Sağ alt sınırlar 37/50 → **13 satır esnek**
+(alt sınırlar D-160 ile gevşetildi: ADIM 1 → 12, ADIM 3 → 5)
+
+**Kullanıcı ADIM 2'yi ADIM 3'ten alarak büyütebilir (D-160).** Karmaşık problemde gereken bu.
+ADIM 2 en fazla **33 satır = 429 pt = %66**'ya çıkar — Rev00'ın kendi %59.5'inin üstüne.
+ADIM 3'ün tabanı **5 satır (65 pt)**: kartuş + etiket + üç bölgeli 189 × 39 pt SMART şeridi.
+**Küçülmek kaldırmak değildir** — D-11 ve `CLAUDE.md` ADIM 3'ü zorunlu kılıyor (Toyota'nın
+8 adımını Imai'nin 7'sinden ayıran adım, ve pratikte sessizce atlanan adım), taban bunun
+bekçisi. Tahsis **deterministik**: her blok satır talebi bildirir, boş satırlar karşılanmamış
+talebe gider, tabanlar korunur, kolon toplamı 50'de sabit kalır. **AI yerleşim yoluna
+girmez** — girseydi `CLAUDE.md`'nin "AI kapalıyken uygulama tam çalışır" kuralı ve D-97'nin
+golden-file testleri anlamını kaybederdi. AI'ın buradaki gerçek işi, talep arzı aştığında
+**neyin yoğunlaştırılacağını önermek** (mevcut öner-ve-Kabul et yolundan), sınırı kendisi
+oynatmak değil. Hiçbir şey kaybolmaz: D-100 sığmayan girişi ek sayfaya taşır, kırpmaz.
+
+Varsayılanlar artık Rev00'ın kendi oranlarının **her yerde 3.5 puan içinde**. D-155'in
+%48'lik ADIM 2 kırpması geri alındı; kalan −3.5 puan bir denge yargısı değil, somut bir
+içerik gereğidir (aşağıdaki D-159).
+
+**ADIM 1'in üç zorunlu paneli (D-159).** Barış: gap analysis + problem statement (P-32
+örneğindeki gibi) + **5N1K mutlaka**. 12 tuval satırına (156 pt × 567 pt) ölçülen oturma:
+
+| Panel | Satır | Kutu |
+|---|---|---|
+| 5N1K şeridi | 4 (52 pt) | 6 hücre × 94.50 × 52.00 pt |
+| Gap analizi | 8 (104 pt) | 283.50 × 104.00 pt |
+| Problem statement | 8 (104 pt) | 283.50 × 104.00 pt (4 renk bandı, her biri 26 pt) |
+
+**Tam oturuyor, boşluk yok.** ADIM 1'in varsayılanı bu yüzden 12'den 14 satıra çıktı. Üçünden
+biri büyürse esnek tahsis ADIM 2 veya 3'ten satır almak zorundadır — sessizce yutacak pay yok.
+
+**Değişmeyenler:** §12.1–§12.3'ün sayfa sözleşmesi (kenar boşlukları, kolonlar, katlama,
+795.00 pt) bu düzeltmeden etkilenmez — esneklik yalnızca 650 pt'nin *içinde* çalışır.
+Grafik alabilen bloklar yine ADIM 1, 2, 4; sağ kolonun dört izleme bloğu için P-31 açık.
