@@ -95,6 +95,11 @@ the terminology. Write the UI for them, not for a beginner.
   silently invent scope, and do not silently drop scope.
 - Keep a running `DECISIONS.md` — one line per architectural decision, with the date and
   the reason. Update it when we change our minds.
+- **Session launch prompts live in `docs/oturumlar/`, not in chat.** D-149's four
+  interface sessions each get a file there; the chat copy drifts from the repo silently
+  (a prompt written 2026-08-05 named a reference file that was renamed 20 minutes later,
+  and a stale prompt fails quietly — the agent looks for a missing file and moves on).
+  Every such prompt opens with a step that verifies the files it names actually exist.
 
 ## Copy and interface voice
 
