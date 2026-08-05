@@ -112,9 +112,23 @@ export async function pushDescriptorToPreviewWindow(descriptor: A3LayoutDescript
   }
 }
 
-/** Main window (`RightPanel`) side of the ready handshake — see `A3_PREVIEW_READY_EVENT`. */
-export function listenForPreviewReady(onReady: () => void): Promise<UnlistenFn> {
-  return listen(A3_PREVIEW_READY_EVENT, onReady);
+/**
+ * Main window (`RightPanel`) side of the ready handshake — see
+ * `A3_PREVIEW_READY_EVENT`. Wrapped in try/catch like its two siblings
+ * above (D-134) — this one was missed in that pass: `RightPanel`'s mount
+ * effect calls this without `await`/`.catch`, so an unhandled `listen()`
+ * rejection (e.g. no Tauri runtime, as in every test environment) escaped
+ * as a genuinely unhandled promise rejection rather than a visible error.
+ * Falls back to a no-op unlisten function so a failed subscribe degrades
+ * to "the ready handshake never fires" instead of crashing the mount.
+ */
+export async function listenForPreviewReady(onReady: () => void): Promise<UnlistenFn> {
+  try {
+    return await listen(A3_PREVIEW_READY_EVENT, onReady);
+  } catch (error) {
+    console.error("Failed to listen for the A3 preview window's ready signal", error);
+    return async () => {};
+  }
 }
 
 /** Preview window side: registers the descriptor listener, then announces readiness. */

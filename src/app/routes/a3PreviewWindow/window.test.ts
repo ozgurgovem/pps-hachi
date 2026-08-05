@@ -139,6 +139,26 @@ describe("the ready handshake", () => {
   });
 
   /**
+   * Found while closing Phase 6c's quality gate: unlike its three siblings
+   * above, this call had no try/catch — `RightPanel`'s mount effect invokes
+   * it without `await`/`.catch`, so a rejected `listen()` (no Tauri runtime,
+   * true of every test environment and any real failure) escaped as a
+   * genuinely unhandled promise rejection rather than a visible, logged
+   * error. Same failure shape D-134 already fixed for `getByLabel`/
+   * `setFocus`/`emitTo`; this was the one call D-134's pass missed.
+   */
+  it("never lets a rejected listen call escape as an unhandled rejection, and returns a no-op unlisten instead", async () => {
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+    listenMock.mockRejectedValue(new Error("no Tauri runtime"));
+
+    const unlisten = await listenForPreviewReady(vi.fn());
+
+    expect(consoleError).toHaveBeenCalled();
+    await expect(unlisten()).resolves.toBeUndefined();
+    consoleError.mockRestore();
+  });
+
+  /**
    * The whole reason this handshake exists: `new WebviewWindow(...)` creates
    * the window asynchronously, so a push sent immediately after opening it
    * can arrive before the new window's own listener is registered and be

@@ -566,6 +566,152 @@
         "subProblem": "Sub-problem",
         "effect": "Effect"
       }
+    },
+    "distributionChart": {
+      "name": "Histogram / scatter / box plot",
+      "useWhen": "Use this to see the shape of the data itself — spread, skew, outliers — before jumping to a cause.",
+      "chartTypeLabel": "Chart type",
+      "chartTypes": {
+        "histogram": "Histogram",
+        "scatter": "Scatter",
+        "box-plot": "Box plot"
+      },
+      "unitLabel": "Unit",
+      "binCountLabel": "Bin count",
+      "binCountPlaceholder": "Auto",
+      "valueColumn": "Value",
+      "xColumn": "X",
+      "yColumn": "Y"
+    },
+    "errorProofingHierarchy": {
+      "name": "Error-proofing hierarchy",
+      "useWhen": "Use this to rate one countermeasure's strength on the Eliminate → Procedure/Training scale, and to nudge yourself toward a stronger fix.",
+      "levelLabel": "Error-proofing level",
+      "noteLabel": "Note",
+      "levels": {
+        "eliminate": "Eliminate",
+        "substitute": "Substitute",
+        "prevent": "Prevent (poka-yoke)",
+        "detect": "Detect",
+        "warn": "Warn",
+        "procedure": "Procedure/Training"
+      },
+      "references": {
+        "countermeasure": {
+          "label": "Countermeasure rated",
+          "empty": "No countermeasure linked yet."
+        }
+      }
+    },
+    "impactEffortMatrix": {
+      "name": "Impact / effort matrix",
+      "useWhen": "Use this to sort candidate countermeasures into quick wins, major projects, fill-ins and thankless tasks.",
+      "descriptionLabel": "Item",
+      "impactLabel": "Impact (1–5)",
+      "effortLabel": "Effort (1–5)",
+      "unscored": "Unscored",
+      "addItem": "Add item",
+      "removeItem": "Remove item \"{{description}}\"",
+      "quadrants": {
+        "quick-win": "Quick win",
+        "major-project": "Major project",
+        "fill-in": "Fill-in",
+        "thankless-task": "Thankless task"
+      }
+    },
+    "weightedDecisionMatrix": {
+      "name": "Weighted decision matrix (Pugh)",
+      "useWhen": "Use this to compare countermeasure options objectively against weighted criteria instead of by gut feel.",
+      "criteriaHeading": "Criteria and weights",
+      "optionsHeading": "Options and scores",
+      "criterionName": "Criterion",
+      "criterionWeight": "Weight",
+      "optionName": "Option",
+      "unnamedCriterion": "Unnamed criterion",
+      "addCriterion": "Add criterion",
+      "addOption": "Add option",
+      "removeCriterion": "Remove criterion \"{{name}}\"",
+      "removeOption": "Remove option \"{{name}}\"",
+      "total": "Total {{total}}"
+    },
+    "sideEffectRiskAssessment": {
+      "name": "Side-effect / risk assessment",
+      "useWhen": "Use this to record what the countermeasure itself could break, before it ships.",
+      "fields": {
+        "description": "Side effect / risk",
+        "severity": "Severity",
+        "mitigation": "Mitigation"
+      },
+      "severities": {
+        "low": "Low",
+        "medium": "Medium",
+        "high": "High"
+      },
+      "references": {
+        "countermeasure": {
+          "label": "Countermeasure assessed",
+          "empty": "No countermeasure linked yet."
+        }
+      }
+    },
+    "trialPlan": {
+      "name": "Trial plan",
+      "useWhen": "Use this to define how a countermeasure will be piloted before full rollout — scope, duration, sample and pass/fail line.",
+      "fields": {
+        "scope": "Scope",
+        "duration": "Duration",
+        "sampleSize": "Sample size",
+        "acceptanceCriteria": "Acceptance criteria"
+      }
+    },
+    "costApproval": {
+      "name": "Cost & approval",
+      "useWhen": "Use this to record what a countermeasure costs and who signed off on it.",
+      "fields": {
+        "costEstimate": "Cost estimate",
+        "approvalStatus": "Approval status",
+        "approvedBy": "Approved by",
+        "approvalDate": "Approval date"
+      },
+      "statuses": {
+        "pending": "Pending",
+        "approved": "Approved",
+        "rejected": "Rejected"
+      }
+    },
+    "trialResultLog": {
+      "name": "Trial result log",
+      "useWhen": "Use this to log what actually happened during the trial, one entry per observation.",
+      "columns": {
+        "date": "Date",
+        "result": "Result",
+        "note": "Note"
+      }
+    },
+    "trainingCommunicationRecord": {
+      "name": "Training & communication record",
+      "useWhen": "Use this to record who was trained or informed, how, and who acknowledged it.",
+      "columns": {
+        "date": "Date",
+        "audience": "Audience",
+        "method": "Method",
+        "acknowledgedBy": "Acknowledged by"
+      }
+    },
+    "implementationIssuesLog": {
+      "name": "Implementation issues log",
+      "useWhen": "Use this to record problems hit while rolling out a countermeasure, and how each was resolved.",
+      "columns": {
+        "date": "Date",
+        "issue": "Issue",
+        "impact": "Impact",
+        "resolution": "Resolution",
+        "status": "Status"
+      },
+      "statuses": {
+        "open": "Open",
+        "resolved": "Resolved"
+      }
     }
   },
   "gallery": {

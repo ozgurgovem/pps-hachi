@@ -117,7 +117,7 @@ rejections, no console noise in production builds.
 
 ## Current state
 
-Phase: 6 of 12 (slice 6b of D-114's five; 6c–6e remain)
+Phase: 6 of 12 (slice 6c of D-114's five; 6d–6e remain)
 Stack decision (Tauri vs Electron fallback): Tauri v2, revisit only if Phase 4 stalls
 App name: **PPS Hachi** (八 — eight). Repo `pps-hachi`. Set 2026-08-01, see DECISIONS.md D-29.
 AI layer: specified, not started. Phases 8–10.
@@ -605,3 +605,71 @@ Post-6b real-app walkthrough: 2026-08-04, Barış walked the picker and chart ex
   against the pre-fix code before the fix and GREEN after.
   `npm test` 601/601 (148 files), `npm run lint` clean, `npm run build` green, `cargo test`
   (89/89)/`cargo clippy`/`cargo fmt` clean (Rust untouched by this fix). Not yet committed to git.
+Phase 6c (Step 2's distribution chart + Steps 5–6's remaining plain methods): DONE 2026-08-05,
+  per D-114's 6c scope. Scope was re-derived from `SPEC.md` §1.3 line by line against 6a/6b/
+  Phase 5 rather than from the slice sketch (D-123's own method, applied a second time) —
+  `countermeasure/fields.ts`'s Phase 6b comment had already named the exact resulting list,
+  which confirmed the derivation rather than driving it (D-137). Two real design tensions
+  surfaced before any code: whether the action plan's Gantt half belongs in this slice
+  (D-138 — deferred to its own future slice, since it would be a second new mechanism
+  competing with the distribution chart for D-114's one-per-slice cap; closes the "6c" half
+  of P-22's own note) and two reference/scope judgment calls (D-139, D-140), both put to
+  Barış via AskUserQuestion before implementation, per `CLAUDE.md`'s own "write a short plan
+  and let me approve it" rule.
+  **New Step 2 mechanism (the one D-114 allows this slice):** `src/methods/chartSpec.ts`
+  gained `HistogramChartSpec`/`ScatterChartSpec`/`BoxPlotChartSpec`; `src/a3/methodContract.ts`
+  gained one new `A3ImageKind` (`distribution-chart`) shared by all three, dispatched by
+  `spec.kind` inside `distributionChart/DistributionChart.tsx` — the same one-kind-many-
+  variants shape `ChartSpec` already used for Pareto/Trend/Trajectory (D-102, D-141).
+  `distributionChart/stats.ts` computes histogram bins (Sturges' rule default) and box-plot
+  quartiles (Tukey's hinges) at render time from `string`-typed raw sample values, mirroring
+  `causeEffectMatrix/score.ts`'s D-120 posture; the box plot itself renders as a stacked
+  invisible-base + visible Bar with `ReferenceLine`s for median/min/max rather than Recharts'
+  `ErrorBar`, deliberately the simpler of two viable approaches on the one layer already
+  proven fragile three times (D-105/D-107/D-111/D-113/D-136). Verified against the real
+  pipeline per this phase's own instruction, not read-only: `distributionChart/xlsxSurvival.test.ts`
+  proves the D-102 two-call `buildA3Layout` survival pattern, and a new permanent PROBE test
+  (`src/a3/distributionChartThreeImageEntries.probe.test.ts`) proves the real registry places
+  **three** simultaneous Step 2 chart images (Pareto + Trend + distribution) at distinct,
+  non-colliding anchors with zero overflow warnings — a concurrency case one entry larger
+  than any prior session had exercised (`p25TwoImageEntries.probe.test.ts`'s two).
+  **Nine new plain methods**, each following 6a/6b's file shape (`index.ts`/`schema.ts`/
+  `Editor.tsx`/`renderToA3.ts` + a schema, Editor and renderToA3 test): Step 5 —
+  `errorProofingHierarchy` (fixed-field form with a shape-coded strength bar, D-41; references
+  a Step 5 countermeasure — the registry's first same-step reference, D-139),
+  `impactEffortMatrix` (scored list + computed quadrant rather than a literal drag-and-drop
+  2×2, D-142 — deferred as **P-27**), `weightedDecisionMatrix`/Pugh (structurally
+  `causeEffectMatrix` renamed, with its own local `score.ts` rather than touching 6b's
+  shipped file — P-23's precedent applied again), `sideEffectRiskAssessment` (also
+  same-step-references a countermeasure, D-139), `trialPlan`, `costApproval` (a standalone
+  plugin rather than fields added to `countermeasure`'s already-shipped schema, D-140);
+  Step 6 — `trialResultLog`, `trainingCommunicationRecord`, `implementationIssuesLog`
+  (all three `RowTableEditor`-based, D-115). `registry.test.ts`'s reference-role invariants
+  were extended, not just re-asserted: "is declared by exactly N methods" now counts six
+  (was five), and the "never points a role at the declaring method's own step alone"
+  invariant now names `error-proofing-hierarchy`/`side-effect-risk-assessment` as documented
+  exceptions instead of silently breaking for the four 6b referrers it still holds for.
+  **Found and fixed while closing this phase's own quality gate, out of 6c's scope but
+  blocking an honest green gate (D-143):** `listenForPreviewReady` (`a3PreviewWindow/window.ts`,
+  shipped in D-133) was the one Tauri call in that file D-134's same-day audit didn't reach —
+  unlike its two siblings, it had no try/catch, so `RightPanel`'s mount effect calling it
+  without `await`/`.catch` let a rejected `listen()` (no Tauri runtime in any test
+  environment) escape as a genuinely unhandled promise rejection. Every prior session's
+  `npm test N/N` line was a true test count and a false "green" claim — `npm test`'s process
+  exit code has been 1 since D-133, never checked underneath the printed summary. Fixed with
+  the same try/catch + no-op-fallback pattern D-134 already used; one regression test added.
+  Deferred, not silently dropped, mid-session: Barış supplied `reference/PPS_A3_Format_Examp_FINAL.xlsx`
+  (an 8-step, 3-column candidate A3 template) partway through this session; evaluating it
+  (geometry re-analysis, resolving the 3-column-vs-2-column-folded-in-half question, possibly
+  comparing against a 2-column global-standard reference) was deliberately pushed to its own
+  clean session — it is a template-layer decision (`src/a3/templates/*`, `reference/
+  TEMPLATE_ANALYSIS.md`, intersects D-08/D-09/D-10/D-35's LOCKED decisions) with no
+  architectural coupling to this slice's method-plugin work (D-03 keeps layout and content
+  separate), and mixing it into 6c's context would have been Anayasa Madde 4/D-24's "one work
+  unit, one clean session" violated mid-flight.
+  `npm test` 718/718 (183 files, up from 601/601 at 148 — 117 new tests, D-143's regression
+  included), **exit code 0** — the first session this gate is verified actually clean rather
+  than merely printed clean (D-143). `npm run lint` clean (the one pre-existing `ThemeProvider`
+  warning). `npm run build` green (same pre-existing chunk-size warning). `cargo test` 89/89,
+  `cargo clippy --all-targets -- -D warnings` and `cargo fmt -- check` all clean — Rust
+  untouched by 6c, as expected. Not yet committed to git.

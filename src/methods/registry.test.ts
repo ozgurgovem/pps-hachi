@@ -49,16 +49,25 @@ describe("reference roles across the registry", () => {
   const withRoles = METHOD_REGISTRY.filter((plugin) => plugin.referenceRoles !== undefined);
 
   /**
-   * Four *referrers*. D-114's 6b scope names five reference-bearing methods:
-   * these four plus `point-of-cause`, which is the chain's origin and so is
-   * only ever a target — it declares no roles of its own.
+   * Four *referrers* shipped in 6b. D-114's 6b scope names five
+   * reference-bearing methods: these four plus `point-of-cause`, which is
+   * the chain's origin and so is only ever a target — it declares no roles
+   * of its own. 6c adds two more, both reusing the existing `countermeasure`
+   * role rather than a new mechanism: `error-proofing-hierarchy` and
+   * `side-effect-risk-assessment` — the first two methods to reference an
+   * entry in their *own* step (Step 5 rating/assessing a Step 5
+   * countermeasure) rather than an earlier one. D-116 never restricted
+   * references to cross-step, so this is a new case of an existing
+   * mechanism, not a new one.
    */
-  it("is declared by exactly the four methods that hold a reference", () => {
+  it("is declared by exactly the six methods that hold a reference", () => {
     expect(withRoles.map((plugin) => plugin.id).sort()).toEqual([
       "action-item",
       "countermeasure",
+      "error-proofing-hierarchy",
       "hypothesis-verification",
       "ica-pca-transition",
+      "side-effect-risk-assessment",
     ]);
     expect(getMethodById("point-of-cause")?.referenceRoles).toBeUndefined();
   });
@@ -91,8 +100,18 @@ describe("reference roles across the registry", () => {
     }
   });
 
-  it("never points a role at the declaring method's own step alone", () => {
-    for (const plugin of withRoles) {
+  /**
+   * True for all four 6b referrers (each points backward at an earlier
+   * step, following the causal chain). `error-proofing-hierarchy` and
+   * `side-effect-risk-assessment` (6c) are the deliberate exceptions — both
+   * Step 5 methods rating/assessing a Step 5 countermeasure — so both are
+   * excluded here rather than silently breaking the assertion for everyone
+   * else.
+   */
+  const SAME_STEP_REFERRERS = ["error-proofing-hierarchy", "side-effect-risk-assessment"];
+
+  it("never points a role at the declaring method's own step alone, except the documented Step-5-rates-Step-5 cases", () => {
+    for (const plugin of withRoles.filter((candidate) => !SAME_STEP_REFERRERS.includes(candidate.id))) {
       for (const role of plugin.referenceRoles ?? []) {
         expect(role.fromSteps.every((stepId) => plugin.steps.includes(stepId))).toBe(false);
       }

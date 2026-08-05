@@ -7,12 +7,16 @@ import { causeEffectMatrixMethod } from "./causeEffectMatrix";
 import { comparativeAnalysisMethod } from "./comparativeAnalysis";
 import { checkSheetMethod } from "./checkSheet";
 import { containmentIcaMethod } from "./containmentIca";
+import { costApprovalMethod } from "./costApproval";
+import { distributionChartMethod } from "./distributionChart";
+import { errorProofingHierarchyMethod } from "./errorProofingHierarchy";
 import { fishboneMethod } from "./fishbone";
 import { fiveG5N1KMethod } from "./fiveG5N1K";
 import { fiveW2HMethod } from "./fiveW2H";
 import { fiveWhyMethod } from "./fiveWhy";
 import { gapStatementMethod } from "./gapStatement";
 import { genericTextMethod } from "./genericText";
+import { implementationIssuesLogMethod } from "./implementationIssuesLog";
 import { isIsNotMethod } from "./isIsNot";
 import { msaGageRrMethod } from "./msaGageRr";
 import { paretoMethod } from "./pareto";
@@ -22,13 +26,19 @@ import { smartTargetMethod } from "./smartTarget";
 import { stratificationMatrixMethod } from "./stratificationMatrix";
 import { threeLeggedFiveWhyMethod } from "./threeLeggedFiveWhy";
 import { tpmLossTaxonomyMethod } from "./tpmLossTaxonomy";
+import { trainingCommunicationRecordMethod } from "./trainingCommunicationRecord";
 import { trendMethod } from "./trend";
+import { trialPlanMethod } from "./trialPlan";
+import { trialResultLogMethod } from "./trialResultLog";
 import { countermeasureMethod } from "./countermeasure";
 import { faultTreeMethod } from "./faultTree";
 import { hypothesisVerificationMethod } from "./hypothesisVerification";
 import { icaPcaTransitionMethod } from "./icaPcaTransition";
+import { impactEffortMatrixMethod } from "./impactEffortMatrix";
 import { pfmeaLinkageMethod } from "./pfmeaLinkage";
 import { pointOfCauseMethod } from "./pointOfCause";
+import { sideEffectRiskAssessmentMethod } from "./sideEffectRiskAssessment";
+import { weightedDecisionMatrixMethod } from "./weightedDecisionMatrix";
 import { whyWhyTreeMethod } from "./whyWhyTree";
 import { registerMethod, type ErasedMethodPlugin } from "./types";
 import { vocComplaintMethod } from "./vocComplaint";
@@ -38,7 +48,10 @@ import { vocComplaintMethod } from "./vocComplaint";
  * preview, or the exporter — this array is the one place a new plugin is
  * registered. Phase 3 shipped exactly one plugin; Phase 5 added SPEC.md §6's
  * wave 1; Phase 6a (D-114) added Steps 1–2's remaining ten; Phase 6b adds the
- * five reference-bearing methods (D-116) plus Step 4's five plain ones.
+ * five reference-bearing methods (D-116) plus Step 4's five plain ones;
+ * Phase 6c adds Step 2's distribution chart (the one new mechanism this
+ * slice introduces) plus Steps 5–6's remaining plain methods — the action
+ * plan Gantt is deliberately not among them, see P-22/D-114.
  */
 export const METHOD_REGISTRY: readonly ErasedMethodPlugin[] = [
   registerMethod(genericTextMethod),
@@ -71,6 +84,16 @@ export const METHOD_REGISTRY: readonly ErasedMethodPlugin[] = [
   registerMethod(actionItemMethod),
   registerMethod(icaPcaTransitionMethod),
   registerMethod(categoryBreakdownMethod),
+  registerMethod(distributionChartMethod),
+  registerMethod(errorProofingHierarchyMethod),
+  registerMethod(impactEffortMatrixMethod),
+  registerMethod(weightedDecisionMatrixMethod),
+  registerMethod(sideEffectRiskAssessmentMethod),
+  registerMethod(trialPlanMethod),
+  registerMethod(costApprovalMethod),
+  registerMethod(trialResultLogMethod),
+  registerMethod(trainingCommunicationRecordMethod),
+  registerMethod(implementationIssuesLogMethod),
 ];
 
 export function getMethodsForStep(stepId: StepId): readonly ErasedMethodPlugin[] {

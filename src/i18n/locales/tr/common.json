@@ -566,6 +566,152 @@
         "subProblem": "Alt problem",
         "effect": "Etki"
       }
+    },
+    "distributionChart": {
+      "name": "Histogram / dağılım / kutu grafiği",
+      "useWhen": "Bir nedene atlamadan önce verinin kendi şeklini görmek için kullanın — yayılım, çarpıklık, aykırı değerler.",
+      "chartTypeLabel": "Grafik türü",
+      "chartTypes": {
+        "histogram": "Histogram",
+        "scatter": "Dağılım",
+        "box-plot": "Kutu grafiği"
+      },
+      "unitLabel": "Birim",
+      "binCountLabel": "Aralık sayısı",
+      "binCountPlaceholder": "Otomatik",
+      "valueColumn": "Değer",
+      "xColumn": "X",
+      "yColumn": "Y"
+    },
+    "errorProofingHierarchy": {
+      "name": "Hata önleme hiyerarşisi",
+      "useWhen": "Bir önlemin gücünü Ortadan Kaldır → Prosedür/Eğitim ölçeğinde derecelendirmek ve kendinizi daha güçlü bir çözüme yönlendirmek için kullanın.",
+      "levelLabel": "Hata önleme seviyesi",
+      "noteLabel": "Not",
+      "levels": {
+        "eliminate": "Ortadan kaldır",
+        "substitute": "İkame et",
+        "prevent": "Önle (poka-yoke)",
+        "detect": "Tespit et",
+        "warn": "Uyar",
+        "procedure": "Prosedür/Eğitim"
+      },
+      "references": {
+        "countermeasure": {
+          "label": "Derecelendirilen önlem",
+          "empty": "Henüz bağlı bir önlem yok."
+        }
+      }
+    },
+    "impactEffortMatrix": {
+      "name": "Etki / çaba matrisi",
+      "useWhen": "Aday önlemleri hızlı kazanımlar, büyük projeler, doldurmalar ve nankör işler olarak sınıflandırmak için kullanın.",
+      "descriptionLabel": "Madde",
+      "impactLabel": "Etki (1–5)",
+      "effortLabel": "Çaba (1–5)",
+      "unscored": "Puanlanmadı",
+      "addItem": "Madde ekle",
+      "removeItem": "\"{{description}}\" maddesini kaldır",
+      "quadrants": {
+        "quick-win": "Hızlı kazanım",
+        "major-project": "Büyük proje",
+        "fill-in": "Doldurma",
+        "thankless-task": "Nankör iş"
+      }
+    },
+    "weightedDecisionMatrix": {
+      "name": "Ağırlıklı karar matrisi (Pugh)",
+      "useWhen": "Önlem seçeneklerini his ile değil, ağırlıklandırılmış kriterlere göre nesnel olarak karşılaştırmak için kullanın.",
+      "criteriaHeading": "Kriterler ve ağırlıklar",
+      "optionsHeading": "Seçenekler ve puanlar",
+      "criterionName": "Kriter",
+      "criterionWeight": "Ağırlık",
+      "optionName": "Seçenek",
+      "unnamedCriterion": "Adsız kriter",
+      "addCriterion": "Kriter ekle",
+      "addOption": "Seçenek ekle",
+      "removeCriterion": "\"{{name}}\" kriterini kaldır",
+      "removeOption": "\"{{name}}\" seçeneğini kaldır",
+      "total": "Toplam {{total}}"
+    },
+    "sideEffectRiskAssessment": {
+      "name": "Yan etki / risk değerlendirmesi",
+      "useWhen": "Önlemin kendisinin neyi bozabileceğini, devreye almadan önce kaydetmek için kullanın.",
+      "fields": {
+        "description": "Yan etki / risk",
+        "severity": "Önem derecesi",
+        "mitigation": "Azaltma"
+      },
+      "severities": {
+        "low": "Düşük",
+        "medium": "Orta",
+        "high": "Yüksek"
+      },
+      "references": {
+        "countermeasure": {
+          "label": "Değerlendirilen önlem",
+          "empty": "Henüz bağlı bir önlem yok."
+        }
+      }
+    },
+    "trialPlan": {
+      "name": "Deneme planı",
+      "useWhen": "Bir önlemin tam devreye almadan önce nasıl pilot uygulanacağını tanımlamak için kullanın — kapsam, süre, örneklem ve geçme/kalma sınırı.",
+      "fields": {
+        "scope": "Kapsam",
+        "duration": "Süre",
+        "sampleSize": "Örneklem büyüklüğü",
+        "acceptanceCriteria": "Kabul kriterleri"
+      }
+    },
+    "costApproval": {
+      "name": "Maliyet ve onay",
+      "useWhen": "Bir önlemin maliyetini ve kimin onayladığını kaydetmek için kullanın.",
+      "fields": {
+        "costEstimate": "Maliyet tahmini",
+        "approvalStatus": "Onay durumu",
+        "approvedBy": "Onaylayan",
+        "approvalDate": "Onay tarihi"
+      },
+      "statuses": {
+        "pending": "Beklemede",
+        "approved": "Onaylandı",
+        "rejected": "Reddedildi"
+      }
+    },
+    "trialResultLog": {
+      "name": "Deneme sonuç günlüğü",
+      "useWhen": "Deneme sırasında gerçekte ne olduğunu, gözlem başına bir kayıt olacak şekilde kaydetmek için kullanın.",
+      "columns": {
+        "date": "Tarih",
+        "result": "Sonuç",
+        "note": "Not"
+      }
+    },
+    "trainingCommunicationRecord": {
+      "name": "Eğitim ve iletişim kaydı",
+      "useWhen": "Kimin eğitildiğini veya bilgilendirildiğini, nasıl ve kimin onayladığını kaydetmek için kullanın.",
+      "columns": {
+        "date": "Tarih",
+        "audience": "Hedef kitle",
+        "method": "Yöntem",
+        "acknowledgedBy": "Onaylayan"
+      }
+    },
+    "implementationIssuesLog": {
+      "name": "Uygulama sorunları günlüğü",
+      "useWhen": "Bir önlemi devreye alırken karşılaşılan sorunları ve her birinin nasıl çözüldüğünü kaydetmek için kullanın.",
+      "columns": {
+        "date": "Tarih",
+        "issue": "Sorun",
+        "impact": "Etki",
+        "resolution": "Çözüm",
+        "status": "Durum"
+      },
+      "statuses": {
+        "open": "Açık",
+        "resolved": "Çözüldü"
+      }
     }
   },
   "gallery": {

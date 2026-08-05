@@ -38,4 +38,44 @@ export interface TrajectoryChartSpec {
   readonly actualPoints?: readonly ChartPoint[];
 }
 
-export type ChartSpec = ParetoChartSpec | TrendChartSpec | TrajectoryChartSpec;
+/**
+ * Phase 6c: the one new mechanism this slice adds (D-114/P-22 — the action
+ * plan Gantt is a *second*, unrelated new mechanism and was deliberately
+ * deferred to its own slice rather than bundled in here). All three of
+ * SPEC.md §1.3's "Histogram / scatter / box plot" bullet share one
+ * `A3ImageKind` (`distribution-chart`) and one method (`distributionChart`)
+ * — the user picks `chartType`, `DistributionChart.tsx` dispatches on
+ * `spec.kind` the same way `ChartSpec` already discriminates Pareto/Trend/
+ * Trajectory. Raw values stay `string`-typed in the payload per D-120;
+ * binning/quartile math is computed at render time
+ * (`distributionChart/stats.ts`), same derive-don't-store posture as
+ * `causeEffectMatrix/score.ts`.
+ */
+export interface HistogramChartSpec {
+  readonly kind: "histogram";
+  readonly unit?: string;
+  readonly values: readonly number[];
+  /** Defaults to Sturges' rule when omitted — see `stats.ts`. */
+  readonly binCount?: number;
+}
+
+export interface ScatterChartSpec {
+  readonly kind: "scatter";
+  readonly xLabel?: string;
+  readonly yLabel?: string;
+  readonly points: readonly { readonly x: number; readonly y: number }[];
+}
+
+export interface BoxPlotChartSpec {
+  readonly kind: "box-plot";
+  readonly unit?: string;
+  readonly values: readonly number[];
+}
+
+export type ChartSpec =
+  | ParetoChartSpec
+  | TrendChartSpec
+  | TrajectoryChartSpec
+  | HistogramChartSpec
+  | ScatterChartSpec
+  | BoxPlotChartSpec;

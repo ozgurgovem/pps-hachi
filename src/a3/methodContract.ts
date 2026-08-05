@@ -25,7 +25,12 @@ export interface A3TextLine {
  * mirroring how `Entry.payload` stays opaque at the `ProjectModel` level
  * (D-52) one layer up.
  */
-export type A3ImageKind = "pareto-chart" | "trend-chart" | "trajectory-chart" | "fishbone-diagram";
+export type A3ImageKind =
+  | "pareto-chart"
+  | "trend-chart"
+  | "trajectory-chart"
+  | "fishbone-diagram"
+  | "distribution-chart";
 
 /**
  * The explicit pixel box a method's chart/diagram must draw itself into.
