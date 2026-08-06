@@ -53,17 +53,18 @@ Gerçek, doldurulmuş şirket A3'leri. Kişi adları ve şirket verisi içerdikl
 
 ---
 
-## ⚠️ Oturum B için palet çakışması — çözülmeden ADIM 1 tasarlanamaz
+## Palet çakışması — ÇÖZÜLDÜ (D-165, Oturum B2, 2026-08-06)
 
-İki görsel dil referansı **uyumsuz renk sistemleri** kullanıyor:
+İki görsel dil referansı **uyumsuz renk sistemleri** kullanıyordu:
 
 | Kaynak | Sistem | Kırmızının anlamı |
 |---|---|---|
 | `visual/5N-1K.jpeg` | 6 **ayırt edici** renk, anlam taşımaz — yalnızca yaprakları ayırır | "NE?" |
 | `visual/LeanUK_...png` | 4 **anlamsal** renk: sarı=nihai hedef, yeşil=ideal, mavi=mevcut, kırmızı=problem | "problem / kök neden" |
 
-D-159 ikisini de ADIM 1'e koyuyor (üstte 5N1K şeridi, altında problem statement'ın
-dört renk bandı). Olduğu gibi alınırsa **aynı blokta kırmızı iki farklı şey demiş
-olur** — ve `CLAUDE.md`'nin "düzenli ve yalın" çıtasının ilk kurbanı bu olur.
-Oturum B'nin kararı: ya 5N1K nötrleştirilir (tek renk / gri tonlama, ayrım
-tipografiyle), ya anlamsal palet 5N1K'yı da kapsayacak şekilde genişletilir.
+D-159 ikisini de ADIM 1'e koyuyor (üstte 5N1K şeridi, altında problem statement'ın renk
+bantları). Barış'ın kararı **genişletme** oldu (nötrleştirme değil): tek bir karma palet
+yerine iki bağımsız, sıfır-örtüşmeli katman — Katman A (hedef-durum, LeanUK kökenli, 3 renk:
+yeşil=ideal/mavi=mevcut/kırmızı=problem) ve Katman B (5N1K kategori, 6 yeni renk: amber/mor/
+teal/gül kurusu/sienna/arduvaz — hiçbiri Katman A ile veya D-47'nin PDCA başlık renkleriyle
+çakışmıyor). Ayrıntılı tablo ve gerekçe: `TEMPLATE_ANALYSIS.md` §14.1, karar kaydı D-165.

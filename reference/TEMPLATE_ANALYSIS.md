@@ -1259,3 +1259,279 @@ kararı (renk bandı: `gapStatement`'ın 3 alanlı şemasına dokunmadan yalnız
 bandı eklenir — Ultimate Goal alanı eklenmez; 5N1K: ayrı yeni format; esnek tahsis: ikisi
 birden — varsayılan otomatik + manuel override) `DECISIONS.md`'ye D-162–D-164 olarak yazıldı;
 B2 bunları yeniden sormadan girdi olarak alır.
+
+---
+
+## 14. Blok görsel dili, adım arayüzü, esnek tahsis arayüzü — Oturum B2 çıktısı, 2026-08-06
+
+> D-149'un dört oturumundan ikincisinin ikinci yarısı. `docs/oturumlar/B2-gorsel-dil-arayuz.md`
+> §5.2–§5.4'ü yürütür (= `B-adim-anatomisi.md`'nin özgün §5.2–§5.4'ü). Girdi: §12 (sayfa
+> sözleşmesi) + §13 (B1'in altı çalışma sayfası bulgusu) + `reference/visual/`'daki iki görsel,
+> ikisi de bu oturumda elle açıldı. **Kod YAZILMADI** — bu da bir tasarım/karar oturumu.
+
+### 14.0 İş sırasında Barış'tan gelen ek girdi — kayda geçmesi gereken bir düzeltme
+
+İşe başlarken sorulan üç açık sorudan sonra, ADIM 1 tasarlanırken Barış kendi elleriyle
+işaretlediği bir ekran görüntüsü paylaştı (iki bölgeli bir taslak: sol "problemin net tanımı"
++ sağ "müşteri/güvenlik/kalite/teslimat/maliyet etkisi"). İki soru soruldu ve netleşti:
+
+- **D-159'un tek-sütun geometrisi AÇILMADI.** Taslak yalnızca bir kavram notuydu, ADIM 1'in
+  567 pt'lik tek sütununu ikiye bölme talebi değildi. §12.8'in "tam oturuyor, boşluk yok"
+  ölçümü aynen geçerli.
+- **Ama yeni bir içerik talebi gerçek:** "kalitenin sağlayacağı Pareto ve maliyet analizi
+  (problemin yarattığı aylık/senelik mali kayıp)" ADIM 1'e **yeni, özel bir plugin** olarak
+  girecek — mevcut ADIM 2 `pareto`'sunu referanslamak değil, D-132'nin "yanına ekle, mevcudu
+  değiştirme" emsaliyle tutarlı bağımsız bir kart. Bu, D-163'ün 5N1K'ya verdiği cevapla aynı
+  desen. Aşağıda §14.2'de adı **`problem-impact`** olarak geçiyor; tasarımı bu oturumun işi,
+  inşası Oturum C'nin.
+
+### 14.1 Genişletilmiş anlamsal palet — palet çakışmasının çözümü
+
+`reference/README.md`'nin bloklayıcı uyarısı: `5N-1K.jpeg`'in altı ayırt edici rengi ile
+LeanUK'ın dört anlamsal rengi (sarı/yeşil/mavi/kırmızı) aynı blokta (ADIM 1) yan yana geliyor.
+İki seçenek soruldu — **Barış'ın kararı: nötrleştirme değil, genişletme.**
+
+**Yöntem:** tek bir 9-10 renklik karma palet değil, **iki bağımsız, sıfır-örtüşmeli katman.**
+Her katmanın kendi sabit anlamı var ve ikisi asla aynı hücrede/aynı görsel role rekabet etmiyor:
+
+**Katman A — Hedef-durum paleti (LeanUK kökenli, D-162 ile 3 renge indi):**
+
+| Renk | Anlam | Gösterge (başlangıç) | Kullanım alanı |
+|---|---|---|---|
+| Yeşil | İdeal / hedef | `#3F7D4A` | `gapStatement` renk bandı (ideal), P-31'in ADIM 7 KPI şeridinde "hedefe ulaşıldı" |
+| Mavi | Mevcut / actual | `#2D6FA3` | `gapStatement` renk bandı (actual), ADIM 7 KPI şeridinde "şu anki değer" |
+| Kırmızı | Problem / gap | `#B23A3A` | `gapStatement` renk bandı (gap), ADIM 7 KPI şeridinde "hedefin altında/gerisinde" |
+
+Sarı (LeanUK'ın "ultimate goal"ı) D-162 ile düştü — bugün hiçbir yerde iddia edilmiyor,
+ama **rezerve**: D-153'ün "Genel RAG" alanı (Oturum C adayı, §13.4.7) Red/Amber/Green
+istediğinde, Amber bu boşluğa oturur ve Kırmızı/Yeşil zaten Katman A ile aynı anlamı taşır —
+o karar bu oturumun işi değil, yalnızca palet bu genişlemeye kapalı değil diye kayda geçiyor.
+
+**Katman B — 5N1K kategori paleti (6 yeni renk, Katman A ile SIFIR örtüşme):**
+
+| Soru | Renk | Gösterge (başlangıç) |
+|---|---|---|
+| Ne? | Amber/altın | `#C68A2E` |
+| Neden? | Mor (= `--color-accent` / "Indelible", D-49) | `#5F4470` |
+| Nasıl? | Çam yeşili-mavi (teal) | `#2F7A6E` |
+| Kim? | Gül kurusu | `#8B3A5C` |
+| Ne zaman? | Sienna/kahve | `#8A5A3B` |
+| Nerede? | Arduvaz gri-mavi | `#556677` |
+
+Kırmızı/yeşil/mavi bilerek Katman B'nin dışında tutuldu — 5N1K'nın hiçbir sorusu "problem"
+ya da "ideal" değil, birini bu üç renkten birine boyamak sahte bir anlam bağı kurardı.
+Neden'e Indelible moru verilmesi kasıtlı: D-49'un "tek kalın vurgu" markası, uygulamanın
+kendi kimliğini basılı çıktıya taşıyan tek nokta oluyor.
+
+**Katman B'nin uygulanma biçimi — yeni bir mekanizma GEREKMİYOR.** 5N1K'nın altı hücresi
+D-102'nin `zones` mekanizmasıyla döşenir (§14.2), ama hücrelerin konumu ve kimliği **sabit**
+(her zaman aynı sırada Ne/Neden/Nasıl/Kim/Ne zaman/Nerede — plugin'in kendi şeması bunu
+garantiliyor). Sabit konumlu, içerikten bağımsız bir renk, D-101'in şablon stil tablosunda
+zaten var olan mekanizmayla (`blockHeaderPlan`/`Do`/`Check`/`Act`'in statik `fillColor`'ı,
+§'de görülen legacy şablon örneği) **birebir aynı şekilde** çözülür: altı hücrenin dar üst
+şeridi (etiket çipi — LeanUK'ın iki-hücreli kartuş deseninin küçük ölçekte tekrarı) şablonun
+kendi statik stil tablosunda önceden boyanır; `renderToA3` yalnızca metni (etiket + kullanıcı
+cevabı) o önceden-boyalı hücrelere yazar. `A3TextLine`'a yeni bir renk alanı eklemeye gerek
+yok — bu, Faz 11'in şablon dosyası yazılırken (D-95, kapsam dışı) uygulayacağı bir stil
+kararı, dinamik bir render kararı değil.
+
+**D-47 (LOCKED, PDCA marka renkleri: plan=kırmızı, do=sarı, check=camgöbeği, act=yeşil) ile
+ilişki — çakışma değil, iki ayrı katman.** D-47'nin dört rengi blok **başlık çubuğunun**
+(kartuşun dar hücresi, hangi PDCA fazına ait olduğunu gösterir) rengidir; Katman A/B içerik
+**dolgusudur**. Kırmızı ve yeşilin iki sistemde de görünmesi kasıtlı bırakıldı çünkü anlamları
+tematik olarak örtüşüyor (Plan↔Problem, Act↔İdeal/standardize-edilmiş-iyi-durum) — aynı hücrede
+yan yana gelmedikleri sürece bu bir çakışma değil, bir yankı. Katman B'nin altı rengi bilerek
+sarı ve camgöbeğini de dışladı, üç katman aynı sayfada bir arada dururken hiçbir rengin iki
+farklı anlam taşımaması için.
+
+**Not — bu tablo bir başlangıç noktasıdır, piksel-kesin bir tasarım geçişi değil.** Hex değerleri
+"drafting office" estetiğine (D-49) uygun, ölçülü doygunlukta seçildi ve küçük hücrelerde beyaz
+metinle kontrast taşıyacak koyulukta tutuldu; Faz 11 şablon dosyası yazılırken gerçek basılı
+sayfada görsel olarak doğrulanmalı (D-135'in ekran/baskı kontrast hatası tam bu yüzden — renk
+kararları koddan önce görülmeden kilitlenmemeli).
+
+### 14.2 ADIM 1 — üç zorunlu panel + iki opsiyonel ek
+
+Geometri D-159'dan değişmeden alınıyor: 12 tuval satırı (156 pt), 567 pt genişlik, sıfır pay.
+
+**Zorunlu üçlü (değişmeden, D-159 LOCKED):**
+
+1. **5N1K şeridi** — 4 satır (52 pt), `zones`: 6 eşit bölge (widthFraction 1/6 ≈ 0.1667),
+   her biri 94.50 pt genişlik. Her `zone.lines`'ın ilk satırı kalın etiket ("NE?"), Katman B'nin
+   sabit renkli başlık çipine oturur (§14.1); ikinci satırdan itibaren kullanıcının cevabı, siyah
+   mürekkep/beyaz zemin. **Yeni plugin** (D-163 — `five-g-5n1k` değiştirilmez), alan seti
+   `reference/visual/5N-1K.jpeg`'in kendi sırasıyla: `ne`/`neden`/`nasil`/`kim`/`neZaman`/`nerede`.
+2. **Gap analizi** — 8 satır (104 pt), sol yarı (283.5 pt). `gapStatement`'ın ideal/actual
+   değerlerinin bir karşılaştırma grafiği — mevcut `trend`/`trajectory-chart` imageKind'ı
+   yeniden kullanılabilir (LeanUK'ın "1.1 Gap Analysis" bar grafiğiyle aynı rol: Current vs
+   Ideal, Ultimate Goal düştüğü için iki çubuk, üç değil).
+3. **Problem statement** — 8 satır (104 pt), sağ yarı (283.5 pt). `gapStatement`'ın aynı üç
+   alanı (D-162), üç yatay renk bandı olarak — Katman A: ideal=yeşil, actual=mavi, gap=kırmızı.
+   Bantların rengi de §14.1'in "sabit konum → statik şablon stili" mantığıyla çözülür: üç bant
+   her zaman aynı sırada olduğu için renk şablonda sabitlenir, `renderToA3` yalnızca metni yazar.
+
+   Gap analizi ve problem statement **aynı `gapStatement` entry'sinin iki farklı görselleştirmesi**
+   — LeanUK'ın kendi "1.1 Gap Analysis" (grafik) + "1.2 Problem Statement" (renkli metin bandı)
+   ikilisiyle birebir aynı desen. Tek entry, `zones` ile iki yan yana bölgeye yayılıyor.
+
+**İki opsiyonel ek — zorunlu üçlünün DIŞINDA, kendi ayrı entry'leri:**
+
+4. **5G** (`five-g-5n1k`, şipping edilmiş) — kullanıcı seçerse, normal bir ADIM 1 entry'si
+   olarak eklenir. Zorunlu üçlünün 12 satırlık tam-dolu tuvalinde kendi garantili yeri yok;
+   §14.7'nin esnek tahsis mekanizmasına tabi (ADIM 1 büyürse yer bulur, büyümezse D-100 gereği
+   ek sayfaya gider — kırpılmaz, kaybolmaz).
+5. **`problem-impact`** (§14.0'ın yeni plugin adayı, Oturum C'nin inşa edeceği) — Pareto grafiği
+   (mevcut `pareto-chart` imageKind'ı **aynen** yeniden kullanılır, yeni bir ChartSpec/imageKind
+   gerekmez) + sabit alanlı bir mali kayıp formu (`fieldForm`/`FieldFormEditor` D-127 substratı:
+   aylık kayıp, senelik kayıp, birim/para cinsi, hesap notu). 5G ile aynı muameleyi görür: normal
+   bir entry, garantili panel yok, esnek tahsis + appendix-overflow güvencesiyle korunur.
+
+   Bu, D-124'ün mimarisiyle tutarlı: `pareto`'nun ADIM 2'deki entry'sini ADIM 1'de "göstermek"
+   değil, ADIM 1'e ait **kendi** Pareto verisini tutan yeni ve bağımsız bir entry.
+
+### 14.3 P-31 — sağ kolonun dört izleme bloğu
+
+Soru tek bir cevap değil, blok içeriğine göre ikiye ayrılıyor — dördüne aynı "KPI şeridi"ni
+zorla giydirmek, içeriğe yalan söylemek olurdu:
+
+**ADIM 5/6/8 — tablo/log içeriği, YENİ MEKANİZMA GEREKMEZ.** §12.6'nın kendi notu zaten
+doğru teşhis koymuştu: "yalnız tablo". ADIM 5'in (`countermeasure`, `errorProofingHierarchy`,
+`impactEffortMatrix`, `trialPlan`, `costApproval`…), ADIM 6'nın (`actionItem`,
+`icaPcaTransition`, `trainingCommunicationRecord`, `trialResultLog`,
+`implementationIssuesLog`) ve ADIM 8'in (henüz plugin'i yok — §13.4'ün 7-belge-türü/Yokoten/
+Lessons-Learned adayları, Oturum C) içeriği zaten satır satır kompakt metin. Tek eklenecek şey
+D-41'in **zaten var olan** şekil-kodlu durum göstergesi (kare/üçgen/daire) — her satırın başına,
+Katman A rengiyle (yeşil=tamam, kırmızı=bloke/gecikmiş, mavi=devam ediyor) boyanmış küçük bir
+glif. Bu yeni bir render mekanizması değil, D-41'in metne satır-içi bir uygulanışı.
+
+**ADIM 7 — gerçek KPI-izleme içeriği, TEK yeni mekanizma.** B1'in kendi bulgusu (§13.1,
+`Data Analysis` sayfası: KPI·Actual·Target·Phase) doğruluyor: bu blok gerçekten önce/hedef/
+sonra verisi tutuyor ve bugün **hiçbir şipping edilmiş plugin'i yok** (registry taraması: Adım
+7'ye kayıtlı tek şey `genericText`). CHART_ROW_SPAN=10'un buraya sığmaması (567×78 pt, 7.27:1)
+gerçek bir engel, çünkü tam boy bir Pareto/Trend grafiği zaten geometrik olarak imkânsız.
+
+Öneri: yeni bir `A3ImageKind` — **`"kpi-strip"`** — 78 pt'lik dar kutuya özel, yatay bir şerit:
+her metrik için küçük bir "karo" (etiket + taban→hedef→sonuç üç değer + tek satırlık mini
+gösterge — dolu/boş çubuk ya da üç noktalı ilerleme işareti), rengi Katman A (hedefe ulaşıldıysa
+yeşil, devam ediyorsa mavi, hedefin gerisindeyse kırmızı). `ChartSpec`'e D-102/D-141'in zaten
+kurduğu "tek kind, `spec.kind`'a göre çoğullaşan varyant" deseniyle bir `KpiStripChartSpec`
+eklenir (`items: { label, baseline, target, actual, unit }[]`). **Bu, D-114'ün "dilim başına
+tek mekanizma" disiplinine göre işaretlenmiş tek yeni mekanizma** — Adım 7'nin plugin'lerini
+inşa edecek gelecekteki dilim (6d) bunu kendi tek-mekanizma bütçesi olarak almalı, distribution
+chart'ın 6c'de aldığı rolün aynısı.
+
+### 14.4 ADIM 2 / 3 / 4 blok görsel dili
+
+**ADIM 3 — zaten tasarlanmış, dokunulmadı.** D-38 (LOCKED) üç-bölgeli yatay şerit olarak
+tamamen tanımlı ve `smartTarget` plugin'i zaten bu deseni uyguluyor (zones A/B/C, `trajectory-chart`
+imageKind'ı). Bu oturum yalnızca doğruluyor: D-160'ın esnek taban (5 satır/65 pt) küçülmesinde
+bile üç bölge orantılı küçülür, `placeZones.ts`'in yüzde-tabanlı `widthFraction`'ı buna zaten
+izin veriyor — geometri değişmedi, yalnızca toplam yükseklik esnek.
+
+**ADIM 2 — en kalabalık blok, görsel dili değil ARAYÜZÜ asıl sorun (§14.6'ya bakınız).**
+Tuval 567×338 pt (26 satır varsayılan), oran 1.68:1, grafik alıyor (Pareto/Trend/
+distribution-chart, hepsi mevcut `A3ImageKind`'lar). On yöntem + generic burada toplanıyor —
+görsel dil zaten tutarlı (hepsi ya `lines` ya `image`+`lines` üretiyor, D-99/D-102'nin ortak
+sözleşmesi altında); asıl "düzensizlik" riski arayüz tarafında (§14.6).
+
+**ADIM 4 — aynı desen, biraz daha az kalabalık.** Tuval 567×234 pt (18 satır varsayılan), oran
+2.42:1. `fishbone-diagram` imageKind'ı balık kılçığı/ağaç diyagramlarını (`fishbone`, `faultTree`,
+`whyWhyTree`) zaten karşılıyor; `causeEffectMatrix`/`pfmeaLinkage`/`comparativeAnalysis`/
+`fiveWhy`/`hypothesisVerification` düz `lines`. Yeni mekanizma gerekmiyor.
+
+### 14.5 "Düzenli ve yalın" — sekiz blok ortak grameri
+
+LeanUK'tan (yapısı değil, yalnızca görselliği — D-150) alınıp sekiz bloğa **aynen** uygulanacak
+beş unsur, her biri zaten var olan bir mekanizmaya bağlanıyor, yeni bir şey icat etmiyor:
+
+| Unsur | Nerede yaşıyor | Durum |
+|---|---|---|
+| İki hücreli kartuş çubuğu (dar `ADIM N` + geniş başlık) | Şablonun statik blok başlığı hücreleri | Zaten var (legacy şablonda `blockHeaderPlan` vb.) — Rev00 tabanlı yeni şablon aynı deseni miras alır |
+| Sınırlı anlamsal palet | §14.1 Katman A + Katman B | Bu oturumun çıktısı |
+| Çerçeveli beyaz panel grafikler | `A3ImageRequest`/`renderImage` | Zaten var (D-102) — stil kararı (kenarlık) Faz 11'in şablon stil tablosuna yazılır |
+| Numaralı alt paneller (`1.1`, `1.2`…) | Her panelin ilk satırı | Yeni kural: her panel/zone'un `lines[0]` kalın ve `"{ADIM}.{panel sırası} {başlık}"` biçiminde — örn. `"1.1 5N1K"`, `"1.2 Gap Analizi"` |
+| Bilinçli boşluk | D-158'in esnek taban modeli | Zaten var — bir blok tabanına indiğinde geri kalan alan başka bloğa gider, hiçbir blok zorla doldurulmaz |
+
+### 14.6 §5.2 — Adım sayfası arayüzü
+
+**Sorunun boyutu, ölçüldü (registry taraması, tahmin değil):**
+
+| Adım | Kayıtlı yöntem sayısı (generic hariç) |
+|---|---|
+| 1 | 7 (+ 5N1K, `problem-impact` eklenince 9) |
+| 2 | 10 — en kalabalık, P-31'in kendi tespiti doğru |
+| 3 | 1 (`smartTarget`, zaten tasarlanmış) |
+| 4 | 9 |
+| 5 | 7 |
+| 6 | 5 |
+| 7 | 0 (yalnızca generic — §14.3'ün `kpi-strip` adayı burada devreye girer) |
+| 8 | 0 (yalnızca generic — §13.4'ün Oturum C adayları burada devreye girer) |
+
+`MethodBand.tsx` bugün (kod okundu, bu oturumda değiştirilmedi) `getMethodsForStep`'in
+döndürdüğü listeyi **tek, eşit ağırlıklı, sarmalanan bir kart grid'i** olarak basıyor — sıralama
+yok, "önerilen" yok. Bu tam olarak ANAYASA.md'nin G6 deseni: on bloklu bir adım sayfası, hiçbir
+faz "kullanıcı bu ekranda ne görür, hangisi varsayılan" sorusunu sormamış.
+
+**Karar: `MethodPlugin`'e yeni, opsiyonel bir alan — `tier?: "recommended" | "more"`.**
+Belirtilmeyen plugin'ler `"more"` sayılır (geriye dönük uyumlu, migration gerektirmez — D-51'in
+loose-schema felsefesiyle aynı ruh, ama bu kez TS tipinde). `MethodBand` iki bölüme ayrılır:
+
+- **Önerilen** — büyük kartlar, adım sayfası açılır açılmaz görünür, boş adımda varsayılan yol.
+- **Diğer yöntemler** — küçük, daraltılmış bir liste/açılır menü ("+ N diğer format"), bir tık
+  uzakta ama ilk bakışta görünmez. `getMethodsForStep`'in sırası değişmiyor; yalnızca render
+  iki gruba bölünüyor.
+
+**Önerilen atamaları (başlangıç editoryal kararı — Barış'ın Oturum C'de değiştirebileceği bir
+alan değeri, bu oturumun dondurduğu bir liste değil):**
+
+| Adım | Önerilen | Gerekçe |
+|---|---|---|
+| 1 | `gapStatement`, 5N1K (yeni), `fiveW2H` | D-159'un zorunlu üçlüsü + genel problem çerçevesi |
+| 2 | `stratificationMatrix`, `categoryBreakdown`, `pareto`, `trend` | D-132'nin kendi ayrımı: stratifikasyon + kategori + iki temel grafik |
+| 3 | `smartTarget` | Tek yöntem, D-12/D-11 zorunlu |
+| 4 | `fishbone`, `fiveWhy` | D-11'in kanonik TBP çerçevesi |
+| 5 | `countermeasure`, `weightedDecisionMatrix` | Kök karşı-önlem listesi + önceliklendirme |
+| 6 | `actionItem` | Uygulama takibinin omurgası |
+| 7 | (Oturum C `kpi-strip` plugin'i şipping edilince) | Bugün boş — generic tek seçenek |
+| 8 | (Oturum C'nin doküman/Yokoten/Lessons plugin'leri şipping edilince) | Bugün boş |
+
+**Varsayılan yol:** boş bir adıma girildiğinde, "Önerilen" bölümündeki ilk kart en belirgin
+"ekle" çağrısını taşır (mevcut `Button` birincil varyantı); "Diğer yöntemler" daraltılmış
+kalır. Format seçimi mekanizması değişmiyor — kullanıcı hâlâ bir kart seçip `EntryEditorDialog`'u
+açıyor (D-63'ün "tek eylem, tek isim" ilkesi korunuyor); değişen yalnızca hangi kartların ilk
+bakışta görünür olduğu.
+
+### 14.7 §5.3 — Esnek tahsis arayüzü
+
+D-164: otomatik + manuel, ikisi birden. Etkileşim:
+
+- **Otomatik (varsayılan, her zaman çalışır):** her blok kendi entry'lerinin toplam satır
+  talebini bildirir (D-158'in mekanizması); talep 50'yi aşınca sınırlar D-160'ın tabanlarına
+  kadar kayar. Kullanıcı hiçbir şey yapmadan çalışır — §14.2'nin 5G/`problem-impact` gibi
+  opsiyonel entry'leri de bu mekanizmaya girer.
+- **Manuel override:** blok sınırında küçük bir sürükle-tutamaç (`RightPanel`'in A3 önizlemesinde,
+  D-133'ün zoom/pan kontrolleriyle aynı etkileşim katmanı) veya adım başlığında bir "büyüt/küçült"
+  kontrolü. Kullanıcı bir bloğu elle bir değere **sabitlediğinde** (`pinned` bayrağı), o değer
+  otomatik çözücünün girdisi değil **kısıtı** olur — çözücü kalan bloşları bu sabit değerin
+  etrafında yeniden dağıtır, yine D-160'ın tabanlarını asla ihlal etmeden.
+- **"Tabana dayandı" göstergesi (D-160'ın sorduğu soru):** blok tabanındayken kartuş çubuğunda
+  küçük bir rozet/araç ipucu ("bu blok en küçük boyutunda"); büyütme tutamacı bu durumda devre
+  dışı görünür (disabled, tıklanamaz) ama daraltma hep açık kalır — kullanıcı bir bloğu tabanın
+  altına asla indiremez, D-160'ın "ADIM 3 sıfıra inemez" güvencesi arayüzde de görünür kılınıyor.
+- **Sabitlemeyi geri alma:** her `pinned` blokta bir "otomatiğe döndür" kontrolü — kaldırıldığında
+  blok yeniden içerik talebine göre nefes almaya başlar.
+- **Taşma her zaman görünür:** bir blok sabitlenmiş/tabanında olsa bile, sığmayan entry D-100
+  gereği ek sayfaya gider — arayüz bunu sessiz bırakmaz, entry'nin "birincil sayfada değil, ek
+  sayfada" olduğunu `EntryRow`'da mevcut `a3Visibility` göstergesiyle (Faz 6'dan beri var) işaretler.
+
+### 14.8 Bu oturumun kapsamadığı — Oturum C'ye / gelecek dilimlere kalan
+
+- `problem-impact` plugin'inin inşası (§14.2) — Oturum C.
+- 5N1K plugin'inin inşası (§14.2, D-163) — Oturum C / Faz 11.
+- `kpi-strip` `A3ImageKind`'ının + Adım 7 plugin'lerinin inşası (§14.3) — 6d'nin tek-mekanizma
+  bütçesi.
+- Adım 8'in belge/Yokoten/Lessons-Learned plugin'leri (§13.4, §14.6) — Oturum C.
+- `MethodPlugin.tier` alanının ve iki-bölümlü `MethodBand` arayüzünün kodu (§14.6) — kod
+  YAZILMADI, yalnızca tasarlandı.
+- Esnek tahsisin sürükle-tutamaç UI'ının kodu (§14.7) — aynı şekilde tasarım, kod değil.
+- Şablon dosyasının kendisi (`src/a3/templates/*`) — D-95, Faz 11, değişmedi.

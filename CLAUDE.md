@@ -748,4 +748,34 @@ Phase 6c (Step 2's distribution chart + Steps 5–6's remaining plain methods): 
   the shipped `five-g-5n1k` — which was also found to carry a different field set than the
   reference visual (D-163), and elastic allocation is automatic-by-default plus a manual
   override (D-164). `reference/README.md`'s status table updated (six sheets: ANALİZ
-  EDİLMEDİ → ÖLÇÜLDÜ). Not yet committed to git.
+  EDİLMEDİ → ÖLÇÜLDÜ).
+**Oturum B2 — block visual language, step-page interface, elastic-allocation interface
+  (D-149's second of four, second half): DONE 2026-08-06.** No code written.
+  `reference/TEMPLATE_ANALYSIS.md` §14 is this session's deliverable. Two `AskUserQuestion`
+  rounds up front (per the session prompt's §9) resolved the palette collision (D-165:
+  extend, not neutralise — two zero-overlap colour layers, goal-state green/blue/red plus
+  six new 5N1K-category hues, realised as static template cell styles rather than a new
+  dynamic colour field) and P-31 (D-167: not one blanket mechanism — ADIM 5/6/8 need none,
+  reusing D-41's shape-coded status markers inline; only ADIM 7 gets a new `A3ImageKind`,
+  `kpi-strip`, because the registry scan run this session found Step 7 has zero dedicated
+  plugins today and genuinely needs a compact before/target/actual visual). Mid-session,
+  Barış shared a hand-annotated screenshot proposing a two-column ADIM 1 with a Pareto +
+  monthly/yearly cost-impact panel; a direct opinion plus a second `AskUserQuestion` round
+  confirmed D-159's single-column, zero-slack geometry stays locked (the sketch was a
+  concept note) while the cost-impact content becomes a new, independent Step 1 plugin
+  (`problem-impact`, D-166) — treated the same as 5G: an optional entry subject to elastic
+  allocation and D-100's appendix guarantee, not a guaranteed panel. ADIM 2/3/4 needed no
+  new mechanism (D-168, verified by reading the real registry — every method already
+  conforms to D-99/D-102's shared `A3BlockContent` contract); ADIM 3 in particular is fully
+  covered by the already-shipped `smartTarget` plugin (D-38). The step-page picker itself
+  is the surface `MethodBand.tsx` (read, unmodified) never designed — Anayasa's own G6
+  pattern, textbook: a registry census run this session found Step 2 carries 10 dedicated
+  methods and Step 4 carries 9, all rendered as one flat, equal-weight card grid. D-169
+  adds an optional `MethodPlugin.tier?: "recommended" | "more"` field and a two-section
+  `MethodBand` (backward compatible, unset = `"more"`), with a starting — not frozen —
+  editorial "recommended" set per step. D-170 answers D-160's own open question (how a user
+  sees a block at its floor) concretely: a `pinned` per-block row-count override the solver
+  treats as a constraint, a floor badge/disabled grow-handle, a reset-to-automatic control,
+  and D-100's existing `a3Visibility` indicator as the overflow signal. `reference/README.md`'s
+  palette-collision warning is marked resolved, pointing at D-165/§14.1. Not yet committed
+  to git.
