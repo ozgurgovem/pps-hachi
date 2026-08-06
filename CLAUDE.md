@@ -100,6 +100,39 @@ the terminology. Write the UI for them, not for a beginner.
   (a prompt written 2026-08-05 named a reference file that was renamed 20 minutes later,
   and a stale prompt fails quietly — the agent looks for a missing file and moves on).
   Every such prompt opens with a step that verifies the files it names actually exist.
+- **The Block Visual Verification Loop — the standard method for every A3 block/panel,
+  established 2026-08-06 during Oturum B2's ADIM 1 work, Barış confirmed it should run
+  for every remaining step.** Prose decisions about "what a block looks like" are not
+  trustworthy on their own — D-165's first-draft palette read fine in text and was wrong
+  in three concrete ways the moment Barış saw it rendered next to the real reference. The
+  loop:
+  1. Pull the block's geometry and content decisions from `TEMPLATE_ANALYSIS.md` (§12.8's
+     pt measurements, the relevant `§14`+ subsection, the governing D-numbers).
+  2. Build a static HTML/CSS mockup at the **real pt→px scale** (a CSS variable, e.g.
+     `--pt: 1.6px`, multiplied everywhere — never eyeballed) with **real example content**
+     (a plausible Farplas/automotive-quality scenario, never lorem).
+  3. Embed the actual reference crop (`reference/visual/*`) **in the same page**, cropped
+     tight to the specific sub-panel being compared — side-by-side beats "trust my
+     description." Verify the source's actual pixel dimensions first
+     (`sips -g pixelWidth -g pixelHeight`) — a blurry source silently produces a
+     misleading comparison and this cost a round-trip once already.
+  4. Publish as one Claude Artifact.
+  5. Barış reviews and gives **concrete, visual** feedback — an annotated screenshot beats
+     a paragraph of description, and is welcome in exactly that form.
+  6. Republish the **same file path** (keeps the same URL) with the fix.
+  7. Once approved, the finalized concrete values (hex, pt offsets, exact treatment) get
+     written into `TEMPLATE_ANALYSIS.md`/`DECISIONS.md` **immediately** — the artifact is
+     disposable scratch, the docs are the record.
+  8. Move to the next block.
+
+  Operating notes: **one block (or tightly related pair) per clean session** — eight
+  blocks each potentially taking 2+ feedback rounds is Anayasa G1/G4 territory if
+  crammed into one sitting. Prefer **one cumulative artifact that grows block by block**
+  (redeploy the same file, append the next section) over one throwaway artifact per
+  block — the end state is a full-sheet preview, which is itself a useful pre-Phase-11
+  sanity check nothing else provides. Write the confirmed decision to the docs the moment
+  it's confirmed, not batched at session end, so a budget cutoff mid-loop never loses
+  approved work.
 
 ## Copy and interface voice
 

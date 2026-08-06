@@ -1350,6 +1350,20 @@ metinle kontrast taşıyacak koyulukta tutuldu; Faz 11 şablon dosyası yazılı
 sayfada görsel olarak doğrulanmalı (D-135'in ekran/baskı kontrast hatası tam bu yüzden — renk
 kararları koddan önce görülmeden kilitlenmemeli).
 
+> ⚠️ **2026-08-06 canlı doğrulama turu — Katman A revize edildi, ONAY BEKLİYOR.** D-171'in Blok
+> Görsel Doğrulama Döngüsü ilk kez ADIM 1'e uygulanınca (bkz. §14.2'nin maketi) Katman A'nın
+> yukarıdaki ilk hex değerleri gerçek referansla (`reference/visual/LeanUK_PPS_A3_worked_example.png`'in
+> "1.1 Gap Analizi"/"1.2 Problem Statement" panelleri, D-172 ile yüksek çözünürlüğe güncellendi)
+> yan yana konulunca üç somut fark çıktı: (1) Gap Analizi'nde İdeal/Mevcut çubukları arasında
+> farkı gösteren bir braket+ok+değer balonu **yoktu** — referansta var; (2) dolgu renkleri
+> koyuydu (beyaz metin gerektiriyordu) — referans açık tonlar + siyah metin kullanıyor; (3)
+> Problem Statement bantları uç-uca bitişikti — referansta ayrık, yuvarlak köşeli, siyah
+> çerçeveli kartlar. Maket bu üç bulguya göre güncellendi: Katman A **`#8FBF4F` / `#4A90D9` /
+> `#E0342A`**'ya açıldı, Gap Analizi'ne SVG braket/ok/balon eklendi, Problem Statement kartlara
+> çevrildi. **Bu satırdaki eski hex değerleri (§14.1 tablosu) bilerek DEĞİŞTİRİLMEDİ** —
+> D-171'in kendi kuralı gereği (adım 7: "onay gelince yaz") Barış'ın maketin bu ikinci sürümünü
+> onaylaması bekleniyor; onay gelince tablo ve D-165 tek seferde güncellenecek.
+
 ### 14.2 ADIM 1 — üç zorunlu panel + iki opsiyonel ek
 
 Geometri D-159'dan değişmeden alınıyor: 12 tuval satırı (156 pt), 567 pt genişlik, sıfır pay.
