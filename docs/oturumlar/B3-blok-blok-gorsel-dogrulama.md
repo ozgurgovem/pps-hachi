@@ -47,11 +47,19 @@ Eksik/adı değişmiş dosya varsa **DUR ve Barış'a söyle**.
    5/6/8'in D-41 durum işaretleri), §14.4 (ADIM 2/3/4), §14.5 (sekiz blok ortak grameri),
    §14.6/§14.7 (adım arayüzü + esnek tahsis — bunlar kod tasarımı, görsel maket gerektirmez,
    B3'ün kapsamı dışında).
-4. `DECISIONS.md`: **D-165 – D-174** (bu oturumun doğrudan girdisi, D-173/D-174 dahil) ve
-   D-47/D-49 (palet/font token'ları, maketin kendi kullandığı).
-5. Artifact: kümülatif maket, ADIM 1 ve ADIM 2 zaten onaylı içeriyor —
+4. `DECISIONS.md`: **D-165 – D-176** (bu oturumun doğrudan girdisi) ve D-47/D-49 (palet/font
+   token'ları, maketin kendi kullandığı). ADIM 7 için özellikle **P-31** (kpi-strip'in kendi
+   önerisi) ve §14.3'ün `KpiStripChartSpec` taslağı.
+5. Artifact: kümülatif maket, ADIM 1/2/4 zaten onaylı içeriyor —
    `https://claude.ai/code/artifact/b1ae2136-9785-4985-b7a3-587663d38466`. Bu oturum aynı
    dosyayı/URL'i yeniden yayınlayarak büyütür, yeni bir artifact açmaz.
+   **Kaynak HTML dosyası oturuma özel scratchpad'de yaşıyor, repoya commit'lenmez** (D-171'in
+   kendi kuralı: "artifact disposable scratch, docs kalıcı kayıt"). Bir önceki oturumun
+   scratchpad'i genelde hâlâ diskte duruyor — `find /private/tmp/claude-501 -iname
+   'b3-cumulative.html'` ile ara, en yeni sonucu kendi scratchpad'ine kopyala, oradan devam et.
+   Hiçbiri yoksa (temizlenmiş olabilir), `WebFetch` ile canlı URL'i çek ve bu dosyadaki + ilgili
+   `TEMPLATE_ANALYSIS.md §14`/`DECISIONS.md` D kayıtlarındaki onaylı kararlara göre baştan kur —
+   içerik kaybolmaz, yalnızca yeniden üretilir.
 
 ---
 
