@@ -15,7 +15,8 @@ diffle görünür ve denetlenebilir.
 | B3 — blok blok görsel **doğrulama** (D-171'in döngüsü, ADIM 1'den devam) | `B3-blok-blok-gorsel-dogrulama.md` | ✅ BİTTİ 2026-08-16 — sekiz adımın hepsi onaylandı, D-165 v2/D-174/D-175/D-177/D-178/D-179 |
 | C1 — status glifi, fishbone geometrisi, hipotez/aksiyon alanları | `C-yontem-plugin-insasi.md` (C'nin §3'ü) | ✅ BİTTİ 2026-08-16 — P-37 (4/5), P-34 kapandı, D-180 |
 | C2 — `problem-impact` + 5N1K plugin'leri | `C2-problem-impact-5n1k.md` | ✅ BİTTİ 2026-08-16 — sıfır yeni mekanizma, D-181 |
-| C3-C6 — kpi-strip, ADIM 8, whyWhyTree, tier/sürükle-tutamaç arayüzü | C3: *(yazılmadı, ama kendi dosyası olacak)* · C4-C6: *(yazılmadı)* | — C2'nin kendi kapanış kararı: **C3 kendi ayrı prompt dosyasını alacak** (C2'ninkiyle aynı gerekçe — kpi-strip bu dilimin tek yeni mekanizması, C1'in aksine, ve tam da C2'nin kendi §0'ının korumaya çalıştığı "eskimiş referans" riskine en açık dilim). C4-C6 için henüz karar verilmedi, ihtiyaç anında değerlendirilir |
+| C3 — `kpi-strip` mekanizması + ADIM 7'nin gerçek plugin'i | `C3-kpi-strip.md` | 📝 yazıldı 2026-08-16 — henüz yürütülmedi; §2.2'de bir açık soru var, kodlamadan önce `AskUserQuestion` gerekiyor |
+| C4-C6 — ADIM 8, whyWhyTree, tier/sürükle-tutamaç arayüzü | *(yazılmadı)* | — kendi promptları, C3'ün kapanışında ya da ihtiyaç anında yazılır (`C-yontem-plugin-insasi.md` §3) |
 | D — P-26 (i18n + blok hizası) | *(yazılmadı)* | — |
 
 ## Kullanım
@@ -24,7 +25,7 @@ Yeni oturumu şu iki satırla başlat (dosya adını sıradaki oturuma göre de�
 
 ```
 Önce Anayasamızı Oku (~/.claude/ANAYASA.md) ve AKIS.md'yi (~/.claude/AKIS.md).
-Sonra ~/Developer/pps-hachi/docs/oturumlar/C2-problem-impact-5n1k.md'yi oku ve uygula.
+Sonra ~/Developer/pps-hachi/docs/oturumlar/C3-kpi-strip.md'yi oku ve uygula.
 ```
 
 ## Prompt yazarken
