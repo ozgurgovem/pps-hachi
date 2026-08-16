@@ -11,22 +11,22 @@
 > Barış'ın haftalık token bütçesi tükenmek üzereyken (Pazartesi sıfırlanacak) — bu yüzden
 > yöntem burada ve `CLAUDE.md`'de kayıtlı, sohbette değil.
 >
-> **Durum — 2026-08-16 güncellemesi (4):** ADIM 1, ADIM 2, ADIM 3, ADIM 4 ve ADIM 7 ONAYLANDI
-> (D-165 v2, D-174, D-175, D-177, D-178) — aşağıdaki §2 artık geçmiş, silinmedi çünkü döngünün
-> nasıl işlediğine dair somut bir örnek olarak değerli. ADIM 4 ayrıca, kendi görsel dilinin
-> onayı dışında, beklenmedik ve daha büyük bir bulgu üretti: Barış'ın paylaştığı gerçek EK-2905
-> dokümanının kendi Kök Neden Analizi paneli `fishbone`'a değil `whyWhyTree`'ye karşılık geliyor,
-> ve `whyWhyTree` bugün hiç diyagram render'ı yok (yalnızca düz metin) — D-176/P-35'e kaydedildi,
-> Oturum C/D'nin işi, B3'te kod yazılmadı. ADIM 7 (D-177) hiç şipping edilmiş plugin'i olmayan
-> `kpi-strip` mekanizmasını tek turda kapattı — iki gerçek referans (Barış'ın imzaladığı,
-> dolu EK-2905 ADIM 7 paneli + LeanUK'ın "Step 7 — Check Results" paneli) ilk kez bu turda
-> kullanıldı; `KpiStripChartSpec`'in Sürdürme/Sonuç alanları taşımadığı bulundu, **P-36**'ya
-> kaydedildi, düzeltilmedi (B3 şema kodu yazmaz). ADIM 3 (D-178) en hızlı geçen blok oldu —
-> zaten LOCKED/şipping edilmiş D-38/`smartTarget` yeniden tasarlanmadı, yalnızca gerçek
-> `renderToA3.ts` genişlikleriyle doğrulandı, Barış iki kelimeyle onayladı ("maket ok").
-> **Bir sonraki oturum §3'ün 6. maddesinden (ADIM 5/6/8, D-41'in durum işaretleri) başlar.**
-> Bu dosya her blok kapandığında güncellenir — okumadan önce bu notun tarihine bak, eskiyse
-> `git log docs/oturumlar/B3-blok-blok-gorsel-dogrulama.md` ile gerçek durumu doğrula.
+> **Durum — 2026-08-16 güncellemesi (5): B3 TAMAMLANDI.** Sekiz adımın hepsi görsel olarak
+> doğrulandı ve onaylandı — ADIM 1/2/4 (D-165 v2/D-174/D-175, önceki güncellemeler), ADIM 7
+> (D-177), ADIM 3 (D-178), ADIM 5/6/8 (D-179, tek blokta birlikte). Aşağıdaki §2 artık geçmiş,
+> silinmedi çünkü döngünün nasıl işlediğine dair somut bir örnek olarak değerli. İki bulgu bu
+> turda B3'ün kendi kapsamı dışına taştı, ikisi de kaydedildi, ikisi de düzeltilmedi (B3 kod
+> yazmaz): ADIM 4'te gerçek EK-2905 dokümanı Kök Neden Analizi'nin `fishbone`'a değil
+> `whyWhyTree`'ye karşılık geldiğini ve `whyWhyTree`'nin hiç diyagram render'ı olmadığını
+> gösterdi (D-176/P-35); ADIM 7'de `KpiStripChartSpec`'in Sürdürme/Sonuç alanları taşımadığı
+> bulundu (P-36); ADIM 5/6/8'de D-41'in kare/üçgen/daire glifinin gerçek durum sözlüklerine
+> (`countermeasure` 3 değerli, `implementationIssuesLog` 2 değerli, `actionItem`'da hiç yok)
+> nasıl eşleneceği hiçbir yerde yazılı olmadığı bulundu (P-37). Üçü de Oturum C/D'nin işi.
+> **B3'ten sonraki iş bu dosyada değil — D-149'un dördüncü ve son oturumu (Oturum C, plugin
+> inşası: `problem-impact`, 5N1K, `kpi-strip`'in gerçek plugin'leri, Adım 8'in belge/Yokoten/
+> Lessons-Learned adayları, whyWhyTree diyagramı, D-41'in durum-eşleme kuralı — §14.8'in kendi
+> listesi + P-35/P-36/P-37).** Bu dosya artık kapalı bir oturumun kaydı; okuyan kişi doğrudan
+> `TEMPLATE_ANALYSIS.md` §14 ve `DECISIONS.md` D-165–D-179 aralığına bakabilir.
 
 ---
 
@@ -109,9 +109,15 @@ yolunu yeniden yayınla, yeni bir URL açma). Öneri sırası — riske ve yenil
    P-36, ayrı bir gelecek iş, bu turda kapanmadı.
 5. ~~**ADIM 3** — D-38/`smartTarget` zaten şipping edildi ve tasarlandı, hızlı bir doğrulama~~
    **BİTTİ 2026-08-16, tek turda, en hızlı onay** — D-178 ("maket ok", iki kelime).
-6. **← BURADAN BAŞLA: ADIM 5 / 6 / 8** — §14.3'ün "yeni mekanizma gerekmez" kararı; maket
-   burada D-41'in şekil-kodlu durum işaretlerinin küçük kutuda okunur kalıp kalmadığını
-   doğrular, muhtemelen üçü tek bir oturumda hızlıca geçilebilir.
+6. ~~**ADIM 5 / 6 / 8** — §14.3'ün "yeni mekanizma gerekmez" kararı, D-41'in durum işaretleri~~
+   **BİTTİ 2026-08-16, tek turda, üçü birlikte** — D-179 ("maket ok"). Gerçek durum
+   sözlüklerinin (countermeasure/implementationIssuesLog/actionItem) tek biçimli olmadığı ve
+   kare/üçgen/daire eşlemesinin hiçbir yerde yazılı olmadığı bulundu — P-37, ayrı bir gelecek
+   iş, bu turda kapanmadı.
+
+**Sekiz adımın hepsi onaylandı — B3'ün blok blok doğrulama döngüsü burada kapanıyor.** D-171'in
+önerdiği sıra tükendi; bir sonraki iş bu döngünün devamı değil, Oturum C'nin plugin inşası
+(§4'ün kapsam-dışı listesi + P-35/P-36/P-37).
 
 Her blok kendi mini-döngüsünü (`CLAUDE.md`'nin 8 adımı) yürütür: geometri + karar → maket →
 referansla yan yana → Barış'ın somut geri bildirimi → düzelt → onay → **hemen** `TEMPLATE_ANALYSIS.md`/

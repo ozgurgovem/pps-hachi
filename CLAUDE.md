@@ -813,7 +813,7 @@ Phase 6c (Step 2's distribution chart + Steps 5–6's remaining plain methods): 
   palette-collision warning is marked resolved, pointing at D-165/§14.1. Not yet committed
   to git.
 **Oturum B3 — block-by-block visual verification (D-149's second of four, third part):
-IN PROGRESS, started 2026-08-16.** No app code touched — a design/verification session per
+DONE 2026-08-16.** No app code touched — a design/verification session per
 D-171's own loop. **ADIM 1 CLOSED**: the v2 mockup from B2's live verification round (lighter
 Layer A fills `#8FBF4F`/`#4A90D9`/`#E0342A`, SVG gap bracket/arrow/callout, separated rounded
 Problem Statement cards) was reviewed and approved by Barış — `TEMPLATE_ANALYSIS.md` §14.1's
@@ -842,6 +842,75 @@ artifact redeployed to the same URL
 marked approved. `TEMPLATE_ANALYSIS.md` §14.4 and `DECISIONS.md` D-174 written, committed,
 pushed. Two blocks closed in one session is already at D-171's own "one or two per session"
 ceiling — next block (ADIM 4) deliberately deferred to a fresh session rather than continuing
-here, per B3's own budget warning (Anayasa Madde 1/G1). Order after that per the loop: ADIM 7
-(the new `kpi-strip` mechanism, least de-risked), a quick ADIM 3 pass, then ADIM 5/6/8
-together (`docs/oturumlar/B3-blok-blok-gorsel-dogrulama.md` §3).
+here, per B3's own budget warning (Anayasa Madde 1/G1).
+
+**ADIM 4 (fresh session, same day): CLOSED, three rounds** — D-175. TUR 1 mocked
+`layout.ts`'s actual (vertical-branch) fishbone geometry as-is; TUR 2 redrew it after Barış
+shared his own reference photo of a classic diagonal Human/Machine/Material/Method fishbone
+(45° branches, box-free arrow-tipped cause "ribs", a separate terminal effect box) — approved
+("bu sefer güzel olmuş"); TUR 3 fixed a real gap Barış caught (the 5-Why panel next to it was
+still unstyled plain text) by giving it its own horizontal arrow-chain visual language tied to
+one specific fishbone cause, and closed with approval. The same round surfaced a second, larger
+finding outside the mockup's own scope: Barış shared the real, signed
+`reference/Examples/PPS_A3_EK-2905_Yüksek_Fire_Problemi_10.08.2026.pdf`, whose own Root Cause
+Analysis panel is a branching Why-Why tree (matching `whyWhyTree`, not `fishbone`) — and
+`whyWhyTree` has no diagram renderer at all, only plain indented lines. Recorded as D-176/P-35
+(three concrete gaps: no diagram component, no terminal-outcome field for ✓/❌+KN{N}, and a
+node-vs-entry reference-architecture mismatch), explicitly not designed out this session per
+Barış's own call. `layout.ts`'s own three deltas from the approved visual (branch angle, cause
+position, missing effect node) filed separately as P-34, a small mechanical fix for whichever
+session next touches that file.
+
+**ADIM 7 (new clean session): CLOSED, one round** — D-177. `kpi-strip` (P-31/D-167) had zero
+shipped plugins to draw from, the most abstract design in the whole loop, so before mocking
+anything this session cropped two real references for the first time: Barış's own signed
+EK-2905 document's *filled* ADIM 7 panel (confirming §12.4's Rev00-derived column names —
+`KPI · Önce · Hedef · Sonra · Sürdürme · Sonuç` — against real data, not just a blank template)
+and LeanUK's own "Step 7 — Check Results" panel, whose target-line bar chart supplied the
+bullet-graph grammar the mockup used, reusing ADIM 1's own approved Gap Analizi visual language
+rather than inventing a new one. Three tiles tested Layer A's three states together (green/
+blue/red) on one canvas; Fire Oranı reused ADIM 1's own %4,2→%1,0 figures for scene continuity.
+Approved with no revision ("senin önerdiğin yapı uygun gözüküyor, bu şekilde devam edelim").
+Found, not fixed: D-167's drafted `KpiStripChartSpec` shape has no field for Sürdürme/Sonuç,
+both real columns in both references — P-36.
+
+**ADIM 3 (same session): CLOSED, one round, fastest of the four** — D-178. Deliberately not a
+redesign — D-38 was already LOCKED and `smartTarget` already shipped from Phase 5 — just a
+verification that the three-zone strip (181.44/226.80/158.76 pt, read straight from
+`renderToA3.ts`) still reads as "düzenli ve yalın" at real scale. `TrajectoryChart.tsx`'s real
+Kraft/Indelible/Danger colours carried through unchanged — a third colour register untouched by
+either Layer A or Layer B, the same "no colour means two things" rule confirmed a third time
+this session. Continuity: baseline/target = ADIM 1's own figures, the chart's "Bugün" point =
+ADIM 7's Sonra value, the commitment line's date/owner = EK-2905's real fields. Barış approved
+in two words ("maket ok").
+
+**ADIM 5/6/8 (same session): CLOSED, one round, the last block in D-171's suggested order** —
+D-179. P-31's other half: no new mechanism, just D-41's already-LOCKED shape-coded status glyph
+(square/triangle/circle, colour as reinforcement, never colour alone) applied inline — but to
+three genuinely different content shapes rather than one pattern forced onto all three. ADIM 5
+mocked a single `countermeasure` field-form entry (`fieldFormLines`'s real output already fills
+the whole 78 pt/6-row default canvas by itself — a second entry would be dishonest to how
+`place.ts` actually allocates rows, D-100 sends the overflow to elastic growth or an appendix
+instead), glyph on the title line only since the *entry* carries the status. ADIM 6 mocked two
+`implementationIssuesLog` rows (each line already is one record via `rowTableLines`), glyph per
+row, using only two shapes because that field is genuinely two-valued (open/resolved) — no
+third shape forced in. ADIM 8 has no shipped plugin yet, so its 52 pt/4-row canvas (the page's
+tightest) got one placeholder line purely to confirm the geometry holds. Reference: LeanUK's own
+"Schedule Key" legend (Plan/Actual/Delay, pattern *and* colour) — direct precedent for D-41's
+rule inside the same source file this project already treats as its visual-language anchor.
+Approved in two words again ("maket ok"). Found, not fixed: `countermeasure` (3-valued),
+`implementationIssuesLog` (2-valued), and `actionItem` (no status field at all, only a free-text
+`percentComplete`) have no documented shape/colour mapping anywhere in code — P-37.
+
+**B3 is now fully closed — all eight ADIM blocks visually verified and approved.** Every round
+redeployed the same cumulative artifact
+(`https://claude.ai/code/artifact/b1ae2136-9785-4985-b7a3-587663d38466`), and every approval was
+written into `TEMPLATE_ANALYSIS.md` §14 and `DECISIONS.md` (D-165 v2/D-174/D-175/D-177/D-178/
+D-179) and committed+pushed the same session it was confirmed, per D-171's own rule that the
+artifact is disposable scratch and the docs are the record. Three findings crossed outside B3's
+own scope and were deliberately not designed out here — P-35 (`whyWhyTree` has no diagram),
+P-36 (`KpiStripChartSpec` missing Sürdürme/Sonuç), P-37 (no status→shape/colour mapping for
+D-41) — all filed for **Oturum C**, D-149's fourth and last planned session, whose own job is
+the plugin construction §14.8 already lists (`problem-impact`, 5N1K, `kpi-strip`'s real
+plugins, Step 8's document/Yokoten/Lessons-Learned candidates) plus these three newly-surfaced
+gaps.

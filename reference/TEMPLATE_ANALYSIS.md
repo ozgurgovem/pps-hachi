@@ -1417,6 +1417,21 @@ D-41'in **zaten var olan** şekil-kodlu durum göstergesi (kare/üçgen/daire) �
 Katman A rengiyle (yeşil=tamam, kırmızı=bloke/gecikmiş, mavi=devam ediyor) boyanmış küçük bir
 glif. Bu yeni bir render mekanizması değil, D-41'in metne satır-içi bir uygulanışı.
 
+> ✅ **ADIM 5/6/8 ONAYLANDI — 2026-08-16 (Oturum B3, D-171'in döngüsü, tek turda, "maket ok").**
+> Glif üç farklı gerçek içerik biçimine, tek tip zorlanmadan uygulandı: ADIM 5 bir
+> `countermeasure` alan-formu girişi (`fieldFormLines`'ın gerçek çıktısı — başlık + 5 alan satırı
+> zaten 78 pt'lik 6 satırlık tuvali dolduruyor, glif yalnızca başlık satırında); ADIM 6 bir
+> `implementationIssuesLog` satır-tablosu (her satır kendi kaydı, glif satır başına, alan yalnızca
+> iki değerli olduğu için kare/üçgen kullanıldı, üçüncü şekil zorlanmadı); ADIM 8 henüz plugin'i
+> olmadığı için 52 pt'lik en dar tuvalde (4 satır, sayfanın en sıkısı) yalnızca geometrik bir
+> okunabilirlik testi. Referans: LeanUK'ın kendi "Schedule Key" lejantı (Plan/Actual/Delay,
+> desen+renk) — D-41'in "şekil taşır, renk pekiştirir" ilkesinin aynı dosyadaki emsali. Gerçek
+> durum sözlükleri koddan okundu ve tek biçimli olmadığı bulundu (`countermeasure` 3 değerli,
+> `implementationIssuesLog` 2 değerli, `actionItem`'ın hiç durum alanı yok) — bir kare/üçgen/daire
+> eşleme kuralı bugün hiçbir yerde yazılı değil, **P-37**'ye kaydedildi, tasarlanmadı. Karar:
+> **D-179**. Bu, D-171'in bu tur için önerdiği son blok — B3'ün blok blok doğrulama döngüsü
+> burada kapanıyor.
+
 **ADIM 7 — gerçek KPI-izleme içeriği, TEK yeni mekanizma.** B1'in kendi bulgusu (§13.1,
 `Data Analysis` sayfası: KPI·Actual·Target·Phase) doğruluyor: bu blok gerçekten önce/hedef/
 sonra verisi tutuyor ve bugün **hiçbir şipping edilmiş plugin'i yok** (registry taraması: Adım
