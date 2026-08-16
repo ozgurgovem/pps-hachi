@@ -1463,9 +1463,60 @@ Problem Analysis & Breakdown" bölümünün kendi Pareto paneli ("2. Daily run t
 çerçeveli beyaz panel + alt çizili numaralı başlık + lejant konvansiyonu doğrudan onaylandı.
 
 **ADIM 4 — aynı desen, biraz daha az kalabalık.** Tuval 567×234 pt (18 satır varsayılan), oran
-2.42:1. `fishbone-diagram` imageKind'ı balık kılçığı/ağaç diyagramlarını (`fishbone`, `faultTree`,
-`whyWhyTree`) zaten karşılıyor; `causeEffectMatrix`/`pfmeaLinkage`/`comparativeAnalysis`/
-`fiveWhy`/`hypothesisVerification` düz `lines`. Yeni mekanizma gerekmiyor.
+2.42:1. ~~`fishbone-diagram` imageKind'ı balık kılçığı/ağaç diyagramlarını (`fishbone`, `faultTree`,
+`whyWhyTree`) zaten karşılıyor~~ **DÜZELTME (Oturum B3, TUR 3) — bu yanlıştı.** Kod okunduğunda
+yalnızca `fishbone` gerçekten `image: {kind: "fishbone-diagram", ...}` üretiyor;
+`renderFaultTreeToA3.ts` ve `renderWhyWhyTreeToA3.ts` **ikisi de** yalnızca girintili düz
+`lines` üretiyor (`shared/nodeTree.ts`'in `treeLines`'ı), hiçbir imageKind kullanmıyor.
+`causeEffectMatrix`/`pfmeaLinkage`/`comparativeAnalysis`/`fiveWhy`/`hypothesisVerification` de
+düz `lines`. Bir ağaç/fishbone GİBİ görünen tek şey bugün gerçekten `fishbone` — diğer ikisi
+(`faultTree`, `whyWhyTree`) kendi diyagram render'larını hiç almadı. Detay ve gerekçe: aşağıdaki
+ONAYLANDI notu + P-35.
+
+**ONAYLANDI — Oturum B3, 2026-08-16 (D-175), üç turda.** D-171'in döngüsü bir metin girişi
+(5 Neden) + bir diyagram girişi (Fishbone, 6M) birlikte gerçek 567×234 pt tuvalde denendi.
+**TUR 1** `layout.ts`'in gerçek koordinat mantığını birebir yansıtan bir maketti — omurgadan
+kategoriye **dikey** dallar, kategori etiketinden **omurgaya daha uzak** konumlanan neden
+kutuları (klasik Ishikawa'nın tersi, hem LeanUK'ın hem de sonradan gelen bir referansın
+aksine). **TUR 2**'de Barış kendi çektiği bir referans fotoğraf paylaştı (klasik
+İnsan/Makina/Malzeme/Metot balık kılçığı — 45° diyagonal dallar, kutusuz ok uçlu neden
+"kaburgaları", sağ uçta ayrı bir etki kutusu) ve maket bu desene göre yeniden çizilip onaylandı
+("bu sefer güzel olmuş"). **TUR 3**'te Barış 4.1'in (5 Neden) düz metin satırları olarak
+kaldığını, 4.2'nin (Fishbone) aldığı görsel tasarım özenini görmediğini belirtti — panel 4.2'nin
+ok/kutu diliyle tutarlı yatay bir zincire çevrildi, İÇERİĞİ de ADIM 1/2'nin genel problemini
+tekrar etmek yerine 4.2'nin kendi "Gözü 3 parting line aşınması" nedenine inecek şekilde
+değiştirildi — iki panel artık tek bir soruşturma gibi okunuyor, iki paralel restatement değil.
+Dört somut karar kesinleşti: (1) **girişler dikey istiflenir** (D-102) ama fishbone'un
+`renderFishboneToA3.ts`'i imajına `rowSpan` **vermiyor** — Pareto/Trend'in sabit
+`CHART_ROW_SPAN=10`'unun aksine `place.ts` ona bloktaki kalan bütün satırları veriyor, bu yüzden
+metin girişi diyagramdan **önce** sıralanmak zorunda, aksi hâlde ikinci giriş sıfır satır bulup
+sessizce ek sayfaya düşer. (2) **fishbone'un görsel dili klasik diyagonal Ishikawa** — kategori
+kutusu dalın en dışında, nedenler kutusuz düz metin + ok, altı kategori aynı sırada (6M, D-104
+LOCKED, bu bir stil kararı). (3) **nedenler hâlâ renk/durum kodu taşımıyor** —
+`FishboneCauseSchema`'da (D-103) durum alanı yok, D-165'in "hiçbir renk icat etme" disiplini
+korundu. (4) **5 Neden paneli artık kendi görsel diline sahip** — yatay ok-zinciri (kaynak
+neden → Why 1 → … → Why 4/kök neden), Why 4 kutusu kalın çerçeveyle vurgulanmış (renk değil).
+Referans: LeanUK'ın "6. Direct Cause Investigation" paneli + Barış'ın kendi fotoğrafı (repoya
+kaydedilmedi, jenerik öğretim örneği).
+
+**Aynı turda, ayrı ve daha büyük bir bulgu: gerçek EK-2905 dokümanının kendi ADIM 4'ü.** Barış
+`reference/Examples/PPS_A3_EK-2905_Yüksek_Fire_Problemi_10.08.2026.pdf`'nin (kendisinin "Kontrol
+Eden" olarak imzaladığı, tamamlanmış gerçek bir PPS) kendi Kök Neden Analizi panelini paylaştı.
+Yapısı fishbone değil — dört alt-problem (ADIM 2'nin kendi Pareto kategorileriyle birebir aynı)
+her biri birden çok paralel Neden-zincirine ayrılıyor, bazı zincirler kendi içinde tekrar
+dallanıyor, her zincir ✓ (araştırıldı, kontrol altında) ya da ❌+KN{N} (doğrulanmış kök neden,
+ADIM 5'in aksiyon tablosuna besleniyor) ile bitiyor — birebir uygulamanın `whyWhyTree` yöntemi
+(çoklu dallanmaya izin veren düz `parentId` listesi). Kod okunduğunda üç somut boşluk çıktı,
+üçü de P-35'e kaydedildi: whyWhyTree'nin hiç diyagram render'ı yok (yalnızca `lines`); şemada
+✓/❌+KN terminal durumu için alan yok; kök neden düğümü bir entry değil bir ağacın içindeki tek
+bir yaprak, ve D-124'ün "bir entry = bir izlenebilir düğüm" mimarisi düğüm-seviyesi referansı
+desteklemiyor. **Fishbone'un onaylanan görsel dili bu bulgudan etkilenmiyor** — ikisi de gerçek,
+bağımsız yöntemler; whyWhyTree'nin diyagramı ayrı, iyi tanımlanmış bir gelecek iş (Oturum C/D).
+
+**Onaylanan fishbone görsel dili `layout.ts`'in gerçek ürettiğinden üç noktada ayrılıyor** — bu
+artık maket tercihi değil, ileride yazılacak somut bir kod işi: **P-34**'e kaydedildi (dal yönü
+dikeyden diyagonale, neden konumu omurgadan-uzaktan kategoriye-yakına, yeni bir `effect`
+düğümü). B3 kod yazmıyor; bu, `layout.ts`'e dokunacak ilk fırsatın işi.
 
 ### 14.5 "Düzenli ve yalın" — sekiz blok ortak grameri
 

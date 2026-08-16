@@ -11,10 +11,14 @@
 > Barış'ın haftalık token bütçesi tükenmek üzereyken (Pazartesi sıfırlanacak) — bu yüzden
 > yöntem burada ve `CLAUDE.md`'de kayıtlı, sohbette değil.
 >
-> **Durum — 2026-08-16 güncellemesi:** ADIM 1 ve ADIM 2 ONAYLANDI (D-165 v2, D-174) —
-> aşağıdaki §2 artık geçmiş, silinmedi çünkü döngünün nasıl işlediğine dair somut bir örnek
-> olarak değerli. **Bir sonraki oturum §3'ün 3. maddesinden (ADIM 4) başlar.** Bu dosya her
-> blok kapandığında güncellenir — okumadan önce bu notun tarihine bak, eskiyse `git log
+> **Durum — 2026-08-16 güncellemesi (2):** ADIM 1, ADIM 2 ve ADIM 4 ONAYLANDI (D-165 v2, D-174,
+> D-175) — aşağıdaki §2 artık geçmiş, silinmedi çünkü döngünün nasıl işlediğine dair somut bir
+> örnek olarak değerli. ADIM 4 ayrıca, kendi görsel dilinin onayı dışında, beklenmedik ve daha
+> büyük bir bulgu üretti: Barış'ın paylaştığı gerçek EK-2905 dokümanının kendi Kök Neden
+> Analizi paneli `fishbone`'a değil `whyWhyTree`'ye karşılık geliyor, ve `whyWhyTree` bugün hiç
+> diyagram render'ı yok (yalnızca düz metin) — D-176/P-35'e kaydedildi, Oturum C/D'nin işi,
+> B3'te kod yazılmadı. **Bir sonraki oturum §3'ün 4. maddesinden (ADIM 7) başlar.** Bu dosya
+> her blok kapandığında güncellenir — okumadan önce bu notun tarihine bak, eskiyse `git log
 > docs/oturumlar/B3-blok-blok-gorsel-dogrulama.md` ile gerçek durumu doğrula.
 
 ---
@@ -60,7 +64,15 @@ metin yerine açık dolgu/siyah metin, uç-uca bantlar yerine ayrık kartlar) ve
 Statement). 2026-08-16'da Barış v2'yi inceledi ve onayladı; `TEMPLATE_ANALYSIS.md` §14.1'in
 tablosu ve `DECISIONS.md` D-165 kesin değerlerle güncellendi, ⚠️ notu kaldırıldı. Aynı
 oturumda ADIM 2 (Pareto + Katmanlama Matrisi, dikey istifleme) de tek turda onaylandı — D-174.
-**Bu bölüm artık tarihsel kayıt; sıradaki iş §3'ün 3. maddesi (ADIM 4).**
+
+ADIM 4 (aynı oturum, devam) üç tur sürdü: TUR 1 `layout.ts`'in gerçek (dikey dal) mantığını
+maketledi; TUR 2 Barış'ın kendi paylaştığı klasik diyagonal-Ishikawa fotoğrafına göre yeniden
+çizildi ve onaylandı; TUR 3'te Barış 5 Neden panelinin düz metin olarak "görünmez" kaldığını
+belirtti, panel görsel bir ok-zincirine çevrildi ve içeriği fishbone'un kendi bir nedenine
+bağlandı — D-175. Bu son turda Barış ayrıca gerçek, imzaladığı bir EK-2905 dokümanı paylaştı;
+o dokümanın Kök Neden Analizi'nin aslında `whyWhyTree`'ye karşılık geldiği ve bu yöntemin hiç
+diyagram render'ı olmadığı ortaya çıktı — D-176/P-35, ayrı ve B3'ün kapsamı dışında bir bulgu
+olarak kaydedildi. **Bu bölüm artık tarihsel kayıt; sıradaki iş §3'ün 4. maddesi (ADIM 7).**
 
 ---
 
@@ -72,17 +84,13 @@ yolunu yeniden yayınla, yeni bir URL açma). Öneri sırası — riske ve yenil
 1. ~~**ADIM 1'in onayını kapat**~~ **BİTTİ 2026-08-16** — D-165 v2 kesinleşti.
 2. ~~**ADIM 2** — en kalabalık ve en çok grafik taşıyan blok (§14.4)~~ **BİTTİ 2026-08-16,
    tek turda** — D-174 (dikey istifleme, bağımsız Pareto renk çifti).
-3. **← BURADAN BAŞLA: ADIM 4** — ikinci en kalabalık, fishbone/ağaç diyagramları içeriyor.
-   Tuval 567×234 pt, oran 2.42:1 (§14.4). `fishbone-diagram` imageKind'ı `fishbone`/
-   `faultTree`/`whyWhyTree`'yi kapsıyor; `causeEffectMatrix`/`pfmeaLinkage`/
-   `comparativeAnalysis`/`fiveWhy`/`hypothesisVerification` düz `lines` üretiyor — yeni
-   mekanizma gerekmiyor (§14.4 zaten böyle diyor), maket bunu ADIM 2'deki gibi gerçek bir
-   diyagram + metin girişi kombinasyonuyla doğrular. Referans için LeanUK'ın kendi "6. Direct
-   Cause Investigation" fishbone paneli iyi bir aday (Step 3 bölümünün altında, ADIM 2'nin
-   referans taramasında zaten görüldü).
-4. **ADIM 7** — §14.3'ün önerdiği **yeni** `kpi-strip` mekanizması burada; hiç şipping
-   edilmiş plugin'i olmadığı için en soyut/en az test edilmiş tasarım — maket burada özellikle
-   değerli.
+3. ~~**ADIM 4** — fishbone/ağaç diyagramları~~ **BİTTİ 2026-08-16, üç turda** — D-175
+   (diyagonal fishbone + 5 Neden ok-zinciri, `layout.ts` için P-34). Ayrıca beklenmedik bir
+   bulgu: gerçek EK-2905 dokümanı `whyWhyTree`'nin (fishbone değil) asıl hedef olduğunu ve hiç
+   diyagram render'ı olmadığını gösterdi — D-176/P-35, ayrı bir gelecek iş, bu turda kapanmadı.
+4. **← BURADAN BAŞLA: ADIM 7** — §14.3'ün önerdiği **yeni** `kpi-strip` mekanizması burada;
+   hiç şipping edilmiş plugin'i olmadığı için en soyut/en az test edilmiş tasarım — maket
+   burada özellikle değerli.
 5. **ADIM 3** — D-38/`smartTarget` zaten şipping edildi ve tasarlandı; burası tam yeniden
    tasarım değil, **hızlı bir doğrulama** (mevcut zones düzeni gerçekten LeanUK'ın "düzenli ve
    yalın" çıtasını tutuyor mu, kısa bir maket ile teyit).
