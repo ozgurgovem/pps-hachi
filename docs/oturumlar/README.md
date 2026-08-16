@@ -12,8 +12,8 @@ diffle görünür ve denetlenebilir.
 | A — sayfa sözleşmesi | *(prompt sohbetteydi)* | ✅ BİTTİ 2026-08-05 — `reference/TEMPLATE_ANALYSIS.md` §12, D-154…D-160 |
 | B1 — altı çalışma sayfası + `Lists & Settings` | `B-adim-anatomisi.md` (B'nin §5.1'i) | ✅ BİTTİ 2026-08-06 — P-30 kapandı, §13 |
 | B2 — blok görsel dili + arayüz + esnek tahsis (kararlar) | `B2-gorsel-dil-arayuz.md` | ✅ BİTTİ 2026-08-06 — §14, D-165…D-172 |
-| B3 — blok blok görsel **doğrulama** (D-171'in döngüsü, ADIM 1'den devam) | `B3-blok-blok-gorsel-dogrulama.md` | ⏳ sürüyor — ADIM 1 ve ADIM 2 ONAYLANDI (2026-08-16), sırada ADIM 4, sonra ADIM 7/3/5/6/8 kaldı |
-| C — yöntem plugin'i budama + ekleme | *(yazılmadı)* | — B3 bitmeden yazılmaz |
+| B3 — blok blok görsel **doğrulama** (D-171'in döngüsü, ADIM 1'den devam) | `B3-blok-blok-gorsel-dogrulama.md` | ✅ BİTTİ 2026-08-16 — sekiz adımın hepsi onaylandı, D-165 v2/D-174/D-175/D-177/D-178/D-179 |
+| C — yöntem plugin'i budama + ekleme | `C-yontem-plugin-insasi.md` | 📝 yazıldı 2026-08-16 — henüz yürütülmedi, kendi C1-C6 dilimlerine bölünmesi öneriliyor (§3) |
 | D — P-26 (i18n + blok hizası) | *(yazılmadı)* | — |
 
 ## Kullanım
