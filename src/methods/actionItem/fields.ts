@@ -6,7 +6,23 @@ export type ActionItemFieldKey =
   | "startDate"
   | "dueDate"
   | "percentComplete"
-  | "evidence";
+  | "evidence"
+  | "customerApproval";
+
+/**
+ * §13.4 candidate 6 (`reference/TEMPLATE_ANALYSIS.md`, Oturum C/C1): the
+ * reference form's action table carries a customer sign-off column this one
+ * didn't. `"Days late"` — B1's other candidate 6 field — is deliberately
+ * **not** added here: it is calculated relative to today's date, and
+ * `renderToA3` must stay pure/deterministic (no `Date.now()`, golden-file
+ * tests assume it) — left for whichever future change threads an explicit
+ * `asOf` date through the export pipeline.
+ */
+export const ACTION_ITEM_CUSTOMER_APPROVAL_OPTIONS = [
+  { value: "pending", labelKey: "methods.actionItem.customerApprovals.pending" },
+  { value: "approved", labelKey: "methods.actionItem.customerApprovals.approved" },
+  { value: "rejected", labelKey: "methods.actionItem.customerApprovals.rejected" },
+] as const;
 
 /**
  * SPEC.md §1.3 (Step 6): "Action plan table / Gantt (action, owner, start,
@@ -36,5 +52,12 @@ export const ACTION_ITEM_FIELDS = [
     exportLabel: "Evidence",
     type: "textarea",
     wide: true,
+  },
+  {
+    key: "customerApproval",
+    labelKey: "methods.actionItem.fields.customerApproval",
+    exportLabel: "Customer approval",
+    type: "select",
+    options: ACTION_ITEM_CUSTOMER_APPROVAL_OPTIONS,
   },
 ] as const satisfies readonly FieldFormField<ActionItemFieldKey>[];

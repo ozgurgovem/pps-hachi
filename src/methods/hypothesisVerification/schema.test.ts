@@ -12,10 +12,30 @@ describe("HypothesisVerificationPayloadSchema", () => {
   /** D-116's loose-role reasoning, one layer over: a newer build's verdict must round-trip. */
   it("accepts a verdict this build does not know", () => {
     const parsed = HypothesisVerificationPayloadSchema.parse({
-      rows: [{ id: "r1", candidateCause: "x", verificationMethod: "", evidence: "", verdict: "deferred" }],
+      rows: [
+        {
+          id: "r1",
+          candidateCause: "x",
+          verificationMethod: "",
+          evidence: "",
+          verdict: "deferred",
+          confidencePercent: "",
+          residualUncertainty: "",
+          customerRelevance: "",
+        },
+      ],
     });
 
     expect(parsed.rows[0]?.verdict).toBe("deferred");
+  });
+
+  /** B1's §13.4 candidate 5 (Oturum C/C1) — three new required row fields. */
+  it("requires confidencePercent/residualUncertainty/customerRelevance on each row", () => {
+    const result = HypothesisVerificationPayloadSchema.safeParse({
+      rows: [{ id: "r1", candidateCause: "x", verificationMethod: "", evidence: "", verdict: "" }],
+    });
+
+    expect(result.success).toBe(false);
   });
 
   it("holds no reference inside the payload — the link is on the Entry (D-116)", () => {

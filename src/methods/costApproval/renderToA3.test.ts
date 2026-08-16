@@ -12,7 +12,7 @@ describe("renderCostApprovalToA3", () => {
     ).lines;
 
     expect(lines).toEqual([
-      { text: "Jig retool cost", bold: true },
+      { text: "■ Jig retool cost", bold: true, tone: "positive" },
       { text: "Cost estimate: €4,200" },
       { text: "Approval status: approved" },
       { text: "Approved by: Plant manager" },
@@ -26,5 +26,19 @@ describe("renderCostApprovalToA3", () => {
       ENTRY,
     ).lines;
     expect(lines).toEqual([{ text: "Jig retool cost", bold: true }]);
+  });
+
+  /** P-37: D-41's shape-coded status marker on the title line. */
+  it.each([
+    ["approved", "■", "positive"],
+    ["pending", "●", "caution"],
+    ["rejected", "▲", "negative"],
+  ] as const)("marks approvalStatus %s with glyph %s and tone %s", (approvalStatus, glyph, tone) => {
+    const lines = renderCostApprovalToA3(
+      { costEstimate: "", approvalStatus, approvedBy: "", approvalDate: "" },
+      ENTRY,
+    ).lines;
+
+    expect(lines[0]).toEqual({ text: `${glyph} Jig retool cost`, bold: true, tone });
   });
 });

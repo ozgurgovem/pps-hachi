@@ -19,6 +19,8 @@ export const ActionItemPayloadSchema = z.looseObject({
   dueDate: z.string(),
   percentComplete: z.string(),
   evidence: z.string(),
+  /** §13.4 candidate 6 (Oturum C/C1) — see `fields.ts` for why "Days late" isn't here too. */
+  customerApproval: z.string(),
 });
 
 export type ActionItemPayload = z.infer<typeof ActionItemPayloadSchema>;

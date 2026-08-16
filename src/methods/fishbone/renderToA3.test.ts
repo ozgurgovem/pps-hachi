@@ -3,7 +3,7 @@ import { renderFishboneToA3 } from "./renderToA3";
 import type { FishbonePayload } from "./schema";
 
 describe("renderFishboneToA3", () => {
-  it("carries the entry title as a bold line and the payload as a fishbone-diagram image spec", () => {
+  it("carries the entry title as a bold line and as the image spec's effect label (P-34)", () => {
     const payload: FishbonePayload = {
       categorySet: "4M",
       causes: [{ id: "c1", categoryId: "man", text: "Yorgunluk" }],
@@ -13,7 +13,7 @@ describe("renderFishboneToA3", () => {
 
     expect(content.lines).toEqual([{ text: "Hat 3 Balık Kılçığı", bold: true }]);
     expect(content.image?.kind).toBe("fishbone-diagram");
-    expect(content.image?.spec).toEqual(payload);
+    expect(content.image?.spec).toEqual({ payload, effectLabel: "Hat 3 Balık Kılçığı" });
   });
 
   it("omits rowSpan, letting placement fill whatever budget remains in the block", () => {

@@ -17,7 +17,7 @@ describe("renderCountermeasureToA3", () => {
     };
 
     expect(renderCountermeasureToA3(payload, ENTRY).lines).toEqual([
-      { text: "Poka-yoke at OP30", bold: true },
+      { text: "■ Poka-yoke at OP30", bold: true, tone: "positive" },
       { text: "Countermeasure: Fit a presence sensor on the fixture" },
       { text: "Owner: M. Yıldız" },
       { text: "Status: Approved" },
@@ -34,5 +34,22 @@ describe("renderCountermeasureToA3", () => {
     const lines = renderCountermeasureToA3({ ...EMPTY, status: "" }, ENTRY).lines;
 
     expect(lines).toHaveLength(1);
+  });
+
+  /** P-37: D-41's shape-coded status marker — shape carries meaning, tone reinforces it. */
+  it.each([
+    ["approved", "■", "positive"],
+    ["proposed", "●", "caution"],
+    ["rejected", "▲", "negative"],
+  ] as const)("marks status %s with glyph %s and tone %s on the title line", (status, glyph, tone) => {
+    const lines = renderCountermeasureToA3({ ...EMPTY, status }, ENTRY).lines;
+
+    expect(lines[0]).toEqual({ text: `${glyph} Poka-yoke at OP30`, bold: true, tone });
+  });
+
+  it("leaves the title line unmarked for an unrecognized status", () => {
+    const lines = renderCountermeasureToA3({ ...EMPTY, status: "onHold" }, ENTRY).lines;
+
+    expect(lines[0]).toEqual({ text: "Poka-yoke at OP30", bold: true });
   });
 });

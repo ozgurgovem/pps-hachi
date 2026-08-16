@@ -2,6 +2,7 @@ import { createElement } from "react";
 import type { MethodPlugin } from "../types";
 import { FishboneDiagram } from "./FishboneDiagram";
 import { FishboneEditor } from "./Editor";
+import type { FishboneImageSpec } from "./layout";
 import { renderFishboneToA3 } from "./renderToA3";
 import { FishbonePayloadSchema, type FishbonePayload } from "./schema";
 
@@ -18,6 +19,8 @@ export const fishboneMethod: MethodPlugin<FishbonePayload> = {
   createEmptyPayload: () => ({ categorySet: "4M", causes: [] }),
   renderToA3: renderFishboneToA3,
   imageKind: "fishbone-diagram",
-  renderImage: (spec, size) =>
-    createElement(FishboneDiagram, { payload: spec as FishbonePayload, size }),
+  renderImage: (spec, size) => {
+    const { payload, effectLabel } = spec as FishboneImageSpec;
+    return createElement(FishboneDiagram, { payload, effectLabel, size });
+  },
 };

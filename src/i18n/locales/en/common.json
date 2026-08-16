@@ -241,6 +241,7 @@
       "causeLabel": "Cause",
       "addCause": "Add cause",
       "removeCause": "Remove cause",
+      "effectPlaceholder": "Effect",
       "categories": {
         "man": "Man",
         "machine": "Machine",
@@ -458,7 +459,10 @@
         "candidateCause": "Candidate cause",
         "verificationMethod": "Verification method",
         "evidence": "Evidence",
-        "verdict": "Verdict"
+        "verdict": "Verdict",
+        "confidencePercent": "Confidence %",
+        "residualUncertainty": "Residual uncertainty",
+        "customerRelevance": "Customer relevance"
       },
       "verdicts": {
         "confirmed": "Confirmed",
@@ -515,7 +519,13 @@
         "startDate": "Start",
         "dueDate": "Due",
         "percentComplete": "Status %",
-        "evidence": "Evidence"
+        "evidence": "Evidence",
+        "customerApproval": "Customer approval"
+      },
+      "customerApprovals": {
+        "pending": "Pending",
+        "approved": "Approved",
+        "rejected": "Rejected"
       },
       "references": {
         "countermeasure": {

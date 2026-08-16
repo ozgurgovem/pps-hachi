@@ -10,7 +10,7 @@ import type {
   SheetDescriptor,
 } from "./descriptor";
 import { computeBlockBudget } from "./layout/budget";
-import type { ColumnWidth } from "./layout/contentStyle";
+import { entryLineStyleId, type ColumnWidth } from "./layout/contentStyle";
 import { excelColumnWidthToPt } from "./layout/measure";
 import { computeOverflowWarning } from "./layout/overflow";
 import { placeBlockContent, type PendingImageSlot } from "./layout/place";
@@ -230,7 +230,7 @@ function buildAppendixSheets(
       ...appendixLines.map((line, lineIndex) => ({
         ref: `B${4 + lineIndex}`,
         value: line.text,
-        styleId: line.bold ? "entryContentBold" : "entryContent",
+        styleId: entryLineStyleId(line.bold, line.tone),
       })),
     ];
 

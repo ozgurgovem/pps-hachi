@@ -14,7 +14,10 @@ export type HypothesisVerificationColumnKey =
   | "candidateCause"
   | "verificationMethod"
   | "evidence"
-  | "verdict";
+  | "verdict"
+  | "confidencePercent"
+  | "residualUncertainty"
+  | "customerRelevance";
 
 export const HYPOTHESIS_VERDICT_OPTIONS = [
   { value: "confirmed", labelKey: "methods.hypothesisVerification.verdicts.confirmed" },
@@ -46,5 +49,20 @@ export const HYPOTHESIS_VERIFICATION_COLUMNS = [
     labelKey: "methods.hypothesisVerification.columns.verdict",
     type: "select",
     options: HYPOTHESIS_VERDICT_OPTIONS,
+  },
+  {
+    key: "confidencePercent",
+    labelKey: "methods.hypothesisVerification.columns.confidencePercent",
+    type: "text",
+  },
+  {
+    key: "residualUncertainty",
+    labelKey: "methods.hypothesisVerification.columns.residualUncertainty",
+    type: "text",
+  },
+  {
+    key: "customerRelevance",
+    labelKey: "methods.hypothesisVerification.columns.customerRelevance",
+    type: "text",
   },
 ] as const satisfies readonly RowTableColumn<HypothesisVerificationColumnKey>[];

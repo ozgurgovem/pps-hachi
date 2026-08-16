@@ -241,3 +241,38 @@ describe("placeBlockContent — zones content (D-102)", () => {
     expect(result.droppedEntryIds).toEqual(["entry-2"]);
   });
 });
+
+describe("placeBlockContent — tone-reinforced status lines (P-37)", () => {
+  it("picks the toned bold style id for a bold line carrying a tone", () => {
+    const rendererMap: A3EntryRendererMap = {
+      pareto: () => ({ lines: [{ text: "■ Approved", bold: true, tone: "positive" }] }),
+    };
+    const block = fixtureBlock();
+    const result = placeBlockContent([fixtureEntry()], block, contentRows(23, 32), columnWidths, rendererMap);
+
+    expect(result.cells).toEqual([{ ref: "B23", value: "■ Approved", styleId: "entryContentBoldPositive" }]);
+  });
+
+  it("picks the toned non-bold style id for a plain line carrying a tone", () => {
+    const rendererMap: A3EntryRendererMap = {
+      pareto: () => ({ lines: [{ text: "▲ open", tone: "negative" }] }),
+    };
+    const block = fixtureBlock();
+    const result = placeBlockContent([fixtureEntry()], block, contentRows(23, 32), columnWidths, rendererMap);
+
+    expect(result.cells).toEqual([{ ref: "B23", value: "▲ open", styleId: "entryContentNegative" }]);
+  });
+
+  it("falls back to the untoned style ids when a line carries no tone", () => {
+    const rendererMap: A3EntryRendererMap = {
+      pareto: () => ({ lines: [{ text: "Plain", bold: true }, { text: "Also plain" }] }),
+    };
+    const block = fixtureBlock();
+    const result = placeBlockContent([fixtureEntry()], block, contentRows(23, 32), columnWidths, rendererMap);
+
+    expect(result.cells).toEqual([
+      { ref: "B23", value: "Plain", styleId: "entryContentBold" },
+      { ref: "B24", value: "Also plain", styleId: "entryContent" },
+    ]);
+  });
+});

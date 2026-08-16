@@ -1,4 +1,5 @@
 import type { FieldFormField } from "../shared/fieldForm";
+import type { StatusTone } from "../shared/statusGlyph";
 
 export type IcaPcaTransitionFieldKey =
   | "exitCriteria"
@@ -19,6 +20,19 @@ export const ICA_PCA_STATUS_EXPORT_LABELS: Readonly<Record<string, string>> = {
   icaActive: "ICA active",
   pcaInPlace: "PCA in place",
   icaRemoved: "ICA removed",
+};
+
+/**
+ * P-37: this is a lifecycle, not an approval vocabulary — `icaRemoved` is
+ * the only fully-done state, `pcaInPlace` is genuine progress, and
+ * `icaActive` (still relying on the interim action) is the flag: an ICA is
+ * meant to be short-lived, so still being on it is the state worth calling
+ * out in red.
+ */
+export const ICA_PCA_STATUS_TONE: Readonly<Record<string, StatusTone>> = {
+  icaRemoved: "positive",
+  pcaInPlace: "caution",
+  icaActive: "negative",
 };
 
 /**

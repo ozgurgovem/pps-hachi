@@ -38,7 +38,12 @@ export function RowTableEditor<TKey extends string>({ idPrefix, columns, rows, o
           <div className="grid grid-cols-2 gap-3">
             {columns.map((column) => {
               const fieldId = `${idPrefix}-${row.id}-${column.key}`;
-              const value = row[column.key];
+              // `?? ""` guards a row persisted before this column existed —
+              // an older `.ppsx` must still open (CLAUDE.md), and a method
+              // adding a column to an already-shipped row schema is exactly
+              // that case; `row[column.key]` is `undefined` for such rows,
+              // not the empty string `newRowTableRow` would have given it.
+              const value = row[column.key] ?? "";
               return (
                 <div key={column.key} className="flex flex-col gap-1.5">
                   <Label htmlFor={fieldId}>{t(column.labelKey)}</Label>

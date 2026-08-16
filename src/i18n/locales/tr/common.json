@@ -241,6 +241,7 @@
       "causeLabel": "Neden",
       "addCause": "Neden ekle",
       "removeCause": "Nedeni kaldır",
+      "effectPlaceholder": "Etki",
       "categories": {
         "man": "İnsan",
         "machine": "Makine",
@@ -458,7 +459,10 @@
         "candidateCause": "Aday neden",
         "verificationMethod": "Doğrulama yöntemi",
         "evidence": "Kanıt",
-        "verdict": "Sonuç"
+        "verdict": "Sonuç",
+        "confidencePercent": "Güven %",
+        "residualUncertainty": "Kalan belirsizlik",
+        "customerRelevance": "Müşteri önemi"
       },
       "verdicts": {
         "confirmed": "Doğrulandı",
@@ -515,7 +519,13 @@
         "startDate": "Başlangıç",
         "dueDate": "Termin",
         "percentComplete": "Durum %",
-        "evidence": "Kanıt"
+        "evidence": "Kanıt",
+        "customerApproval": "Müşteri onayı"
+      },
+      "customerApprovals": {
+        "pending": "Beklemede",
+        "approved": "Onaylandı",
+        "rejected": "Reddedildi"
       },
       "references": {
         "countermeasure": {

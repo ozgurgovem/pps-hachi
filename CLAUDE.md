@@ -914,3 +914,52 @@ D-41) — all filed for **Oturum C**, D-149's fourth and last planned session, w
 the plugin construction §14.8 already lists (`problem-impact`, 5N1K, `kpi-strip`'s real
 plugins, Step 8's document/Yokoten/Lessons-Learned candidates) plus these three newly-surfaced
 gaps.
+
+**Oturum C — C1 (D-149's fourth and last part, first code slice): DONE 2026-08-16.** Per
+`docs/oturumlar/C-yontem-plugin-insasi.md` §3, Barış chose **C1 only** this session (of six
+proposed slices, C1–C6) — the lowest-risk one, no new mechanism, existing code extended. C2–C6
+(problem-impact/5N1K, `kpi-strip`, ADIM 8's design turn, `whyWhyTree`'s diagram, the tier/
+drag-handle UI) remain undone, per the session prompt's own budget warning against attempting
+all six in one sitting.
+**P-37 CLOSED, 4 of 5** (D-180): D-41's shape-coded status glyph (■/●/▲, D-165's Layer A colour
+as reinforcement) wired into `countermeasure`/`icaPcaTransition`/`costApproval`/
+`implementationIssuesLog`'s `renderToA3.ts`. `A3TextLine` gained an optional `tone` field —
+additive, not a new mechanism, since each wrapped content line already gets its own cell/
+styleId and Rust's `styles.rs` already reads `font.color` generically; six new template style
+entries, zero new Rust code. New shared `src/methods/shared/statusGlyph.ts`. `actionItem`
+deliberately stays unmarked (Barış's call, AskUserQuestion) — no discrete status vocabulary
+exists to map from; re-open if one is ever added.
+**P-34 CLOSED** (D-180): `fishbone/layout.ts`'s three geometry corrections against D-175's
+approved visual — diagonal branch offset, causes repositioned strictly between the spine and
+their category (fraction-interpolated), and a new terminal `"effect"` node at the spine's far
+end. The effect node's label is the block's real problem statement on export
+(`FishboneImageSpec`, `renderFishboneToA3.ts` now sends `{ payload, effectLabel: entry.title }`)
+and an i18n placeholder in the interactive Editor, which has no entry title to give it. Not
+re-verified against the D-175 mockup pixel-for-pixel this session (no new B3-style visual round
+run) — if a future visual pass finds the constants read wrong at real scale, adjust the
+constants, the interpolation shape itself is sound.
+**B1 §13.4 candidate 5 done, candidate 6 partial** (D-180): `hypothesisVerification` gained
+`confidencePercent`/`residualUncertainty`/`customerRelevance` (labeled export segment, separate
+from the unlabeled candidate/method/evidence triad); `actionItem` gained `customerApproval`
+(select, defaults to `"pending"` like every other select field in this codebase). **"Days
+late" deliberately not built** — computed relative to today's date, which conflicts with
+`renderToA3` needing to stay pure/deterministic (golden-file tests assume no `Date.now()`);
+filed as **P-38**, needs an explicit `asOf` threaded through the export pipeline.
+**Found and fixed one layer over C1's own scope:** `RowTableEditor.tsx` read `row[column.key]`
+with no fallback — a row persisted before a column was added to it (exactly what candidate 5
+just did to `hypothesisVerification`) has that key genuinely `undefined` at runtime
+(`Entry.payload` is never Zod-validated on load, D-52). One-line `?? ""` fix, project-wide,
+mirroring the guard `fieldForm.ts`'s equivalent already had.
+Three real judgment calls went to Barış via `AskUserQuestion` before any code, per this file's
+own "write a short plan and let me approve it" rule: shape+colour vs. shape-only for P-37
+(chose shape+colour), `actionItem`'s glyph treatment (chose: skip, no vocabulary to map),
+Days-late's determinism conflict (chose: defer to P-38, not an Editor-only compute). All three
+recommended options were the ones chosen.
+`npm test` 752/752 (185 files, up from 718/718 at 183 — 34 new tests), exit code 0 (confirmed,
+not just printed — D-143's own lesson). `npm run lint` clean (the one pre-existing
+`ThemeProvider` warning). `npm run build` green (same pre-existing chunk-size warning).
+`cargo test` 89/89, `cargo clippy --all-targets -- -D warnings` and `cargo fmt -- --check` all
+clean. `scripts/gen-a3-fixture.ts` re-run since the template's style table changed (only
+`fishbone` appears in the fixture and only via opaque `spec`/text unaffected by P-34's geometry
+or spec-shape change) — the regenerated fixture diff is a pure 69-line addition (the same six
+new styles the TS snapshot gained), nothing else moved. Not yet committed to git.

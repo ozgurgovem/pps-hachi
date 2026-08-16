@@ -18,6 +18,15 @@ export const HypothesisVerificationRowSchema = z.looseObject({
   verificationMethod: z.string(),
   evidence: z.string(),
   verdict: z.string(),
+  /**
+   * §13.4 candidate 5 (`reference/TEMPLATE_ANALYSIS.md`, Oturum C/C1): three
+   * fields the reference form's root-cause verification table carries that
+   * this table didn't. `confidencePercent` stays a plain string per D-120 —
+   * the table is still read row by row, nothing sums or plots it.
+   */
+  confidencePercent: z.string(),
+  residualUncertainty: z.string(),
+  customerRelevance: z.string(),
 });
 
 export const HypothesisVerificationPayloadSchema = z.looseObject({

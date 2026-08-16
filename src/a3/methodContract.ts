@@ -9,10 +9,21 @@
  * contract describes from the same registration every plugin already does.
  */
 
+/**
+ * D-41's shape-coded status marker, reinforcement half (P-37): the shape
+ * (a glyph a method prepends to its own text) carries the meaning, this
+ * carries the colour that backs it up — never the reverse. Fixed to
+ * §14.3's own reading of D-41: green/positive = done, blue/caution =
+ * in progress, red/negative = blocked. Three tones cover every status
+ * vocabulary shipped so far; a plugin maps its own values onto one of them.
+ */
+export type A3TextTone = "positive" | "caution" | "negative";
+
 /** A single line of text content destined for an A3 cell. */
 export interface A3TextLine {
   readonly text: string;
   readonly bold?: boolean;
+  readonly tone?: A3TextTone;
 }
 
 /**

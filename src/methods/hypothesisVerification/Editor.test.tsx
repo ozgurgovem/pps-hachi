@@ -23,7 +23,18 @@ describe("HypothesisVerificationEditor", () => {
     render(
       <HypothesisVerificationEditor
         payload={{
-          rows: [{ id: "r1", candidateCause: "Die wear", verificationMethod: "", evidence: "", verdict: "confirmed" }],
+          rows: [
+            {
+              id: "r1",
+              candidateCause: "Die wear",
+              verificationMethod: "",
+              evidence: "",
+              verdict: "confirmed",
+              confidencePercent: "",
+              residualUncertainty: "",
+              customerRelevance: "",
+            },
+          ],
         }}
         onChange={vi.fn()}
       />,

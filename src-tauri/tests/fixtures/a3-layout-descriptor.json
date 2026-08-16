@@ -145,6 +145,75 @@
       "wrapText": true
     },
     {
+      "id": "entryContentPositive",
+      "font": {
+        "name": "Tahoma",
+        "sizePt": 19,
+        "color": "FF8FBF4F"
+      },
+      "horizontalAlign": "left",
+      "verticalAlign": "top",
+      "wrapText": true
+    },
+    {
+      "id": "entryContentCaution",
+      "font": {
+        "name": "Tahoma",
+        "sizePt": 19,
+        "color": "FF4A90D9"
+      },
+      "horizontalAlign": "left",
+      "verticalAlign": "top",
+      "wrapText": true
+    },
+    {
+      "id": "entryContentNegative",
+      "font": {
+        "name": "Tahoma",
+        "sizePt": 19,
+        "color": "FFE0342A"
+      },
+      "horizontalAlign": "left",
+      "verticalAlign": "top",
+      "wrapText": true
+    },
+    {
+      "id": "entryContentBoldPositive",
+      "font": {
+        "name": "Tahoma",
+        "sizePt": 19,
+        "bold": true,
+        "color": "FF8FBF4F"
+      },
+      "horizontalAlign": "left",
+      "verticalAlign": "top",
+      "wrapText": true
+    },
+    {
+      "id": "entryContentBoldCaution",
+      "font": {
+        "name": "Tahoma",
+        "sizePt": 19,
+        "bold": true,
+        "color": "FF4A90D9"
+      },
+      "horizontalAlign": "left",
+      "verticalAlign": "top",
+      "wrapText": true
+    },
+    {
+      "id": "entryContentBoldNegative",
+      "font": {
+        "name": "Tahoma",
+        "sizePt": 19,
+        "bold": true,
+        "color": "FFE0342A"
+      },
+      "horizontalAlign": "left",
+      "verticalAlign": "top",
+      "wrapText": true
+    },
+    {
       "id": "footerLabel",
       "font": {
         "name": "Tahoma",

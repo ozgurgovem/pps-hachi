@@ -980,6 +980,75 @@ exports[`buildA3Layout > matches the golden-file snapshot for a representative p
     },
     {
       "font": {
+        "color": "FF8FBF4F",
+        "name": "Tahoma",
+        "sizePt": 19,
+      },
+      "horizontalAlign": "left",
+      "id": "entryContentPositive",
+      "verticalAlign": "top",
+      "wrapText": true,
+    },
+    {
+      "font": {
+        "color": "FF4A90D9",
+        "name": "Tahoma",
+        "sizePt": 19,
+      },
+      "horizontalAlign": "left",
+      "id": "entryContentCaution",
+      "verticalAlign": "top",
+      "wrapText": true,
+    },
+    {
+      "font": {
+        "color": "FFE0342A",
+        "name": "Tahoma",
+        "sizePt": 19,
+      },
+      "horizontalAlign": "left",
+      "id": "entryContentNegative",
+      "verticalAlign": "top",
+      "wrapText": true,
+    },
+    {
+      "font": {
+        "bold": true,
+        "color": "FF8FBF4F",
+        "name": "Tahoma",
+        "sizePt": 19,
+      },
+      "horizontalAlign": "left",
+      "id": "entryContentBoldPositive",
+      "verticalAlign": "top",
+      "wrapText": true,
+    },
+    {
+      "font": {
+        "bold": true,
+        "color": "FF4A90D9",
+        "name": "Tahoma",
+        "sizePt": 19,
+      },
+      "horizontalAlign": "left",
+      "id": "entryContentBoldCaution",
+      "verticalAlign": "top",
+      "wrapText": true,
+    },
+    {
+      "font": {
+        "bold": true,
+        "color": "FFE0342A",
+        "name": "Tahoma",
+        "sizePt": 19,
+      },
+      "horizontalAlign": "left",
+      "id": "entryContentBoldNegative",
+      "verticalAlign": "top",
+      "wrapText": true,
+    },
+    {
+      "font": {
         "bold": true,
         "name": "Tahoma",
         "sizePt": 14,

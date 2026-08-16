@@ -17,7 +17,7 @@ describe("renderIcaPcaTransitionToA3", () => {
     };
 
     expect(renderIcaPcaTransitionToA3(payload, ENTRY).lines).toEqual([
-      { text: "Retire 100% sort", bold: true },
+      { text: "● Retire 100% sort", bold: true, tone: "caution" },
       { text: "Exit criteria: 3 consecutive clean shifts after the sensor is fitted" },
       { text: "Planned removal: 2026-09-01" },
       { text: "Status: PCA in place" },
@@ -28,5 +28,16 @@ describe("renderIcaPcaTransitionToA3", () => {
     const lines = renderIcaPcaTransitionToA3({ ...EMPTY, status: "escalated" }, ENTRY).lines;
 
     expect(lines).toContainEqual({ text: "Status: escalated" });
+  });
+
+  /** P-37: `icaActive` is the flag — an ICA is meant to be short-lived, so still relying on it is what gets called out. */
+  it.each([
+    ["icaRemoved", "■", "positive"],
+    ["pcaInPlace", "●", "caution"],
+    ["icaActive", "▲", "negative"],
+  ] as const)("marks status %s with glyph %s and tone %s on the title line", (status, glyph, tone) => {
+    const lines = renderIcaPcaTransitionToA3({ ...EMPTY, status }, ENTRY).lines;
+
+    expect(lines[0]).toEqual({ text: `${glyph} Retire 100% sort`, bold: true, tone });
   });
 });

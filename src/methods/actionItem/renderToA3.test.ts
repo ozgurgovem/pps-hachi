@@ -25,10 +25,26 @@ describe("renderActionItemToA3", () => {
       { text: "Start: 2026-08-10" },
       { text: "Due: 2026-08-24" },
       { text: "Status %: 60" },
+      { text: "Customer approval: pending" },
     ]);
   });
 
-  it("renders only the title for an untouched action", () => {
-    expect(renderActionItemToA3(EMPTY, ENTRY).lines).toHaveLength(1);
+  /** `customerApproval` is a select field — like `countermeasure`'s `status`, its default is its first option ("pending"), not blank. */
+  it("shows customer approval as pending, not blank, for an untouched action", () => {
+    expect(renderActionItemToA3(EMPTY, ENTRY).lines).toEqual([
+      { text: "Fit sensor", bold: true },
+      { text: "Customer approval: pending" },
+    ]);
+  });
+
+  /** §13.4 candidate 6 (Oturum C/C1) — no glyph/tone: `actionItem` has no discrete status vocabulary (P-37). */
+  it("exports customer approval as a plain trailing field, with no status glyph", () => {
+    const payload: ActionItemPayload = { ...EMPTY, action: "Install presence sensor", customerApproval: "approved" };
+
+    expect(renderActionItemToA3(payload, ENTRY).lines).toEqual([
+      { text: "Fit sensor", bold: true },
+      { text: "Action: Install presence sensor" },
+      { text: "Customer approval: approved" },
+    ]);
   });
 });

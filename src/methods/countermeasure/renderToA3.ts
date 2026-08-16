@@ -1,6 +1,7 @@
-import type { A3BlockContent, A3EntrySummary } from "../../a3/methodContract";
+import type { A3BlockContent, A3EntrySummary, A3TextLine } from "../../a3/methodContract";
 import { fieldFormLines } from "../shared/fieldForm";
-import { COUNTERMEASURE_FIELDS, COUNTERMEASURE_STATUS_EXPORT_LABELS } from "./fields";
+import { statusGlyphText } from "../shared/statusGlyph";
+import { COUNTERMEASURE_FIELDS, COUNTERMEASURE_STATUS_EXPORT_LABELS, COUNTERMEASURE_STATUS_TONE } from "./fields";
 import type { CountermeasurePayload } from "./schema";
 
 export function renderCountermeasureToA3(payload: CountermeasurePayload, entry: A3EntrySummary): A3BlockContent {
@@ -9,8 +10,12 @@ export function renderCountermeasureToA3(payload: CountermeasurePayload, entry: 
     ...payload,
     status: status.length > 0 ? (COUNTERMEASURE_STATUS_EXPORT_LABELS[status] ?? status) : status,
   };
+  const tone = COUNTERMEASURE_STATUS_TONE[status];
+  const titleLine: A3TextLine = tone
+    ? { text: statusGlyphText(entry.title, tone), bold: true, tone }
+    : { text: entry.title, bold: true };
 
   return {
-    lines: [{ text: entry.title, bold: true }, ...fieldFormLines(values, COUNTERMEASURE_FIELDS)],
+    lines: [titleLine, ...fieldFormLines(values, COUNTERMEASURE_FIELDS)],
   };
 }

@@ -86,4 +86,18 @@ describe("RowTableEditor", () => {
     const firstRowContainer = removeButtons[0]!.closest("div");
     expect((within(firstRowContainer!).getByLabelText("Customer") as HTMLInputElement).value).toBe("Farplas");
   });
+
+  /**
+   * A row persisted before a column existed (e.g. B1's §13.4 candidate 5
+   * fields added to `hypothesisVerification`) is genuinely missing that key
+   * at runtime — `Entry.payload` is never Zod-validated on load (D-52). The
+   * field must render blank, not crash the editor.
+   */
+  it("renders a blank field, not a crash, for a row missing a column added after it was saved", () => {
+    const legacyRow = { id: "1" } as unknown as RowTableRow<Key>;
+    expect(() =>
+      render(<RowTableEditor idPrefix="voc" columns={COLUMNS} rows={[legacyRow]} onChange={vi.fn()} />),
+    ).not.toThrow();
+    expect((screen.getByLabelText("Customer") as HTMLInputElement).value).toBe("");
+  });
 });

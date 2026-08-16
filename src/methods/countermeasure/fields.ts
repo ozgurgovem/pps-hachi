@@ -1,4 +1,5 @@
 import type { FieldFormField } from "../shared/fieldForm";
+import type { StatusTone } from "../shared/statusGlyph";
 
 export type CountermeasureFieldKey =
   | "description"
@@ -18,6 +19,13 @@ export const COUNTERMEASURE_STATUS_EXPORT_LABELS: Readonly<Record<string, string
   proposed: "Proposed",
   approved: "Approved",
   rejected: "Rejected",
+};
+
+/** P-37: D-41's shape-coded status marker, applied to the entry's title line — the entry carries the status, not each field. */
+export const COUNTERMEASURE_STATUS_TONE: Readonly<Record<string, StatusTone>> = {
+  approved: "positive",
+  proposed: "caution",
+  rejected: "negative",
 };
 
 /**

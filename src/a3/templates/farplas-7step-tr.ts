@@ -216,6 +216,54 @@ const TR_STYLES: readonly CellStyle[] = [
     verticalAlign: "top",
     wrapText: true,
   },
+  /**
+   * P-37: tone-reinforced variants of `entryContent`/`entryContentBold`,
+   * one triple per bold/non-bold. Colours are D-165's Layer A palette
+   * (§14.1) — green=positive/done, blue=caution/in progress,
+   * red=negative/blocked (D-41 read at §14.3) — reused, never redefined.
+   */
+  {
+    id: "entryContentPositive",
+    font: { name: FONT_FAMILY, sizePt: 19, color: "FF8FBF4F" },
+    horizontalAlign: "left",
+    verticalAlign: "top",
+    wrapText: true,
+  },
+  {
+    id: "entryContentCaution",
+    font: { name: FONT_FAMILY, sizePt: 19, color: "FF4A90D9" },
+    horizontalAlign: "left",
+    verticalAlign: "top",
+    wrapText: true,
+  },
+  {
+    id: "entryContentNegative",
+    font: { name: FONT_FAMILY, sizePt: 19, color: "FFE0342A" },
+    horizontalAlign: "left",
+    verticalAlign: "top",
+    wrapText: true,
+  },
+  {
+    id: "entryContentBoldPositive",
+    font: { name: FONT_FAMILY, sizePt: 19, bold: true, color: "FF8FBF4F" },
+    horizontalAlign: "left",
+    verticalAlign: "top",
+    wrapText: true,
+  },
+  {
+    id: "entryContentBoldCaution",
+    font: { name: FONT_FAMILY, sizePt: 19, bold: true, color: "FF4A90D9" },
+    horizontalAlign: "left",
+    verticalAlign: "top",
+    wrapText: true,
+  },
+  {
+    id: "entryContentBoldNegative",
+    font: { name: FONT_FAMILY, sizePt: 19, bold: true, color: "FFE0342A" },
+    horizontalAlign: "left",
+    verticalAlign: "top",
+    wrapText: true,
+  },
   {
     id: "footerLabel",
     font: { name: FONT_FAMILY, sizePt: 14, bold: true },

@@ -12,6 +12,13 @@ interface FishboneDiagramProps {
   readonly interactive?: boolean;
   readonly onCausePositionChange?: (causeId: string, position: { x: number; y: number }) => void;
   /**
+   * P-34: the block's own problem statement, shown in the diagram's new
+   * terminal effect node. The interactive Editor has no entry title to pass
+   * (`MethodEditorProps` is payload-only) and falls back to a placeholder;
+   * the exported diagram always receives the real title (`renderToA3.ts`).
+   */
+  readonly effectLabel?: string;
+  /**
    * Rasterizer mode (D-102): the explicit pixel box to draw into. Omitted in
    * the editor, where the surrounding CSS box supplies the size. React Flow
    * paints nothing in a zero-sized container, so the off-screen capture path
@@ -23,6 +30,9 @@ interface FishboneDiagramProps {
 function nodeLabel(node: FishboneNode, translate: (key: string) => string): string {
   if (node.data.kind === "category") {
     return translate(categoryLabelKey(node.data.label ?? ""));
+  }
+  if (node.data.kind === "effect" && (node.data.label ?? "").trim().length === 0) {
+    return translate("methods.fishbone.effectPlaceholder");
   }
   return node.data.label ?? "";
 }
@@ -37,10 +47,11 @@ export function FishboneDiagram({
   payload,
   interactive = false,
   onCausePositionChange,
+  effectLabel,
   size,
 }: FishboneDiagramProps) {
   const { t } = useTranslation();
-  const layout = computeFishboneLayout(payload);
+  const layout = computeFishboneLayout(payload, effectLabel ?? "");
 
   const nodes = layout.nodes.map((node) => ({
     ...node,

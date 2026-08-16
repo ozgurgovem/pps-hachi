@@ -1,8 +1,8 @@
 import type { Entry } from "../../domain/model";
 import type { CellData, MergedRange, RowDef } from "../descriptor";
-import type { A3EntryRendererMap, A3ImageKind } from "../methodContract";
+import type { A3EntryRendererMap, A3ImageKind, A3TextTone } from "../methodContract";
 import type { TemplateBlock } from "../templates/types";
-import { ENTRY_BODY_STYLE_ID, ENTRY_CONTENT_FONT_PT, ENTRY_TITLE_STYLE_ID, type ColumnWidth } from "./contentStyle";
+import { ENTRY_CONTENT_FONT_PT, entryLineStyleId, type ColumnWidth } from "./contentStyle";
 import { estimateCharsPerLine, wrapText } from "./measure";
 import { placeZonesContent } from "./placeZones";
 
@@ -34,6 +34,7 @@ export interface PlacedBlockContent {
 interface WrappedLine {
   readonly text: string;
   readonly bold: boolean | undefined;
+  readonly tone: A3TextTone | undefined;
 }
 
 function heightOfRows(contentRows: readonly RowDef[], startRow: number, rowSpan: number): number {
@@ -101,7 +102,7 @@ export function placeBlockContent(
     const wrappedLines: WrappedLine[] = [];
     for (const line of content.lines) {
       for (const text of wrapText(line.text, maxCharsPerLine)) {
-        wrappedLines.push({ text, bold: line.bold });
+        wrappedLines.push({ text, bold: line.bold, tone: line.tone });
       }
     }
 
@@ -128,7 +129,7 @@ export function placeBlockContent(
       cells.push({
         ref,
         value: line.text,
-        styleId: line.bold ? ENTRY_TITLE_STYLE_ID : ENTRY_BODY_STYLE_ID,
+        styleId: entryLineStyleId(line.bold, line.tone),
       });
       if (block.contentColumns.first !== block.contentColumns.last) {
         merges.push({ range: `${ref}:${block.contentColumns.last}${row}` });
