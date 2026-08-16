@@ -10,6 +10,12 @@
 > Kanonik konum: `docs/oturumlar/B3-blok-blok-gorsel-dogrulama.md`. Yazıldı: 2026-08-06,
 > Barış'ın haftalık token bütçesi tükenmek üzereyken (Pazartesi sıfırlanacak) — bu yüzden
 > yöntem burada ve `CLAUDE.md`'de kayıtlı, sohbette değil.
+>
+> **Durum — 2026-08-16 güncellemesi:** ADIM 1 ve ADIM 2 ONAYLANDI (D-165 v2, D-174) —
+> aşağıdaki §2 artık geçmiş, silinmedi çünkü döngünün nasıl işlediğine dair somut bir örnek
+> olarak değerli. **Bir sonraki oturum §3'ün 3. maddesinden (ADIM 4) başlar.** Bu dosya her
+> blok kapandığında güncellenir — okumadan önce bu notun tarihine bak, eskiyse `git log
+> docs/oturumlar/B3-blok-blok-gorsel-dogrulama.md` ile gerçek durumu doğrula.
 
 ---
 
@@ -37,27 +43,24 @@ Eksik/adı değişmiş dosya varsa **DUR ve Barış'a söyle**.
    5/6/8'in D-41 durum işaretleri), §14.4 (ADIM 2/3/4), §14.5 (sekiz blok ortak grameri),
    §14.6/§14.7 (adım arayüzü + esnek tahsis — bunlar kod tasarımı, görsel maket gerektirmez,
    B3'ün kapsamı dışında).
-4. `DECISIONS.md`: **D-165 – D-172** (bu oturumun doğrudan girdisi) ve D-47/D-49 (palet/font
-   token'ları, maketin kendi kullandığı).
-5. Artifact: ADIM 1'in yayınlanmış maketi —
-   `https://claude.ai/code/artifact/b1ae2136-9785-4985-b7a3-587663d38466`. Barış'a bu linki
-   açıp açmadığını / v2'yi onaylayıp onaylamadığını sor — kod bu URL'i okuyamaz, yalnızca
-   Barış görebilir.
+4. `DECISIONS.md`: **D-165 – D-174** (bu oturumun doğrudan girdisi, D-173/D-174 dahil) ve
+   D-47/D-49 (palet/font token'ları, maketin kendi kullandığı).
+5. Artifact: kümülatif maket, ADIM 1 ve ADIM 2 zaten onaylı içeriyor —
+   `https://claude.ai/code/artifact/b1ae2136-9785-4985-b7a3-587663d38466`. Bu oturum aynı
+   dosyayı/URL'i yeniden yayınlayarak büyütür, yeni bir artifact açmaz.
 
 ---
 
-## 2. İlk iş — ADIM 1'in açık döngüsünü kapat
+## 2. Geçmiş — ADIM 1'in açık döngüsü nasıl kapandı (referans örnek, tekrar YAPMA)
 
 §14.1'in ⚠️ notu: Katman A'nın **ilk** hex değerleri (`#3F7D4A`/`#2D6FA3`/`#B23A3A`) canlı
 karşılaştırmada üç somut fark çıkardı (Gap Analizi'nde eksik braket/ok/balon, koyu dolgu/beyaz
 metin yerine açık dolgu/siyah metin, uç-uca bantlar yerine ayrık kartlar) ve maket buna göre
 **v2**'ye güncellendi (`#8FBF4F`/`#4A90D9`/`#E0342A`, braket+ok+balon eklendi, kartlı Problem
-Statement). **Ama bu v2 henüz Barış'a gösterilip onay alınmadı** — B2 oturumu bütçe bitişiyle
-kesildi.
-
-Yapılacak: Barış'a artifact linkini hatırlat, v2'yi incelemesini iste. Onaylarsa
-`TEMPLATE_ANALYSIS.md` §14.1'in tablosunu ve `DECISIONS.md` D-165'i v2'nin kesin değerleriyle
-güncelle (⚠️ notunu kaldır). Onaylamazsa döngü devam eder — D-171'in adımlarını tekrarla.
+Statement). 2026-08-16'da Barış v2'yi inceledi ve onayladı; `TEMPLATE_ANALYSIS.md` §14.1'in
+tablosu ve `DECISIONS.md` D-165 kesin değerlerle güncellendi, ⚠️ notu kaldırıldı. Aynı
+oturumda ADIM 2 (Pareto + Katmanlama Matrisi, dikey istifleme) de tek turda onaylandı — D-174.
+**Bu bölüm artık tarihsel kayıt; sıradaki iş §3'ün 3. maddesi (ADIM 4).**
 
 ---
 
@@ -66,9 +69,17 @@ güncelle (⚠️ notunu kaldır). Onaylamazsa döngü devam eder — D-171'in a
 D-171: **bir oturumda en fazla bir-iki blok**, tek kümülatif artifact'i büyüterek (aynı dosya
 yolunu yeniden yayınla, yeni bir URL açma). Öneri sırası — riske ve yeniliğe göre:
 
-1. **ADIM 1'in onayını kapat** (§2), sonra aynı artifact'e ADIM 2'yi ekle.
-2. **ADIM 2** — en kalabalık ve en çok grafik taşıyan blok (§14.4), önce doğrulanmalı.
-3. **ADIM 4** — ikinci en kalabalık, fishbone/ağaç diyagramları içeriyor.
+1. ~~**ADIM 1'in onayını kapat**~~ **BİTTİ 2026-08-16** — D-165 v2 kesinleşti.
+2. ~~**ADIM 2** — en kalabalık ve en çok grafik taşıyan blok (§14.4)~~ **BİTTİ 2026-08-16,
+   tek turda** — D-174 (dikey istifleme, bağımsız Pareto renk çifti).
+3. **← BURADAN BAŞLA: ADIM 4** — ikinci en kalabalık, fishbone/ağaç diyagramları içeriyor.
+   Tuval 567×234 pt, oran 2.42:1 (§14.4). `fishbone-diagram` imageKind'ı `fishbone`/
+   `faultTree`/`whyWhyTree`'yi kapsıyor; `causeEffectMatrix`/`pfmeaLinkage`/
+   `comparativeAnalysis`/`fiveWhy`/`hypothesisVerification` düz `lines` üretiyor — yeni
+   mekanizma gerekmiyor (§14.4 zaten böyle diyor), maket bunu ADIM 2'deki gibi gerçek bir
+   diyagram + metin girişi kombinasyonuyla doğrular. Referans için LeanUK'ın kendi "6. Direct
+   Cause Investigation" fishbone paneli iyi bir aday (Step 3 bölümünün altında, ADIM 2'nin
+   referans taramasında zaten görüldü).
 4. **ADIM 7** — §14.3'ün önerdiği **yeni** `kpi-strip` mekanizması burada; hiç şipping
    edilmiş plugin'i olmadığı için en soyut/en az test edilmiş tasarım — maket burada özellikle
    değerli.
@@ -107,10 +118,11 @@ doğrulanmışsa **commit + push**. **Kod YAZILMAZ** — B3 de bir tasarım/doğ
 
 ## 6. Bütçe uyarısı (Madde 1 / G1)
 
-Yedi blok kaldı, her biri potansiyel olarak 2+ geri bildirim turu alabilir — ADIM 1 tek
-başına iki tur sürdü. **Hepsini tek oturumda bitirmeye çalışma.** İşe başlamadan hangi
-blok(lar)ı bu oturumda yapacağını tahmin et ve söyle; bir blok bitince doğal bir durma
-noktasıdır, oradan yeni bir temiz oturuma geçmek gerekirse öner.
+Altı blok kaldı (ADIM 3, 4, 5, 6, 7, 8), her biri potansiyel olarak 2+ geri bildirim turu
+alabilir — ADIM 1 iki tur sürdü, ADIM 2 tek turda geçti, ikisi tutarlı bir üst sınır değil.
+**Hepsini tek oturumda bitirmeye çalışma.** İşe başlamadan hangi blok(lar)ı bu oturumda
+yapacağını tahmin et ve söyle; bir blok bitince doğal bir durma noktasıdır, oradan yeni bir
+temiz oturuma geçmek gerekirse öner.
 
 ---
 
