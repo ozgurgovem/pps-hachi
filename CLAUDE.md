@@ -963,3 +963,40 @@ clean. `scripts/gen-a3-fixture.ts` re-run since the template's style table chang
 `fishbone` appears in the fixture and only via opaque `spec`/text unaffected by P-34's geometry
 or spec-shape change) — the regenerated fixture diff is a pure 69-line addition (the same six
 new styles the TS snapshot gained), nothing else moved. Not yet committed to git.
+
+**Oturum C — C2 (D-149's fourth and last part, second code slice): DONE 2026-08-16.** Per
+`docs/oturumlar/C2-problem-impact-5n1k.md`, Barış's own choice of C2 next after C1's close.
+Two new Step 1 plugins, zero new mechanisms — both field lists and geometries were already
+settled in Oturum B2 (§14.2, D-163/D-166), so this was a build turn, not a design turn; no
+`AskUserQuestion` round was needed mid-session.
+`src/methods/fiveN1K/` (D-163): a fresh plugin, `five-g-5n1k` untouched — field set `ne`/
+`neden`/`nasil`/`kim`/`neZaman`/`nerede`, matching `reference/visual/5N-1K.jpeg`'s own order.
+`renderToA3` returns six equal-width (`1/6`) `A3ContentZone`s (D-102's zones mechanism,
+`smartTarget` was the first user, this the second) — each zone's first line the bold question
+label ("NE?", "NEDEN?", …), the second line the user's trimmed answer when non-blank. Carries
+no entry title (the reference image has none, and the 4-row canvas has no spare row) while
+keeping the standard two-parameter `renderToA3` shape anyway, uniform arity across every
+plugin, via a scoped `eslint-disable-next-line @typescript-eslint/no-unused-vars` — the one
+prior precedent for that pattern is `A3PreviewWindow.tsx`.
+`src/methods/problemImpact/` (D-166, §14.2 item 5): its own independent Pareto category data
+(same shape as `pareto/schema.ts`, per D-124 never a display of Step 2's `pareto` entry) plus
+a four-field financial-loss form (`monthlyLoss`/`yearlyLoss`/`currencyUnit`/`calculationNote`,
+`shared/fieldForm.ts`'s substrate, D-127). `renderToA3` emits title + loss-form lines, then a
+`pareto-chart` image built the same way `pareto/renderToA3.ts` builds its own. Declares no
+`imageKind`/`renderImage` of its own — `paretoMethod` already registers that renderer and
+`getA3ImageRendererMap()` resolves by kind string across the whole registry, so a second
+registration would be dead weight; proven, not just reasoned, by a dedicated
+`xlsxSurvival.test.ts` that builds through the real registry and confirms the shared renderer
+still resolves. `Editor.tsx` duplicates `pareto/Editor.tsx`'s small category-list JSX inline
+rather than extracting a shared substrate, per this slice's zero-new-mechanism budget.
+Both registered in `src/methods/registry.ts`; TR/EN i18n keys added together. One test-design
+lesson recorded in D-181: a multi-character `user.type()` against a controlled input whose
+`onChange` is a bare mock (no re-render feeding the value back) does not accumulate — fixed
+with a single-keystroke assertion, the same pattern `costApproval/Editor.test.tsx` already
+used. `TEMPLATE_ANALYSIS.md` §14.8 marks both line items done.
+`npm test` 775/775 (192 files, up from 752/752 at 185 — 23 new tests), exit code 0 (checked).
+`npm run lint` clean (the one pre-existing `ThemeProvider` warning). `npm run build` green
+(same pre-existing chunk-size warning). `cargo test` 89/89, `cargo clippy --all-targets -- -D
+warnings` and `cargo fmt -- --check` all clean — Rust untouched, as expected; the fixture
+regenerator was not re-run since neither the template's style table nor any registered
+`imageKind` changed. Not yet committed to git.

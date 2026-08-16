@@ -1646,8 +1646,10 @@ D-164: otomatik + manuel, ikisi birden. Etkileşim:
 
 ### 14.8 Bu oturumun kapsamadığı — Oturum C'ye / gelecek dilimlere kalan
 
-- `problem-impact` plugin'inin inşası (§14.2) — Oturum C.
-- 5N1K plugin'inin inşası (§14.2, D-163) — Oturum C / Faz 11.
+- ~~`problem-impact` plugin'inin inşası (§14.2) — Oturum C.~~ **BİTTİ — Oturum C2, 2026-08-16.**
+  `src/methods/problemImpact/`, D-181.
+- ~~5N1K plugin'inin inşası (§14.2, D-163) — Oturum C / Faz 11.~~ **BİTTİ — Oturum C2, 2026-08-16.**
+  `src/methods/fiveN1K/`, D-181.
 - `kpi-strip` `A3ImageKind`'ının + Adım 7 plugin'lerinin inşası (§14.3) — 6d'nin tek-mekanizma
   bütçesi.
 - Adım 8'in belge/Yokoten/Lessons-Learned plugin'leri (§13.4, §14.6) — Oturum C.

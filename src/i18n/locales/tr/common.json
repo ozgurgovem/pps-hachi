@@ -722,6 +722,33 @@
         "open": "Açık",
         "resolved": "Çözüldü"
       }
+    },
+    "fiveN1K": {
+      "name": "5N1K şeridi",
+      "useWhen": "Adım 1'in zorunlu 5N1K panelinde kullanın — Ne, neden, nasıl, kim, ne zaman, nerede, referans görselin kendi sırasıyla.",
+      "fields": {
+        "ne": "Ne",
+        "neden": "Neden",
+        "nasil": "Nasıl",
+        "kim": "Kim",
+        "neZaman": "Ne zaman",
+        "nerede": "Nerede"
+      }
+    },
+    "problemImpact": {
+      "name": "Problem etkisi (maliyet)",
+      "useWhen": "Problemin mali etkisini bir Pareto grafiği ve aylık/senelik kayıp rakamlarıyla göstermek için kullanın — Adım 1'in opsiyonel eki.",
+      "unitLabel": "Birim",
+      "categoryLabel": "Kategori",
+      "countLabel": "Adet",
+      "addCategory": "Kategori ekle",
+      "removeCategory": "Kategoriyi kaldır",
+      "fields": {
+        "monthlyLoss": "Aylık kayıp",
+        "yearlyLoss": "Senelik kayıp",
+        "currencyUnit": "Birim/para cinsi",
+        "calculationNote": "Hesap notu"
+      }
     }
   },
   "gallery": {

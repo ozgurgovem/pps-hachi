@@ -12,6 +12,7 @@ import { distributionChartMethod } from "./distributionChart";
 import { errorProofingHierarchyMethod } from "./errorProofingHierarchy";
 import { fishboneMethod } from "./fishbone";
 import { fiveG5N1KMethod } from "./fiveG5N1K";
+import { fiveN1KMethod } from "./fiveN1K";
 import { fiveW2HMethod } from "./fiveW2H";
 import { fiveWhyMethod } from "./fiveWhy";
 import { gapStatementMethod } from "./gapStatement";
@@ -20,6 +21,7 @@ import { implementationIssuesLogMethod } from "./implementationIssuesLog";
 import { isIsNotMethod } from "./isIsNot";
 import { msaGageRrMethod } from "./msaGageRr";
 import { paretoMethod } from "./pareto";
+import { problemImpactMethod } from "./problemImpact";
 import { problemTypeClassifierMethod } from "./problemTypeClassifier";
 import { processFlowSipocMethod } from "./processFlowSipoc";
 import { smartTargetMethod } from "./smartTarget";
@@ -51,7 +53,9 @@ import { vocComplaintMethod } from "./vocComplaint";
  * five reference-bearing methods (D-116) plus Step 4's five plain ones;
  * Phase 6c adds Step 2's distribution chart (the one new mechanism this
  * slice introduces) plus Steps 5–6's remaining plain methods — the action
- * plan Gantt is deliberately not among them, see P-22/D-114.
+ * plan Gantt is deliberately not among them, see P-22/D-114. Oturum C2 adds
+ * Step 1's `five-n1k` strip and `problem-impact` panel (D-163/D-166), zero
+ * new mechanisms.
  */
 export const METHOD_REGISTRY: readonly ErasedMethodPlugin[] = [
   registerMethod(genericTextMethod),
@@ -94,6 +98,8 @@ export const METHOD_REGISTRY: readonly ErasedMethodPlugin[] = [
   registerMethod(trialResultLogMethod),
   registerMethod(trainingCommunicationRecordMethod),
   registerMethod(implementationIssuesLogMethod),
+  registerMethod(fiveN1KMethod),
+  registerMethod(problemImpactMethod),
 ];
 
 export function getMethodsForStep(stepId: StepId): readonly ErasedMethodPlugin[] {

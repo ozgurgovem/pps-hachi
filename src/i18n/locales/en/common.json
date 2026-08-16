@@ -722,6 +722,33 @@
         "open": "Open",
         "resolved": "Resolved"
       }
+    },
+    "fiveN1K": {
+      "name": "5N1K strip",
+      "useWhen": "Use this for Step 1's mandatory 5N1K panel — What, why, how, who, when, where, in the reference image's own order.",
+      "fields": {
+        "ne": "What",
+        "neden": "Why",
+        "nasil": "How",
+        "kim": "Who",
+        "neZaman": "When",
+        "nerede": "Where"
+      }
+    },
+    "problemImpact": {
+      "name": "Problem impact (cost)",
+      "useWhen": "Use this to show the problem's financial impact as a Pareto chart plus monthly/yearly loss figures — Step 1's optional add-on.",
+      "unitLabel": "Unit",
+      "categoryLabel": "Category",
+      "countLabel": "Count",
+      "addCategory": "Add category",
+      "removeCategory": "Remove category",
+      "fields": {
+        "monthlyLoss": "Monthly loss",
+        "yearlyLoss": "Yearly loss",
+        "currencyUnit": "Currency/unit",
+        "calculationNote": "Calculation note"
+      }
     }
   },
   "gallery": {
