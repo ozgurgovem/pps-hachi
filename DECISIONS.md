@@ -395,6 +395,14 @@ palette-collision warning (§⚠️) is updated to point at D-165/§14.1 instead
 
 ---
 
+## Oturum B3 — block-by-block visual verification, 2026-08-16
+
+| # | Date | Decision | Rationale | Status |
+|---|---|---|---|---|
+| D-174 | 2026-08-16 | **ADIM 2's block-content visual grammar is confirmed: two entries (one chart, one table) stack vertically inside the 567×338 pt canvas, not side by side; the chart's own colours stay independent of both D-165 palette layers.** Verified via D-171's loop with a real Pareto (mold-cavity breakdown of the same çapak/flash-defect scenario ADIM 1 uses) stacked above a Stratification Matrix table (shift-level breakdown, totalling ADIM 1's own %4,2 figure). Vertical stacking corrected an initial side-by-side assumption — `place.ts` reserves each entry its own full-width row-span (D-102), it never splits a canvas into columns, so the mockup was rebuilt to match the real mechanism before Barış reviewed it. The Pareto's bars/cumulative-line use `--steel`/`--graphite` (D-49's own tokens), touching neither Layer A (`#4A90D9`/`#8FBF4F`/`#E0342A`) nor Layer B's six 5N1K hues — extends D-165's "no colour carries two meanings" rule to a third, data-viz-only register. Reference: LeanUK's own "Step 3 — Problem Analysis & Breakdown" Pareto panel ("2. Daily run time breakdown") — bordered white panel, underlined numbered title, legend row, all adopted as-is. | Confirms D-102's real placement mechanism (vertical row-span stacking) rather than a plausible-sounding but wrong side-by-side guess — exactly the kind of thing D-171's loop exists to catch before it gets written up as final. The empty space left under the table (D-158's elastic floor not force-filling a lightly-populated block) was called out explicitly rather than silently left, so it reads as intentional rather than a rendering gap. | LOCKED |
+
+---
+
 ## Pending — raised, not yet decided
 
 | # | Date | Question | Blocking |

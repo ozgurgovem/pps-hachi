@@ -832,9 +832,16 @@ meanings" rule intact for a data-viz context neither layer was meant to cover. R
 is a fresh, newly-cropped panel from `LeanUK_PPS_A3_worked_example.png`'s "Step 3 — Problem
 Analysis & Breakdown" section (its own Pareto-shaped panel, "2. Daily run time breakdown") —
 the first time this session's crop tooling (Pillow, `sips` unavailable for arbitrary offsets)
-was used instead of a carried-over crop. Cumulative artifact redeployed to the same URL
-(`https://claude.ai/code/artifact/b1ae2136-9785-4985-b7a3-587663d38466`), now holding both
-blocks; ADIM 1's pane shows the approved final mockup, ADIM 2's pane awaits Barış's concrete
-feedback before its own values get written up. Next per the loop: ADIM 4, then ADIM 7 (the
-new `kpi-strip` mechanism, least de-risked), then a quick ADIM 3 pass, then ADIM 5/6/8
-together (`docs/oturumlar/B3-blok-blok-gorsel-dogrulama.md` §3's own order).
+was used instead of a carried-over crop. **ADIM 2 CLOSED same session** — Barış reviewed the artifact and approved it in tur 1, no
+changes requested. D-174 confirms the two findings the mockup was built to test: entries
+stack vertically inside a block canvas (D-102's real `place.ts` mechanism — the mockup was
+corrected from an initial wrong side-by-side assumption before Barış ever saw it), and the
+Pareto's colours stay in a third register untouched by either D-165 palette layer. Cumulative
+artifact redeployed to the same URL
+(`https://claude.ai/code/artifact/b1ae2136-9785-4985-b7a3-587663d38466`) with both blocks
+marked approved. `TEMPLATE_ANALYSIS.md` §14.4 and `DECISIONS.md` D-174 written, committed,
+pushed. Two blocks closed in one session is already at D-171's own "one or two per session"
+ceiling — next block (ADIM 4) deliberately deferred to a fresh session rather than continuing
+here, per B3's own budget warning (Anayasa Madde 1/G1). Order after that per the loop: ADIM 7
+(the new `kpi-strip` mechanism, least de-risked), a quick ADIM 3 pass, then ADIM 5/6/8
+together (`docs/oturumlar/B3-blok-blok-gorsel-dogrulama.md` §3).

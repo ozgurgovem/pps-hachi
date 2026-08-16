@@ -1447,6 +1447,21 @@ distribution-chart, hepsi mevcut `A3ImageKind`'lar). On yöntem + generic burada
 görsel dil zaten tutarlı (hepsi ya `lines` ya `image`+`lines` üretiyor, D-99/D-102'nin ortak
 sözleşmesi altında); asıl "düzensizlik" riski arayüz tarafında (§14.6).
 
+**ONAYLANDI — Oturum B3, 2026-08-16 (D-174).** D-171'in döngüsü bir grafik girişi (Pareto) +
+bir tablo girişi (Katmanlama Matrisi) birlikte gerçek 567×338 pt tuvalde denendi ve Barış
+tarafından onaylandı. Üç somut karar kesinleşti: (1) **girişler dikey istiflenir, yan yana
+bölünmez** — `place.ts` her girişe kendi tam-genişlik satır-payını ayırır (D-102), bu yüzden
+maket bir üstte grafik (10 satır/130 pt, sabit `CHART_ROW_SPAN`) bir altta tablo (kalan 16
+satır/208 pt) gösterir; bu, ilk oturumun yanlış varsayımı olan yan-yana bölünmenin düzeltmesi.
+(2) **Pareto'nun bar/çizgi rengi Katman A/B'nin dışında, üçüncü bağımsız bir çift** —
+`--steel`/`--graphite` (D-49'un token'ları) kullanıldı, `#4A90D9`/`#8FBF4F`/`#E0342A`'ya
+(Katman A) ya da 5N1K'nın altı rengine (Katman B) hiç dokunulmadı; D-165'in "hiçbir renk iki
+anlam taşımasın" ilkesi veri-görselleştirme bağlamına da genişletildi. (3) **tablo altındaki
+boş alan kasıtlıdır** — D-158'in esnek taban modeli bir bloğu zorla doldurmaz, az girişli bir
+ADIM 2 kendi tuvalinin tamamını kullanmak zorunda değildir. Referans: LeanUK'ın "Step 3 —
+Problem Analysis & Breakdown" bölümünün kendi Pareto paneli ("2. Daily run time breakdown") —
+çerçeveli beyaz panel + alt çizili numaralı başlık + lejant konvansiyonu doğrudan onaylandı.
+
 **ADIM 4 — aynı desen, biraz daha az kalabalık.** Tuval 567×234 pt (18 satır varsayılan), oran
 2.42:1. `fishbone-diagram` imageKind'ı balık kılçığı/ağaç diyagramlarını (`fishbone`, `faultTree`,
 `whyWhyTree`) zaten karşılıyor; `causeEffectMatrix`/`pfmeaLinkage`/`comparativeAnalysis`/
