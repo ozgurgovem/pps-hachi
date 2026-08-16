@@ -1433,6 +1433,22 @@ tek mekanizma" disiplinine göre işaretlenmiş tek yeni mekanizma** — Adım 7
 inşa edecek gelecekteki dilim (6d) bunu kendi tek-mekanizma bütçesi olarak almalı, distribution
 chart'ın 6c'de aldığı rolün aynısı.
 
+> ✅ **ADIM 7 ONAYLANDI — 2026-08-16 (Oturum B3, D-171'in döngüsü, tek turda).** Maket üç
+> karo olarak çizildi — her biri bir dashed gri Önce/başlangıç çentiği, düz siyah Hedef/hedef
+> çentiği+üçgeni, ve tek bir Katman A renkli Sonra/bugünkü-değer dolgusu (bullet-graph deseni).
+> Katman A'nın üç durumu bilerek aynı maket içinde birlikte test edildi (Çapak Fire Oranı =
+> mavi/devam ediyor, Kalıp Duruş Süresi = yeşil/hedefe ulaşıldı, Fire Maliyeti = kırmızı/hedefin
+> gerisinde). İki gerçek referans, ikisi de bu turda ilk kez kullanıldı: Barış'ın imzaladığı
+> EK-2905 dokümanının **dolu** ADIM 7 paneli — bu bölümün kendi "KPI · Önce · Hedef · Sonra ·
+> Sürdürme · Sonuç" sütun adlarını (§12.4, o zaman yalnızca boş şablondan ölçülmüştü) gerçek
+> verilerle doğruladı — ve LeanUK'ın kendi "Step 7 — Check Results" paneli, hedef-çizgili bar
+> grafiğiyle ADIM 1'in onaylı Gap Analizi'yle aynı görsel dili konuşuyor; maketin bullet-graph
+> seçimi doğrudan buradan geliyor. Barış maketi hiç düzeltme istemeden onayladı. Bir gerçek
+> şema boşluğu bulundu ve düzeltilmedi — Sürdürme/Sonuç, yukarıdaki `KpiStripChartSpec`
+> taslağında yok ama her iki gerçek referansta da var; maket ikisini karo alt satırına gömülü
+> küçük metin olarak gösterdi, gerçek düzeltme (yeni alanlar) **P-36**'ya kaydedildi. Karar:
+> **D-177**.
+
 ### 14.4 ADIM 2 / 3 / 4 blok görsel dili
 
 **ADIM 3 — zaten tasarlanmış, dokunulmadı.** D-38 (LOCKED) üç-bölgeli yatay şerit olarak

@@ -11,14 +11,19 @@
 > Barış'ın haftalık token bütçesi tükenmek üzereyken (Pazartesi sıfırlanacak) — bu yüzden
 > yöntem burada ve `CLAUDE.md`'de kayıtlı, sohbette değil.
 >
-> **Durum — 2026-08-16 güncellemesi (2):** ADIM 1, ADIM 2 ve ADIM 4 ONAYLANDI (D-165 v2, D-174,
-> D-175) — aşağıdaki §2 artık geçmiş, silinmedi çünkü döngünün nasıl işlediğine dair somut bir
-> örnek olarak değerli. ADIM 4 ayrıca, kendi görsel dilinin onayı dışında, beklenmedik ve daha
-> büyük bir bulgu üretti: Barış'ın paylaştığı gerçek EK-2905 dokümanının kendi Kök Neden
-> Analizi paneli `fishbone`'a değil `whyWhyTree`'ye karşılık geliyor, ve `whyWhyTree` bugün hiç
-> diyagram render'ı yok (yalnızca düz metin) — D-176/P-35'e kaydedildi, Oturum C/D'nin işi,
-> B3'te kod yazılmadı. **Bir sonraki oturum §3'ün 4. maddesinden (ADIM 7) başlar.** Bu dosya
-> her blok kapandığında güncellenir — okumadan önce bu notun tarihine bak, eskiyse `git log
+> **Durum — 2026-08-16 güncellemesi (3):** ADIM 1, ADIM 2, ADIM 4 ve ADIM 7 ONAYLANDI (D-165 v2,
+> D-174, D-175, D-177) — aşağıdaki §2 artık geçmiş, silinmedi çünkü döngünün nasıl işlediğine
+> dair somut bir örnek olarak değerli. ADIM 4 ayrıca, kendi görsel dilinin onayı dışında,
+> beklenmedik ve daha büyük bir bulgu üretti: Barış'ın paylaştığı gerçek EK-2905 dokümanının
+> kendi Kök Neden Analizi paneli `fishbone`'a değil `whyWhyTree`'ye karşılık geliyor, ve
+> `whyWhyTree` bugün hiç diyagram render'ı yok (yalnızca düz metin) — D-176/P-35'e kaydedildi,
+> Oturum C/D'nin işi, B3'te kod yazılmadı. ADIM 7 (D-177) hiç şipping edilmiş plugin'i olmayan
+> `kpi-strip` mekanizmasını tek turda kapattı — iki gerçek referans (Barış'ın imzaladığı,
+> dolu EK-2905 ADIM 7 paneli + LeanUK'ın "Step 7 — Check Results" paneli) ilk kez bu turda
+> kullanıldı; `KpiStripChartSpec`'in Sürdürme/Sonuç alanları taşımadığı bulundu, **P-36**'ya
+> kaydedildi, düzeltilmedi (B3 şema kodu yazmaz). **Bir sonraki oturum §3'ün 5. maddesinden
+> (ADIM 3'ün hızlı doğrulaması) başlar.** Bu dosya her blok kapandığında güncellenir —
+> okumadan önce bu notun tarihine bak, eskiyse `git log
 > docs/oturumlar/B3-blok-blok-gorsel-dogrulama.md` ile gerçek durumu doğrula.
 
 ---
@@ -96,12 +101,13 @@ yolunu yeniden yayınla, yeni bir URL açma). Öneri sırası — riske ve yenil
    (diyagonal fishbone + 5 Neden ok-zinciri, `layout.ts` için P-34). Ayrıca beklenmedik bir
    bulgu: gerçek EK-2905 dokümanı `whyWhyTree`'nin (fishbone değil) asıl hedef olduğunu ve hiç
    diyagram render'ı olmadığını gösterdi — D-176/P-35, ayrı bir gelecek iş, bu turda kapanmadı.
-4. **← BURADAN BAŞLA: ADIM 7** — §14.3'ün önerdiği **yeni** `kpi-strip` mekanizması burada;
-   hiç şipping edilmiş plugin'i olmadığı için en soyut/en az test edilmiş tasarım — maket
-   burada özellikle değerli.
-5. **ADIM 3** — D-38/`smartTarget` zaten şipping edildi ve tasarlandı; burası tam yeniden
-   tasarım değil, **hızlı bir doğrulama** (mevcut zones düzeni gerçekten LeanUK'ın "düzenli ve
-   yalın" çıtasını tutuyor mu, kısa bir maket ile teyit).
+4. ~~**ADIM 7** — §14.3'ün önerdiği **yeni** `kpi-strip` mekanizması~~ **BİTTİ 2026-08-16, tek
+   turda** — D-177 (üç durum-kodlu bullet-graph karo, EK-2905'in dolu paneli + LeanUK'ın
+   Step 7'si referans alındı). `KpiStripChartSpec`'in Sürdürme/Sonuç taşımadığı bulundu —
+   P-36, ayrı bir gelecek iş, bu turda kapanmadı.
+5. **← BURADAN BAŞLA: ADIM 3** — D-38/`smartTarget` zaten şipping edildi ve tasarlandı; burası
+   tam yeniden tasarım değil, **hızlı bir doğrulama** (mevcut zones düzeni gerçekten LeanUK'ın
+   "düzenli ve yalın" çıtasını tutuyor mu, kısa bir maket ile teyit).
 6. **ADIM 5 / 6 / 8** — §14.3'ün "yeni mekanizma gerekmez" kararı; maket burada D-41'in
    şekil-kodlu durum işaretlerinin küçük kutuda okunur kalıp kalmadığını doğrular, muhtemelen
    üçü tek bir oturumda hızlıca geçilebilir.
