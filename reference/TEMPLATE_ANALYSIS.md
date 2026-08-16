@@ -1457,6 +1457,16 @@ imageKind'ı). Bu oturum yalnızca doğruluyor: D-160'ın esnek taban (5 satır/
 bile üç bölge orantılı küçülür, `placeZones.ts`'in yüzde-tabanlı `widthFraction`'ı buna zaten
 izin veriyor — geometri değişmedi, yalnızca toplam yükseklik esnek.
 
+> ✅ **ADIM 3 ONAYLANDI — 2026-08-16 (Oturum B3, D-171'in döngüsü, tek turda, "maket ok").**
+> Yeniden tasarım değil hızlı doğrulama — maket `renderToA3.ts`'in gerçek bölge genişlikleriyle
+> (181.44 / 226.80 / 158.76 pt, A/B/C) ve `TrajectoryChart.tsx`'in gerçek bar/çizgi renkleriyle
+> (Kraft baseline, Indelible target, Danger "Bugün" çizgisi — Katman A/B'nin dışında üçüncü
+> bağımsız bir renk kaydı, D-165/D-174'ün kuralı üçüncü kez doğrulandı) 567×78 pt varsayılan
+> tuvalde çizildi ve düzenli/yalın okundu. Referans: LeanUK'ın "Step 4 — Target Setting" paneli
+> (metin+grafik+grafik yatay şerit grameri). Sahne devam ediyor: baseline/target ADIM 1'in Gap
+> Analizi'yle, "Bugün" noktası ADIM 7'nin Sonra değeriyle, taahhüt satırının tarih/sorumlusu
+> EK-2905'in gerçek alanlarıyla aynı. Karar: **D-178**.
+
 **ADIM 2 — en kalabalık blok, görsel dili değil ARAYÜZÜ asıl sorun (§14.6'ya bakınız).**
 Tuval 567×338 pt (26 satır varsayılan), oran 1.68:1, grafik alıyor (Pareto/Trend/
 distribution-chart, hepsi mevcut `A3ImageKind`'lar). On yöntem + generic burada toplanıyor —
