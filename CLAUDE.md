@@ -812,3 +812,29 @@ Phase 6c (Step 2's distribution chart + Steps 5–6's remaining plain methods): 
   and D-100's existing `a3Visibility` indicator as the overflow signal. `reference/README.md`'s
   palette-collision warning is marked resolved, pointing at D-165/§14.1. Not yet committed
   to git.
+**Oturum B3 — block-by-block visual verification (D-149's second of four, third part):
+IN PROGRESS, started 2026-08-16.** No app code touched — a design/verification session per
+D-171's own loop. **ADIM 1 CLOSED**: the v2 mockup from B2's live verification round (lighter
+Layer A fills `#8FBF4F`/`#4A90D9`/`#E0342A`, SVG gap bracket/arrow/callout, separated rounded
+Problem Statement cards) was reviewed and approved by Barış — `TEMPLATE_ANALYSIS.md` §14.1's
+⚠️ note is resolved and its Layer A table now carries the confirmed values, D-165 updated to
+match. **ADIM 2 opened, tur 1, awaiting review**: mocked up as two entries stacked vertically
+inside the 567×338 pt canvas (26 rows, D-158/D-159's current default) — a Pareto chart
+("2.1", mold-cavity breakdown of the same çapak/flash-defect scenario ADIM 1 established,
+n=52 over 6 weeks) and a Stratification Matrix table ("2.2", shift-level breakdown whose
+%4,2 total ties back to ADIM 1's own headline figure). Vertical stacking was a deliberate
+correction of an initial side-by-side assumption — `place.ts` reserves each entry's own
+full-width row-span (D-102's real mechanism), it does not split a canvas into columns, so
+the mockup now matches what the app actually does rather than an arbitrary layout guess.
+The Pareto's bar/line colours were deliberately drawn from the app's own `--steel`/`--graphite`
+tokens rather than reusing any Layer A or Layer B hue, keeping D-165's "no colour carries two
+meanings" rule intact for a data-viz context neither layer was meant to cover. Reference crop
+is a fresh, newly-cropped panel from `LeanUK_PPS_A3_worked_example.png`'s "Step 3 — Problem
+Analysis & Breakdown" section (its own Pareto-shaped panel, "2. Daily run time breakdown") —
+the first time this session's crop tooling (Pillow, `sips` unavailable for arbitrary offsets)
+was used instead of a carried-over crop. Cumulative artifact redeployed to the same URL
+(`https://claude.ai/code/artifact/b1ae2136-9785-4985-b7a3-587663d38466`), now holding both
+blocks; ADIM 1's pane shows the approved final mockup, ADIM 2's pane awaits Barış's concrete
+feedback before its own values get written up. Next per the loop: ADIM 4, then ADIM 7 (the
+new `kpi-strip` mechanism, least de-risked), then a quick ADIM 3 pass, then ADIM 5/6/8
+together (`docs/oturumlar/B3-blok-blok-gorsel-dogrulama.md` §3's own order).

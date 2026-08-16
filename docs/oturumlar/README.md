@@ -12,7 +12,7 @@ diffle görünür ve denetlenebilir.
 | A — sayfa sözleşmesi | *(prompt sohbetteydi)* | ✅ BİTTİ 2026-08-05 — `reference/TEMPLATE_ANALYSIS.md` §12, D-154…D-160 |
 | B1 — altı çalışma sayfası + `Lists & Settings` | `B-adim-anatomisi.md` (B'nin §5.1'i) | ✅ BİTTİ 2026-08-06 — P-30 kapandı, §13 |
 | B2 — blok görsel dili + arayüz + esnek tahsis (kararlar) | `B2-gorsel-dil-arayuz.md` | ✅ BİTTİ 2026-08-06 — §14, D-165…D-172 |
-| B3 — blok blok görsel **doğrulama** (D-171'in döngüsü, ADIM 1'den devam) | `B3-blok-blok-gorsel-dogrulama.md` | ⏳ sırada — ADIM 1 onay bekliyor, ADIM 2–8 kaldı |
+| B3 — blok blok görsel **doğrulama** (D-171'in döngüsü, ADIM 1'den devam) | `B3-blok-blok-gorsel-dogrulama.md` | ⏳ sürüyor — ADIM 1 ONAYLANDI (2026-08-16), ADIM 2 tur 1'de (maket yayında, onay bekliyor), ADIM 3–8 kaldı |
 | C — yöntem plugin'i budama + ekleme | *(yazılmadı)* | — B3 bitmeden yazılmaz |
 | D — P-26 (i18n + blok hizası) | *(yazılmadı)* | — |
 

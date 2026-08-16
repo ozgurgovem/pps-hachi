@@ -1296,11 +1296,11 @@ Her katmanın kendi sabit anlamı var ve ikisi asla aynı hücrede/aynı görsel
 
 **Katman A — Hedef-durum paleti (LeanUK kökenli, D-162 ile 3 renge indi):**
 
-| Renk | Anlam | Gösterge (başlangıç) | Kullanım alanı |
+| Renk | Anlam | Gösterge (ONAYLANDI 2026-08-16, v2) | Kullanım alanı |
 |---|---|---|---|
-| Yeşil | İdeal / hedef | `#3F7D4A` | `gapStatement` renk bandı (ideal), P-31'in ADIM 7 KPI şeridinde "hedefe ulaşıldı" |
-| Mavi | Mevcut / actual | `#2D6FA3` | `gapStatement` renk bandı (actual), ADIM 7 KPI şeridinde "şu anki değer" |
-| Kırmızı | Problem / gap | `#B23A3A` | `gapStatement` renk bandı (gap), ADIM 7 KPI şeridinde "hedefin altında/gerisinde" |
+| Yeşil | İdeal / hedef | `#8FBF4F` | `gapStatement` renk bandı (ideal), P-31'in ADIM 7 KPI şeridinde "hedefe ulaşıldı" |
+| Mavi | Mevcut / actual | `#4A90D9` | `gapStatement` renk bandı (actual), ADIM 7 KPI şeridinde "şu anki değer" |
+| Kırmızı | Problem / gap | `#E0342A` | `gapStatement` renk bandı (gap), ADIM 7 KPI şeridinde "hedefin altında/gerisinde" |
 
 Sarı (LeanUK'ın "ultimate goal"ı) D-162 ile düştü — bugün hiçbir yerde iddia edilmiyor,
 ama **rezerve**: D-153'ün "Genel RAG" alanı (Oturum C adayı, §13.4.7) Red/Amber/Green
@@ -1350,19 +1350,18 @@ metinle kontrast taşıyacak koyulukta tutuldu; Faz 11 şablon dosyası yazılı
 sayfada görsel olarak doğrulanmalı (D-135'in ekran/baskı kontrast hatası tam bu yüzden — renk
 kararları koddan önce görülmeden kilitlenmemeli).
 
-> ⚠️ **2026-08-06 canlı doğrulama turu — Katman A revize edildi, ONAY BEKLİYOR.** D-171'in Blok
-> Görsel Doğrulama Döngüsü ilk kez ADIM 1'e uygulanınca (bkz. §14.2'nin maketi) Katman A'nın
-> yukarıdaki ilk hex değerleri gerçek referansla (`reference/visual/LeanUK_PPS_A3_worked_example.png`'in
-> "1.1 Gap Analizi"/"1.2 Problem Statement" panelleri, D-172 ile yüksek çözünürlüğe güncellendi)
-> yan yana konulunca üç somut fark çıktı: (1) Gap Analizi'nde İdeal/Mevcut çubukları arasında
-> farkı gösteren bir braket+ok+değer balonu **yoktu** — referansta var; (2) dolgu renkleri
-> koyuydu (beyaz metin gerektiriyordu) — referans açık tonlar + siyah metin kullanıyor; (3)
-> Problem Statement bantları uç-uca bitişikti — referansta ayrık, yuvarlak köşeli, siyah
-> çerçeveli kartlar. Maket bu üç bulguya göre güncellendi: Katman A **`#8FBF4F` / `#4A90D9` /
-> `#E0342A`**'ya açıldı, Gap Analizi'ne SVG braket/ok/balon eklendi, Problem Statement kartlara
-> çevrildi. **Bu satırdaki eski hex değerleri (§14.1 tablosu) bilerek DEĞİŞTİRİLMEDİ** —
-> D-171'in kendi kuralı gereği (adım 7: "onay gelince yaz") Barış'ın maketin bu ikinci sürümünü
-> onaylaması bekleniyor; onay gelince tablo ve D-165 tek seferde güncellenecek.
+> ✅ **ADIM 1 ONAYLANDI — 2026-08-16 (Oturum B3, D-171'in döngüsü).** 2026-08-06'daki canlı
+> doğrulama turu Katman A'nın ilk hex değerlerini gerçek referansla
+> (`reference/visual/LeanUK_PPS_A3_worked_example.png`'in "1.1 Gap Analizi"/"1.2 Problem
+> Statement" panelleri, D-172 ile yüksek çözünürlüğe güncellendi) yan yana koyunca üç somut
+> fark bulmuştu: (1) Gap Analizi'nde İdeal/Mevcut çubukları arasında farkı gösteren bir
+> braket+ok+değer balonu **yoktu** — referansta var; (2) dolgu renkleri koyuydu (beyaz metin
+> gerektiriyordu) — referans açık tonlar + siyah metin kullanıyor; (3) Problem Statement
+> bantları uç-uca bitişikti — referansta ayrık, yuvarlak köşeli, siyah çerçeveli kartlar.
+> Maket bu üç bulguya göre güncellendi (Katman A yukarıdaki tabloda artık kesin değerleriyle
+> duruyor, Gap Analizi'ne SVG braket/ok/balon eklendi, Problem Statement kartlara çevrildi) ve
+> dört doğrulama turundan (taşma düzeltmesi dahil) sonra Barış tarafından onaylandı. D-165
+> aynı oturumda bu kesin değerlerle güncellendi.
 
 ### 14.2 ADIM 1 — üç zorunlu panel + iki opsiyonel ek
 
