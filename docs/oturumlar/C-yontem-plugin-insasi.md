@@ -118,11 +118,15 @@ Barış'la birlikte teyit/yeniden sırala**, B'nin B1/B2'ye bölünmesiyle aynı
    kendi entry'sine mi çıkarıyoruz (D-124'ün bugünkü modeliyle tutarlı ama whyWhyTree'nin
    kendi ağaç yapısını bölüyor)? Bu, D-28'in "mimari" sınıfına giren tek alt-iş — gerekirse
    yalnızca bu karar için Opus'a geçilebilir, gerisi Sonnet.
-6. **C6 — arayüz katmanı, plugin içeriğinden bağımsız, paralel yapılabilir.**
-   `MethodPlugin.tier` + iki-bölümlü `MethodBand` (D-169) ve esnek tahsisin sürükle-tutamaç
-   UI'ı (D-170). İkisi de yeni mekanizma ama ikisi de saf frontend/etkileşim işi — plugin
-   içeriğine bağımlı değil, C1-C5'ten herhangi biriyle aynı anda başka bir oturumda
-   yürütülebilir.
+6. **C6 — arayüz katmanı, plugin içeriğinden bağımsız, paralel yapılabilir.** ~~`MethodPlugin.tier`
+   + iki-bölümlü `MethodBand` (D-169) ve esnek tahsisin sürükle-tutamaç UI'ı (D-170).~~
+   **Daraltıldı, D-186 (2026-08-18):** C5'in kapanışında `esnek tahsis` yarısının hedefi
+   olmadığı bulundu — D-158/D-160/D-170'in tüm elastik-tahsis modeli (varsayılan/taban/çözücü/
+   `pinned`) henüz var olmayan Faz 11 Rev00 şablonuna göre tasarlanmış; `src/a3/layout/budget.ts`
+   bugün yalnızca `farplas-7step-tr`'nin statik satır aralığını okuyor, kodda `pinned`/`elastic`
+   hiç geçmiyor. Barış'ın seçimi (`AskUserQuestion`): **C6 yalnızca `MethodPlugin.tier` + iki-
+   bölümlü `MethodBand` (D-169)** — bugünkü şablonla tam çalışır, esnek tahsis/sürükle-tutamaç
+   (D-170) Faz 11'e ertelendi, **P-40**.
 
 ---
 

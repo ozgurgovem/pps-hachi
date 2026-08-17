@@ -1703,8 +1703,12 @@ D-164: otomatik + manuel, ikisi birden. Etkileşim:
   WhyWhyTreeDiagram}.ts(x)`, D-184. P-35'in üçüncü boşluğu (düğüm-seviyesi referans) karara
   bağlandı ama inşa edilmedi — D-185, **P-39**.
 - `MethodPlugin.tier` alanının ve iki-bölümlü `MethodBand` arayüzünün kodu (§14.6) — kod
-  YAZILMADI, yalnızca tasarlandı.
-- Esnek tahsisin sürükle-tutamaç UI'ının kodu (§14.7) — aynı şekilde tasarım, kod değil.
+  YAZILMADI, yalnızca tasarlandı. **C6'nın işi (2026-08-18).**
+- ~~Esnek tahsisin sürükle-tutamaç UI'ının kodu (§14.7) — aynı şekilde tasarım, kod değil.~~
+  **D-186 (2026-08-18): C6'dan Faz 11'e ertelendi, P-40.** Hedefi henüz yok — `budget.ts`
+  bugün yalnızca `farplas-7step-tr`'nin statik satır aralığını okuyor, D-158/D-160'ın
+  varsayılan/taban/çözücü modeli Rev00 tabanlı 8-adım şablonuna göre tasarlandı ve o şablon
+  (D-95/D-157) henüz yok.
 - Şablon dosyasının kendisi (`src/a3/templates/*`) — D-95, Faz 11, değişmedi.
 - **P-39 (yeni, D-185)**: `EntryReference`'a opsiyonel `targetNodeId?: string` eklenerek
   düğüm-seviyesi adresleme — `findOrphanedReferences`/`findReferencesTo`/
