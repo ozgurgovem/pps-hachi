@@ -1464,6 +1464,25 @@ chart'ın 6c'de aldığı rolün aynısı.
 > küçük metin olarak gösterdi, gerçek düzeltme (yeni alanlar) **P-36**'ya kaydedildi. Karar:
 > **D-177**.
 
+> ✅ **`kpi-strip` İNŞA EDİLDİ — Oturum C3, 2026-08-17.** `A3ImageKind = "kpi-strip"` +
+> `KpiStripChartSpec` (P-36'nın Sürdürme/Sonuç düzeltmesi ilk yazımda gömülü) + Adım 7'nin ilk
+> gerçek plugin'i (`src/methods/kpiStrip/`). Açık soru (durum rengini ne belirler?) kodlamadan
+> önce Barış'a soruldu — **Seçenek A** seçildi: her KPI kaleminin kendi ayrık
+> `status: onTarget | inProgress | behind` alanı var, kullanıcı Editor'de elle seçer; hiçbir
+> yön (`lowerIsBetter`/`higherIsBetter`) bilgisi eklenmedi, P-37/D-180'in dört plugin'iyle aynı
+> "hesaplanmamış durum" ilkesi beşinci kez uygulandı. Görsel, Recharts değil ham SVG olarak
+> yazıldı (`KpiStripChart.tsx`) — bullet-graph'ın çentik+üçgen deseni doğrudan bir Recharts
+> primitive'ine karşılık gelmiyor, ve açık `viewBox`'lı SVG D-105/D-113'ün `ResponsiveContainer`
+> tehlikesini konu dışı bırakıyor. `CHART_ROW_SPAN = 6` bilinçli tercih: mevcut şablonun Adım 7
+> bloğu (P37:AB54, 18 satır) çok daha fazlasına sığar, ama gelecekteki 8-adım şablonunun Adım 7
+> tuvali yalnızca 78 pt/6 satır (§12.4/D-156) — Pareto/Trend'in `10`'u burada kullanılsaydı bugün
+> sığar, Faz 11 şablon değişince sessizce kırılırdı. `rasterize.ts`'e dokunulmadı (jenerik
+> `rendererMap[slot.kind]` dispatch, doğrulandı). TDD: schema/Editor/renderToA3 + kendi
+> `xlsxSurvival.test.ts`'i (`distributionChart`'ınkiyle aynı desen — kendi `imageKind`'ını
+> kaydettiği için `problem-impact`'in paylaşılan-renderer testinden farklı, yeni kaydın gerçek
+> registry üzerinden uçtan uca çalıştığını kanıtlıyor), 19 yeni test. TR/EN i18n anahtarları
+> birlikte eklendi.
+
 ### 14.4 ADIM 2 / 3 / 4 blok görsel dili
 
 **ADIM 3 — zaten tasarlanmış, dokunulmadı.** D-38 (LOCKED) üç-bölgeli yatay şerit olarak
@@ -1650,8 +1669,8 @@ D-164: otomatik + manuel, ikisi birden. Etkileşim:
   `src/methods/problemImpact/`, D-181.
 - ~~5N1K plugin'inin inşası (§14.2, D-163) — Oturum C / Faz 11.~~ **BİTTİ — Oturum C2, 2026-08-16.**
   `src/methods/fiveN1K/`, D-181.
-- `kpi-strip` `A3ImageKind`'ının + Adım 7 plugin'lerinin inşası (§14.3) — 6d'nin tek-mekanizma
-  bütçesi.
+- ~~`kpi-strip` `A3ImageKind`'ının + Adım 7 plugin'lerinin inşası (§14.3) — 6d'nin tek-mekanizma
+  bütçesi.~~ **BİTTİ — Oturum C3, 2026-08-17.** `src/methods/kpiStrip/`, C3'ün kendisi.
 - Adım 8'in belge/Yokoten/Lessons-Learned plugin'leri (§13.4, §14.6) — Oturum C.
 - `MethodPlugin.tier` alanının ve iki-bölümlü `MethodBand` arayüzünün kodu (§14.6) — kod
   YAZILMADI, yalnızca tasarlandı.

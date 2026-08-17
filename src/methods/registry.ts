@@ -37,6 +37,7 @@ import { faultTreeMethod } from "./faultTree";
 import { hypothesisVerificationMethod } from "./hypothesisVerification";
 import { icaPcaTransitionMethod } from "./icaPcaTransition";
 import { impactEffortMatrixMethod } from "./impactEffortMatrix";
+import { kpiStripMethod } from "./kpiStrip";
 import { pfmeaLinkageMethod } from "./pfmeaLinkage";
 import { pointOfCauseMethod } from "./pointOfCause";
 import { sideEffectRiskAssessmentMethod } from "./sideEffectRiskAssessment";
@@ -55,7 +56,8 @@ import { vocComplaintMethod } from "./vocComplaint";
  * slice introduces) plus Steps 5–6's remaining plain methods — the action
  * plan Gantt is deliberately not among them, see P-22/D-114. Oturum C2 adds
  * Step 1's `five-n1k` strip and `problem-impact` panel (D-163/D-166), zero
- * new mechanisms.
+ * new mechanisms. Oturum C3 adds Step 7's `kpi-strip` — its one new
+ * mechanism this slice introduces (D-167/D-177/P-36).
  */
 export const METHOD_REGISTRY: readonly ErasedMethodPlugin[] = [
   registerMethod(genericTextMethod),
@@ -100,6 +102,7 @@ export const METHOD_REGISTRY: readonly ErasedMethodPlugin[] = [
   registerMethod(implementationIssuesLogMethod),
   registerMethod(fiveN1KMethod),
   registerMethod(problemImpactMethod),
+  registerMethod(kpiStripMethod),
 ];
 
 export function getMethodsForStep(stepId: StepId): readonly ErasedMethodPlugin[] {

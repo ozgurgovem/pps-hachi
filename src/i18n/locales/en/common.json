@@ -749,6 +749,27 @@
         "currencyUnit": "Currency/unit",
         "calculationNote": "Calculation note"
       }
+    },
+    "kpiStrip": {
+      "name": "KPI strip",
+      "useWhen": "Use this for Step 7's KPI tracking tiles — baseline, target and actual side by side, one per metric.",
+      "fields": {
+        "label": "Metric",
+        "unit": "Unit",
+        "baseline": "Baseline (Önce)",
+        "target": "Target (Hedef)",
+        "actual": "Actual (Sonra)",
+        "sustain": "Sustain (Sürdürme)",
+        "result": "Result (Sonuç)",
+        "status": "Status"
+      },
+      "statuses": {
+        "onTarget": "On target",
+        "inProgress": "In progress",
+        "behind": "Behind target"
+      },
+      "addItem": "Add KPI",
+      "removeItem": "Remove KPI"
     }
   },
   "gallery": {

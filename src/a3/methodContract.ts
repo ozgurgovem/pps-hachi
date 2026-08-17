@@ -41,7 +41,8 @@ export type A3ImageKind =
   | "trend-chart"
   | "trajectory-chart"
   | "fishbone-diagram"
-  | "distribution-chart";
+  | "distribution-chart"
+  | "kpi-strip";
 
 /**
  * The explicit pixel box a method's chart/diagram must draw itself into.

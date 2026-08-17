@@ -72,10 +72,41 @@ export interface BoxPlotChartSpec {
   readonly values: readonly number[];
 }
 
+/**
+ * Oturum C3 (DECISIONS.md D-167/D-177/P-36): ADIM 7's bullet-graph KPI strip
+ * — one tile per metric, `baseline`/`target`/`actual` driving the bar's
+ * dashed/solid ticks and colour fill. `status` is **user-selected, never
+ * computed** — recorded as C3's own open-question answer (§2.2 of
+ * `docs/oturumlar/C3-kpi-strip.md`): the codebase's existing status
+ * vocabularies (`countermeasure`, `costApproval`, `icaPcaTransition`,
+ * `implementationIssuesLog` — P-37/D-180) are all manually assigned too,
+ * and a "higher/lower is better" direction field was never part of D-167's
+ * design. `sustain`/`result` are P-36's own fix, embedded in this shape's
+ * first version rather than patched on later — both are real columns in
+ * Rev00 §12.4 and the signed EK-2905 document that the drafted shape
+ * (`{ label, baseline, target, actual, unit }[]`) was missing.
+ */
+export interface KpiStripItem {
+  readonly label: string;
+  readonly unit?: string;
+  readonly baseline: number;
+  readonly target: number;
+  readonly actual: number;
+  readonly sustain?: number;
+  readonly result?: number;
+  readonly status: "onTarget" | "inProgress" | "behind";
+}
+
+export interface KpiStripChartSpec {
+  readonly kind: "kpi-strip";
+  readonly items: readonly KpiStripItem[];
+}
+
 export type ChartSpec =
   | ParetoChartSpec
   | TrendChartSpec
   | TrajectoryChartSpec
   | HistogramChartSpec
   | ScatterChartSpec
-  | BoxPlotChartSpec;
+  | BoxPlotChartSpec
+  | KpiStripChartSpec;

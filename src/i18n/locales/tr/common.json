@@ -749,6 +749,27 @@
         "currencyUnit": "Birim/para cinsi",
         "calculationNote": "Hesap notu"
       }
+    },
+    "kpiStrip": {
+      "name": "KPI şeridi",
+      "useWhen": "Adım 7'nin KPI izleme karoları için kullanın — önce, hedef ve sonra değerleri yan yana, her metrik için bir karo.",
+      "fields": {
+        "label": "Metrik",
+        "unit": "Birim",
+        "baseline": "Önce (baseline)",
+        "target": "Hedef (target)",
+        "actual": "Sonra (actual)",
+        "sustain": "Sürdürme",
+        "result": "Sonuç",
+        "status": "Durum"
+      },
+      "statuses": {
+        "onTarget": "Hedefe ulaşıldı",
+        "inProgress": "Devam ediyor",
+        "behind": "Hedefin gerisinde"
+      },
+      "addItem": "KPI ekle",
+      "removeItem": "KPI'yı kaldır"
     }
   },
   "gallery": {

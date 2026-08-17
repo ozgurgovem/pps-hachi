@@ -999,4 +999,39 @@ used. `TEMPLATE_ANALYSIS.md` §14.8 marks both line items done.
 (same pre-existing chunk-size warning). `cargo test` 89/89, `cargo clippy --all-targets -- -D
 warnings` and `cargo fmt -- --check` all clean — Rust untouched, as expected; the fixture
 regenerator was not re-run since neither the template's style table nor any registered
-`imageKind` changed. Not yet committed to git.
+`imageKind` changed.
+
+**Oturum C — C3 (D-149's fourth and last part, third code slice): DONE 2026-08-17.** Per
+`docs/oturumlar/C3-kpi-strip.md`, C3's own tag as "this slice's tek yeni mekanizma" (D-114) —
+the `kpi-strip` `A3ImageKind` + `KpiStripChartSpec` + ADIM 7's first real plugin (Step 7 had
+none before this, only `genericText`). Unlike C1/C2, this slice carried one real open design
+question (§2.2: what decides a KPI tile's Layer A colour?), asked via `AskUserQuestion` before
+any code — **Option A**: each `KpiStripItem` carries its own manually-set
+`status: "onTarget" | "inProgress" | "behind"`, the same never-computed posture P-37/D-180
+already established for four other plugins; no `direction` field was added, since D-167/D-177
+never called for one. `src/a3/methodContract.ts` gains `"kpi-strip"`; `src/methods/chartSpec.ts`
+gains `KpiStripItem`/`KpiStripChartSpec` with P-36's `sustain?`/`result?` fix embedded at first
+write, not patched later. `src/methods/kpiStrip/`: `baseline`/`target`/`actual` stay
+`number`-typed like `pareto`'s `count` (drives the chart directly, nothing derived at render
+time); `KpiStripChart.tsx` is hand-built SVG, not a Recharts composition — a bullet graph's
+dashed-tick/solid-tick+triangle marks have no direct Recharts primitive, and an explicit
+`viewBox` sidesteps the `ResponsiveContainer` capture hazard (D-105/D-113) structurally;
+`CHART_ROW_SPAN = 6`, deliberately conservative — the *shipped* `farplas-7step-tr` ADIM 7 block
+has 18 rows to spare, but the future Rev00-based 8-step template's own ADIM 7 canvas is only
+78 pt/6 rows (§12.4/D-156), and Pareto/Trend's `10` would fit today while silently breaking the
+moment Phase 11 switches the default template. `src/a3/render/rasterize.ts` needed zero
+changes — confirmed at session start and again after: `rendererMap[slot.kind]` was already a
+generic string-keyed dispatch. Registered in `src/methods/registry.ts`; TR/EN i18n keys added
+together. TDD: schema/Editor/renderToA3 tests plus a dedicated `xlsxSurvival.test.ts` — unlike
+`problem-impact` (C2), which reuses `paretoMethod`'s renderer, `kpi-strip` registers its own
+`imageKind`/`renderImage`, so this test is the one proving the new registration resolves
+end-to-end through the real registry. `TEMPLATE_ANALYSIS.md` §14.3/§14.8 and `DECISIONS.md`
+P-31/P-36 marked closed.
+`npm test` 794/794 (196 files, up from 775/775 at 192 — 19 new tests), exit code 0 (checked).
+`npm run lint` clean (the one pre-existing `ThemeProvider` warning). `npm run build` green
+(same pre-existing chunk-size warning). `cargo test` 89/89, `cargo clippy --all-targets -- -D
+warnings` and `cargo fmt -- --check` all clean — Rust untouched, as expected (the rasterizer
+stays kind-agnostic and the xlsx writer embeds PNGs with no awareness of `kind` strings at
+all, confirmed by grep). `scripts/gen-a3-fixture.ts` was not re-run — it exercises no Step 7
+entry, so its checked-in fixture is unaffected regardless of the new `imageKind`. Not yet
+committed to git.
