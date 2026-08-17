@@ -1580,6 +1580,22 @@ bir yaprak, ve D-124'ün "bir entry = bir izlenebilir düğüm" mimarisi düğü
 desteklemiyor. **Fishbone'un onaylanan görsel dili bu bulgudan etkilenmiyor** — ikisi de gerçek,
 bağımsız yöntemler; whyWhyTree'nin diyagramı ayrı, iyi tanımlanmış bir gelecek iş (Oturum C/D).
 
+**Oturum C5 (2026-08-17): iki boşluk BİTTİ, üçüncüsü mimari karara bağlandı, inşası ertelendi
+(D-184/D-185).** `WhyWhyTreeDiagram.tsx` — Fishbone'un React Flow deseninin birebir izleyicisi
+ama kendi geometrisiyle: derinliğe göre sütun (`x = depth × 220`), yapraklar `flattenTree`'nin
+derinlik-ilk sırasında ardışık satıra, iç düğümler çocuklarının satır ortalamasına (hafif bir
+Reingold–Tilford), tek bir kök-etiket düğümü solda, gerçek EK-2905 panelinin tekrarlayan
+zincir-ortası dallanmasını (bkz. yukarıdaki bulgu) test eden bir PROBE'la doğrulandı
+(`layout.test.ts`). ✓/❌+KN{N} artık `WhyWhyNodeSchema`'nın opsiyonel `outcome` alanı — KN numarası
+D-71 uyarınca **saklanmıyor**, `confirmedRootCauseNumbers` tarafından görüntüleme zamanında
+türetiliyor. `renderWhyWhyTreeToA3.ts` Fishbone'u birebir izliyor: `rowSpan` yok — §12.5'in "1
+grafik + 1 giriş" tavanı zaten tek bir diyagrama göre boyutlanmış, ve gerçek imzalı form
+whyWhyTree'yi Adım 4'ün *tek* diyagramı olarak kullanıyor, Fishbone'la yan yana değil. Üçüncü
+boşluk (düğüm-seviyesi referans) `AskUserQuestion` ile Barış'a soruldu — Seçenek A (D-116'yı
+`targetNodeId?`ile genişletme) seçildi, ama **inşası bu dilimde YAPILMADI**: D-114'ün
+dilim-başına-tek-mekanizma bütçesi zaten diyagrama harcanmıştı, ikinci bir mekanizma aynı
+oturumda başlatılmaz. Karar D-185'te kayıtlı, inşası **P-39**.
+
 **Onaylanan fishbone görsel dili `layout.ts`'in gerçek ürettiğinden üç noktada ayrılıyor** — bu
 artık maket tercihi değil, ileride yazılacak somut bir kod işi: **P-34**'e kaydedildi (dal yönü
 dikeyden diyagonale, neden konumu omurgadan-uzaktan kategoriye-yakına, yeni bir `effect`
@@ -1682,7 +1698,15 @@ D-164: otomatik + manuel, ikisi birden. Etkileşim:
   **BİTTİ — Oturum C4, 2026-08-17.** `src/methods/documentUpdatesTracker/`,
   `src/methods/yokotenTracker/`, `src/methods/lessonsLearned/`; ayrıca Adım 7'nin
   `src/methods/sustainmentAudit/`'i (§13.4 madde 1). D-183.
+- ~~whyWhyTree diyagramı + terminal-durum alanı (P-35'in ilk iki boşluğu) — Oturum C5.~~
+  **BİTTİ — Oturum C5, 2026-08-17.** `src/methods/whyWhyTree/{layout,outcome,
+  WhyWhyTreeDiagram}.ts(x)`, D-184. P-35'in üçüncü boşluğu (düğüm-seviyesi referans) karara
+  bağlandı ama inşa edilmedi — D-185, **P-39**.
 - `MethodPlugin.tier` alanının ve iki-bölümlü `MethodBand` arayüzünün kodu (§14.6) — kod
   YAZILMADI, yalnızca tasarlandı.
 - Esnek tahsisin sürükle-tutamaç UI'ının kodu (§14.7) — aynı şekilde tasarım, kod değil.
 - Şablon dosyasının kendisi (`src/a3/templates/*`) — D-95, Faz 11, değişmedi.
+- **P-39 (yeni, D-185)**: `EntryReference`'a opsiyonel `targetNodeId?: string` eklenerek
+  düğüm-seviyesi adresleme — `findOrphanedReferences`/`findReferencesTo`/
+  `listReferenceableEntries` düğüm varlığını da bilmeli, `EntryReferenceField` düğüm listelemeyi
+  öğrenmeli. Henüz planlanmadı.

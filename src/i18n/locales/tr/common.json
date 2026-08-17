@@ -408,7 +408,14 @@
     "whyWhyTree": {
       "name": "Neden-neden mantık ağacı",
       "useWhen": "Bir \"neden\"in birden fazla makul cevabı varsa ve doğrusal 5 Neden zinciri birini elemeye zorluyorsa kullanın.",
-      "nodeLabel": "Neden"
+      "nodeLabel": "Neden",
+      "rootPlaceholder": "Problem",
+      "outcomeLabel": "Sonuç",
+      "outcome": {
+        "unset": "İşaretlenmedi",
+        "controlled": "Zaten kontrol altında",
+        "confirmedRootCause": "Doğrulanmış kök neden"
+      }
     },
     "faultTree": {
       "name": "Hata ağacı (FTA)",

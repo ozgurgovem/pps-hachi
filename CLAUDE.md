@@ -1070,3 +1070,47 @@ lint` clean (the one pre-existing `ThemeProvider` warning). `npm run build` gree
 pre-existing chunk-size warning). `cargo test` 89/89, `cargo clippy --all-targets -- -D
 warnings` and `cargo fmt -- --check` all clean — Rust untouched, as expected. Not yet
 committed to git.
+
+**Oturum C — C5 (D-149's fourth and last part, fifth code slice): DONE 2026-08-17.** Per
+`docs/oturumlar/C5-whywhytree-diyagram.md`, P-35's three gaps in `whyWhyTree` — no diagram, no
+terminal-outcome field, and a node-vs-entry reference-architecture mismatch. Before any code,
+this session opened `reference/Examples/PPS_A3_EK-2905_Yüksek_Fire_Problemi_10.08.2026.pdf`'s
+real ADIM 4 panel directly (P-35's own instruction, not just D-176's summary) — confirming four
+top-level sub-problems fanning into parallel Why-chains with repeated mid-chain branching, every
+leaf ending ✓ or ❌+KN{N}. Two of the three gaps are mechanical and shipped this slice (D-184,
+this session's one D-114-budgeted mechanism): `whyWhyTree/layout.ts`'s `computeWhyWhyTreeLayout`
+— a depth-column/leaf-row scheme (unlike Fishbone's fixed-category spine, this tree has no
+bounded shape to hand-tune constants against) — feeds a new `WhyWhyTreeDiagram.tsx` (React Flow,
+Fishbone's D-102/D-103 pattern: one implementation, live in the Editor and rasterized for
+export, plain default nodes, no new colour language) registered under a new `A3ImageKind`,
+`"why-why-diagram"`. `WhyWhyNodeSchema` gained an optional, loose `outcome` field (not
+`z.enum`, D-51/D-116's own reasoning); KN{N} numbering is derived at render time from
+`flattenTree`'s own depth-first order (`confirmedRootCauseNumbers`), never stored, per D-71's
+"two representations, no precedence rule" trap — the same discipline Fishbone's `effectLabel`
+already established (P-34). `renderWhyWhyTreeToA3.ts` now mirrors `renderFishboneToA3.ts`
+exactly (`lines: [title]` + `image`, no `rowSpan`) — `TEMPLATE_ANALYSIS.md` §12.5 already sizes
+ADIM 4's block for "1 grafik + 1 giriş," the slot Fishbone already fills, and the real signed
+form uses the why-why tree as Step 4's sole diagram, never stacked with Fishbone. The third gap
+— a confirmed root cause is one leaf inside a single entry, but D-124 (LOCKED) means
+`references[]` can only link at the whole-entry level — is a real architectural question
+(`C-yontem-plugin-insasi.md` §3's own flag: "the one sub-task crossing D-28's architecture
+threshold"), put to Barış via `AskUserQuestion` with three genuine options and no recommendation
+baked in. **Barış chose Option A** — extend `EntryReference` (D-116) with an optional
+`targetNodeId?: string` — over Option B (extract a confirmed root cause into its own entry,
+which would have split the tree's integrity across two representations, D-71's own trap again)
+and Option C (leave references entry-level, cheapest, status quo). Per the question's own
+framing and D-114's one-mechanism-per-slice budget (already spent on the diagram), **the
+decision is recorded (D-185) but implementation is deferred to its own future slice — P-39** —
+it would touch `findOrphanedReferences`/`findReferencesTo`/`listReferenceableEntries` (currently
+entry-only) and `EntryReferenceField` (currently an entry picker), none of which this session
+touched. `src/a3/render/rasterize.ts` and `registry.ts`'s `getA3ImageRendererMap` needed zero
+changes — reverified (not assumed) as already fully generic over `A3ImageKind`.
+`TEMPLATE_ANALYSIS.md` §14.4/§14.8 and `DECISIONS.md` D-184/D-185 record it; P-35 marked closed
+2 of 3, P-39 filed for the third.
+`npm test` 853/853 (211 files, up from 824/824 at 208 — 29 new tests), exit code 0 (checked via
+a separate logfile + `echo $?`, not piped through `tail`). `npm run lint` clean (the one
+pre-existing `ThemeProvider` warning). `npm run build` green (same pre-existing chunk-size
+warning). `cargo test` 89/89, `cargo clippy --all-targets -- -D warnings` and `cargo fmt --
+check` all clean — Rust untouched, as expected (the new `A3ImageKind` is TS-only).
+`scripts/gen-a3-fixture.ts` was not re-run — it exercises `fishbone` for Step 4, never
+`whyWhyTree`, so the checked-in fixture is unaffected. Not yet committed to git.

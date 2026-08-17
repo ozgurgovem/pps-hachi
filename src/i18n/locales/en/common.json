@@ -408,7 +408,14 @@
     "whyWhyTree": {
       "name": "Why-Why logic tree",
       "useWhen": "Use this when a why has more than one credible answer and a linear 5-Why chain would force you to drop one.",
-      "nodeLabel": "Why"
+      "nodeLabel": "Why",
+      "rootPlaceholder": "Problem",
+      "outcomeLabel": "Outcome",
+      "outcome": {
+        "unset": "Not marked",
+        "controlled": "Already controlled",
+        "confirmedRootCause": "Confirmed root cause"
+      }
     },
     "faultTree": {
       "name": "Fault tree (FTA)",
