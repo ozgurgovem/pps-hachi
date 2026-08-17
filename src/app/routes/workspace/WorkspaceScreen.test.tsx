@@ -48,6 +48,13 @@ async function addGenericTextEntry(user: ReturnType<typeof userEvent.setup>, tit
   // own section, then to the Free text card within it, so this stays
   // unambiguous regardless of how many methods or entries already exist.
   const methodBand = screen.getByRole("heading", { name: "Add an entry" }).closest("section");
+  // D-169/C6: `genericText` never gets a `tier`, so "Free text" always lives
+  // in the collapsed "Other methods" disclosure — expand it first if it
+  // isn't already (idempotent: a later call in the same step finds it open).
+  const otherToggle = within(methodBand!).queryByRole("button", { name: /other formats/i });
+  if (otherToggle?.getAttribute("aria-expanded") === "false") {
+    await user.click(otherToggle);
+  }
   const freeTextCard = within(methodBand!).getByText("Free text").closest("div");
   await user.click(within(freeTextCard!).getByRole("button", { name: "Add entry" }));
   const dialog = await screen.findByRole("dialog");

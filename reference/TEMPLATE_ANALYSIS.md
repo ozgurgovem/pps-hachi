@@ -1616,52 +1616,55 @@ beş unsur, her biri zaten var olan bir mekanizmaya bağlanıyor, yeni bir şey 
 
 ### 14.6 §5.2 — Adım sayfası arayüzü
 
-**Sorunun boyutu, ölçüldü (registry taraması, tahmin değil):**
+**BİTTİ — Oturum C6, 2026-08-18 (D-187).** Bu bölümün geri kalanı tasarım kaydı olarak kalıyor;
+mekanizma `src/methods/types.ts`/`registry.ts`/`MethodBand.tsx`'te koda döküldü.
+
+**Sorunun boyutu, ölçüldü (registry taraması, tahmin değil — C6'da yeniden sayıldı, §5.2'nin
+kendi tarihi eskimişti):**
 
 | Adım | Kayıtlı yöntem sayısı (generic hariç) |
 |---|---|
-| 1 | 7 (+ 5N1K, `problem-impact` eklenince 9) |
+| 1 | 9 (`five-n1k`/`problem-impact` C2'de şipping edildi) |
 | 2 | 10 — en kalabalık, P-31'in kendi tespiti doğru |
-| 3 | 1 (`smartTarget`, zaten tasarlanmış) |
+| 3 | 1 (`smartTarget`) |
 | 4 | 9 |
 | 5 | 7 |
 | 6 | 5 |
-| 7 | 0 (yalnızca generic — §14.3'ün `kpi-strip` adayı burada devreye girer) |
-| 8 | 0 (yalnızca generic — §13.4'ün Oturum C adayları burada devreye girer) |
+| 7 | 2 (`kpiStrip`, `sustainmentAudit` — C3/C4'te şipping edildi, B2'de 0'dı) |
+| 8 | 3 (`documentUpdatesTracker`, `yokotenTracker`, `lessonsLearned` — C4'te şipping edildi, B2'de 0'dı) |
 
-`MethodBand.tsx` bugün (kod okundu, bu oturumda değiştirilmedi) `getMethodsForStep`'in
-döndürdüğü listeyi **tek, eşit ağırlıklı, sarmalanan bir kart grid'i** olarak basıyor — sıralama
-yok, "önerilen" yok. Bu tam olarak ANAYASA.md'nin G6 deseni: on bloklu bir adım sayfası, hiçbir
-faz "kullanıcı bu ekranda ne görür, hangisi varsayılan" sorusunu sormamış.
+`MethodBand.tsx` B2'de (kod okundu, o oturumda değiştirilmedi) `getMethodsForStep`'in
+döndürdüğü listeyi **tek, eşit ağırlıklı, sarmalanan bir kart grid'i** olarak basıyordu —
+sıralama yok, "önerilen" yok. Bu tam olarak ANAYASA.md'nin G6 deseni: on bloklu bir adım
+sayfası, hiçbir faz "kullanıcı bu ekranda ne görür, hangisi varsayılan" sorusunu sormamıştı.
 
-**Karar: `MethodPlugin`'e yeni, opsiyonel bir alan — `tier?: "recommended" | "more"`.**
+**Karar (şipping edildi): `MethodPlugin`'e opsiyonel bir alan — `tier?: "recommended" | "more"`.**
 Belirtilmeyen plugin'ler `"more"` sayılır (geriye dönük uyumlu, migration gerektirmez — D-51'in
-loose-schema felsefesiyle aynı ruh, ama bu kez TS tipinde). `MethodBand` iki bölüme ayrılır:
+loose-schema felsefesiyle aynı ruh, ama bu kez TS tipinde). `MethodBand` iki bölüme ayrıldı:
 
 - **Önerilen** — büyük kartlar, adım sayfası açılır açılmaz görünür, boş adımda varsayılan yol.
-- **Diğer yöntemler** — küçük, daraltılmış bir liste/açılır menü ("+ N diğer format"), bir tık
-  uzakta ama ilk bakışta görünmez. `getMethodsForStep`'in sırası değişmiyor; yalnızca render
-  iki gruba bölünüyor.
+- **Diğer yöntemler** — küçük, daraltılmış bir `Button`/`aria-expanded` disclosure ("+ N diğer
+  format"), bir tık uzakta ama ilk bakışta görünmez. `getMethodsForStep`'in sırası değişmedi;
+  yalnızca render iki gruba bölündü. Boş "diğer" listesi (tüm yöntemler önerilen ise) disclosure'ı
+  hiç render etmiyor.
 
-**Önerilen atamaları (başlangıç editoryal kararı — Barış'ın Oturum C'de değiştirebileceği bir
-alan değeri, bu oturumun dondurduğu bir liste değil):**
+**Önerilen atamaları (D-169'un editoryal kararı, C6'da kodlandı — Adım 4 hariç değişmedi):**
 
 | Adım | Önerilen | Gerekçe |
 |---|---|---|
-| 1 | `gapStatement`, 5N1K (yeni), `fiveW2H` | D-159'un zorunlu üçlüsü + genel problem çerçevesi |
+| 1 | `gapStatement`, `fiveN1K`, `fiveW2H` | D-159'un zorunlu üçlüsü + genel problem çerçevesi |
 | 2 | `stratificationMatrix`, `categoryBreakdown`, `pareto`, `trend` | D-132'nin kendi ayrımı: stratifikasyon + kategori + iki temel grafik |
 | 3 | `smartTarget` | Tek yöntem, D-12/D-11 zorunlu |
-| 4 | `fishbone`, `fiveWhy` | D-11'in kanonik TBP çerçevesi |
+| 4 | `fishbone`, `fiveWhy`, `whyWhyTree` | D-11'in kanonik TBP çerçevesi + D-176/P-35'in gerçek kanıtı (EK-2905'in imzalı ADIM 4 paneli bir Why-Why ağacı) — C6'da `AskUserQuestion` Seçenek B: hiçbiri çıkarılmadı, whyWhyTree üçüncü önerilen olarak eklendi |
 | 5 | `countermeasure`, `weightedDecisionMatrix` | Kök karşı-önlem listesi + önceliklendirme |
 | 6 | `actionItem` | Uygulama takibinin omurgası |
-| 7 | (Oturum C `kpi-strip` plugin'i şipping edilince) | Bugün boş — generic tek seçenek |
-| 8 | (Oturum C'nin doküman/Yokoten/Lessons plugin'leri şipping edilince) | Bugün boş |
+| 7 | `kpiStrip`, `sustainmentAudit` | C3/C4'te şipping edilen ikisi de — "diğer" boş kalır |
+| 8 | `documentUpdatesTracker`, `yokotenTracker`, `lessonsLearned` | C4'te şipping edilen üçü de — "diğer" boş kalır |
 
-**Varsayılan yol:** boş bir adıma girildiğinde, "Önerilen" bölümündeki ilk kart en belirgin
-"ekle" çağrısını taşır (mevcut `Button` birincil varyantı); "Diğer yöntemler" daraltılmış
-kalır. Format seçimi mekanizması değişmiyor — kullanıcı hâlâ bir kart seçip `EntryEditorDialog`'u
-açıyor (D-63'ün "tek eylem, tek isim" ilkesi korunuyor); değişen yalnızca hangi kartların ilk
-bakışta görünür olduğu.
+**Varsayılan yol:** boş bir adıma girildiğinde, "Önerilen" bölümündeki kartlar doğrudan görünür
+(mevcut `Button` birincil varyantı); "Diğer yöntemler" daraltılmış kalır. Format seçimi
+mekanizması değişmedi — kullanıcı hâlâ bir kart seçip `EntryEditorDialog`'u açıyor (D-63'ün "tek
+eylem, tek isim" ilkesi korunuyor); değişen yalnızca hangi kartların ilk bakışta görünür olduğu.
 
 ### 14.7 §5.3 — Esnek tahsis arayüzü
 
@@ -1702,8 +1705,11 @@ D-164: otomatik + manuel, ikisi birden. Etkileşim:
   **BİTTİ — Oturum C5, 2026-08-17.** `src/methods/whyWhyTree/{layout,outcome,
   WhyWhyTreeDiagram}.ts(x)`, D-184. P-35'in üçüncü boşluğu (düğüm-seviyesi referans) karara
   bağlandı ama inşa edilmedi — D-185, **P-39**.
-- `MethodPlugin.tier` alanının ve iki-bölümlü `MethodBand` arayüzünün kodu (§14.6) — kod
-  YAZILMADI, yalnızca tasarlandı. **C6'nın işi (2026-08-18).**
+- ~~`MethodPlugin.tier` alanının ve iki-bölümlü `MethodBand` arayüzünün kodu (§14.6) — kod
+  YAZILMADI, yalnızca tasarlandı.~~ **BİTTİ — Oturum C6, 2026-08-18.** `src/methods/types.ts`
+  (`tier?` alanı), 19 plugin dosyası (`tier: "recommended"`), `MethodBand.tsx` (iki bölüm +
+  disclosure), D-187. §2.4'ün açık sorusu (`AskUserQuestion`): Adım 4'e whyWhyTree üçüncü
+  önerilen olarak eklendi (Seçenek B).
 - ~~Esnek tahsisin sürükle-tutamaç UI'ının kodu (§14.7) — aynı şekilde tasarım, kod değil.~~
   **D-186 (2026-08-18): C6'dan Faz 11'e ertelendi, P-40.** Hedefi henüz yok — `budget.ts`
   bugün yalnızca `farplas-7step-tr`'nin statik satır aralığını okuyor, D-158/D-160'ın

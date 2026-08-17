@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { REFERENCE_ROLES, STEP_IDS } from "../domain/model";
+import { REFERENCE_ROLES, STEP_IDS, type StepId } from "../domain/model";
 import { getMethodById, getMethodsForStep, METHOD_REGISTRY } from "./registry";
 import { GENERIC_TEXT_METHOD_ID } from "./genericText";
 
@@ -115,6 +115,57 @@ describe("reference roles across the registry", () => {
       for (const role of plugin.referenceRoles ?? []) {
         expect(role.fromSteps.every((stepId) => plugin.steps.includes(stepId))).toBe(false);
       }
+    }
+  });
+});
+
+/**
+ * D-169/C6: `tier` is additive and optional — unset must behave exactly like
+ * `"more"` (D-51's loose-schema posture, applied to a TS field this time).
+ * `genericText` deliberately never gets a `tier` (§2.2 of the C6 prompt), so
+ * it is the one plugin registered on every step that must never appear as
+ * `"recommended"` — and every step must have at least one method that does,
+ * or `MethodBand`'s "Recommended" section would render empty on a fresh step.
+ */
+describe("MethodPlugin.tier (D-169)", () => {
+  it("genericText never declares a tier — unset, not 'more'", () => {
+    expect(getMethodById(GENERIC_TEXT_METHOD_ID)?.tier).toBeUndefined();
+  });
+
+  it("gives every step at least one recommended method", () => {
+    for (const stepId of STEP_IDS) {
+      const recommended = getMethodsForStep(stepId).filter((plugin) => plugin.tier === "recommended");
+      expect(recommended.length).toBeGreaterThan(0);
+    }
+  });
+
+  /**
+   * D-169's own table, applied verbatim for Steps 1-3/5-6 (untouched this
+   * slice) and Steps 7-8 (empty in D-169, filled in by C3/C4's real
+   * plugins — re-derived from the live registry, not the spec's stale
+   * count, per §1 point 5's own discipline). Step 4 is D-169 v2
+   * (`AskUserQuestion`, C6, Option B): `whyWhyTree` added as a third
+   * recommended alongside `fishbone`/`fiveWhy` — D-176's real evidence
+   * surfaced by P-35, nothing removed.
+   */
+  it("matches D-169's per-step recommended set exactly", () => {
+    const RECOMMENDED_BY_STEP: Record<StepId, readonly string[]> = {
+      1: ["gap-statement", "five-n1k", "five-w2h"],
+      2: ["stratification-matrix", "category-breakdown", "pareto", "trend"],
+      3: ["smart-target"],
+      4: ["fishbone", "five-why", "why-why-tree"],
+      5: ["countermeasure", "weighted-decision-matrix"],
+      6: ["action-item"],
+      7: ["kpi-strip", "sustainment-audit"],
+      8: ["document-updates-tracker", "yokoten-tracker", "lessons-learned"],
+    };
+
+    for (const stepId of STEP_IDS) {
+      const recommendedIds = getMethodsForStep(stepId)
+        .filter((plugin) => plugin.tier === "recommended")
+        .map((plugin) => plugin.id)
+        .sort();
+      expect(recommendedIds).toEqual([...RECOMMENDED_BY_STEP[stepId]].sort());
     }
   });
 });

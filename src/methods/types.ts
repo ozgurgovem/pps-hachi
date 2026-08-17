@@ -84,6 +84,13 @@ export interface MethodPlugin<TPayload> {
    * `meta.linkedRecords[]` (SPEC.md §4.2), not to another entry.
    */
   readonly referenceRoles?: readonly MethodReferenceRole[] | undefined;
+  /**
+   * D-169: which of `MethodBand`'s two sections this plugin's card renders
+   * in by default. Unset counts as `"more"` — additive, backward compatible,
+   * no migration, same posture as `referenceRoles` above. An editorial
+   * default, not a frozen list — see `DECISIONS.md` D-169/D-186.
+   */
+  readonly tier?: "recommended" | "more";
 }
 
 /**

@@ -1114,3 +1114,48 @@ warning). `cargo test` 89/89, `cargo clippy --all-targets -- -D warnings` and `c
 check` all clean — Rust untouched, as expected (the new `A3ImageKind` is TS-only).
 `scripts/gen-a3-fixture.ts` was not re-run — it exercises `fishbone` for Step 4, never
 `whyWhyTree`, so the checked-in fixture is unaffected. Not yet committed to git.
+
+**Oturum C — C6 (D-149's fourth and last part, sixth and last code slice): DONE 2026-08-18.**
+Per `docs/oturumlar/C6-tier-methodband.md`, narrowed by D-186 (found while scoping this
+session's own prompt, before any code) to `MethodPlugin.tier` + two-section `MethodBand`
+only — D-170's elastic-allocation drag-handle UI has no template to attach to yet
+(`src/a3/layout/budget.ts` reads a static row range, D-158/D-160's whole model targets the
+not-yet-built Rev00 `pps-8step-auto` template) and was deferred whole to Phase 11, filed as
+**P-40**. `src/methods/types.ts` gains an additive `tier?: "recommended" | "more"` field
+(unset = `"more"`, same posture as `referenceRoles`/D-116, no migration). 19 of the registry's
+plugins got `tier: "recommended"` per D-169's own table (Steps 1/2/3/5/6/7/8 unchanged from
+B2's original assignment); `genericText` deliberately never gets one. **§2.4's open question**
+— D-169's Step 4 table (`fishbone`+`fiveWhy`) sat LOCKED against D-176/P-35's real evidence
+(the signed EK-2905 form's ADIM 4 panel is a Why-Why tree, not a fishbone) — went to Barış via
+`AskUserQuestion` before any code, three options presented with no recommendation. **Barış
+chose Option B**: `whyWhyTree` added as a third recommended method alongside `fishbone`/
+`fiveWhy`, nothing removed. `MethodBand.tsx`: `getMethodsForStep`'s order is preserved,
+filtered (not resorted) into "Recommended" (always visible) and "Other methods" (a
+`Button variant="ghost"`/`aria-expanded` disclosure, `CoachBand.tsx`'s own toggle pattern
+reused rather than reinvented, defaulting collapsed, rendering nothing when empty). i18n:
+`workspace.methodBand.otherMethods.{show,hide}` added TR+EN together. **Two existing test
+helpers broke and were fixed** — `WorkspaceScreen.test.tsx`'s `addGenericTextEntry` (named in
+the C6 prompt) and `entryReferences.integration.test.tsx`'s `addEntry` (not named, found only
+by running the full suite) both queried a method card directly by text; since the methods they
+target now sit in the collapsed "more" group, both now expand the disclosure first if
+collapsed, idempotently, before locating the card.
+**Mid-session, Barış raised two related but out-of-scope methodological points in chat**:
+whether Fishbone's individual detected causes should each get their own linked 5-Why
+drill-down, and whether a Step-4 workflow that skips Fishbone entirely (pure branching 5-Why,
+matching EK-2905's real practice) should be first-class rather than an implicit possibility two
+independent plugins happen to allow. Both acknowledged, neither designed or built — D-186 had
+already narrowed this slice to `tier`/`MethodBand`, and both raise a real new
+cross-plugin-linking mechanism plus a re-litigation of D-11's LOCKED Step-4 framing. Filed as
+**P-41** rather than silently dropped or silently expanded into scope.
+`npm test` 864/864 (212 files, up from 853/853 at 211 — 11 new tests: `MethodBand.test.tsx`'s
+8 plus `registry.test.ts`'s 3 tier-default assertions), exit code 0 (checked via a separate
+logfile + `echo $?`, not piped through `tail`). `npm run lint` clean (the one pre-existing
+`ThemeProvider` warning). `npm run build` green (same pre-existing chunk-size warning) — hit
+and fixed one `exactOptionalPropertyTypes` violation in the new test file and one
+`noUncheckedIndexedAccess` complaint in `registry.test.ts` (typed the per-step lookup table
+over the exact `StepId` union instead of `Record<number, ...>`). `cargo test` 89/89,
+`cargo clippy --all-targets -- -D warnings` and `cargo fmt -- --check` all clean — Rust
+untouched, as expected (`tier` is TS-only). `scripts/gen-a3-fixture.ts` was not re-run — `tier`
+affects only which cards `MethodBand` shows, never the descriptor or the template's style
+table. **D-149's Oturum C leg is now fully closed — C1 through C6 all shipped.** Only Oturum D
+(P-26, i18n + block alignment) remains unwritten. Not yet committed to git.

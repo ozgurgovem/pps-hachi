@@ -8,6 +8,7 @@ export const FIVE_W2H_METHOD_ID = "five-w2h";
 export const fiveW2HMethod: MethodPlugin<FiveW2HPayload> = {
   id: FIVE_W2H_METHOD_ID,
   steps: [1],
+  tier: "recommended",
   nameKey: "methods.fiveW2H.name",
   useWhenKey: "methods.fiveW2H.useWhen",
   schema: FiveW2HPayloadSchema,

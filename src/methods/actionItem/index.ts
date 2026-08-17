@@ -11,6 +11,7 @@ export const ACTION_ITEM_METHOD_ID = "action-item";
 export const actionItemMethod: MethodPlugin<ActionItemPayload> = {
   id: ACTION_ITEM_METHOD_ID,
   steps: [6],
+  tier: "recommended",
   nameKey: "methods.actionItem.name",
   useWhenKey: "methods.actionItem.useWhen",
   schema: ActionItemPayloadSchema,

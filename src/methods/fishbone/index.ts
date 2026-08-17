@@ -12,6 +12,7 @@ export const fishboneMethod: MethodPlugin<FishbonePayload> = {
   id: FISHBONE_METHOD_ID,
   // D-11: Step 4 only, never Step 2.
   steps: [4],
+  tier: "recommended",
   nameKey: "methods.fishbone.name",
   useWhenKey: "methods.fishbone.useWhen",
   schema: FishbonePayloadSchema,

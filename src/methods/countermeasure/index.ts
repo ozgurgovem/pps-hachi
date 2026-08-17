@@ -11,6 +11,7 @@ export const COUNTERMEASURE_METHOD_ID = "countermeasure";
 export const countermeasureMethod: MethodPlugin<CountermeasurePayload> = {
   id: COUNTERMEASURE_METHOD_ID,
   steps: [5],
+  tier: "recommended",
   nameKey: "methods.countermeasure.name",
   useWhenKey: "methods.countermeasure.useWhen",
   schema: CountermeasurePayloadSchema,

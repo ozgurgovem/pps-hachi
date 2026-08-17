@@ -98,7 +98,11 @@
     },
     "methodBand": {
       "title": "Giriş ekle",
-      "addEntry": "Giriş ekle"
+      "addEntry": "Giriş ekle",
+      "otherMethods": {
+        "show": "+ {{count}} diğer format",
+        "hide": "Diğer yöntemleri gizle"
+      }
     },
     "coachBand": {
       "show": "Rehberliği göster",

@@ -11,6 +11,7 @@ export const DOCUMENT_UPDATES_TRACKER_METHOD_ID = "document-updates-tracker";
 export const documentUpdatesTrackerMethod: MethodPlugin<DocumentUpdatesTrackerPayload> = {
   id: DOCUMENT_UPDATES_TRACKER_METHOD_ID,
   steps: [8],
+  tier: "recommended",
   nameKey: "methods.documentUpdatesTracker.name",
   useWhenKey: "methods.documentUpdatesTracker.useWhen",
   schema: DocumentUpdatesTrackerPayloadSchema,

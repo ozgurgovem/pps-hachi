@@ -8,6 +8,7 @@ export const STRATIFICATION_MATRIX_METHOD_ID = "stratification-matrix";
 export const stratificationMatrixMethod: MethodPlugin<StratificationMatrixPayload> = {
   id: STRATIFICATION_MATRIX_METHOD_ID,
   steps: [2],
+  tier: "recommended",
   nameKey: "methods.stratificationMatrix.name",
   useWhenKey: "methods.stratificationMatrix.useWhen",
   schema: StratificationMatrixPayloadSchema,

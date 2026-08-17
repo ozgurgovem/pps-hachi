@@ -52,6 +52,13 @@ async function goToStep(user: ReturnType<typeof userEvent.setup>, name: string) 
 
 async function addEntry(user: ReturnType<typeof userEvent.setup>, methodName: string, title: string) {
   const methodBand = screen.getByRole("heading", { name: "Add an entry" }).closest("section");
+  // D-169/C6: a method with no `tier: "recommended"` (e.g. hypothesisVerification)
+  // lives in the collapsed "Other methods" disclosure — expand it first if
+  // it isn't already (idempotent, mirrors WorkspaceScreen.test.tsx's fix).
+  const otherToggle = within(methodBand!).queryByRole("button", { name: /other formats/i });
+  if (otherToggle?.getAttribute("aria-expanded") === "false") {
+    await user.click(otherToggle);
+  }
   const card = within(methodBand!).getByText(methodName).closest("div");
   await user.click(within(card!).getByRole("button", { name: "Add entry" }));
   const dialog = await screen.findByRole("dialog");

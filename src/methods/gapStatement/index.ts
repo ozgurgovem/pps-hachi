@@ -8,6 +8,7 @@ export const GAP_STATEMENT_METHOD_ID = "gap-statement";
 export const gapStatementMethod: MethodPlugin<GapStatementPayload> = {
   id: GAP_STATEMENT_METHOD_ID,
   steps: [1],
+  tier: "recommended",
   nameKey: "methods.gapStatement.name",
   useWhenKey: "methods.gapStatement.useWhen",
   schema: GapStatementPayloadSchema,

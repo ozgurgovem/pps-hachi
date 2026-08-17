@@ -8,6 +8,7 @@ export const WEIGHTED_DECISION_MATRIX_METHOD_ID = "weighted-decision-matrix";
 export const weightedDecisionMatrixMethod: MethodPlugin<WeightedDecisionMatrixPayload> = {
   id: WEIGHTED_DECISION_MATRIX_METHOD_ID,
   steps: [5],
+  tier: "recommended",
   nameKey: "methods.weightedDecisionMatrix.name",
   useWhenKey: "methods.weightedDecisionMatrix.useWhen",
   schema: WeightedDecisionMatrixPayloadSchema,

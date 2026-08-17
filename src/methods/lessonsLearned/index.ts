@@ -10,6 +10,7 @@ export const LESSONS_LEARNED_METHOD_ID = "lessons-learned";
 export const lessonsLearnedMethod: MethodPlugin<LessonsLearnedPayload> = {
   id: LESSONS_LEARNED_METHOD_ID,
   steps: [8],
+  tier: "recommended",
   nameKey: "methods.lessonsLearned.name",
   useWhenKey: "methods.lessonsLearned.useWhen",
   schema: LessonsLearnedPayloadSchema,

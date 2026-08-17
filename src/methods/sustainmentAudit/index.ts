@@ -8,6 +8,7 @@ export const SUSTAINMENT_AUDIT_METHOD_ID = "sustainment-audit";
 export const sustainmentAuditMethod: MethodPlugin<SustainmentAuditPayload> = {
   id: SUSTAINMENT_AUDIT_METHOD_ID,
   steps: [7],
+  tier: "recommended",
   nameKey: "methods.sustainmentAudit.name",
   useWhenKey: "methods.sustainmentAudit.useWhen",
   schema: SustainmentAuditPayloadSchema,

@@ -98,7 +98,11 @@
     },
     "methodBand": {
       "title": "Add an entry",
-      "addEntry": "Add entry"
+      "addEntry": "Add entry",
+      "otherMethods": {
+        "show": "+ {{count}} other formats",
+        "hide": "Hide other formats"
+      }
     },
     "coachBand": {
       "show": "Show coaching",

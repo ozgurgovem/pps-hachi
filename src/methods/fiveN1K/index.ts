@@ -8,6 +8,7 @@ export const FIVE_N1K_METHOD_ID = "five-n1k";
 export const fiveN1KMethod: MethodPlugin<FiveN1KPayload> = {
   id: FIVE_N1K_METHOD_ID,
   steps: [1],
+  tier: "recommended",
   nameKey: "methods.fiveN1K.name",
   useWhenKey: "methods.fiveN1K.useWhen",
   schema: FiveN1KPayloadSchema,

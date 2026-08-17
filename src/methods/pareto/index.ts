@@ -11,6 +11,7 @@ export const PARETO_METHOD_ID = "pareto";
 export const paretoMethod: MethodPlugin<ParetoPayload> = {
   id: PARETO_METHOD_ID,
   steps: [2],
+  tier: "recommended",
   nameKey: "methods.pareto.name",
   useWhenKey: "methods.pareto.useWhen",
   schema: ParetoPayloadSchema,

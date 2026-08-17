@@ -18,6 +18,7 @@ export const KPI_STRIP_METHOD_ID = "kpi-strip";
 export const kpiStripMethod: MethodPlugin<KpiStripPayload> = {
   id: KPI_STRIP_METHOD_ID,
   steps: [7],
+  tier: "recommended",
   nameKey: "methods.kpiStrip.name",
   useWhenKey: "methods.kpiStrip.useWhen",
   schema: KpiStripPayloadSchema,

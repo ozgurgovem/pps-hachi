@@ -11,6 +11,7 @@ export const TREND_METHOD_ID = "trend";
 export const trendMethod: MethodPlugin<TrendPayload> = {
   id: TREND_METHOD_ID,
   steps: [2],
+  tier: "recommended",
   nameKey: "methods.trend.name",
   useWhenKey: "methods.trend.useWhen",
   schema: TrendPayloadSchema,

@@ -11,6 +11,7 @@ export const SMART_TARGET_METHOD_ID = "smart-target";
 export const smartTargetMethod: MethodPlugin<SmartTargetPayload> = {
   id: SMART_TARGET_METHOD_ID,
   steps: [3],
+  tier: "recommended",
   nameKey: "methods.smartTarget.name",
   useWhenKey: "methods.smartTarget.useWhen",
   schema: SmartTargetPayloadSchema,

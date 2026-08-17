@@ -13,6 +13,7 @@ export const CATEGORY_BREAKDOWN_METHOD_ID = "category-breakdown";
 export const categoryBreakdownMethod: MethodPlugin<CategoryBreakdownPayload> = {
   id: CATEGORY_BREAKDOWN_METHOD_ID,
   steps: [2],
+  tier: "recommended",
   nameKey: "methods.categoryBreakdown.name",
   useWhenKey: "methods.categoryBreakdown.useWhen",
   schema: CategoryBreakdownPayloadSchema,
