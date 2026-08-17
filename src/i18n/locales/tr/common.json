@@ -770,6 +770,103 @@
       },
       "addItem": "KPI ekle",
       "removeItem": "KPI'yı kaldır"
+    },
+    "documentStatus": {
+      "notStarted": "Başlanmadı",
+      "inProgress": "Devam Ediyor",
+      "blocked": "Engellendi",
+      "complete": "Tamamlandı",
+      "cancelled": "İptal Edildi"
+    },
+    "documentApproval": {
+      "draft": "Taslak",
+      "underReview": "İncelemede",
+      "approved": "Onaylandı",
+      "rejected": "Reddedildi"
+    },
+    "yesNo": {
+      "yes": "Evet",
+      "no": "Hayır"
+    },
+    "sustainmentAudit": {
+      "name": "Sürdürme denetimi",
+      "useWhen": "Bir önlemin hâlâ tuttuğunu doğrulayan periyodik/yinelenen denetimleri kaydetmek için kullanın — tek seferlik kontrol formundan farklıdır.",
+      "columns": {
+        "auditDate": "Denetim tarihi",
+        "areaLine": "Alan / hat",
+        "standardChecked": "Kontrol edilen standart",
+        "sampleSize": "Örneklem büyüklüğü",
+        "conforming": "Uygun",
+        "nonconforming": "Uygun değil",
+        "compliancePercent": "Uygunluk %",
+        "auditor": "Denetçi",
+        "finding": "Bulgu",
+        "reactionActionId": "Reaksiyon aksiyon ID",
+        "nextAudit": "Sonraki denetim",
+        "status": "Durum"
+      },
+      "statuses": {
+        "planned": "Planlandı",
+        "verified": "Doğrulandı",
+        "rejected": "Reddedildi"
+      }
+    },
+    "documentUpdatesTracker": {
+      "name": "Doküman güncelleme izleyicisi",
+      "useWhen": "Bu problemden sonra hangi kontrollü dokümanların güncellenmesi gerektiğini izlemek için kullanın — PFMEA, Kontrol Planı, çalışma talimatları ve diğerleri ayrı ayrı izlenir.",
+      "documentTypes": {
+        "pfmea": "PFMEA",
+        "controlPlan": "Kontrol Planı",
+        "workInstruction": "Çalışma Talimatı",
+        "inspectionStandard": "Kontrol Standardı",
+        "trainingCompetence": "Eğitim / Yetkinlik",
+        "layeredProcessAudit": "Katmanlı Proses Denetimi",
+        "apqpPpapRecord": "APQP / PPAP kaydı"
+      },
+      "fields": {
+        "updateRequired": "Güncelleme gerekli mi?",
+        "docId": "Doküman ID",
+        "revision": "Mevcut → yeni revizyon",
+        "owner": "Sorumlu",
+        "dueDate": "Termin / tamamlanma tarihi",
+        "status": "Durum",
+        "approval": "Onay",
+        "evidence": "Kanıt",
+        "customerSubmission": "Müşteriye sunuldu mu?"
+      }
+    },
+    "yokotenTracker": {
+      "name": "Yokoten (yatay yayılım) izleyicisi",
+      "useWhen": "Bu problemin başka nerede geçerli olabileceğini ve çözümün gerçekten oraya yayılıp yayılmadığını izlemek için kullanın.",
+      "columns": {
+        "siteLine": "Saha / hat / ürün",
+        "applicability": "Uygulanabilirlik",
+        "riskReviewed": "Risk gözden geçirildi mi",
+        "actionRequired": "Gerekli aksiyon",
+        "owner": "Sorumlu",
+        "dueDate": "Termin tarihi",
+        "status": "Durum",
+        "completionEvidence": "Tamamlanma kanıtı",
+        "effectivenessChecked": "Etkinlik kontrol edildi mi",
+        "checkDate": "Kontrol tarihi",
+        "result": "Sonuç",
+        "approval": "Onay",
+        "notes": "Notlar"
+      }
+    },
+    "lessonsLearned": {
+      "name": "Öğrenilen dersler",
+      "useWhen": "Problemi yapılandırılmış bir retrospektifle kapatmak için kullanın — ne işe yaradı, ne tekrar kullanılmalı, bir dahakine ne kaçınılmalı.",
+      "fields": {
+        "wentWell": "Ne iyi gitti?",
+        "failedOrDelayed": "Ne başarısız oldu veya gecikti?",
+        "evidenceChangedThinking": "Hangi kanıt düşüncemizi değiştirdi?",
+        "shouldBeReused": "Ne tekrar kullanılmalı?",
+        "shouldBeAvoided": "Neden kaçınılmalı?",
+        "coachingCapabilityLesson": "Koçluk yetkinliği dersi",
+        "customerCommunicationLesson": "Müşteri iletişimi dersi",
+        "finalClosureRationale": "Nihai kapanış gerekçesi"
+      }
     }
   },
   "gallery": {

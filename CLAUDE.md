@@ -1033,5 +1033,40 @@ P-31/P-36 marked closed.
 warnings` and `cargo fmt -- --check` all clean — Rust untouched, as expected (the rasterizer
 stays kind-agnostic and the xlsx writer embeds PNGs with no awareness of `kind` strings at
 all, confirmed by grep). `scripts/gen-a3-fixture.ts` was not re-run — it exercises no Step 7
-entry, so its checked-in fixture is unaffected regardless of the new `imageKind`. Not yet
+entry, so its checked-in fixture is unaffected regardless of the new `imageKind`.
+
+**Oturum C — C4 (D-149's fourth and last part, fourth code slice): DONE 2026-08-17.** Per
+`docs/oturumlar/C4-adim8.md`, B1's §13.4 remaining four candidates — `sustainment-audit`
+(ADIM 7) plus `document-updates-tracker`/`yokoten-tracker`/`lessons-learned` (ADIM 8), zero
+new mechanisms, all straight applications of the existing `rowTable`(D-115)/`fieldForm`(D-127)
+substrates. §2.2's three small questions went to Barış via `AskUserQuestion` before any code,
+all three recommended options confirmed: none of the four take a reference role this round (no
+clean `fromSteps` target — add when real use demands it, YAGNI); `sustainment-audit` is Step 7
+(matching §13.1's Effectiveness Check page, distinct from `kpi-strip`'s one-off KPI tile);
+P-37's status glyph (D-180) is deliberately **not** applied to any of the four this round —
+several of their Status/Approval vocabularies are 4–5 valued, which doesn't map cleanly onto
+D-41's three shapes, and mapping them would have been a real design call exceeding this slice's
+"zero new mechanism" budget — noted on P-37 for a future revisit. `sustainmentAudit`
+(`RowTableEditor`) mirrors `checkSheet` — 12 columns transcribed verbatim from §13.1.
+`documentUpdatesTracker` extends D-122's fixed-category pattern (`tpmLossTaxonomy`) one layer
+richer: each of seven fixed document types carries the same nine-field `FieldFormValues`
+record rather than a two-field tag; `renderToA3` drops a document type's whole sub-section when
+every field is blank. `yokotenTracker` (`RowTableEditor`) transcribes 13 columns literally —
+only the two fields §13.1 explicitly marks "(Yes/No)" got a Yes/No select, the superficially
+similar `riskReviewed`/`actionRequired`/`effectivenessChecked` stayed plain text (transcription,
+not invention). `lessonsLearned` (`FieldFormEditor`) is eight fixed `textarea`/`wide` fields.
+New shared substrate `shared/documentStatusOptions.ts` — extracted *before* the second
+repetition (`documentUpdatesTracker` and `yokotenTracker` both draw `Status`/`Approval` from
+§13.2's identical `Lists & Settings` dictionary), `YES_NO_OPTIONS` deliberately orders `"no"`
+before `"yes"` since `emptyFieldFormValues` defaults a select to its first option and a fresh
+row presuming "yes" would be the wrong default. All four registered in
+`src/methods/registry.ts`; TR/EN i18n keys added together, including the three new shared
+dictionaries (`methods.documentStatus.*`/`methods.documentApproval.*`/`methods.yesNo.*`, flat
+under `methods.*` matching `methods.rowTable.*`'s existing convention). `TEMPLATE_ANALYSIS.md`
+§13.4/§14.8 and `DECISIONS.md` D-183 record it; P-37 amended with a follow-up note.
+`npm test` 824/824 (208 files, up from 794/794 at 196 — 30 new tests), exit code 0 (checked via
+a separate logfile + `echo $?`, not piped through `tail`, per D-143's own lesson). `npm run
+lint` clean (the one pre-existing `ThemeProvider` warning). `npm run build` green (same
+pre-existing chunk-size warning). `cargo test` 89/89, `cargo clippy --all-targets -- -D
+warnings` and `cargo fmt -- --check` all clean — Rust untouched, as expected. Not yet
 committed to git.

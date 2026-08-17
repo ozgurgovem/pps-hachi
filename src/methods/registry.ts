@@ -9,6 +9,7 @@ import { checkSheetMethod } from "./checkSheet";
 import { containmentIcaMethod } from "./containmentIca";
 import { costApprovalMethod } from "./costApproval";
 import { distributionChartMethod } from "./distributionChart";
+import { documentUpdatesTrackerMethod } from "./documentUpdatesTracker";
 import { errorProofingHierarchyMethod } from "./errorProofingHierarchy";
 import { fishboneMethod } from "./fishbone";
 import { fiveG5N1KMethod } from "./fiveG5N1K";
@@ -19,12 +20,14 @@ import { gapStatementMethod } from "./gapStatement";
 import { genericTextMethod } from "./genericText";
 import { implementationIssuesLogMethod } from "./implementationIssuesLog";
 import { isIsNotMethod } from "./isIsNot";
+import { lessonsLearnedMethod } from "./lessonsLearned";
 import { msaGageRrMethod } from "./msaGageRr";
 import { paretoMethod } from "./pareto";
 import { problemImpactMethod } from "./problemImpact";
 import { problemTypeClassifierMethod } from "./problemTypeClassifier";
 import { processFlowSipocMethod } from "./processFlowSipoc";
 import { smartTargetMethod } from "./smartTarget";
+import { sustainmentAuditMethod } from "./sustainmentAudit";
 import { stratificationMatrixMethod } from "./stratificationMatrix";
 import { threeLeggedFiveWhyMethod } from "./threeLeggedFiveWhy";
 import { tpmLossTaxonomyMethod } from "./tpmLossTaxonomy";
@@ -43,6 +46,7 @@ import { pointOfCauseMethod } from "./pointOfCause";
 import { sideEffectRiskAssessmentMethod } from "./sideEffectRiskAssessment";
 import { weightedDecisionMatrixMethod } from "./weightedDecisionMatrix";
 import { whyWhyTreeMethod } from "./whyWhyTree";
+import { yokotenTrackerMethod } from "./yokotenTracker";
 import { registerMethod, type ErasedMethodPlugin } from "./types";
 import { vocComplaintMethod } from "./vocComplaint";
 
@@ -57,7 +61,10 @@ import { vocComplaintMethod } from "./vocComplaint";
  * plan Gantt is deliberately not among them, see P-22/D-114. Oturum C2 adds
  * Step 1's `five-n1k` strip and `problem-impact` panel (D-163/D-166), zero
  * new mechanisms. Oturum C3 adds Step 7's `kpi-strip` — its one new
- * mechanism this slice introduces (D-167/D-177/P-36).
+ * mechanism this slice introduces (D-167/D-177/P-36). Oturum C4 adds Step
+ * 7's `sustainment-audit` and Step 8's `document-updates-tracker`/
+ * `yokoten-tracker`/`lessons-learned` — B1's §13.4 remaining four
+ * candidates, zero new mechanisms, none carrying a reference role.
  */
 export const METHOD_REGISTRY: readonly ErasedMethodPlugin[] = [
   registerMethod(genericTextMethod),
@@ -103,6 +110,10 @@ export const METHOD_REGISTRY: readonly ErasedMethodPlugin[] = [
   registerMethod(fiveN1KMethod),
   registerMethod(problemImpactMethod),
   registerMethod(kpiStripMethod),
+  registerMethod(sustainmentAuditMethod),
+  registerMethod(documentUpdatesTrackerMethod),
+  registerMethod(yokotenTrackerMethod),
+  registerMethod(lessonsLearnedMethod),
 ];
 
 export function getMethodsForStep(stepId: StepId): readonly ErasedMethodPlugin[] {

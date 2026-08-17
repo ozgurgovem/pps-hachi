@@ -770,6 +770,103 @@
       },
       "addItem": "Add KPI",
       "removeItem": "Remove KPI"
+    },
+    "documentStatus": {
+      "notStarted": "Not Started",
+      "inProgress": "In Progress",
+      "blocked": "Blocked",
+      "complete": "Complete",
+      "cancelled": "Cancelled"
+    },
+    "documentApproval": {
+      "draft": "Draft",
+      "underReview": "Under Review",
+      "approved": "Approved",
+      "rejected": "Rejected"
+    },
+    "yesNo": {
+      "yes": "Yes",
+      "no": "No"
+    },
+    "sustainmentAudit": {
+      "name": "Sustainment audit",
+      "useWhen": "Use this to log periodic/recurring audits that confirm a countermeasure is still holding, distinct from a one-off check sheet.",
+      "columns": {
+        "auditDate": "Audit date",
+        "areaLine": "Area / line",
+        "standardChecked": "Standard checked",
+        "sampleSize": "Sample size",
+        "conforming": "Conforming",
+        "nonconforming": "Nonconforming",
+        "compliancePercent": "Compliance %",
+        "auditor": "Auditor",
+        "finding": "Finding",
+        "reactionActionId": "Reaction action ID",
+        "nextAudit": "Next audit",
+        "status": "Status"
+      },
+      "statuses": {
+        "planned": "Planned",
+        "verified": "Verified",
+        "rejected": "Rejected"
+      }
+    },
+    "documentUpdatesTracker": {
+      "name": "Document updates tracker",
+      "useWhen": "Use this to track which controlled documents need updating after this problem — PFMEA, Control Plan, work instructions and the rest, tracked separately.",
+      "documentTypes": {
+        "pfmea": "PFMEA",
+        "controlPlan": "Control Plan",
+        "workInstruction": "Work Instruction",
+        "inspectionStandard": "Inspection Standard",
+        "trainingCompetence": "Training / Competence",
+        "layeredProcessAudit": "Layered Process Audit",
+        "apqpPpapRecord": "APQP / PPAP record"
+      },
+      "fields": {
+        "updateRequired": "Update required?",
+        "docId": "Doc ID",
+        "revision": "Current → new revision",
+        "owner": "Owner",
+        "dueDate": "Due / completion date",
+        "status": "Status",
+        "approval": "Approval",
+        "evidence": "Evidence",
+        "customerSubmission": "Customer submission?"
+      }
+    },
+    "yokotenTracker": {
+      "name": "Yokoten (horizontal spread) tracker",
+      "useWhen": "Use this to track where else this problem could apply, and whether the fix has actually spread there.",
+      "columns": {
+        "siteLine": "Site / line / product",
+        "applicability": "Applicability",
+        "riskReviewed": "Risk reviewed",
+        "actionRequired": "Action required",
+        "owner": "Owner",
+        "dueDate": "Due date",
+        "status": "Status",
+        "completionEvidence": "Completion evidence",
+        "effectivenessChecked": "Effectiveness checked",
+        "checkDate": "Check date",
+        "result": "Result",
+        "approval": "Approval",
+        "notes": "Notes"
+      }
+    },
+    "lessonsLearned": {
+      "name": "Lessons learned",
+      "useWhen": "Use this to close the problem out with a structured retrospective — what worked, what to reuse, what to avoid next time.",
+      "fields": {
+        "wentWell": "What went well?",
+        "failedOrDelayed": "What failed or was delayed?",
+        "evidenceChangedThinking": "What evidence changed our thinking?",
+        "shouldBeReused": "What should be reused?",
+        "shouldBeAvoided": "What should be avoided?",
+        "coachingCapabilityLesson": "Coaching-capability lesson",
+        "customerCommunicationLesson": "Customer communication lesson",
+        "finalClosureRationale": "Final closure rationale"
+      }
     }
   },
   "gallery": {

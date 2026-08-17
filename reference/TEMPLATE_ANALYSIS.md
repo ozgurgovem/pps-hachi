@@ -1232,14 +1232,21 @@ Adım 1 coaching metnine eklenebilecek bir cümle (Oturum C/içerik işi, burada
 D-149/§6'nın "plugin ekleme/silme Oturum C'dir" sınırı gereği aşağıdakiler **karar değil,
 bulgu**:
 
-1. **Sustainment Audits** (ADIM 7) — periyodik denetim izleme, tek-seferlik `checkSheet`'ten
-   farklı bir tekrarlı-kayıt şekli ister.
-2. **Sabit 7 belge türlü Document/System Updates izleyicisi** (ADIM 8) — şipping edilmiş
+1. ~~**Sustainment Audits** (ADIM 7) — periyodik denetim izleme, tek-seferlik `checkSheet`'ten
+   farklı bir tekrarlı-kayıt şekli ister.~~ **BİTTİ — Oturum C4, 2026-08-17.**
+   `src/methods/sustainmentAudit/` (`RowTableEditor`, D-115), D-183.
+2. ~~**Sabit 7 belge türlü Document/System Updates izleyicisi** (ADIM 8) — şipping edilmiş
    `pfmeaLinkage` tek belgeye odaklı, form yedi türü (PFMEA, Control Plan, Work Instruction,
-   Inspection Standard, Training/Competence, Layered Process Audit, APQP/PPAP) ayrı ayrı ister.
-3. **Yokoten (yatay yayılım) izleyicisi** (ADIM 8) — hiçbir şipping edilmiş plugin karşılamıyor.
-4. **8 soruluk yapılandırılmış Lessons Learned checklist'i** (ADIM 8) — şipping edilmiş hiçbir
-   plugin bu sabit soru setini karşılamıyor.
+   Inspection Standard, Training/Competence, Layered Process Audit, APQP/PPAP) ayrı ayrı ister.~~
+   **BİTTİ — Oturum C4, 2026-08-17.** `src/methods/documentUpdatesTracker/` (D-122'nin sabit-
+   kategori deseni, yedi doküman türünün her biri kendi 9 alanlı `FieldFormValues` kaydını
+   taşıyor), D-183.
+3. ~~**Yokoten (yatay yayılım) izleyicisi** (ADIM 8) — hiçbir şipping edilmiş plugin
+   karşılamıyor.~~ **BİTTİ — Oturum C4, 2026-08-17.** `src/methods/yokotenTracker/`
+   (`RowTableEditor`, D-115), D-183.
+4. ~~**8 soruluk yapılandırılmış Lessons Learned checklist'i** (ADIM 8) — şipping edilmiş hiçbir
+   plugin bu sabit soru setini karşılamıyor.~~ **BİTTİ — Oturum C4, 2026-08-17.**
+   `src/methods/lessonsLearned/` (`FieldFormEditor`, D-127), D-183.
 5. **Root cause onay bandına `Confidence %` / `Residual uncertainty` / `Customer relevance`
    alanları** — mevcut root-cause plugin'lerinde yok.
 6. **`actionItem`'a `Days late` (hesaplanan) / `Customer approval` alanları** — mevcut
@@ -1671,7 +1678,10 @@ D-164: otomatik + manuel, ikisi birden. Etkileşim:
   `src/methods/fiveN1K/`, D-181.
 - ~~`kpi-strip` `A3ImageKind`'ının + Adım 7 plugin'lerinin inşası (§14.3) — 6d'nin tek-mekanizma
   bütçesi.~~ **BİTTİ — Oturum C3, 2026-08-17.** `src/methods/kpiStrip/`, C3'ün kendisi.
-- Adım 8'in belge/Yokoten/Lessons-Learned plugin'leri (§13.4, §14.6) — Oturum C.
+- ~~Adım 8'in belge/Yokoten/Lessons-Learned plugin'leri (§13.4, §14.6) — Oturum C.~~
+  **BİTTİ — Oturum C4, 2026-08-17.** `src/methods/documentUpdatesTracker/`,
+  `src/methods/yokotenTracker/`, `src/methods/lessonsLearned/`; ayrıca Adım 7'nin
+  `src/methods/sustainmentAudit/`'i (§13.4 madde 1). D-183.
 - `MethodPlugin.tier` alanının ve iki-bölümlü `MethodBand` arayüzünün kodu (§14.6) — kod
   YAZILMADI, yalnızca tasarlandı.
 - Esnek tahsisin sürükle-tutamaç UI'ının kodu (§14.7) — aynı şekilde tasarım, kod değil.

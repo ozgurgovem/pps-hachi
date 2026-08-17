@@ -16,8 +16,8 @@ diffle görünür ve denetlenebilir.
 | C1 — status glifi, fishbone geometrisi, hipotez/aksiyon alanları | `C-yontem-plugin-insasi.md` (C'nin §3'ü) | ✅ BİTTİ 2026-08-16 — P-37 (4/5), P-34 kapandı, D-180 |
 | C2 — `problem-impact` + 5N1K plugin'leri | `C2-problem-impact-5n1k.md` | ✅ BİTTİ 2026-08-16 — sıfır yeni mekanizma, D-181 |
 | C3 — `kpi-strip` mekanizması + ADIM 7'nin gerçek plugin'i | `C3-kpi-strip.md` | ✅ BİTTİ 2026-08-17 — §2.2 Seçenek A (AskUserQuestion), P-31/P-36 kapandı, D-182 |
-| C4 — ADIM 8 tasarım turu + inşası (+ Sustainment Audits, ADIM 7) | `C4-adim8.md` | 📝 yazıldı 2026-08-17 — henüz yürütülmedi; §2.2'de üç küçük soru var, kodlamadan önce `AskUserQuestion` gerekiyor |
-| C5-C6 — whyWhyTree, tier/sürükle-tutamaç arayüzü | *(yazılmadı)* | — kendi promptları, C4'ün kapanışında ya da ihtiyaç anında yazılır (`C-yontem-plugin-insasi.md` §3) |
+| C4 — ADIM 8 tasarım turu + inşası (+ Sustainment Audits, ADIM 7) | `C4-adim8.md` | ✅ BİTTİ 2026-08-17 — §2.2'nin üç sorusu `AskUserQuestion` ile onaylandı, sıfır yeni mekanizma, D-183 |
+| C5-C6 — whyWhyTree, tier/sürükle-tutamaç arayüzü | *(yazılmadı)* | — kendi promptları, ihtiyaç anında yazılır (`C-yontem-plugin-insasi.md` §3) |
 | D — P-26 (i18n + blok hizası) | *(yazılmadı)* | — |
 
 ## Kullanım
