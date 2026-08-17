@@ -16,7 +16,8 @@ diffle görünür ve denetlenebilir.
 | C1 — status glifi, fishbone geometrisi, hipotez/aksiyon alanları | `C-yontem-plugin-insasi.md` (C'nin §3'ü) | ✅ BİTTİ 2026-08-16 — P-37 (4/5), P-34 kapandı, D-180 |
 | C2 — `problem-impact` + 5N1K plugin'leri | `C2-problem-impact-5n1k.md` | ✅ BİTTİ 2026-08-16 — sıfır yeni mekanizma, D-181 |
 | C3 — `kpi-strip` mekanizması + ADIM 7'nin gerçek plugin'i | `C3-kpi-strip.md` | ✅ BİTTİ 2026-08-17 — §2.2 Seçenek A (AskUserQuestion), P-31/P-36 kapandı, D-182 |
-| C4-C6 — ADIM 8, whyWhyTree, tier/sürükle-tutamaç arayüzü | C4: *(yazılmadı, ama kendi dosyası olacak)* · C5-C6: *(yazılmadı)* | — C3'ün kendi kapanış kararı: **C4 kendi ayrı prompt dosyasını alacak** (C2/C3'le aynı gerekçe — ADIM 8'in dört adayı kendi alan listesi/substrat kararlarını taşıyor). C5-C6 için henüz karar verilmedi, ihtiyaç anında değerlendirilir |
+| C4 — ADIM 8 tasarım turu + inşası (+ Sustainment Audits, ADIM 7) | `C4-adim8.md` | 📝 yazıldı 2026-08-17 — henüz yürütülmedi; §2.2'de üç küçük soru var, kodlamadan önce `AskUserQuestion` gerekiyor |
+| C5-C6 — whyWhyTree, tier/sürükle-tutamaç arayüzü | *(yazılmadı)* | — kendi promptları, C4'ün kapanışında ya da ihtiyaç anında yazılır (`C-yontem-plugin-insasi.md` §3) |
 | D — P-26 (i18n + blok hizası) | *(yazılmadı)* | — |
 
 ## Kullanım
@@ -25,7 +26,7 @@ Yeni oturumu şu iki satırla başlat (dosya adını sıradaki oturuma göre de�
 
 ```
 Önce Anayasamızı Oku (~/.claude/ANAYASA.md) ve AKIS.md'yi (~/.claude/AKIS.md).
-Sonra ~/Developer/pps-hachi/docs/oturumlar/C3-kpi-strip.md'yi oku ve uygula.
+Sonra ~/Developer/pps-hachi/docs/oturumlar/C4-adim8.md'yi oku ve uygula.
 ```
 
 ## Prompt yazarken
