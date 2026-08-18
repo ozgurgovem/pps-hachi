@@ -19,7 +19,9 @@ diffle görünür ve denetlenebilir.
 | C4 — ADIM 8 tasarım turu + inşası (+ Sustainment Audits, ADIM 7) | `C4-adim8.md` | ✅ BİTTİ 2026-08-17 — §2.2'nin üç sorusu `AskUserQuestion` ile onaylandı, sıfır yeni mekanizma, D-183 |
 | C5 — whyWhyTree diyagramı + terminal-durum alanı + referans mimarisi | `C5-whywhytree-diyagram.md` | ✅ BİTTİ 2026-08-17 — diyagram + terminal-durum alanı (D-184), §2.3 Seçenek A kararlaştırıldı ama inşası P-39'a ertelendi (D-185), P-35 2/3 kapandı |
 | C6 — `MethodPlugin.tier` + iki-bölümlü `MethodBand` (daraltıldı, D-186 — sürükle-tutamaç Faz 11'e ertelendi, P-40) | `C6-tier-methodband.md` | ✅ BİTTİ 2026-08-18 — §2.4 `AskUserQuestion` Seçenek B (whyWhyTree Adım 4'e üçüncü önerilen eklendi), D-187. **D-149'un Oturum C bacağı tamamen kapandı.** |
-| D — P-26 (i18n + blok hizası) | *(yazılmadı)* | — |
+| D — kapsam belgesi (P-26'nın iki kusur sınıfı, dilim önerisi) | `D-i18n-blok-hizasi.md` | 📝 yazıldı 2026-08-18 — üst seviye kapsam, kod içermiyor |
+| D1 — A3 ihracat etiketlerinin dil farkındalığı | `D1-i18n-ihracat-etiketleri.md` | 📝 yazıldı 2026-08-18 — henüz yürütülmedi; §2.2'de Seçenek A/B için `AskUserQuestion` gerekiyor |
+| D2 — blok hizası | *(yazılmadı, D1'den sonra kapsamlanacak)* | — |
 
 ## Kullanım
 
@@ -27,7 +29,7 @@ Yeni oturumu şu iki satırla başlat (dosya adını sıradaki oturuma göre de�
 
 ```
 Önce Anayasamızı Oku (~/.claude/ANAYASA.md) ve AKIS.md'yi (~/.claude/AKIS.md).
-Sonra ~/Developer/pps-hachi/docs/oturumlar/C6-tier-methodband.md'yi oku ve uygula.
+Sonra ~/Developer/pps-hachi/docs/oturumlar/D1-i18n-ihracat-etiketleri.md'yi oku ve uygula.
 ```
 
 ## Prompt yazarken
