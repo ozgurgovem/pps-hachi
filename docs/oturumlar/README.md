@@ -22,6 +22,7 @@ diffle görünür ve denetlenebilir.
 | D — kapsam belgesi (P-26'nın iki kusur sınıfı, dilim önerisi) | `D-i18n-blok-hizasi.md` | 📝 yazıldı 2026-08-18 — üst seviye kapsam, kod içermiyor |
 | D1 — A3 ihracat etiketlerinin dil farkındalığı | `D1-i18n-ihracat-etiketleri.md` | ✅ BİTTİ 2026-08-18 — Seçenek B (`AskUserQuestion`), gerçek kapsam 29 dizin (tahminin ~2 katı), D-188, P-26'nın i18n yarısı kapandı, P-42 (Fishbone) yeni dosyalandı |
 | D2 — blok hizası kök neden keşfi | `D2-blok-hizasi.md` | ✅ BİTTİ 2026-08-18 (keşif) — kök neden bulundu: `placeZones.ts`'te iki kusur (D-189), düzeltme D2b'ye bırakıldı (P-43). **D-149'un dört oturumluk planı tamamen kapandı.** |
+| D2b — blok hizası düzeltmesi (D2'nin bulduğu kök nedenin düzeltilmesi, P-43) | `D2b-blok-hizasi-duzeltme.md` | 📝 yazıldı 2026-08-18 — henüz yürütülmedi |
 
 ## Kullanım
 
