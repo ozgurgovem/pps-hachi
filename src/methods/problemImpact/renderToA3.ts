@@ -1,4 +1,5 @@
 import type { A3BlockContent, A3EntrySummary } from "../../a3/methodContract";
+import { resolveA3Language } from "../../a3/methodContract";
 import { fieldFormLines } from "../shared/fieldForm";
 import { PROBLEM_IMPACT_FIELDS } from "./fields";
 import type { ProblemImpactPayload } from "./schema";
@@ -17,8 +18,9 @@ const CHART_ROW_SPAN = 10;
  * "aynen yeniden kullanılır" instruction, applied literally).
  */
 export function renderProblemImpactToA3(payload: ProblemImpactPayload, entry: A3EntrySummary): A3BlockContent {
+  const language = resolveA3Language(entry);
   return {
-    lines: [{ text: entry.title, bold: true }, ...fieldFormLines(payload, PROBLEM_IMPACT_FIELDS)],
+    lines: [{ text: entry.title, bold: true }, ...fieldFormLines(payload, PROBLEM_IMPACT_FIELDS, language)],
     image: {
       kind: "pareto-chart",
       rowSpan: CHART_ROW_SPAN,

@@ -1,4 +1,5 @@
 import type { A3BlockContent, A3EntrySummary, A3TextLine } from "../../a3/methodContract";
+import { resolveA3Language } from "../../a3/methodContract";
 import { fieldFormLines } from "../shared/fieldForm";
 import { statusGlyphText } from "../shared/statusGlyph";
 import { ICA_PCA_STATUS_EXPORT_LABELS, ICA_PCA_STATUS_TONE, ICA_PCA_TRANSITION_FIELDS } from "./fields";
@@ -8,10 +9,11 @@ export function renderIcaPcaTransitionToA3(
   payload: IcaPcaTransitionPayload,
   entry: A3EntrySummary,
 ): A3BlockContent {
+  const language = resolveA3Language(entry);
   const status = payload.status.trim();
   const values = {
     ...payload,
-    status: status.length > 0 ? (ICA_PCA_STATUS_EXPORT_LABELS[status] ?? status) : status,
+    status: status.length > 0 ? (ICA_PCA_STATUS_EXPORT_LABELS[status]?.[language] ?? status) : status,
   };
   const tone = ICA_PCA_STATUS_TONE[status];
   const titleLine: A3TextLine = tone
@@ -19,6 +21,6 @@ export function renderIcaPcaTransitionToA3(
     : { text: entry.title, bold: true };
 
   return {
-    lines: [titleLine, ...fieldFormLines(values, ICA_PCA_TRANSITION_FIELDS)],
+    lines: [titleLine, ...fieldFormLines(values, ICA_PCA_TRANSITION_FIELDS, language)],
   };
 }

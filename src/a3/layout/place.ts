@@ -1,4 +1,4 @@
-import type { Entry } from "../../domain/model";
+import type { Entry, ProjectModel } from "../../domain/model";
 import type { CellData, MergedRange, RowDef } from "../descriptor";
 import type { A3EntryRendererMap, A3ImageKind, A3TextTone } from "../methodContract";
 import type { TemplateBlock } from "../templates/types";
@@ -60,6 +60,7 @@ export function placeBlockContent(
   contentRows: readonly RowDef[],
   contentColumnWidths: readonly ColumnWidth[],
   rendererMap: A3EntryRendererMap,
+  language: ProjectModel["meta"]["language"],
 ): PlacedBlockContent {
   const cells: CellData[] = [];
   const merges: MergedRange[] = [];
@@ -75,7 +76,7 @@ export function placeBlockContent(
   for (const entry of entries) {
     const renderer = rendererMap[entry.methodId];
     const content = renderer
-      ? renderer(entry.payload, { id: entry.id, title: entry.title })
+      ? renderer(entry.payload, { id: entry.id, title: entry.title, language })
       : { lines: [{ text: entry.title, bold: true }] };
 
     if (content.zones) {

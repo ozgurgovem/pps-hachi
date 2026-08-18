@@ -26,4 +26,15 @@ describe("renderFiveWhyToA3", () => {
     const content = renderFiveWhyToA3({ problemStatement: "", whys: [] }, { id: "e1", title: "5 Neden" });
     expect(content.lines).toEqual([{ text: "5 Neden", bold: true }]);
   });
+
+  /** D-188/P-26: `entry.language` picks the "Why"/"Neden" chain label. */
+  it("uses the Turkish chain label when the entry's language is tr", () => {
+    const payload: FiveWhyPayload = { problemStatement: "", whys: [{ id: "w1", answer: "Panel titreşiyor" }] };
+    const content = renderFiveWhyToA3(payload, { id: "e1", title: "5 Neden", language: "tr" });
+
+    expect(content.lines).toEqual([
+      { text: "5 Neden", bold: true },
+      { text: "Neden 1: Panel titreşiyor" },
+    ]);
+  });
 });

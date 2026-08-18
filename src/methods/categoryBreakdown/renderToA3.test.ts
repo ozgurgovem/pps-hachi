@@ -64,4 +64,26 @@ describe("renderCategoryBreakdownToA3", () => {
   it("renders only the title when nothing has been filled in", () => {
     expect(renderCategoryBreakdownToA3({ rows: [] }, ENTRY).lines).toHaveLength(1);
   });
+
+  /** D-188/P-26: `entry.language` picks the category heading and the "Other" fallback heading. */
+  it("uses Turkish category headings when the entry's language is tr", () => {
+    const trEntry: A3EntrySummary = { ...ENTRY, language: "tr" };
+    const lines = renderCategoryBreakdownToA3(
+      {
+        rows: [
+          { id: "r1", category: "man", subProblem: "Eğitim eksik", effect: "Yanlış ayar" },
+          { id: "r2", category: "environment", subProblem: "Nem oranı", effect: "Yapışma sorunu" },
+        ],
+      },
+      trEntry,
+    ).lines;
+
+    expect(lines).toEqual([
+      { text: "5M breakdown — çapak problemi", bold: true },
+      { text: "İnsan", bold: true },
+      { text: "  Eğitim eksik — Yanlış ayar" },
+      { text: "Diğer" },
+      { text: "  Nem oranı — Yapışma sorunu" },
+    ]);
+  });
 });

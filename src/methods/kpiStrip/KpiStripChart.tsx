@@ -28,7 +28,16 @@ function formatValue(value: number, unit: string | undefined): string {
   return unit ? `${rounded} ${unit}` : rounded;
 }
 
-function Tile({ item, x, width, height }: { item: KpiStripItem; x: number; width: number; height: number }) {
+interface TileProps {
+  readonly item: KpiStripItem;
+  readonly x: number;
+  readonly width: number;
+  readonly height: number;
+  readonly sustainLabel: string;
+  readonly resultLabel: string;
+}
+
+function Tile({ item, x, width, height, sustainLabel, resultLabel }: TileProps) {
   const padding = Math.max(4, width * 0.06);
   const hasFooter = item.sustain !== undefined || item.result !== undefined;
   const labelHeight = height * (hasFooter ? 0.26 : 0.3);
@@ -91,8 +100,8 @@ function Tile({ item, x, width, height }: { item: KpiStripItem; x: number; width
       {hasFooter && (
         <text x={x + padding} y={height - footerFontSize * 0.4} fontSize={footerFontSize} fill={FOOTER_COLOR}>
           {[
-            item.sustain !== undefined ? `Sürdürme: ${formatValue(item.sustain, item.unit)}` : undefined,
-            item.result !== undefined ? `Sonuç: ${formatValue(item.result, item.unit)}` : undefined,
+            item.sustain !== undefined ? `${sustainLabel}: ${formatValue(item.sustain, item.unit)}` : undefined,
+            item.result !== undefined ? `${resultLabel}: ${formatValue(item.result, item.unit)}` : undefined,
           ]
             .filter((part): part is string => part !== undefined)
             .join("   ·   ")}
@@ -110,7 +119,15 @@ export function KpiStripChart({ spec, size }: { spec: KpiStripChartSpec; size: A
     <svg width={size.widthPx} height={size.heightPx} viewBox={`0 0 ${size.widthPx} ${size.heightPx}`}>
       <rect x={0} y={0} width={size.widthPx} height={size.heightPx} fill="#FFFFFF" />
       {spec.items.map((item, index) => (
-        <Tile key={`${item.label}-${index}`} item={item} x={index * tileWidth} width={tileWidth} height={size.heightPx} />
+        <Tile
+          key={`${item.label}-${index}`}
+          item={item}
+          x={index * tileWidth}
+          width={tileWidth}
+          height={size.heightPx}
+          sustainLabel={spec.sustainLabel}
+          resultLabel={spec.resultLabel}
+        />
       ))}
     </svg>
   );

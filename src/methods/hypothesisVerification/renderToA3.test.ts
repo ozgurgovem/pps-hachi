@@ -140,4 +140,31 @@ describe("renderHypothesisVerificationToA3", () => {
     const lines = renderHypothesisVerificationToA3({ rows: [legacyRow] }, ENTRY).lines;
     expect(lines[1]).toEqual({ text: "[CONFIRMED] Die wear", bold: true });
   });
+
+  /** D-188/P-26: `entry.language` picks the verdict marker and the meta-field labels. */
+  it("uses Turkish verdict and meta labels when the entry's language is tr", () => {
+    const trEntry: A3EntrySummary = { ...ENTRY, language: "tr" };
+    const lines = renderHypothesisVerificationToA3(
+      {
+        rows: [
+          {
+            id: "r1",
+            candidateCause: "Kalıp aşınması",
+            verificationMethod: "20 parça ölçüldü",
+            evidence: "0.08 mm tolerans dışı",
+            verdict: "confirmed",
+            confidencePercent: "90%",
+            residualUncertainty: "",
+            customerRelevance: "",
+          },
+        ],
+      },
+      trEntry,
+    ).lines;
+
+    expect(lines[1]).toEqual({
+      text: "[DOĞRULANDI] Kalıp aşınması · 20 parça ölçüldü · 0.08 mm tolerans dışı — Güven: 90%",
+      bold: true,
+    });
+  });
 });

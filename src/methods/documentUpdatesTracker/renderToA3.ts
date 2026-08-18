@@ -1,4 +1,5 @@
 import type { A3BlockContent, A3EntrySummary, A3TextLine } from "../../a3/methodContract";
+import { resolveA3Language } from "../../a3/methodContract";
 import { fieldFormLines } from "../shared/fieldForm";
 import { DOCUMENT_TYPES, DOCUMENT_TYPE_EXPORT_LABELS } from "./documentTypes";
 import { DOCUMENT_UPDATE_FIELDS } from "./fields";
@@ -8,13 +9,14 @@ export function renderDocumentUpdatesTrackerToA3(
   payload: DocumentUpdatesTrackerPayload,
   entry: A3EntrySummary,
 ): A3BlockContent {
+  const language = resolveA3Language(entry);
   const rowLines: A3TextLine[] = DOCUMENT_TYPES.flatMap((documentType) => {
-    const fields = fieldFormLines(payload[documentType], DOCUMENT_UPDATE_FIELDS);
+    const fields = fieldFormLines(payload[documentType], DOCUMENT_UPDATE_FIELDS, language);
     // A document type with every field still blank contributes no export
     // noise — mirrors `tpmLossTaxonomy`'s "only the applied categories" rule,
     // just gated by "has any populated field" instead of a single boolean.
     if (fields.length === 0) return [];
-    return [{ text: DOCUMENT_TYPE_EXPORT_LABELS[documentType], bold: true }, ...fields];
+    return [{ text: DOCUMENT_TYPE_EXPORT_LABELS[documentType][language], bold: true }, ...fields];
   });
 
   return {

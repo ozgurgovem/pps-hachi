@@ -114,6 +114,7 @@ export function buildA3Layout(
       contentRows,
       contentColumnWidths,
       options.rendererMap,
+      project.meta.language,
     );
 
     cells.push(...placement.cells);
@@ -165,7 +166,7 @@ export function buildA3Layout(
     gridlinesVisible: false,
   };
 
-  const appendices = buildAppendixSheets(allEntries, droppedEntryIds, options.rendererMap);
+  const appendices = buildAppendixSheets(allEntries, droppedEntryIds, options.rendererMap, project.meta.language);
 
   return {
     descriptor: {
@@ -212,6 +213,7 @@ function buildAppendixSheets(
   all: readonly EntryWithStep[],
   droppedEntryIds: ReadonlySet<string>,
   rendererMap: A3EntryRendererMap,
+  language: ProjectModel["meta"]["language"],
 ): readonly SheetDescriptor[] {
   const appendixEntries = all.filter(
     ({ entry }) => entry.a3Visibility === "appendix" || droppedEntryIds.has(entry.id),
@@ -220,7 +222,7 @@ function buildAppendixSheets(
   return appendixEntries.map(({ entry }, index) => {
     const renderer = rendererMap[entry.methodId];
     const content = renderer
-      ? renderer(entry.payload, { id: entry.id, title: entry.title })
+      ? renderer(entry.payload, { id: entry.id, title: entry.title, language })
       : { lines: [{ text: entry.title, bold: true }] };
 
     const appendixLines = flattenContentForAppendix(content);

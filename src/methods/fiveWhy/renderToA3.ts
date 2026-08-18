@@ -1,4 +1,5 @@
 import type { A3BlockContent, A3EntrySummary } from "../../a3/methodContract";
+import { resolveA3Language } from "../../a3/methodContract";
 import { whyChainLines } from "../shared/whyChain";
 import type { FiveWhyPayload } from "./schema";
 
@@ -6,6 +7,10 @@ export function renderFiveWhyToA3(payload: FiveWhyPayload, entry: A3EntrySummary
   const problemLine = payload.problemStatement.trim().length > 0 ? [{ text: payload.problemStatement }] : [];
 
   return {
-    lines: [{ text: entry.title, bold: true }, ...problemLine, ...whyChainLines(payload.whys)],
+    lines: [
+      { text: entry.title, bold: true },
+      ...problemLine,
+      ...whyChainLines(payload.whys, resolveA3Language(entry)),
+    ],
   };
 }

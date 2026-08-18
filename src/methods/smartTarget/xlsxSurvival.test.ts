@@ -86,6 +86,13 @@ describe("SMART Target trajectory chart — buildA3Layout two-call survival (D-1
     expect(pendingImages[0]!.widthPt).toBeGreaterThan(0);
   });
 
+  /**
+   * D-188/P-26: the fixture's `meta.language: "tr"` now genuinely flows
+   * through `buildA3Layout`'s injection seam into the commitment line, so the
+   * expected text is Turkish (Başlangıç/Sorumlu), not the old hardcoded
+   * English (Baseline/Owner) this test previously asserted regardless of
+   * `meta.language`.
+   */
   it("also places the zone A prioritised-items text and the zone C mono line as real cells", () => {
     const rendererMap = getA3RendererMap();
     const { descriptor } = buildA3Layout(fixtureProject(), farplas7StepTr, { rendererMap });
@@ -95,7 +102,8 @@ describe("SMART Target trajectory chart — buildA3Layout two-call survival (D-1
     expect(values.some((value) => typeof value === "string" && value.includes("Hedef"))).toBe(true);
     expect(
       values.some(
-        (value) => typeof value === "string" && value.includes("Baseline: 120") && value.includes("Owner: Ayşe Yılmaz"),
+        (value) =>
+          typeof value === "string" && value.includes("Başlangıç: 120") && value.includes("Sorumlu: Ayşe Yılmaz"),
       ),
     ).toBe(true);
   });

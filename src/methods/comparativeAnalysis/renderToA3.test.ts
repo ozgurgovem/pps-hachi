@@ -28,4 +28,15 @@ describe("renderComparativeAnalysisToA3", () => {
 
     expect(lines).toEqual([{ text: "Good vs bad cavity", bold: true }]);
   });
+
+  /** D-188/P-26: `entry.language` picks the "Compared"/"Karşılaştırılan" prefix. */
+  it("uses the Turkish compared prefix when the entry's language is tr", () => {
+    const trEntry: A3EntrySummary = { ...ENTRY, language: "tr" };
+    const lines = renderComparativeAnalysisToA3({ subject: "Göz 2 ile göz 4", rows: [] }, trEntry).lines;
+
+    expect(lines).toEqual([
+      { text: "Good vs bad cavity", bold: true },
+      { text: "Karşılaştırılan: Göz 2 ile göz 4" },
+    ]);
+  });
 });

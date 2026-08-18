@@ -26,4 +26,17 @@ describe("renderProblemTypeClassifierToA3", () => {
       { text: "Classification: Below standard" },
     ]);
   });
+
+  /** D-188/P-26: `entry.language` picks the classification prefix and label. */
+  it("uses Turkish text when the entry's language is tr", () => {
+    const content = renderProblemTypeClassifierToA3(
+      { classification: "belowStandard", note: "" },
+      { id: "e1", title: "Yield drop", language: "tr" },
+    );
+
+    expect(content.lines).toEqual([
+      { text: "Yield drop", bold: true },
+      { text: "Sınıflandırma: Standardın altında" },
+    ]);
+  });
 });

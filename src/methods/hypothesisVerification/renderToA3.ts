@@ -1,6 +1,14 @@
-import type { A3BlockContent, A3EntrySummary, A3TextLine } from "../../a3/methodContract";
+import type { A3BlockContent, A3EntrySummary, A3Language, A3TextLine } from "../../a3/methodContract";
+import { resolveA3Language } from "../../a3/methodContract";
 import { HYPOTHESIS_VERDICT_EXPORT_LABELS } from "./columns";
 import type { HypothesisVerificationPayload, HypothesisVerificationRow } from "./schema";
+
+/** D-188/P-26: matches `methods.hypothesisVerification.columns.*`'s own editor translations. */
+const META_LABELS = {
+  confidencePercent: { tr: "Güven", en: "Confidence" },
+  residualUncertainty: { tr: "Kalan belirsizlik", en: "Residual uncertainty" },
+  customerRelevance: { tr: "Müşteri önemi", en: "Customer relevance" },
+} as const satisfies Record<string, Readonly<Record<A3Language, string>>>;
 
 /**
  * `?? ""` guards a row persisted before `confidencePercent`/
@@ -22,15 +30,15 @@ function metaPart(label: string, value: string | undefined): string | undefined 
  * narrative, so they get their own labeled segment instead of joining the
  * unlabeled candidate/method/evidence triad.
  */
-function rowLine(row: HypothesisVerificationRow): A3TextLine | undefined {
+function rowLine(row: HypothesisVerificationRow, language: A3Language): A3TextLine | undefined {
   const parts = [row.candidateCause, row.verificationMethod, row.evidence]
     .map((value) => value.trim())
     .filter((value) => value.length > 0);
 
   const meta = [
-    metaPart("Confidence", row.confidencePercent),
-    metaPart("Residual uncertainty", row.residualUncertainty),
-    metaPart("Customer relevance", row.customerRelevance),
+    metaPart(META_LABELS.confidencePercent[language], row.confidencePercent),
+    metaPart(META_LABELS.residualUncertainty[language], row.residualUncertainty),
+    metaPart(META_LABELS.customerRelevance[language], row.customerRelevance),
   ].filter((value): value is string => value !== undefined);
 
   if (parts.length === 0 && meta.length === 0) {
@@ -38,7 +46,7 @@ function rowLine(row: HypothesisVerificationRow): A3TextLine | undefined {
   }
 
   const verdict = row.verdict.trim();
-  const marker = verdict.length > 0 ? `[${HYPOTHESIS_VERDICT_EXPORT_LABELS[verdict] ?? verdict}] ` : "";
+  const marker = verdict.length > 0 ? `[${HYPOTHESIS_VERDICT_EXPORT_LABELS[verdict]?.[language] ?? verdict}] ` : "";
   const body = [parts.join(" · "), meta.join(" · ")].filter((segment) => segment.length > 0).join(" — ");
 
   return { text: `${marker}${body}`, ...(verdict === "confirmed" ? { bold: true } : {}) };
@@ -48,8 +56,9 @@ export function renderHypothesisVerificationToA3(
   payload: HypothesisVerificationPayload,
   entry: A3EntrySummary,
 ): A3BlockContent {
+  const language = resolveA3Language(entry);
   const lines = payload.rows
-    .map(rowLine)
+    .map((row) => rowLine(row, language))
     .filter((line): line is A3TextLine => line !== undefined);
 
   return {

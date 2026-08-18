@@ -1,3 +1,4 @@
+import type { A3Language } from "../../a3/methodContract";
 import type { ImpactEffortItem } from "./schema";
 
 export type Quadrant = "quick-win" | "major-project" | "fill-in" | "thankless-task";
@@ -40,10 +41,10 @@ export function quadrantOf(item: ImpactEffortItem): Quadrant | undefined {
   return "thankless-task";
 }
 
-/** A3-side labels — `renderToA3` is i18n-free (D-43). */
-export const QUADRANT_EXPORT_LABELS: Readonly<Record<Quadrant, string>> = {
-  "quick-win": "Quick win",
-  "major-project": "Major project",
-  "fill-in": "Fill-in",
-  "thankless-task": "Thankless task",
+/** A3-side labels, keyed by `A3Language` (D-188/P-26) — `renderToA3` is i18n-free (D-43). */
+export const QUADRANT_EXPORT_LABELS: Readonly<Record<Quadrant, Readonly<Record<A3Language, string>>>> = {
+  "quick-win": { tr: "Hızlı kazanım", en: "Quick win" },
+  "major-project": { tr: "Büyük proje", en: "Major project" },
+  "fill-in": { tr: "Doldurma", en: "Fill-in" },
+  "thankless-task": { tr: "Nankör iş", en: "Thankless task" },
 };

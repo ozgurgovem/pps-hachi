@@ -30,4 +30,15 @@ describe("renderIsIsNotToA3", () => {
     const content = renderIsIsNotToA3(emptyPayload(), { id: "e1", title: "Is/Is-Not" });
     expect(content.lines).toEqual([{ text: "Is/Is-Not", bold: true }]);
   });
+
+  /** D-188/P-26: `entry.language` picks the Turkish-glossed dimension/Is/Is-Not labels. */
+  it("uses Turkish-glossed labels when the entry's language is tr", () => {
+    const payload: IsIsNotPayload = { ...emptyPayload(), whatIs: "Gürültü", whatIsNot: "Titreşim" };
+    const content = renderIsIsNotToA3(payload, { id: "e1", title: "Is/Is-Not", language: "tr" });
+
+    expect(content.lines).toEqual([
+      { text: "Is/Is-Not", bold: true },
+      { text: "What (Ne) — Is (Öyle): Gürültü · Is Not (Değil): Titreşim" },
+    ]);
+  });
 });

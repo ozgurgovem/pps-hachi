@@ -47,4 +47,17 @@ describe("renderActionItemToA3", () => {
       { text: "Customer approval: approved" },
     ]);
   });
+
+  /** D-188/P-26: `entry.language` picks the export label variant. */
+  it("uses Turkish field labels when the entry's language is tr", () => {
+    const trEntry: A3EntrySummary = { ...ENTRY, language: "tr" };
+    const payload: ActionItemPayload = { ...EMPTY, action: "Install presence sensor", owner: "M. Yıldız" };
+
+    expect(renderActionItemToA3(payload, trEntry).lines).toEqual([
+      { text: "Fit sensor", bold: true },
+      { text: "Aksiyon: Install presence sensor" },
+      { text: "Sorumlu: M. Yıldız" },
+      { text: "Müşteri onayı: pending" },
+    ]);
+  });
 });

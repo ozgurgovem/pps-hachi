@@ -1,3 +1,5 @@
+import type { A3Language } from "../../a3/methodContract";
+
 /**
  * SPEC.md §1.3 (Step 4): "Fault Tree Analysis (FTA) with AND/OR gates".
  *
@@ -15,9 +17,9 @@ export function faultTreeGateLabelKey(gate: FaultTreeGate): string {
   return `methods.faultTree.gates.${gate}`;
 }
 
-/** A3-side marker — `src/a3` is React-free and i18n-free, same as every other `renderToA3`. */
-export const FAULT_TREE_GATE_MARKERS: Readonly<Record<FaultTreeGate, string>> = {
-  basic: "",
-  and: "[AND] ",
-  or: "[OR] ",
+/** A3-side marker, keyed by `A3Language` (D-188/P-26) — `src/a3` is React-free and i18n-free, same as every other `renderToA3`. */
+export const FAULT_TREE_GATE_MARKERS: Readonly<Record<FaultTreeGate, Readonly<Record<A3Language, string>>>> = {
+  basic: { tr: "", en: "" },
+  and: { tr: "[VE] ", en: "[AND] " },
+  or: { tr: "[VEYA] ", en: "[OR] " },
 };

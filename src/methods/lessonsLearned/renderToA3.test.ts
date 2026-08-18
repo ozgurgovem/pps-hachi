@@ -27,4 +27,17 @@ describe("renderLessonsLearnedToA3", () => {
     const lines = renderLessonsLearnedToA3(EMPTY, ENTRY).lines;
     expect(lines).toEqual([{ text: "Closure lessons learned", bold: true }]);
   });
+
+  /** D-188/P-26: `entry.language` picks the export label variant. */
+  it("uses Turkish field labels when the entry's language is tr", () => {
+    const trEntry = { ...ENTRY, language: "tr" as const };
+    const payload: LessonsLearnedPayload = { ...EMPTY, wentWell: "Hızlı kontrol altına alma" };
+
+    const lines = renderLessonsLearnedToA3(payload, trEntry).lines;
+
+    expect(lines).toEqual([
+      { text: "Closure lessons learned", bold: true },
+      { text: "Ne iyi gitti?: Hızlı kontrol altına alma" },
+    ]);
+  });
 });

@@ -1,3 +1,4 @@
+import type { A3Language } from "../../a3/methodContract";
 import type { FieldFormField } from "../shared/fieldForm";
 import type { StatusTone } from "../shared/statusGlyph";
 
@@ -14,11 +15,11 @@ export const COUNTERMEASURE_STATUS_OPTIONS = [
   { value: "rejected", labelKey: "methods.countermeasure.statuses.rejected" },
 ] as const;
 
-/** A3-side labels — `renderToA3` is i18n-free (D-43). */
-export const COUNTERMEASURE_STATUS_EXPORT_LABELS: Readonly<Record<string, string>> = {
-  proposed: "Proposed",
-  approved: "Approved",
-  rejected: "Rejected",
+/** A3-side labels, keyed by `A3Language` (D-188/P-26) — `renderToA3` is i18n-free (D-43). */
+export const COUNTERMEASURE_STATUS_EXPORT_LABELS: Readonly<Record<string, Readonly<Record<A3Language, string>>>> = {
+  proposed: { tr: "Önerildi", en: "Proposed" },
+  approved: { tr: "Onaylandı", en: "Approved" },
+  rejected: { tr: "Reddedildi", en: "Rejected" },
 };
 
 /** P-37: D-41's shape-coded status marker, applied to the entry's title line — the entry carries the status, not each field. */
@@ -42,23 +43,33 @@ export const COUNTERMEASURE_FIELDS = [
   {
     key: "description",
     labelKey: "methods.countermeasure.fields.description",
-    exportLabel: "Countermeasure",
+    exportLabel: { tr: "Karşı önlem", en: "Countermeasure" },
     type: "textarea",
     wide: true,
   },
   {
     key: "expectedEffect",
     labelKey: "methods.countermeasure.fields.expectedEffect",
-    exportLabel: "Expected effect",
+    exportLabel: { tr: "Beklenen etki", en: "Expected effect" },
     type: "textarea",
     wide: true,
   },
-  { key: "owner", labelKey: "methods.countermeasure.fields.owner", exportLabel: "Owner", type: "text" },
-  { key: "targetDate", labelKey: "methods.countermeasure.fields.targetDate", exportLabel: "Target", type: "date" },
+  {
+    key: "owner",
+    labelKey: "methods.countermeasure.fields.owner",
+    exportLabel: { tr: "Sorumlu", en: "Owner" },
+    type: "text",
+  },
+  {
+    key: "targetDate",
+    labelKey: "methods.countermeasure.fields.targetDate",
+    exportLabel: { tr: "Hedef tarih", en: "Target" },
+    type: "date",
+  },
   {
     key: "status",
     labelKey: "methods.countermeasure.fields.status",
-    exportLabel: "Status",
+    exportLabel: { tr: "Durum", en: "Status" },
     type: "select",
     options: COUNTERMEASURE_STATUS_OPTIONS,
   },

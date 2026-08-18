@@ -28,21 +28,26 @@ export const COST_APPROVAL_FIELDS = [
   {
     key: "costEstimate",
     labelKey: "methods.costApproval.fields.costEstimate",
-    exportLabel: "Cost estimate",
+    exportLabel: { tr: "Maliyet tahmini", en: "Cost estimate" },
     type: "text",
   },
   {
     key: "approvalStatus",
     labelKey: "methods.costApproval.fields.approvalStatus",
-    exportLabel: "Approval status",
+    exportLabel: { tr: "Onay durumu", en: "Approval status" },
     type: "select",
     options: COST_APPROVAL_STATUS_OPTIONS,
   },
-  { key: "approvedBy", labelKey: "methods.costApproval.fields.approvedBy", exportLabel: "Approved by", type: "text" },
+  {
+    key: "approvedBy",
+    labelKey: "methods.costApproval.fields.approvedBy",
+    exportLabel: { tr: "Onaylayan", en: "Approved by" },
+    type: "text",
+  },
   {
     key: "approvalDate",
     labelKey: "methods.costApproval.fields.approvalDate",
-    exportLabel: "Approval date",
+    exportLabel: { tr: "Onay tarihi", en: "Approval date" },
     type: "date",
   },
 ] as const satisfies readonly FieldFormField<CostApprovalFieldKey>[];

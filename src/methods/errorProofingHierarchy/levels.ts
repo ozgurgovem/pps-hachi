@@ -1,3 +1,5 @@
+import type { A3Language } from "../../a3/methodContract";
+
 /**
  * SPEC.md §1.3 (Step 5): "Error-proofing hierarchy selector (strongest →
  * weakest): Eliminate → Substitute → Prevent (poka-yoke) → Detect → Warn →
@@ -22,14 +24,14 @@ export const ERROR_PROOFING_LEVEL_OPTIONS = ERROR_PROOFING_LEVELS.map((level) =>
   labelKey: `methods.errorProofingHierarchy.levels.${level}`,
 }));
 
-/** A3-side labels — `renderToA3` is i18n-free (D-43). */
-export const ERROR_PROOFING_LEVEL_EXPORT_LABELS: Readonly<Record<ErrorProofingLevel, string>> = {
-  eliminate: "Eliminate",
-  substitute: "Substitute",
-  prevent: "Prevent (poka-yoke)",
-  detect: "Detect",
-  warn: "Warn",
-  procedure: "Procedure/Training",
+/** A3-side labels, keyed by `A3Language` (D-188/P-26) — `renderToA3` is i18n-free (D-43). */
+export const ERROR_PROOFING_LEVEL_EXPORT_LABELS: Readonly<Record<ErrorProofingLevel, Readonly<Record<A3Language, string>>>> = {
+  eliminate: { tr: "Ortadan kaldır", en: "Eliminate" },
+  substitute: { tr: "İkame et", en: "Substitute" },
+  prevent: { tr: "Önle (poka-yoke)", en: "Prevent (poka-yoke)" },
+  detect: { tr: "Tespit et", en: "Detect" },
+  warn: { tr: "Uyar", en: "Warn" },
+  procedure: { tr: "Prosedür/Eğitim", en: "Procedure/Training" },
 };
 
 /** 1 = strongest (Eliminate), 6 = weakest (Procedure/Training). */

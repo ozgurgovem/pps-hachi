@@ -40,4 +40,16 @@ describe("renderIcaPcaTransitionToA3", () => {
 
     expect(lines[0]).toEqual({ text: `${glyph} Retire 100% sort`, bold: true, tone });
   });
+
+  /** D-188/P-26: `entry.language` picks both the field labels and the status export label. */
+  it("uses Turkish field labels and status text when the entry's language is tr", () => {
+    const trEntry: A3EntrySummary = { ...ENTRY, language: "tr" };
+    const payload: IcaPcaTransitionPayload = { ...EMPTY, exitCriteria: "3 temiz vardiya", status: "pcaInPlace" };
+
+    expect(renderIcaPcaTransitionToA3(payload, trEntry).lines).toEqual([
+      { text: "● Retire 100% sort", bold: true, tone: "caution" },
+      { text: "Çıkış kriterleri: 3 temiz vardiya" },
+      { text: "Durum: PCA devrede" },
+    ]);
+  });
 });

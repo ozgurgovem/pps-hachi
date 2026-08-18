@@ -67,4 +67,25 @@ describe("renderDocumentUpdatesTrackerToA3", () => {
     const content = renderDocumentUpdatesTrackerToA3(allBlank(), { id: "e1", title: "Post-fix document updates" });
     expect(content.lines).toEqual([{ text: "Post-fix document updates", bold: true }]);
   });
+
+  /** D-188/P-26: `entry.language` picks both the document-type heading and the field labels. */
+  it("uses Turkish document-type headings and field labels when the entry's language is tr", () => {
+    const payload: DocumentUpdatesTrackerPayload = {
+      ...allBlank(),
+      controlPlan: { ...blankRow(), docId: "CP-004", owner: "Kalite Müh." },
+    };
+
+    const content = renderDocumentUpdatesTrackerToA3(payload, {
+      id: "e1",
+      title: "Post-fix document updates",
+      language: "tr",
+    });
+
+    expect(content.lines).toEqual([
+      { text: "Post-fix document updates", bold: true },
+      { text: "Kontrol Planı", bold: true },
+      { text: "Doküman ID: CP-004" },
+      { text: "Sorumlu: Kalite Müh." },
+    ]);
+  });
 });

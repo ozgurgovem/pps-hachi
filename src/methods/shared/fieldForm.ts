@@ -1,3 +1,4 @@
+import type { A3Language } from "../../a3/methodContract";
 import type { RowFieldType, RowTableSelectOption } from "./rowTable";
 
 /**
@@ -21,11 +22,14 @@ export interface FieldFormField<TKey extends string> {
   /** i18next key for the field's label in the editor. */
   readonly labelKey: string;
   /**
-   * Label used on the A3 sheet. `src/a3` and every `renderToA3` are
-   * i18n-free (D-43 purity boundary), so the export label is authored here
-   * beside the field rather than resolved through i18next at render time.
+   * Label used on the A3 sheet, keyed by `A3Language` (D-188/P-26). `src/a3`
+   * and every `renderToA3` are i18n-free (D-43 purity boundary), so both
+   * language variants are authored here beside the field rather than
+   * resolved through i18next at render time — the `tr` value is kept
+   * consistent with this field's own `labelKey` translation in
+   * `src/i18n/locales/tr/common.json`, the `en` value with the `en` one.
    */
-  readonly exportLabel: string;
+  readonly exportLabel: Readonly<Record<A3Language, string>>;
   readonly type: RowFieldType;
   /** Required when `type` is `"select"`. */
   readonly options?: readonly RowTableSelectOption[];
@@ -52,9 +56,10 @@ export function emptyFieldFormValues<TKey extends string>(
 export function fieldFormLines<TKey extends string>(
   values: FieldFormValues<TKey>,
   fields: readonly FieldFormField<TKey>[],
+  language: A3Language,
 ): readonly { readonly text: string }[] {
   return fields
     .map((field) => ({ field, value: (values[field.key] ?? "").trim() }))
     .filter(({ value }) => value.length > 0)
-    .map(({ field, value }) => ({ text: `${field.exportLabel}: ${value}` }));
+    .map(({ field, value }) => ({ text: `${field.exportLabel[language]}: ${value}` }));
 }

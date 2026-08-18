@@ -1158,4 +1158,39 @@ over the exact `StepId` union instead of `Record<number, ...>`). `cargo test` 89
 untouched, as expected (`tier` is TS-only). `scripts/gen-a3-fixture.ts` was not re-run — `tier`
 affects only which cards `MethodBand` shows, never the descriptor or the template's style
 table. **D-149's Oturum C leg is now fully closed — C1 through C6 all shipped.** Only Oturum D
-(P-26, i18n + block alignment) remains unwritten. Not yet committed to git.
+(P-26, i18n + block alignment) remains unwritten.
+
+**Oturum D — D1 (i18n export labels, D-149's own follow-on): DONE 2026-08-18.** Per
+`docs/oturumlar/D1-i18n-ihracat-etiketleri.md`, closing P-26's i18n half. D1's own mandated
+first step (§2.3 — verify the prompt's own inventory before coding) found the prior session's
+scan had undercounted by roughly 2× — its regex couldn't see a hardcoded label inside a
+template literal starting with `${…}` or an all-caps 2-letter word like `"NE?"`. A deeper
+sweep found 15 more touch points beyond the original 15: `causeEffectMatrix`,
+`comparativeAnalysis`, `weightedDecisionMatrix`, `msaGageRr`, `problemTypeClassifier`,
+`isIsNot`, `tpmLossTaxonomy`, `faultTree`, `fiveWhy`, `fiveG5N1K`, `fiveW2H`, `gapStatement`,
+`smartTarget`, `threeLeggedFiveWhy`, `fiveN1K` — real total **29 method directories**, plus
+`shared/whyChain.ts` and two chart components (`kpiStrip/KpiStripChart.tsx`'s known Turkish
+hardcode, D-182/P-36, and a newly-found one in `distributionChart/DistributionChart.tsx`'s
+box-plot view). Both the scope correction and the prompt's mandated Option A/B question went
+to Barış together via one `AskUserQuestion` round before further code: **Option B** (real
+bilingual export, not a Turkish-only translation pass) and **do the full grown scope in one
+session** rather than subdividing. `A3EntrySummary` (`src/a3/methodContract.ts`) gained an
+optional `language?: "tr" | "en"` field plus a `resolveA3Language` helper defaulting unset to
+`"en"` — additive, D-128-style, so no pre-existing test fixture broke by default.
+`buildA3Layout.ts`/`layout/place.ts` (the only two production sites building an
+`A3EntrySummary`) forward `project.meta.language`. `shared/fieldForm.ts`'s `exportLabel`
+became `Record<A3Language, string>`; every touched directory's bilingual dictionary sourced
+its Turkish value from that field's own already-shipped editor `labelKey` translation, not a
+fresh re-translation. A third, structurally different bug was found and deliberately **not**
+fixed here — `fishbone/FishboneDiagram.tsx`'s category labels resolve against the editor's
+active i18next UI language rather than `project.meta.language` (a dynamic mis-source, not a
+static string) — filed as **P-42** per Barış's own call. `npm test` 898/898 (212 files, up
+from 864/864 — 34 new tests), exit code 0 (checked via a separate logfile + `echo $?`, not
+piped through `tail`). `npm run lint` clean (the one pre-existing `ThemeProvider` warning).
+`npm run build` green (same pre-existing chunk-size warning). `cargo test` 89/89,
+`cargo clippy --all-targets -- -D warnings` and `cargo fmt -- --check` all clean — Rust
+untouched, as expected. `scripts/gen-a3-fixture.ts` was re-run since `smartTarget` is one of
+its five real methods and its fixture project is `language: "tr"` — the regenerated
+`a3-layout-descriptor.json` diff is exactly the one line the commitment line produces.
+Only D2 (P-26's layout/alignment half, kök nedeni henüz bulunmadı) remains unwritten.
+Not yet committed to git.

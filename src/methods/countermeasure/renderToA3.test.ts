@@ -52,4 +52,16 @@ describe("renderCountermeasureToA3", () => {
 
     expect(lines[0]).toEqual({ text: "Poka-yoke at OP30", bold: true });
   });
+
+  /** D-188/P-26: `entry.language` picks both the field labels and the status export label. */
+  it("uses Turkish field labels and status text when the entry's language is tr", () => {
+    const trEntry: A3EntrySummary = { ...ENTRY, language: "tr" };
+    const payload: CountermeasurePayload = { ...EMPTY, description: "OP30'a sensör takıldı", status: "approved" };
+
+    expect(renderCountermeasureToA3(payload, trEntry).lines).toEqual([
+      { text: "■ Poka-yoke at OP30", bold: true, tone: "positive" },
+      { text: "Karşı önlem: OP30'a sensör takıldı" },
+      { text: "Durum: Onaylandı" },
+    ]);
+  });
 });

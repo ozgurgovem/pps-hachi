@@ -22,4 +22,15 @@ describe("renderGapStatementToA3", () => {
     const content = renderGapStatementToA3(emptyPayload(), { id: "e1", title: "Leak at final test" });
     expect(content.lines).toEqual([{ text: "Leak at final test", bold: true }]);
   });
+
+  /** D-188/P-26: `entry.language` picks the Turkish field labels. */
+  it("uses Turkish field labels when the entry's language is tr", () => {
+    const payload: GapStatementPayload = { ...emptyPayload(), ideal: "Sıfır kaçak" };
+    const content = renderGapStatementToA3(payload, { id: "e1", title: "Leak at final test", language: "tr" });
+
+    expect(content.lines).toEqual([
+      { text: "Leak at final test", bold: true },
+      { text: "İdeal: Sıfır kaçak" },
+    ]);
+  });
 });

@@ -33,4 +33,24 @@ describe("renderFaultTreeToA3", () => {
 
     expect(lines[1]).toEqual({ text: "Bearing seized" });
   });
+
+  /** D-188/P-26: `entry.language` picks the Turkish VE/VEYA gate markers. */
+  it("uses Turkish gate markers when the entry's language is tr", () => {
+    const trEntry: A3EntrySummary = { ...ENTRY, language: "tr" };
+    const lines = renderFaultTreeToA3(
+      {
+        nodes: [
+          { id: "a", parentId: null, text: "Conta sızdırıyor", gate: "or" },
+          { id: "c", parentId: "a", text: "İki cıvata da gevşek", gate: "and" },
+        ],
+      },
+      trEntry,
+    ).lines;
+
+    expect(lines).toEqual([
+      { text: "FTA: seal leak", bold: true },
+      { text: "[VEYA] Conta sızdırıyor" },
+      { text: "    [VE] İki cıvata da gevşek" },
+    ]);
+  });
 });

@@ -23,4 +23,18 @@ describe("renderSideEffectRiskAssessmentToA3", () => {
     const lines = renderSideEffectRiskAssessmentToA3({ description: "", severity: "", mitigation: "" }, ENTRY).lines;
     expect(lines).toEqual([{ text: "Risk of the poka-yoke jig", bold: true }]);
   });
+
+  /** D-188/P-26: `entry.language` picks the export label variant. */
+  it("uses Turkish field labels when the entry's language is tr", () => {
+    const trEntry: A3EntrySummary = { ...ENTRY, language: "tr" };
+    const lines = renderSideEffectRiskAssessmentToA3(
+      { description: "Kalıp aşırı parçada sıkışabilir", severity: "", mitigation: "" },
+      trEntry,
+    ).lines;
+
+    expect(lines).toEqual([
+      { text: "Risk of the poka-yoke jig", bold: true },
+      { text: "Yan etki / risk: Kalıp aşırı parçada sıkışabilir" },
+    ]);
+  });
 });

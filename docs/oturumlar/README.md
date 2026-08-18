@@ -20,7 +20,7 @@ diffle görünür ve denetlenebilir.
 | C5 — whyWhyTree diyagramı + terminal-durum alanı + referans mimarisi | `C5-whywhytree-diyagram.md` | ✅ BİTTİ 2026-08-17 — diyagram + terminal-durum alanı (D-184), §2.3 Seçenek A kararlaştırıldı ama inşası P-39'a ertelendi (D-185), P-35 2/3 kapandı |
 | C6 — `MethodPlugin.tier` + iki-bölümlü `MethodBand` (daraltıldı, D-186 — sürükle-tutamaç Faz 11'e ertelendi, P-40) | `C6-tier-methodband.md` | ✅ BİTTİ 2026-08-18 — §2.4 `AskUserQuestion` Seçenek B (whyWhyTree Adım 4'e üçüncü önerilen eklendi), D-187. **D-149'un Oturum C bacağı tamamen kapandı.** |
 | D — kapsam belgesi (P-26'nın iki kusur sınıfı, dilim önerisi) | `D-i18n-blok-hizasi.md` | 📝 yazıldı 2026-08-18 — üst seviye kapsam, kod içermiyor |
-| D1 — A3 ihracat etiketlerinin dil farkındalığı | `D1-i18n-ihracat-etiketleri.md` | 📝 yazıldı 2026-08-18 — henüz yürütülmedi; §2.2'de Seçenek A/B için `AskUserQuestion` gerekiyor |
+| D1 — A3 ihracat etiketlerinin dil farkındalığı | `D1-i18n-ihracat-etiketleri.md` | ✅ BİTTİ 2026-08-18 — Seçenek B (`AskUserQuestion`), gerçek kapsam 29 dizin (tahminin ~2 katı), D-188, P-26'nın i18n yarısı kapandı, P-42 (Fishbone) yeni dosyalandı |
 | D2 — blok hizası | *(yazılmadı, D1'den sonra kapsamlanacak)* | — |
 
 ## Kullanım

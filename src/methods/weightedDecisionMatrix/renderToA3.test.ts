@@ -41,4 +41,15 @@ describe("renderWeightedDecisionMatrixToA3", () => {
     ).lines;
     expect(lines.slice(1)).toEqual([{ text: "Criteria: Cost (5)" }]);
   });
+
+  /** D-188/P-26: `entry.language` picks the "Criteria"/"Kriterler" prefix. */
+  it("uses the Turkish criteria prefix when the entry's language is tr", () => {
+    const trEntry: A3EntrySummary = { ...ENTRY, language: "tr" };
+    const lines = renderWeightedDecisionMatrixToA3(
+      { criteria: [{ id: "c1", name: "Maliyet", weight: "5" }], options: [] },
+      trEntry,
+    ).lines;
+
+    expect(lines[1]).toEqual({ text: "Kriterler: Maliyet (5)" });
+  });
 });

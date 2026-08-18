@@ -41,4 +41,18 @@ describe("renderCostApprovalToA3", () => {
 
     expect(lines[0]).toEqual({ text: `${glyph} Jig retool cost`, bold: true, tone });
   });
+
+  /** D-188/P-26: `entry.language` picks the export label variant. */
+  it("uses Turkish field labels when the entry's language is tr", () => {
+    const trEntry: A3EntrySummary = { ...ENTRY, language: "tr" };
+    const lines = renderCostApprovalToA3(
+      { costEstimate: "€4,200", approvalStatus: "", approvedBy: "", approvalDate: "" },
+      trEntry,
+    ).lines;
+
+    expect(lines).toEqual([
+      { text: "Jig retool cost", bold: true },
+      { text: "Maliyet tahmini: €4,200" },
+    ]);
+  });
 });

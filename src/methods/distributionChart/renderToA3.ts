@@ -1,11 +1,15 @@
-import type { A3BlockContent, A3EntrySummary } from "../../a3/methodContract";
+import type { A3BlockContent, A3EntrySummary, A3Language } from "../../a3/methodContract";
+import { resolveA3Language } from "../../a3/methodContract";
 import type { DistributionChartPayload } from "./schema";
 import { parsePoints, parseSampleValues } from "./stats";
 
 /** Rows reserved for the chart image — matches `pareto`/`trend`'s CHART_ROW_SPAN. */
 const CHART_ROW_SPAN = 10;
 
-function buildSpec(payload: DistributionChartPayload) {
+/** D-188/P-26: the box plot's single-bar axis label when the user left `unit` blank — genuinely visible on the chart, unlike histogram/scatter's Tooltip-only fallbacks. */
+const VALUE_LABEL: Readonly<Record<A3Language, string>> = { tr: "Değer", en: "Value" };
+
+function buildSpec(payload: DistributionChartPayload, language: A3Language) {
   if (payload.chartType === "scatter") {
     return {
       kind: "scatter" as const,
@@ -25,7 +29,7 @@ function buildSpec(payload: DistributionChartPayload) {
   }
   return {
     kind: "box-plot" as const,
-    unit: payload.unit || undefined,
+    unit: payload.unit || VALUE_LABEL[language],
     values,
   };
 }
@@ -36,7 +40,7 @@ export function renderDistributionChartToA3(payload: DistributionChartPayload, e
     image: {
       kind: "distribution-chart",
       rowSpan: CHART_ROW_SPAN,
-      spec: buildSpec(payload),
+      spec: buildSpec(payload, resolveA3Language(entry)),
     },
   };
 }

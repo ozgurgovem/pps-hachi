@@ -22,4 +22,15 @@ describe("renderFiveW2HToA3", () => {
     const content = renderFiveW2HToA3(emptyPayload(), { id: "e1", title: "Problem statement" });
     expect(content.lines).toEqual([{ text: "Problem statement", bold: true }]);
   });
+
+  /** D-188/P-26: `entry.language` picks the Turkish field labels. */
+  it("uses Turkish field labels when the entry's language is tr", () => {
+    const payload: FiveW2HPayload = { ...emptyPayload(), what: "Gürültü" };
+    const content = renderFiveW2HToA3(payload, { id: "e1", title: "Problem statement", language: "tr" });
+
+    expect(content.lines).toEqual([
+      { text: "Problem statement", bold: true },
+      { text: "Ne: Gürültü" },
+    ]);
+  });
 });

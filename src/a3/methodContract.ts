@@ -88,9 +88,27 @@ export interface A3BlockContent {
   readonly zones?: readonly A3ContentZone[];
 }
 
+/**
+ * D-188/P-26 (i18n half): the project's own `meta.language` (`ProjectModel`,
+ * `"tr" | "en"`), forwarded through `buildA3Layout`'s existing dependency-
+ * injection seam so every `renderToA3` can pick the right export text without
+ * `src/a3` ever importing i18next (D-43). Optional and defaulting to `"en"`
+ * via `resolveA3Language` — additive, no migration, same posture as
+ * `Entry.references?` (D-128): every hand-built `A3EntrySummary` test fixture
+ * predating this field keeps compiling and keeps its original (English)
+ * expected output unchanged.
+ */
+export type A3Language = "tr" | "en";
+
 export interface A3EntrySummary {
   readonly id: string;
   readonly title: string;
+  readonly language?: A3Language;
+}
+
+/** The pre-D-188 default was unconditional English — `"en"` preserves that for any `A3EntrySummary` built without `language`. */
+export function resolveA3Language(entry: A3EntrySummary): A3Language {
+  return entry.language ?? "en";
 }
 
 export type A3EntryRenderer = (payload: unknown, entry: A3EntrySummary) => A3BlockContent;

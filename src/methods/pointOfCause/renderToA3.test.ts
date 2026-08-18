@@ -30,4 +30,16 @@ describe("renderPointOfCauseToA3", () => {
   it("renders nothing but the title for an untouched nomination", () => {
     expect(renderPointOfCauseToA3(EMPTY, ENTRY).lines).toHaveLength(1);
   });
+
+  /** D-188/P-26: `entry.language` picks the export label variant. */
+  it("uses Turkish field labels when the entry's language is tr", () => {
+    const trEntry: A3EntrySummary = { ...ENTRY, language: "tr" };
+    const payload: PointOfCausePayload = { ...EMPTY, processStep: "OP30", location: "Kavite 4" };
+
+    expect(renderPointOfCauseToA3(payload, trEntry).lines).toEqual([
+      { text: "POC — OP30 gate", bold: true },
+      { text: "Proses adımı: OP30" },
+      { text: "Yer: Kavite 4" },
+    ]);
+  });
 });

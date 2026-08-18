@@ -22,4 +22,15 @@ describe("renderErrorProofingHierarchyToA3", () => {
     const lines = renderErrorProofingHierarchyToA3({ level: "detect", note: "   " }, ENTRY).lines;
     expect(lines).toHaveLength(2);
   });
+
+  /** D-188/P-26: `entry.language` picks both the "Level"/"Seviye" prefix and the resolved level label. */
+  it("uses Turkish text when the entry's language is tr", () => {
+    const trEntry: A3EntrySummary = { ...ENTRY, language: "tr" };
+    const lines = renderErrorProofingHierarchyToA3({ level: "prevent", note: "" }, trEntry).lines;
+
+    expect(lines).toEqual([
+      { text: "Deflection poka-yoke", bold: true },
+      { text: "Seviye: Önle (poka-yoke)" },
+    ]);
+  });
 });

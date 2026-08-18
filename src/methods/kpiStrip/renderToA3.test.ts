@@ -56,6 +56,19 @@ describe("renderKpiStripToA3", () => {
     ]);
   });
 
+  /** D-188/P-26: the chart's footer legend (sustain/result) previously hardcoded Turkish text regardless of `entry.language`. */
+  it("resolves the sustain/result footer legend by entry.language, defaulting to English", () => {
+    const englishContent = renderKpiStripToA3(emptyPayload(), ENTRY);
+    const englishSpec = englishContent.image?.spec as KpiStripChartSpec;
+    expect(englishSpec.sustainLabel).toBe("Sustain");
+    expect(englishSpec.resultLabel).toBe("Result");
+
+    const trContent = renderKpiStripToA3(emptyPayload(), { ...ENTRY, language: "tr" });
+    const trSpec = trContent.image?.spec as KpiStripChartSpec;
+    expect(trSpec.sustainLabel).toBe("Sürdürme");
+    expect(trSpec.resultLabel).toBe("Sonuç");
+  });
+
   it("turns a blank unit into undefined, matching pareto/problemImpact's own convention", () => {
     const payload: KpiStripPayload = {
       items: [

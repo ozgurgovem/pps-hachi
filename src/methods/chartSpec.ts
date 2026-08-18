@@ -68,7 +68,15 @@ export interface ScatterChartSpec {
 
 export interface BoxPlotChartSpec {
   readonly kind: "box-plot";
-  readonly unit?: string;
+  /**
+   * D-188/P-26: unlike `HistogramChartSpec.unit`/`ScatterChartSpec.{x,y}Label`
+   * (Tooltip/Legend-only props, never rendered without one), this drives the
+   * box plot's single `<XAxis dataKey="name">` tick — genuinely visible on
+   * the exported chart — so `renderToA3` always resolves it to a real,
+   * language-appropriate string rather than leaving the chart component to
+   * invent an English fallback.
+   */
+  readonly unit: string;
   readonly values: readonly number[];
 }
 
@@ -100,6 +108,9 @@ export interface KpiStripItem {
 export interface KpiStripChartSpec {
   readonly kind: "kpi-strip";
   readonly items: readonly KpiStripItem[];
+  /** D-188/P-26: the footer legend's sustain/result labels, resolved by `renderToA3` — the chart component stays language-agnostic, same as every other spec-driven string. */
+  readonly sustainLabel: string;
+  readonly resultLabel: string;
 }
 
 export type ChartSpec =

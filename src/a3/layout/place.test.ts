@@ -55,7 +55,7 @@ describe("placeBlockContent — image content (D-102)", () => {
       pareto: () => ({ lines: [], image: { kind: "pareto-chart", spec: { foo: 1 }, rowSpan: 4 } }),
     };
     const block = fixtureBlock();
-    const result = placeBlockContent([fixtureEntry()], block, contentRows(23, 32), columnWidths, rendererMap);
+    const result = placeBlockContent([fixtureEntry()], block, contentRows(23, 32), columnWidths, rendererMap, "en");
 
     expect(result.droppedEntryIds).toEqual([]);
     expect(result.placedEntryIds).toEqual(["entry-1"]);
@@ -79,7 +79,7 @@ describe("placeBlockContent — image content (D-102)", () => {
       }),
     };
     const block = fixtureBlock();
-    const result = placeBlockContent([fixtureEntry()], block, contentRows(23, 32), columnWidths, rendererMap);
+    const result = placeBlockContent([fixtureEntry()], block, contentRows(23, 32), columnWidths, rendererMap, "en");
 
     expect(result.cells).toHaveLength(1);
     expect(result.cells[0]!.ref).toBe("B23");
@@ -91,7 +91,7 @@ describe("placeBlockContent — image content (D-102)", () => {
       pareto: () => ({ lines: [], image: { kind: "pareto-chart", spec: {}, rowSpan: 50 } }),
     };
     const block = fixtureBlock();
-    const result = placeBlockContent([fixtureEntry()], block, contentRows(23, 32), columnWidths, rendererMap);
+    const result = placeBlockContent([fixtureEntry()], block, contentRows(23, 32), columnWidths, rendererMap, "en");
 
     expect(result.placedEntryIds).toEqual([]);
     expect(result.droppedEntryIds).toEqual(["entry-1"]);
@@ -116,6 +116,7 @@ describe("placeBlockContent — image content (D-102)", () => {
       contentRows(23, 24),
       columnWidths,
       rendererMap,
+      "en",
     );
 
     expect(result.placedEntryIds).toEqual([]);
@@ -134,6 +135,7 @@ describe("placeBlockContent — image content (D-102)", () => {
       contentRows(23, 30),
       columnWidths,
       rendererMap,
+      "en",
     );
 
     for (const slot of result.pendingImages) {
@@ -153,6 +155,7 @@ describe("placeBlockContent — image content (D-102)", () => {
       contentRows(23, 27),
       columnWidths,
       rendererMap,
+      "en",
     );
 
     expect(result.pendingImages[0]!.heightPt).toBe(150); // 5 rows * 30pt
@@ -177,6 +180,7 @@ describe("placeBlockContent — zones content (D-102)", () => {
       contentRows(58, 58, 153.75),
       columnWidths,
       rendererMap,
+      "en",
     );
 
     expect(result.placedEntryIds).toEqual(["entry-1"]);
@@ -216,6 +220,7 @@ describe("placeBlockContent — zones content (D-102)", () => {
       contentRows(58, 58, 153.75),
       columnWidths, // only two columns for four zones
       rendererMap,
+      "en",
     );
 
     expect(result.placedEntryIds).toEqual([]);
@@ -235,6 +240,7 @@ describe("placeBlockContent — zones content (D-102)", () => {
       contentRows(58, 58, 153.75),
       columnWidths,
       rendererMap,
+      "en",
     );
 
     expect(result.placedEntryIds).toEqual(["entry-1"]);
@@ -248,7 +254,7 @@ describe("placeBlockContent — tone-reinforced status lines (P-37)", () => {
       pareto: () => ({ lines: [{ text: "■ Approved", bold: true, tone: "positive" }] }),
     };
     const block = fixtureBlock();
-    const result = placeBlockContent([fixtureEntry()], block, contentRows(23, 32), columnWidths, rendererMap);
+    const result = placeBlockContent([fixtureEntry()], block, contentRows(23, 32), columnWidths, rendererMap, "en");
 
     expect(result.cells).toEqual([{ ref: "B23", value: "■ Approved", styleId: "entryContentBoldPositive" }]);
   });
@@ -258,7 +264,7 @@ describe("placeBlockContent — tone-reinforced status lines (P-37)", () => {
       pareto: () => ({ lines: [{ text: "▲ open", tone: "negative" }] }),
     };
     const block = fixtureBlock();
-    const result = placeBlockContent([fixtureEntry()], block, contentRows(23, 32), columnWidths, rendererMap);
+    const result = placeBlockContent([fixtureEntry()], block, contentRows(23, 32), columnWidths, rendererMap, "en");
 
     expect(result.cells).toEqual([{ ref: "B23", value: "▲ open", styleId: "entryContentNegative" }]);
   });
@@ -268,7 +274,7 @@ describe("placeBlockContent — tone-reinforced status lines (P-37)", () => {
       pareto: () => ({ lines: [{ text: "Plain", bold: true }, { text: "Also plain" }] }),
     };
     const block = fixtureBlock();
-    const result = placeBlockContent([fixtureEntry()], block, contentRows(23, 32), columnWidths, rendererMap);
+    const result = placeBlockContent([fixtureEntry()], block, contentRows(23, 32), columnWidths, rendererMap, "en");
 
     expect(result.cells).toEqual([
       { ref: "B23", value: "Plain", styleId: "entryContentBold" },

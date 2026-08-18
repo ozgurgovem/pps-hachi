@@ -31,4 +31,16 @@ describe("renderPfmeaLinkageToA3", () => {
   it("renders only the title for an untouched linkage", () => {
     expect(renderPfmeaLinkageToA3(EMPTY, ENTRY).lines).toHaveLength(1);
   });
+
+  /** D-188/P-26: `entry.language` picks the export label variant. */
+  it("uses Turkish field labels when the entry's language is tr", () => {
+    const trEntry: A3EntrySummary = { ...ENTRY, language: "tr" };
+    const payload: PfmeaLinkagePayload = { ...EMPTY, documentNo: "PF-2210", failureMode: "Kısa dolum" };
+
+    expect(renderPfmeaLinkageToA3(payload, trEntry).lines).toEqual([
+      { text: "PFMEA line 40", bold: true },
+      { text: "PFMEA no: PF-2210" },
+      { text: "Hata türü: Kısa dolum" },
+    ]);
+  });
 });

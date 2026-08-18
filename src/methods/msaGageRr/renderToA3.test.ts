@@ -35,4 +35,23 @@ describe("renderMsaGageRrToA3", () => {
       { text: "Verdict: Inconclusive" },
     ]);
   });
+
+  /** D-188/P-26: `entry.language` picks the verdict prefix, field labels and note label. */
+  it("uses Turkish text when the entry's language is tr", () => {
+    const payload: MsaGageRrPayload = {
+      method: "Gage R&R",
+      evaluator: "",
+      date: "",
+      percentGrr: "",
+      verdict: "trustworthy",
+      note: "",
+    };
+    const content = renderMsaGageRrToA3(payload, { id: "e1", title: "Torque gauge check", language: "tr" });
+
+    expect(content.lines).toEqual([
+      { text: "Torque gauge check", bold: true },
+      { text: "Sonuç: Güvenilir" },
+      { text: "Yöntem: Gage R&R" },
+    ]);
+  });
 });

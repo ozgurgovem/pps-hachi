@@ -1,5 +1,10 @@
-import type { A3BlockContent, A3EntrySummary } from "../../a3/methodContract";
+import type { A3BlockContent, A3EntrySummary, A3Language } from "../../a3/methodContract";
+import { resolveA3Language } from "../../a3/methodContract";
 import type { KpiStripPayload } from "./schema";
+
+/** D-188/P-26: matches `methods.kpiStrip.fields.{sustain,result}`'s own editor translations, abbreviated to a bare word for the chart's footer legend. */
+const SUSTAIN_LABEL: Readonly<Record<A3Language, string>> = { tr: "Sürdürme", en: "Sustain" };
+const RESULT_LABEL: Readonly<Record<A3Language, string>> = { tr: "Sonuç", en: "Result" };
 
 /**
  * Conservative row-span (TEMPLATE_ANALYSIS.md §14.3, DECISIONS.md D-167).
@@ -15,6 +20,7 @@ import type { KpiStripPayload } from "./schema";
 const CHART_ROW_SPAN = 6;
 
 export function renderKpiStripToA3(payload: KpiStripPayload, entry: A3EntrySummary): A3BlockContent {
+  const language = resolveA3Language(entry);
   return {
     lines: [{ text: entry.title, bold: true }],
     image: {
@@ -32,6 +38,8 @@ export function renderKpiStripToA3(payload: KpiStripPayload, entry: A3EntrySumma
           result: item.result,
           status: item.status,
         })),
+        sustainLabel: SUSTAIN_LABEL[language],
+        resultLabel: RESULT_LABEL[language],
       },
     },
   };

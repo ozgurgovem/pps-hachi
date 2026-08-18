@@ -110,14 +110,23 @@ olduğunu söylüyor — aynı oturumda karıştırma.**
 
 ### 3.1 D1 — i18n ihracat etiketleri (bu dosyanın kardeşi, `D1-i18n-ihracat-etiketleri.md`)
 
-Mekanik ama geniş bir süpürme: ~24 `fields.ts`/`columns.ts` dosyası + ek inline sözlükler
-taşıyan bir avuç `renderToA3.ts`. **Kodlamadan önce tek gerçek açık soru** (D1'in kendi
-promptunda `AskUserQuestion` ile sorulacak): §2.1'in bulduğu gibi, D-99'un dikişini genişletip
-gerçek çift-dilli ihracat mı kurulsun (Seçenek B — `A3EntrySummary.language`, her sözlük iki
-dilli olur), yoksa bugünkü tek-Türkçe-şablon gerçeğine uyup yalnızca Türkçeye mi çevrilsin
-(Seçenek A — daha küçük değişiklik, ama Faz 11'de `-en` şablonu geldiğinde ikinci bir geçiş
-gerektirir)? Cevap ne olursa olsun mekanizma küçük (bir alan eklemek ya da eklememek); asıl
-hacim ~24+ dosyanın her birinde birkaç satırlık sözlük değişikliği.
+**BİTTİ 2026-08-18, bkz. D-188.** Mekanik ama geniş bir süpürme: ~24 `fields.ts`/`columns.ts`
+dosyası + ek inline sözlükler taşıyan bir avuç `renderToA3.ts` — **tahmin, gerçeğin yaklaşık
+yarısıydı.** D1'in kendi mandatlı ilk adımı (§2.3 — envanteri doğrula, körü körüne güvenme),
+orijinal 15 dizinlik listenin `exportLabel`/`_EXPORT_LABELS` regex'inin göremediği bir kalıba
+(`` `${label}: ${value}` `` gibi `$` ile başlayan template literal'lar, ve "NE?" gibi 2 harfli
+büyük-harf kelimeler) kör olduğunu buldu — ikinci, daha derin bir tarama 15 dizin daha ortaya
+çıkardı (`causeEffectMatrix`, `comparativeAnalysis`, `weightedDecisionMatrix`, `msaGageRr`,
+`problemTypeClassifier`, `isIsNot`, `tpmLossTaxonomy`, `faultTree`, `fiveWhy`, `fiveG5N1K`,
+`fiveW2H`, `gapStatement`, `smartTarget`, `threeLeggedFiveWhy`, `fiveN1K`) — gerçek toplam
+**29 dizin**, artı `shared/whyChain.ts`, artı iki grafik bileşeni (`kpiStrip/KpiStripChart.tsx`'in
+zaten bilinen Türkçe hardcode'u + yeni bulunan `distributionChart/DistributionChart.tsx`'in
+box-plot görünümündeki `"Value"` fallback'i). Bu büyüme + §2.2'nin mandatlı Seçenek A/B sorusu
+tek bir `AskUserQuestion` turunda birlikte Barış'a soruldu: **Seçenek B** (gerçek çift-dilli
+ihracat) seçildi, ve büyümüş kapsamın **tamamı tek oturumda** yapıldı (alt-bölünmedi).
+Ayrıca bulunan, yapısal olarak farklı bir üçüncü kusur — Fishbone diyagramının kategori
+etiketleri `project.meta.language`'ı değil, editörün o anki aktif i18next dilini kullanıyor —
+bilinçli olarak bu dilime alınmadı, **P-42** olarak dosyalandı.
 
 ### 3.2 D2 — blok hizası (henüz yazılmadı, D1'den sonra kapsam belirlenecek)
 

@@ -1,3 +1,4 @@
+import type { A3Language } from "../../a3/methodContract";
 import type { RowTableColumn } from "../shared/rowTable";
 
 /**
@@ -25,11 +26,11 @@ export const HYPOTHESIS_VERDICT_OPTIONS = [
   { value: "inconclusive", labelKey: "methods.hypothesisVerification.verdicts.inconclusive" },
 ] as const;
 
-/** A3-side labels — `renderToA3` is i18n-free (D-43). */
-export const HYPOTHESIS_VERDICT_EXPORT_LABELS: Readonly<Record<string, string>> = {
-  confirmed: "CONFIRMED",
-  rejected: "rejected",
-  inconclusive: "inconclusive",
+/** A3-side labels, keyed by `A3Language` (D-188/P-26) — `renderToA3` is i18n-free (D-43). Confirmed stays visually emphasized (all caps) in both languages. */
+export const HYPOTHESIS_VERDICT_EXPORT_LABELS: Readonly<Record<string, Readonly<Record<A3Language, string>>>> = {
+  confirmed: { tr: "DOĞRULANDI", en: "CONFIRMED" },
+  rejected: { tr: "elendi", en: "rejected" },
+  inconclusive: { tr: "sonuçsuz", en: "inconclusive" },
 };
 
 export const HYPOTHESIS_VERIFICATION_COLUMNS = [

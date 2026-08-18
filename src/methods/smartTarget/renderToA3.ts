@@ -1,4 +1,5 @@
-import type { A3BlockContent, A3EntrySummary } from "../../a3/methodContract";
+import type { A3BlockContent, A3EntrySummary, A3Language } from "../../a3/methodContract";
+import { resolveA3Language } from "../../a3/methodContract";
 import type { SmartTargetPayload } from "./schema";
 
 /** D-38: prioritised items / chart / mono commitment line, in that order. */
@@ -6,10 +7,18 @@ const ZONE_A_WIDTH_FRACTION = 0.32;
 const ZONE_B_WIDTH_FRACTION = 0.4;
 const ZONE_C_WIDTH_FRACTION = 0.28;
 
-function commitmentLine(payload: SmartTargetPayload): string {
+/** D-188/P-26: matches `methods.smartTarget.{baselineLabel,targetLabel,unitLabel,dueDateLabel,ownerLabel}`'s own editor translations. */
+const BASELINE_LABEL: Readonly<Record<A3Language, string>> = { tr: "Başlangıç", en: "Baseline" };
+const TARGET_LABEL: Readonly<Record<A3Language, string>> = { tr: "Hedef", en: "Target" };
+const UNIT_LABEL: Readonly<Record<A3Language, string>> = { tr: "Birim", en: "Unit" };
+const DUE_LABEL: Readonly<Record<A3Language, string>> = { tr: "Bitiş", en: "Due" };
+const OWNER_LABEL: Readonly<Record<A3Language, string>> = { tr: "Sorumlu", en: "Owner" };
+
+function commitmentLine(payload: SmartTargetPayload, language: A3Language): string {
   return (
-    `Baseline: ${payload.baseline} · Target: ${payload.target} · Unit: ${payload.unit} · ` +
-    `Due: ${payload.dueDate} · Owner: ${payload.owner}`
+    `${BASELINE_LABEL[language]}: ${payload.baseline} · ${TARGET_LABEL[language]}: ${payload.target} · ` +
+    `${UNIT_LABEL[language]}: ${payload.unit} · ${DUE_LABEL[language]}: ${payload.dueDate} · ` +
+    `${OWNER_LABEL[language]}: ${payload.owner}`
   );
 }
 
@@ -20,6 +29,7 @@ function commitmentLine(payload: SmartTargetPayload): string {
  * generic (`placeZones.ts`), not hardcoded to this method or to Step 3.
  */
 export function renderSmartTargetToA3(payload: SmartTargetPayload, entry: A3EntrySummary): A3BlockContent {
+  const language = resolveA3Language(entry);
   return {
     lines: [],
     zones: [
@@ -37,14 +47,14 @@ export function renderSmartTargetToA3(payload: SmartTargetPayload, entry: A3Entr
           spec: {
             kind: "trajectory",
             unit: payload.unit,
-            baseline: { label: "Baseline", value: payload.baseline },
-            target: { label: "Target", value: payload.target },
+            baseline: { label: BASELINE_LABEL[language], value: payload.baseline },
+            target: { label: TARGET_LABEL[language], value: payload.target },
           },
         },
       },
       {
         widthFraction: ZONE_C_WIDTH_FRACTION,
-        lines: [{ text: commitmentLine(payload) }],
+        lines: [{ text: commitmentLine(payload, language) }],
       },
     ],
   };

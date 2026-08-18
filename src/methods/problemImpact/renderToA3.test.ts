@@ -35,6 +35,19 @@ describe("renderProblemImpactToA3", () => {
     expect(content.lines).toEqual([{ text: "Kapı paneli fire maliyeti", bold: true }]);
   });
 
+  /** D-188/P-26: `entry.language` picks the export label variant. */
+  it("uses Turkish field labels when the entry's language is tr", () => {
+    const trEntry = { ...ENTRY, language: "tr" as const };
+    const payload: ProblemImpactPayload = { ...emptyPayload(), monthlyLoss: "€4,200" };
+
+    const content = renderProblemImpactToA3(payload, trEntry);
+
+    expect(content.lines).toEqual([
+      { text: "Kapı paneli fire maliyeti", bold: true },
+      { text: "Aylık kayıp: €4,200" },
+    ]);
+  });
+
   it("requests the shared pareto-chart image kind, built from its own categories/unit", () => {
     const payload: ProblemImpactPayload = {
       ...emptyPayload(),

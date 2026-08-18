@@ -1,3 +1,4 @@
+import type { A3Language } from "../../a3/methodContract";
 import type { FieldFormField } from "../shared/fieldForm";
 import type { StatusTone } from "../shared/statusGlyph";
 
@@ -15,11 +16,11 @@ export const ICA_PCA_STATUS_OPTIONS = [
   { value: "icaRemoved", labelKey: "methods.icaPcaTransition.statuses.icaRemoved" },
 ] as const;
 
-/** A3-side labels — `renderToA3` is i18n-free (D-43). */
-export const ICA_PCA_STATUS_EXPORT_LABELS: Readonly<Record<string, string>> = {
-  icaActive: "ICA active",
-  pcaInPlace: "PCA in place",
-  icaRemoved: "ICA removed",
+/** A3-side labels, keyed by `A3Language` (D-188/P-26) — `renderToA3` is i18n-free (D-43). */
+export const ICA_PCA_STATUS_EXPORT_LABELS: Readonly<Record<string, Readonly<Record<A3Language, string>>>> = {
+  icaActive: { tr: "ICA yürürlükte", en: "ICA active" },
+  pcaInPlace: { tr: "PCA devrede", en: "PCA in place" },
+  icaRemoved: { tr: "ICA kaldırıldı", en: "ICA removed" },
 };
 
 /**
@@ -49,34 +50,39 @@ export const ICA_PCA_TRANSITION_FIELDS = [
   {
     key: "exitCriteria",
     labelKey: "methods.icaPcaTransition.fields.exitCriteria",
-    exportLabel: "Exit criteria",
+    exportLabel: { tr: "Çıkış kriterleri", en: "Exit criteria" },
     type: "textarea",
     wide: true,
   },
   {
     key: "verificationEvidence",
     labelKey: "methods.icaPcaTransition.fields.verificationEvidence",
-    exportLabel: "Verification",
+    exportLabel: { tr: "Doğrulama", en: "Verification" },
     type: "textarea",
     wide: true,
   },
   {
     key: "plannedRemovalDate",
     labelKey: "methods.icaPcaTransition.fields.plannedRemovalDate",
-    exportLabel: "Planned removal",
+    exportLabel: { tr: "Planlanan kaldırma", en: "Planned removal" },
     type: "date",
   },
   {
     key: "actualRemovalDate",
     labelKey: "methods.icaPcaTransition.fields.actualRemovalDate",
-    exportLabel: "Actual removal",
+    exportLabel: { tr: "Gerçekleşen kaldırma", en: "Actual removal" },
     type: "date",
   },
-  { key: "owner", labelKey: "methods.icaPcaTransition.fields.owner", exportLabel: "Owner", type: "text" },
+  {
+    key: "owner",
+    labelKey: "methods.icaPcaTransition.fields.owner",
+    exportLabel: { tr: "Sorumlu", en: "Owner" },
+    type: "text",
+  },
   {
     key: "status",
     labelKey: "methods.icaPcaTransition.fields.status",
-    exportLabel: "Status",
+    exportLabel: { tr: "Durum", en: "Status" },
     type: "select",
     options: ICA_PCA_STATUS_OPTIONS,
   },

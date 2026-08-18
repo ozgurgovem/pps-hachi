@@ -55,7 +55,7 @@ function BoxPlotView({ spec, size }: { spec: BoxPlotChartSpec; size: A3ImageSize
   if (!stats) {
     return <BarChart width={size.widthPx} height={size.heightPx} data={[]} />;
   }
-  const data = [{ name: spec.unit ?? "Value", belowBox: stats.q1, box: stats.q3 - stats.q1 }];
+  const data = [{ name: spec.unit, belowBox: stats.q1, box: stats.q3 - stats.q1 }];
   return (
     <BarChart width={size.widthPx} height={size.heightPx} data={data} margin={{ top: 8, right: 24, bottom: 8, left: 8 }}>
       <CartesianGrid strokeDasharray="3 3" />

@@ -30,4 +30,22 @@ describe("renderThreeLeggedFiveWhyToA3", () => {
     );
     expect(content.lines).toEqual([{ text: "3 Bacaklı 5 Neden", bold: true }]);
   });
+
+  /** D-188/P-26: `entry.language` picks both the leg headings and the "Why"/"Neden" chain label. */
+  it("uses Turkish leg headings and chain labels when the entry's language is tr", () => {
+    const payload: ThreeLeggedFiveWhyPayload = {
+      problemStatement: "",
+      occurrence: [{ id: "o1", answer: "Panel titreşiyor" }],
+      detection: [],
+      systemic: [],
+    };
+
+    const content = renderThreeLeggedFiveWhyToA3(payload, { id: "e1", title: "3 Bacaklı 5 Neden", language: "tr" });
+
+    expect(content.lines).toEqual([
+      { text: "3 Bacaklı 5 Neden", bold: true },
+      { text: "Oluşum", bold: true },
+      { text: "Neden 1: Panel titreşiyor" },
+    ]);
+  });
 });

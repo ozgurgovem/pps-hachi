@@ -19,22 +19,42 @@ export type PointOfCauseFieldKey =
  * prevent.
  */
 export const POINT_OF_CAUSE_FIELDS = [
-  { key: "processStep", labelKey: "methods.pointOfCause.fields.processStep", exportLabel: "Process step", type: "text" },
-  { key: "location", labelKey: "methods.pointOfCause.fields.location", exportLabel: "Location", type: "text" },
+  {
+    key: "processStep",
+    labelKey: "methods.pointOfCause.fields.processStep",
+    exportLabel: { tr: "Proses adımı", en: "Process step" },
+    type: "text",
+  },
+  {
+    key: "location",
+    labelKey: "methods.pointOfCause.fields.location",
+    exportLabel: { tr: "Yer", en: "Location" },
+    type: "text",
+  },
   {
     key: "occursWhen",
     labelKey: "methods.pointOfCause.fields.occursWhen",
-    exportLabel: "Occurs when",
+    exportLabel: { tr: "Ne zaman oluşuyor", en: "Occurs when" },
     type: "textarea",
     wide: true,
   },
   {
     key: "evidence",
     labelKey: "methods.pointOfCause.fields.evidence",
-    exportLabel: "Evidence",
+    exportLabel: { tr: "Kanıt", en: "Evidence" },
     type: "textarea",
     wide: true,
   },
-  { key: "observedAt", labelKey: "methods.pointOfCause.fields.observedAt", exportLabel: "Observed", type: "date" },
-  { key: "observedBy", labelKey: "methods.pointOfCause.fields.observedBy", exportLabel: "Observed by", type: "text" },
+  {
+    key: "observedAt",
+    labelKey: "methods.pointOfCause.fields.observedAt",
+    exportLabel: { tr: "Gözlem tarihi", en: "Observed" },
+    type: "date",
+  },
+  {
+    key: "observedBy",
+    labelKey: "methods.pointOfCause.fields.observedBy",
+    exportLabel: { tr: "Gözlemleyen", en: "Observed by" },
+    type: "text",
+  },
 ] as const satisfies readonly FieldFormField<PointOfCauseFieldKey>[];

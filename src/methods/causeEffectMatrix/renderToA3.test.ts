@@ -54,4 +54,15 @@ describe("renderCauseEffectMatrixToA3", () => {
 
     expect(lines[1]).toEqual({ text: "Outputs: Scrap" });
   });
+
+  /** D-188/P-26: `entry.language` picks the "Outputs"/"Çıktılar" prefix. */
+  it("uses the Turkish outputs prefix when the entry's language is tr", () => {
+    const trEntry: A3EntrySummary = { ...ENTRY, language: "tr" };
+    const lines = renderCauseEffectMatrixToA3(
+      { outputs: [{ id: "o1", name: "Fire", weight: "9" }], inputs: [] },
+      trEntry,
+    ).lines;
+
+    expect(lines[1]).toEqual({ text: "Çıktılar: Fire (9)" });
+  });
 });

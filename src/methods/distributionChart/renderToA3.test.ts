@@ -41,6 +41,27 @@ describe("renderDistributionChartToA3", () => {
     expect(block.image?.spec).toEqual({ kind: "box-plot", unit: "N·m", values: [3] });
   });
 
+  /**
+   * D-188/P-26: unlike histogram/scatter's Tooltip-only `unit`/`xLabel`
+   * fallbacks (never rendered without a Tooltip), the box plot's single
+   * `<XAxis dataKey="name">` tick is genuinely visible, so a blank `unit`
+   * must resolve to a real, language-appropriate word rather than an
+   * always-English one.
+   */
+  it("falls back to a language-appropriate axis label when unit is left blank", () => {
+    const englishBlock = renderDistributionChartToA3(
+      payload({ chartType: "box-plot", unit: "", samples: [{ id: "s1", value: "3" }] }),
+      { ...ENTRY, language: "en" },
+    );
+    expect(englishBlock.image?.spec).toEqual({ kind: "box-plot", unit: "Value", values: [3] });
+
+    const turkishBlock = renderDistributionChartToA3(
+      payload({ chartType: "box-plot", unit: "", samples: [{ id: "s1", value: "3" }] }),
+      { ...ENTRY, language: "tr" },
+    );
+    expect(turkishBlock.image?.spec).toEqual({ kind: "box-plot", unit: "Değer", values: [3] });
+  });
+
   it("parses a valid positive binCount override", () => {
     const block = renderDistributionChartToA3(payload({ chartType: "histogram", binCount: "6" }), ENTRY);
     expect((block.image?.spec as { binCount?: number }).binCount).toBe(6);

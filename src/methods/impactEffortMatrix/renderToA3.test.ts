@@ -34,4 +34,15 @@ describe("renderImpactEffortMatrixToA3", () => {
 
     expect(lines).toEqual([{ text: "Impact/effort matrix", bold: true }]);
   });
+
+  /** D-188/P-26: `entry.language` picks the quadrant label. */
+  it("uses the Turkish quadrant label when the entry's language is tr", () => {
+    const trEntry: A3EntrySummary = { ...ENTRY, language: "tr" };
+    const lines = renderImpactEffortMatrixToA3(
+      { items: [{ id: "1", description: "Kaynak kontrolünü otomatikleştir", impact: "5", effort: "1" }] },
+      trEntry,
+    ).lines;
+
+    expect(lines[1]).toEqual({ text: "Kaynak kontrolünü otomatikleştir — Hızlı kazanım" });
+  });
 });

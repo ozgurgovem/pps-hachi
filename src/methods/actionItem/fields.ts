@@ -36,27 +36,43 @@ export const ACTION_ITEM_CUSTOMER_APPROVAL_OPTIONS = [
  * it in 6b.
  */
 export const ACTION_ITEM_FIELDS = [
-  { key: "action", labelKey: "methods.actionItem.fields.action", exportLabel: "Action", type: "textarea", wide: true },
-  { key: "owner", labelKey: "methods.actionItem.fields.owner", exportLabel: "Owner", type: "text" },
-  { key: "startDate", labelKey: "methods.actionItem.fields.startDate", exportLabel: "Start", type: "date" },
-  { key: "dueDate", labelKey: "methods.actionItem.fields.dueDate", exportLabel: "Due", type: "date" },
+  {
+    key: "action",
+    labelKey: "methods.actionItem.fields.action",
+    exportLabel: { tr: "Aksiyon", en: "Action" },
+    type: "textarea",
+    wide: true,
+  },
+  { key: "owner", labelKey: "methods.actionItem.fields.owner", exportLabel: { tr: "Sorumlu", en: "Owner" }, type: "text" },
+  {
+    key: "startDate",
+    labelKey: "methods.actionItem.fields.startDate",
+    exportLabel: { tr: "Başlangıç", en: "Start" },
+    type: "date",
+  },
+  {
+    key: "dueDate",
+    labelKey: "methods.actionItem.fields.dueDate",
+    exportLabel: { tr: "Termin", en: "Due" },
+    type: "date",
+  },
   {
     key: "percentComplete",
     labelKey: "methods.actionItem.fields.percentComplete",
-    exportLabel: "Status %",
+    exportLabel: { tr: "Durum %", en: "Status %" },
     type: "text",
   },
   {
     key: "evidence",
     labelKey: "methods.actionItem.fields.evidence",
-    exportLabel: "Evidence",
+    exportLabel: { tr: "Kanıt", en: "Evidence" },
     type: "textarea",
     wide: true,
   },
   {
     key: "customerApproval",
     labelKey: "methods.actionItem.fields.customerApproval",
-    exportLabel: "Customer approval",
+    exportLabel: { tr: "Müşteri onayı", en: "Customer approval" },
     type: "select",
     options: ACTION_ITEM_CUSTOMER_APPROVAL_OPTIONS,
   },

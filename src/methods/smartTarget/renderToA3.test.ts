@@ -47,4 +47,19 @@ describe("renderSmartTargetToA3 (D-38 three-zone strip)", () => {
       { text: "Baseline: 120 · Target: 20 · Unit: PPM · Due: 2026-09-01 · Owner: Ayşe Yılmaz" },
     ]);
   });
+
+  /** D-188/P-26: `entry.language` picks the commitment-line labels and the chart's baseline/target point labels. */
+  it("uses Turkish labels when the entry's language is tr", () => {
+    const content = renderSmartTargetToA3(payload, { id: "e1", title: "Hedef", language: "tr" });
+
+    const zoneB = content.zones![1]!;
+    const spec = zoneB.image?.spec as TrajectoryChartSpec;
+    expect(spec.baseline).toEqual({ label: "Başlangıç", value: 120 });
+    expect(spec.target).toEqual({ label: "Hedef", value: 20 });
+
+    const zoneC = content.zones![2]!;
+    expect(zoneC.lines).toEqual([
+      { text: "Başlangıç: 120 · Hedef: 20 · Birim: PPM · Bitiş: 2026-09-01 · Sorumlu: Ayşe Yılmaz" },
+    ]);
+  });
 });
