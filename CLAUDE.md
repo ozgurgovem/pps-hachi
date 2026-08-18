@@ -1193,4 +1193,68 @@ untouched, as expected. `scripts/gen-a3-fixture.ts` was re-run since `smartTarge
 its five real methods and its fixture project is `language: "tr"` — the regenerated
 `a3-layout-descriptor.json` diff is exactly the one line the commitment line produces.
 Only D2 (P-26's layout/alignment half, kök nedeni henüz bulunmadı) remains unwritten.
+
+**Oturum D — D2 (blok hizası kök neden keşfi, D-149's last planned session): DONE
+2026-08-18 as a discovery session — root cause found and documented, fix deliberately deferred
+to D2b.** Per `docs/oturumlar/D2-blok-hizasi.md`'s own explicit framing ("bu bir keşif
+oturumudur, bir uygulama oturumu değil"), followed D-136/P-25's methodology exactly: a real
+8-step `.ppsx`-shaped `ProjectModel` (mixed content — plain text, chart images, zones, two
+entries sharing one printed block for Steps 5/6) built through the real two-call
+`buildA3Layout` pattern, fed through the real `write_a3_workbook`, the real `.xlsx` opened
+cell-by-cell (`xl/worksheets/sheet1.xml`, direct XML/shared-strings parse) against
+`farplas-7step-tr.ts`'s own `TemplateBlock` ranges — **not** `TEMPLATE_ANALYSIS.md` §12.8,
+which the prompt's own §1.4 correctly flagged as the wrong target (§12 describes the
+not-yet-built `pps-8step-auto`, D-186/P-40). Every cell from every plain-`lines` entry landed
+correctly inside its own block's `contentColumns`/`contentRows` — `place.ts`'s core mechanism
+(non-zone path) is sound, ruling out both of `D-i18n-blok-hizasi.md` §2.2's named suspects as
+stated.
+**Root cause found in `src/a3/layout/placeZones.ts` (D-102's `zones` mechanism), two related
+defects, both real and reproducible, neither previously documented (D-189):** (1)
+`placeZonesContent` always writes a zone's entire line stack into exactly one row
+(`zone.lines.map(l => l.text).join("\n")` at `startRow`), never reserving additional rows for
+multi-line zone content — the Rust writer locks every row's height (`customHeight="1"`, no
+auto-fit), so a 2-line zone (question label + answer, `five-n1k`'s own shape) on an ordinary
+30 pt body row visibly clips its second line. (2) `splitColumnsIntoZones`'s greedy
+whole-column snapping doesn't weigh column-width evenness — `farplas-7step-tr`'s B:O column
+range interleaves legacy near-zero-width "gutter" columns (D/H/L/O: 8–18 pt) among wide
+content columns (112–238 pt), and `five-n1k`'s 6-equal-fraction split lands its sixth zone
+("NEREDE?") entirely on column O — 8.25 pt wide, 29–46× narrower than its five siblings
+(240–383 pt). Both defects were confirmed two ways, matching D-136's evidentiary bar: (a)
+structurally, via the real XML (`ht="30" customHeight="1"`, cell `O10` an isolated unmerged
+8.25 pt-wide cell holding two joined lines); (b) **visually**, by opening the real probe
+`.xlsx` in Apple Numbers (this environment has no Excel/LibreOffice-headless automation path,
+same class of gap D-136 flagged for WKWebView) — the answer line under each 5N1K question
+renders as a barely-visible sliver, and the "NEREDE?" label clips to a single stray "N"
+character sitting flush against the neighboring Step 4 block's content, a direct visual match
+for Barış's own 2026-08-04 description ("content does not always land inside its intended
+block — text reads as offset from where the block's own borders are"). Both defects live in
+the one shared, generic `placeZones.ts` mechanism used by two shipped methods —
+`smart-target` (Phase 5/D-38, its geometry visually approved D-178) and `five-n1k` (Oturum
+C2/D-181) — and have been latent since Phase 5: `smart-target`'s specific 3-zone
+0.32/0.4/0.28 split over the same B:O columns never strands a zone on a gutter column, and its
+single content row is 153.75 pt (tall enough for its typical 2–3 line Zone A content), so the
+defect was invisible until `five-n1k`'s different zone count/fractions landed on Step 1's
+ordinary 30 pt rows. **Honesty caveats, stated rather than glossed over:** `five-n1k` did not
+exist on 2026-08-04 (shipped 2026-08-16), so this is not a literal reproduction of Barış's
+original instance — it is the same mechanism class producing the same symptom, very plausibly
+(not provenly) the same root cause via `smart-target`'s zones if his original Step 3 entry
+carried enough prioritized items to overflow even the 153.75 pt row; visual verification used
+Apple Numbers, not Excel or a live Tauri/WKWebView preview, so wrap/clip rendering fidelity to
+the app's actual delivery format is assumed, not proven identical. **Deliberately not fixed
+this session, per the prompt's own §2.4 disposition rule**: a correct fix (either reserving
+multiple rows per zone based on real line count, or making column-snapping width-aware, or
+both) changes the physical shape of `smart-target`'s already-LOCKED, D-178-approved visual and
+needs its own Block Visual Verification Loop pass before it can be trusted — exactly the
+"large architectural finding, document rather than same-session-patch" case the prompt
+anticipated. Full writeup: `reference/TEMPLATE_ANALYSIS.md` §15. Temporary probe artifacts
+(`scripts/_d2-probe-fixture.ts`, `scripts/_d2-checkwidth.ts`,
+`src-tauri/src/bin/d2_probe.rs`) deleted after use, per D-136's own "use, then delete"
+discipline — nothing permanent was added to the test suite this session since there is no fix
+yet to pin down with a regression test; the numeric evidence (row/cell refs, exact column
+widths) is preserved in §15 instead. No production code changed — `npm test`/`cargo test`
+were not re-run since nothing in `src/`, `src-tauri/src/xlsx/`, or `src-tauri/src/ppsx/`
+changed, only documentation and (removed) scratch files.
+**D-149's four-session plan (A, B1–B3, C1–C6, D1–D2) is now fully closed** — D2's own job was
+discovery, and discovery is complete; the fix itself is **D2b**, not yet scheduled, tracked as
+**P-43**.
 Not yet committed to git.

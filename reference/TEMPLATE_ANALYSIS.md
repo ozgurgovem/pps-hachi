@@ -1720,3 +1720,108 @@ D-164: otomatik + manuel, ikisi birden. Etkileşim:
   düğüm-seviyesi adresleme — `findOrphanedReferences`/`findReferencesTo`/
   `listReferenceableEntries` düğüm varlığını da bilmeli, `EntryReferenceField` düğüm listelemeyi
   öğrenmeli. Henüz planlanmadı.
+
+## 15. **D2 — blok hizası kök neden keşfi**, Oturum D2 çıktısı, 2026-08-18
+
+P-26'nın layout/hizalama yarısının kök neden araştırması (`docs/oturumlar/D2-blok-hizasi.md`).
+Bir keşif oturumu — kod değişmedi, kök neden bulundu ve belgelendi, düzeltme bilinçli olarak
+D2b'ye bırakıldı (D-189, **P-43**).
+
+### 15.1 Yöntem — D-136/P-25'in aynısı
+
+Gerçek bir 8-adım `.ppsx`-şekilli `ProjectModel` (düz metin, grafik-taşıyan, zon-taşıyan,
+Adım 5/6'nın tek bloğunu paylaşan iki entry karışık) gerçek iki-çağrılı `buildA3Layout`
+deseninden geçirildi, gerçek `write_a3_workbook`'a verildi, çıkan gerçek `.xlsx`'in
+`xl/worksheets/sheet1.xml`'i doğrudan XML/paylaşılan-string ayrıştırmasıyla açıldı ve her
+hücrenin gerçek `ref`'i `farplas-7step-tr.ts`'nin **kendi** `TemplateBlock.contentColumns`/
+`contentRows` aralıklarına karşı kontrol edildi — **`TEMPLATE_ANALYSIS.md` §12.8'e değil**
+(bu promptun kendi §1.4'ünün düzelttiği gibi, §12 henüz inşa edilmemiş `pps-8step-auto`'yu
+tarif eder). Geçici araçlar: `scripts/_d2-probe-fixture.ts` (fixture + iki-çağrı
+`buildA3Layout`), `src-tauri/src/bin/d2_probe.rs` (gerçek `.xlsx` yazımı) — ikisi de
+D-136'nın "kullan, sil" pratiğiyle iş bitince silindi.
+
+### 15.2 Düz-metin (`lines`) yolu — temiz
+
+Her düz-metin (zon içermeyen) entry'nin her hücresi kendi bloğunun `contentColumns.first`–
+`last` / `contentRows.start`–`end` aralığının **içinde** çıktı, istisnasız — `place.ts`'in
+çekirdek mekanizması (satır başına bir sarılmış satır, `row += 1`) yapısal olarak sağlam.
+`D-i18n-blok-hizasi.md` §2.2'nin adlandırdığı iki şüpheliden biri (`place.ts`'in hücre/merge
+yerleşimi) bu haliyle **temize çıktı**. Statik `template.merges` ile dinamik yerleşimin
+çakışma filtresi (D-111) de doğru çalışıyor — `B58:O58` hâlâ doğru şekilde `B58:F58`/`M58:O58`
+lehine düşüyor, hiçbir yeni çakışma yok.
+
+### 15.3 Kök neden — `src/a3/layout/placeZones.ts`'te iki ilişkili kusur
+
+**Kusur 1 — bir zonun çok satırlı içeriği tek, sabit yükseklikli bir satıra sıkıştırılıyor.**
+`placeZonesContent` (satır ~118-124), bir zonun **tüm** satır yığınını
+`zone.lines.map(l => l.text).join("\n")` ile TEK bir hücreye (`startRow`) yazıyor — zon kaç
+satır içerirse içersin, ek bir satır **asla** ayrılmıyor. Rust yazıcı her satırın yüksekliğini
+kilitliyor (`writer.rs`: `worksheet.set_row_height(row.index - 1, row.height_pt)` — gerçek
+çıktıda `<row r="10" ht="30" customHeight="1">` olarak doğrulandı, otomatik-sığdırma yok). Bu
+yüzden 2+ satırlı bir zon (soru etiketi + cevap, `five-n1k`'in kendi şekli), sıradan 30 pt'lik
+bir gövde satırında ikinci satırdan itibaren görsel olarak kırpılıyor.
+
+**Kusur 2 — açgözlü kolon-eşleme, dengesiz genişlikte kolonları hesaba katmıyor.**
+`splitColumnsIntoZones` (aynı dosya), her zonun `widthFraction`'ını "kümülatif genişlik hedefe
+ulaşana/geçene kadar kolon tüket" kuralıyla tam kolon sınırlarına yuvarlıyor — ama
+`farplas-7step-tr`'nin B:O aralığı, geniş içerik kolonları (112–238 pt) arasına serpiştirilmiş,
+şablonun orijinal Excel dosyasından miras kalan neredeyse-sıfır-genişlikli "ayraç" kolonlar
+taşıyor (D=15.75 pt, H=18 pt, L=18 pt, **O=8.25 pt**). `five-n1k`'in altı-eşit-parça bölümü
+(`ZONE_WIDTH_FRACTION = 1/6`), altıncı zonu ("NEREDE?") **tamamen** O kolonuna düşürüyor —
+diğer beş kardeşinin 240.75–383.25 pt'ine karşı yalnızca 8.25 pt, **29–46× daha dar.**
+
+Egzersiz edilen tam sayılar (B:O toplam genişliği 1394.25 pt, `excelColumnWidthToPt`'ten):
+
+| Zon | Etiket | Kolonlar | Genişlik (pt) |
+|---|---|---|---|
+| 1 | NE? | B:D | 240.75 |
+| 2 | NEDEN? | E:F | 249.75 |
+| 3 | NASIL? | G:I | 267.75 |
+| 4 | KİM? | J:K | 244.5 |
+| 5 | NE ZAMAN? | L:N | 383.25 |
+| 6 | NEREDE? | **O:O** | **8.25** |
+
+### 15.4 Kanıt — iki katman, D-136'nın ispat çıtası
+
+**Yapısal (XML):** `xl/worksheets/sheet1.xml`'de satır 10 `ht="30" customHeight="1"`; hücre
+`O10` **tek başına, birleştirilmemiş** (`mergeCells` listesinde `O10:*` YOK — diğer beş zonun
+hepsi kendi çok-kolonlu `mergeCells` girdisine sahipken); `O10`'un değeri iki satırı (etiket +
+cevap) tek bir gömülü `\n` ile taşıyor.
+
+**Görsel (gerçek render):** Bu ortamda Excel/LibreOffice-headless otomasyonu yok (D-136'nın
+WKWebView için işaretlediğiyle aynı sınıf boşluk) — prob `.xlsx`'i gerçek Apple Numbers'ta
+açıldı (`open -a Numbers`, ekran görüntüsü doğrulaması). Sonuç: her 5N1K sorusunun altındaki
+cevap satırı zar zor görünen bir kırpıntıya iniyor, ve "NEREDE?" etiketi tek bir başıboş "N"
+harfine kırpılıp Adım 4 bloğunun komşu içeriğine ("Hat 3 Balık Kılçığı") bitişik duruyor —
+Barış'ın 2026-08-04 tarihli kendi tarifiyle ("content does not always land inside its intended
+block — text reads as offset from where the block's own borders are") birebir görsel eşleşme.
+
+### 15.5 Neden şimdiye kadar görünmedi — `smart-target` neden etkilenmiyor
+
+Her iki kusur da `smart-target`'ta (Faz 5/D-38, LOCKED, D-178'de görsel onaylı) da yaşıyor ama
+görünmüyor: onun 3-zonlu 0.32/0.4/0.28 bölümü aynı B:O kolonları üzerinde çalışsa da hiçbir
+zonu tek başına bir ayraç kolonuna düşürmüyor (§14.4'ün zon hesaplaması: A=B:F 490.5pt,
+B=G:L 530.25pt, C=M:O 373.5pt — üçü de geniş), ve Adım 3'ün tek içerik satırı 153.75 pt
+(D-155/D-156'nın "iki uçtan düzeltme"si) — tipik 2-3 satırlık Zon A içeriği için yeterli
+boşluk bırakıyor. Mekanizmanın kendi kusuru, `five-n1k` (Oturum C2/D-181) farklı bir zon
+sayısı/oranı ile Adım 1'in sıradan 30 pt'lik satırlarına düşene kadar hiç açığa çıkmadı.
+
+### 15.6 Dürüstlük notları
+
+- `five-n1k` 2026-08-04'te yoktu (2026-08-16'da sevk edildi) — bu, Barış'ın orijinal örneğinin
+  birebir yeniden üretimi **değil**. Aynı mekanizma sınıfı, aynı belirtiyi üretiyor — muhtemel
+  ama kanıtlanmamış, orijinal raporun da `smart-target`'ın zonları üzerinden (o zamanki Adım 3
+  entry'si 153.75 pt satırı taşıracak kadar çok `prioritizedItems` taşıyorsaydı) aynı kök
+  nedene sahip olması.
+- Görsel doğrulama Apple Numbers'ta yapıldı, Microsoft Excel'de (uygulamanın gerçek hedef
+  formatı) ya da canlı bir Tauri/WKWebView önizlemesinde değil — sarma/kırpma davranışının
+  Excel'in kendi render motoruyla birebir aynı olduğu varsayılıyor, kanıtlanmıyor.
+
+### 15.7 Neden düzeltilmedi — D2b'ye devrediliyor
+
+Doğru bir düzeltme (satır sayısını gerçek satır sayısına göre ayırmak, ve/veya genişlik-
+duyarlı kolon eşleme) `smart-target`'ın **hâlâ LOCKED, D-178'de görsel onaylı** render
+şeklini fiilen değiştirir — düzeltme güvenilir sayılmadan önce kendi Block Visual
+Verification Loop turunu gerektirir (`CLAUDE.md`). Bu, D2 promptunun kendi §2.4'ünün
+"büyük mimari bulgu → belgele, aynı oturumda yamama" durumu. Düzeltme **P-43** olarak
+D2b'ye bırakıldı.

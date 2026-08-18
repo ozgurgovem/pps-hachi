@@ -128,14 +128,28 @@ Ayrıca bulunan, yapısal olarak farklı bir üçüncü kusur — Fishbone diyag
 etiketleri `project.meta.language`'ı değil, editörün o anki aktif i18next dilini kullanıyor —
 bilinçli olarak bu dilime alınmadı, **P-42** olarak dosyalandı.
 
-### 3.2 D2 — blok hizası (henüz yazılmadı, D1'den sonra kapsam belirlenecek)
+### 3.2 D2 — blok hizası
 
-**Bu promptun bilerek yazmadığı iş.** P-26'nın kendisi kök nedeni bulunmadığını söylüyor;
-D1'in kapanışından sonra kendi keşif oturumu olarak kapsamlanmalı — gerçek bir `.ppsx` projesi
-açıp her 8 adıma en az bir entry ekleyip `xlsx_export` çalıştırıp gerçek `xl/worksheets/
-sheet1.xml`'i blok sınır tanımlarına (`TEMPLATE_ANALYSIS.md` §12.8) karşı satır satır kontrol
-etmek — P-25'in D-136'da kullandığı "gerçek pipeline'ın her katmanını gerçek girdiyle kanıtla"
-metodolojisi. Kök neden bulunmadan bir düzeltme planı yazmak tahmin olur.
+**BİTTİ 2026-08-18, bir keşif oturumu olarak — kök neden bulundu, düzeltme D2b'ye
+bırakıldı.** `docs/oturumlar/D2-blok-hizasi.md`'nin kendi §2.2 yürüyüşü uygulandı (gerçek
+8-adım fixture → gerçek iki-çağrılı `buildA3Layout` → gerçek `write_a3_workbook` → gerçek
+`xl/worksheets/sheet1.xml` XML kontrolü, `TEMPLATE_ANALYSIS.md` §12.8'e değil
+`farplas-7step-tr.ts`'nin kendi `TemplateBlock` aralıklarına karşı — §1.4'ün kendi
+düzeltmesiydi). Düz-metin (`lines`) yolu temiz çıktı; kök neden `src/a3/layout/
+placeZones.ts`'te iki ilişkili kusur: (1) bir zonun çok satırlı içeriği her zaman tek, sabit
+yükseklikli bir satıra sıkıştırılıyor (satır yüksekliği Rust tarafından kilitli,
+`customHeight="1"`, otomatik sığdırma yok); (2) açgözlü kolon-eşleme dengesiz kolon
+genişliklerini hesaba katmıyor, `five-n1k`'in altı-eşit-zon bölümü altıncı zonu ("NEREDE?")
+tamamen 8.25 pt'lik bir eski ayraç koluna ("O") düşürüyor — beş kardeşinin 240–383 pt'ine
+karşı. Hem XML'de hem gerçek bir Apple Numbers render'ında görsel olarak doğrulandı (kırpılmış
+cevap satırları, komşu bloğa bitişik tek bir başıboş "N" harfi) — Barış'ın 2026-08-04 tarifiyle
+birebir eşleşiyor, ama `five-n1k` o tarihte yoktu (2026-08-16'da sevk edildi), bu yüzden
+birebir yeniden üretim değil, aynı mekanizma sınıfının aynı belirtisi. Kusurlar
+`smart-target`'ta (LOCKED, D-178 onaylı) da yaşıyor ama görünmüyor — onun geniş zon
+genişlikleri ve 153.75 pt'lik tek satırı bugüne kadar maskeliyor. Düzeltme bilinçli olarak
+**yapılmadı** — `smart-target`'ın onaylı görsel şeklini değiştirir, kendi Block Visual
+Verification Loop turunu gerektirir. Tam kayıt: `TEMPLATE_ANALYSIS.md` §15, `DECISIONS.md`
+D-189, P-43 (düzeltme, D2b, henüz planlanmadı).
 
 ---
 
