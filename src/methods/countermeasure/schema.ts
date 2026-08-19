@@ -20,6 +20,26 @@ export const CountermeasurePayloadSchema = z.looseObject({
   owner: z.string(),
   targetDate: z.string(),
   status: z.string(),
+  /**
+   * Barış's own "Uygulama Planı" table (2026-08-18): each 1-5, "how
+   * favorable" not raw magnitude — high `costScore`/`durationScore` means
+   * cheap/fast, not expensive/slow. `priorityScoreOf` (this method's own
+   * `priorityScore.ts`) multiplies the three; blank/non-numeric stays
+   * unscored rather than defaulting to 0, same D-120 posture as
+   * `impactEffortMatrix`/`causeEffectMatrix`.
+   */
+  impactScore: z.string(),
+  costScore: z.string(),
+  durationScore: z.string(),
+  /**
+   * Deliberately separate from `status` above: `status` is whether the
+   * countermeasure *idea* was accepted; `priorityDecision` is whether it's
+   * actually scheduled now, given the computed score. Always an explicit
+   * human choice, never inferred from the score — same rule D-41's status
+   * glyphs already follow project-wide (a low score can still be pursued
+   * for a strategic reason a formula can't see).
+   */
+  priorityDecision: z.string(),
 });
 
 export type CountermeasurePayload = z.infer<typeof CountermeasurePayloadSchema>;

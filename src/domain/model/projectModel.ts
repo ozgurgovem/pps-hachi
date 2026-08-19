@@ -48,6 +48,8 @@ const SignOffEntrySchema = z.looseObject({
   signedAt: z.iso.datetime(),
 });
 
+export type SignOffEntry = z.infer<typeof SignOffEntrySchema>;
+
 /**
  * D-08: always 8 steps, one `StepState` per step id — never a projection onto
  * a template. Unlike the rest of this tree, `steps` does not need D-51's
@@ -79,5 +81,6 @@ export const ProjectModelSchema = z.looseObject({
 
 export type ProjectModel = z.infer<typeof ProjectModelSchema>;
 export type Person = z.infer<typeof PersonSchema>;
+export type SignOffState = ProjectModel["signOff"];
 
 export { STEP_IDS };

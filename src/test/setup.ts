@@ -22,6 +22,27 @@ if (!Element.prototype.setPointerCapture) {
 if (!Element.prototype.releasePointerCapture) {
   Element.prototype.releasePointerCapture = () => {};
 }
+
+// jsdom has no PointerEvent constructor at all (confirmed against jsdom 26) —
+// @testing-library/dom's fireEvent.pointerDown/Move/Up falls back to the base
+// `Event` constructor, which silently drops clientX/clientY (not part of its
+// init dict), so pointer-driven components measured against those coordinates
+// would see NaN in tests with no error. A minimal MouseEvent-based subclass —
+// real browsers' own PointerEvent inherits from MouseEvent too — restores
+// clientX/clientY plus pointerId/pointerType.
+if (!("PointerEvent" in window)) {
+  class PointerEventPolyfill extends MouseEvent {
+    readonly pointerId: number;
+    readonly pointerType: string;
+
+    constructor(type: string, params: PointerEventInit = {}) {
+      super(type, params);
+      this.pointerId = params.pointerId ?? 0;
+      this.pointerType = params.pointerType ?? "mouse";
+    }
+  }
+  (window as unknown as { PointerEvent: typeof PointerEventPolyfill }).PointerEvent = PointerEventPolyfill;
+}
 if (!Element.prototype.scrollIntoView) {
   Element.prototype.scrollIntoView = () => {};
 }

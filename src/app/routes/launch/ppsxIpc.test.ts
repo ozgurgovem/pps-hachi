@@ -1,6 +1,7 @@
 import { describe, expect, test, vi } from "vitest";
 import { invoke } from "@tauri-apps/api/core";
 import {
+  importImage,
   listHistorySnapshots,
   listRecentProjects,
   PpsxWriteConflictError,
@@ -80,6 +81,55 @@ describe("ppsxIpc", () => {
     await expect(writePpsx("/tmp/project.ppsx", {}, {}, [])).rejects.not.toBeInstanceOf(
       PpsxWriteConflictError,
     );
+  });
+
+  test("importImage invokes image_import with path, source path, id and project state", async () => {
+    const response = {
+      imageRef: { id: "img-1", assetPath: "assets/img_img-1.jpg", thumbnailPath: "assets/thumb_img-1.jpg" },
+      originalEntry: { name: "assets/img_img-1.jpg", bytes: [1, 2, 3] },
+      thumbnailEntry: { name: "assets/thumb_img-1.jpg", bytes: [4, 5, 6] },
+      modifiedMs: 42,
+    };
+    mockInvoke.mockResolvedValueOnce(response);
+    const manifest = { id: "p1" };
+    const project = { id: "p1" };
+
+    const result = await importImage(
+      "/tmp/project.ppsx",
+      "/tmp/photo.jpg",
+      "img-1",
+      manifest,
+      project,
+      [],
+      7,
+    );
+
+    expect(mockInvoke).toHaveBeenCalledWith("image_import", {
+      ppsxPath: "/tmp/project.ppsx",
+      sourcePath: "/tmp/photo.jpg",
+      imageId: "img-1",
+      manifest,
+      project,
+      otherEntries: [],
+      expectedModifiedMs: 7,
+    });
+    expect(result).toEqual(response);
+  });
+
+  test("importImage maps a CONFLICT: error into PpsxWriteConflictError", async () => {
+    mockInvoke.mockRejectedValueOnce("CONFLICT: file changed on disk (expected 1, found 2)");
+
+    await expect(
+      importImage("/tmp/project.ppsx", "/tmp/photo.jpg", "img-1", {}, {}, [], 1),
+    ).rejects.toBeInstanceOf(PpsxWriteConflictError);
+  });
+
+  test("importImage re-throws a non-conflict error unchanged", async () => {
+    mockInvoke.mockRejectedValueOnce("photo.jpg: No such file or directory");
+
+    await expect(
+      importImage("/tmp/project.ppsx", "/tmp/photo.jpg", "img-1", {}, {}, []),
+    ).rejects.not.toBeInstanceOf(PpsxWriteConflictError);
   });
 
   test("listRecentProjects invokes recent_list with no arguments", async () => {

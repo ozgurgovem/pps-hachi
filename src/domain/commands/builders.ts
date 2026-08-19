@@ -1,10 +1,22 @@
-import type { A3Visibility, Entry, EntryReference, StepId, StepState } from "../model";
+import type {
+  A3Visibility,
+  Entry,
+  EntryReference,
+  ImageRef,
+  ProjectModel,
+  Round,
+  SignOffEntry,
+  StepId,
+  StepState,
+} from "../model";
 import {
   type EntryInsertCommand,
   type EntryRemoveCommand,
   type EntrySetA3VisibilityCommand,
   type EntryUpdateCommand,
   type EntriesReorderCommand,
+  type RoundsSetCommand,
+  type SignOffSetCommand,
 } from "./types";
 
 /**
@@ -36,6 +48,16 @@ export interface AddEntryInput {
    * byte-identical to one written before 6b existed.
    */
   references?: readonly EntryReference[] | undefined;
+  /** D-149(6d): omitted means the entry starts untagged — no round exists yet in most projects. */
+  roundId?: string | undefined;
+  /**
+   * D-118/D-193: an image can be imported before the entry itself is saved
+   * (the create dialog's `createImages` local state, same shape
+   * `createReferences`/`createRoundId` already use) — omitted starts the
+   * entry with no images, matching `Entry.images`'s always-an-array shape
+   * (never `undefined`, unlike `references`).
+   */
+  images?: readonly ImageRef[] | undefined;
 }
 
 /** Drops an empty list rather than storing `references: []` — see `AddEntryInput.references`. */
@@ -54,6 +76,13 @@ function withoutReferences(entry: Entry): Entry {
   return copy;
 }
 
+/** Same reasoning as `withoutReferences`, one field over. */
+function withoutRoundId(entry: Entry): Entry {
+  const copy: Entry = { ...entry };
+  delete copy.roundId;
+  return copy;
+}
+
 export function buildAddEntryCommand(step: StepState, stepId: StepId, input: AddEntryInput): EntryInsertCommand {
   const entry: Entry = {
     id: crypto.randomUUID(),
@@ -62,11 +91,12 @@ export function buildAddEntryCommand(step: StepState, stepId: StepId, input: Add
     order: step.entries.length,
     a3Visibility: "primary",
     payload: input.payload,
-    images: [],
+    images: input.images ? [...input.images] : [],
     createdAt: input.now,
     updatedAt: input.now,
     provenance: { origin: "human" },
     ...referenceFields(input.references),
+    ...(input.roundId === undefined ? undefined : { roundId: input.roundId }),
   };
   return { type: "entry.insert", stepId, entry, index: step.entries.length, undoable: true };
 }
@@ -82,6 +112,21 @@ export interface UpdateEntryInput {
    * replaces the whole list, which is how the picker clears the last one.
    */
   references?: readonly EntryReference[] | undefined;
+  /**
+   * D-149(6d): three-state, the same shape `nodeTree.ts`'s `parentId`
+   * already uses for "explicitly none" — `undefined`/omitted leaves
+   * whatever round tag this entry already has alone, `null` clears it,
+   * a string sets/replaces it.
+   */
+  roundId?: string | null | undefined;
+  /**
+   * D-118/D-193: absent means "leave whatever images this entry already
+   * has alone" — same posture as `references` above, and for the same
+   * reason (the title/payload edit paths call this builder with no idea
+   * whether an image was just imported). Present (including `[]`) replaces
+   * the whole list, which is how removing the last image works.
+   */
+  images?: readonly ImageRef[] | undefined;
 }
 
 export function buildUpdateEntryCommand(
@@ -91,13 +136,17 @@ export function buildUpdateEntryCommand(
   input: UpdateEntryInput,
 ): EntryUpdateCommand {
   const before = findEntryOrThrow(step, entryId);
-  const next = input.references === undefined ? before.references : input.references;
+  const nextReferences = input.references === undefined ? before.references : input.references;
+  const nextRoundId = input.roundId === undefined ? before.roundId : (input.roundId ?? undefined);
+  const nextImages = input.images === undefined ? before.images : input.images;
   const after: Entry = {
-    ...withoutReferences(before),
+    ...withoutRoundId(withoutReferences(before)),
     title: input.title,
     payload: input.payload,
+    images: [...nextImages],
     updatedAt: input.now,
-    ...referenceFields(next),
+    ...referenceFields(nextReferences),
+    ...(nextRoundId === undefined ? undefined : { roundId: nextRoundId }),
   };
   return { type: "entry.update", stepId, entryId, before, after, undoable: true };
 }
@@ -171,4 +220,37 @@ export function buildSetA3VisibilityCommand(
     after: visibility,
     undoable: true,
   };
+}
+
+/**
+ * D-149(6d)/D-58: opens a new round, closing any still-open one first
+ * (`closedAt === undefined` is "open" — a round is never reopened once
+ * closed). Project-level, no `stepId` — `Round` carries no snapshot of the
+ * entries opened under it, so this never touches `steps`.
+ */
+export function buildOpenRoundCommand(project: ProjectModel, reason: string, now: string): RoundsSetCommand {
+  const before = project.rounds;
+  const closedPrevious = before.map((round) => (round.closedAt === undefined ? { ...round, closedAt: now } : round));
+  const opened: Round = { id: crypto.randomUUID(), openedAt: now, reason };
+  return { type: "rounds.set", before, after: [...closedPrevious, opened], undoable: true };
+}
+
+/**
+ * D-149(6d): sets or clears exactly one of `preparedBy`/`reviewedBy`/
+ * `approvedBy`, leaving the other two untouched — mirrors `referenceFields`'
+ * "replace this slice only" shape one level over, project rather than entry.
+ */
+export function buildSetSignOffCommand(
+  project: ProjectModel,
+  role: "preparedBy" | "reviewedBy" | "approvedBy",
+  entry: SignOffEntry | undefined,
+): SignOffSetCommand {
+  const before = project.signOff;
+  const after = { ...before };
+  if (entry === undefined) {
+    delete after[role];
+  } else {
+    after[role] = entry;
+  }
+  return { type: "signOff.set", before, after, undoable: true };
 }

@@ -1825,3 +1825,45 @@ duyarlı kolon eşleme) `smart-target`'ın **hâlâ LOCKED, D-178'de görsel ona
 Verification Loop turunu gerektirir (`CLAUDE.md`). Bu, D2 promptunun kendi §2.4'ünün
 "büyük mimari bulgu → belgele, aynı oturumda yamama" durumu. Düzeltme **P-43** olarak
 D2b'ye bırakıldı.
+
+### 15.8 D2b'nin düzeltmesi — D-190, 2026-08-18
+
+**Kusur 1 fix** (`placeZonesContent`): bir zonun satır ihtiyacı artık `rowsUsed =
+min(maxLinesAcrossZones, availableRows)` ile hesaplanıyor — bant yeterince uzunsa
+(`five-n1k`'in 12 satırlık Adım 1 bandı) her satır kendi fiziksel satırına yazılıyor, tek
+hücrede `\n` birleştirme yok; bant tek satırdan ibaretse (`smart-target`'ın 153.75 pt'lik
+Adım 3 satırı) bugünkü davranışa otomatik düşülüyor — **doğrulandı, varsayılmadı**:
+`smartTarget/xlsxSurvival.test.ts` değişmeden geçiyor, `scripts/gen-a3-fixture.ts` bayt-bayt
+aynı çıktı üretti. Kısa zonun boş kalan satırı üstten hizalı bırakılıyor (Barış'ın seçimi,
+"Seçenek A").
+
+**Kusur 2 fix** (`splitColumnsIntoZones` → `widenStrandedZones`): algoritmanın kendisi
+değişmedi; bir zonun genişliği kendi `widthFraction × totalWidthPt`'inin %50'sinin
+(`MIN_ZONE_WIDTH_RATIO`) altındaysa, en geniş komşusundan tek tek kolon ödünç alıyor,
+eşiği geçene ya da hiçbir komşu kolon veremeyene kadar (Barış'ın seçimi, "Seçenek C" —
+üç seçenek de gerçek B:O sayılarıyla elle simüle edildikten sonra sunuldu). `five-n1k`'in
+NEREDE? zonu O:O (8.25 pt) → N:O'ya (246 pt) genişledi; `smart-target`'ın üç zonu
+(490.5/530.25/373.5 pt) hiçbiri eşiğin altına düşmediği için **hiç değişmedi**.
+
+**Yan bulgu**: B3'ün kümülatif artifact'inin tamamı (D-165 v2 – D-179, sekiz ADIM bloğu)
+§12.8'in henüz inşa edilmemiş `pps-8step-auto` tuvaline (567 pt, 12 eşit 47.25 pt kolon,
+ayraç kolon yok) göre çizilmiş — hiçbir zaman `farplas-7step-tr`'nin gerçek, eşit olmayan
+B:O ızgarasını modellememiş. D-189'un iki kusuru da yalnızca gerçek ızgarada görünür oluyor
+(gelecek şablonun temiz 12-kolon ızgarasında `smartTarget`'ın 0.32/0.4/0.28'i ve
+`five-n1k`'in altı eşit payı hiçbir zaman %50 eşiğinin altına düşmüyor, hiç ayraç kolon
+yok çünkü). Bu, sekiz onaylı B3 maketinin yeniden doğrulanmasına gerek olmadığı anlamına
+geliyor (hiçbiri bu kusurun yaşadığı geometriyi test etmiyordu) — ama aynı zamanda
+D-178'in "renderToA3.ts'in gerçek bölge genişlikleri (181.44/226.80/158.76 pt)" ifadesinin
+aslında **idealize edilmiş gelecek-tuval oranı** olduğunu, `smart-target`'ın bugün
+gerçekten ihraç ettiği pt genişlikleri (490.5/530.25/373.5 pt, gerçek B:O) olmadığını
+ortaya çıkardı — önceden var olan, zararsız kalmış ama şimdi kaydedilen bir "B3 neyi
+doğruladı" / "bugün ne ihraç ediliyor" farkı. Kümülatif artifact'e (aynı URL, D-171'in
+kendi kuralı) `farplas-7step-tr`'nin gerçek genişlikleriyle çizilmiş yeni bir bölüm
+eklendi — `five-n1k`'in gerçek önce/sonra karşılaştırması ve `smart-target`'ın sıfır-
+değişim teyidi. **Barış'ın görsel onayı bekleniyor** — kod/test/fixture kanıtı bitti, bu
+loop'un kendi kuralı gereği tek eksik onun somut bakışı.
+
+Kalıcı test kanıtı: `src/a3/layout/placeZones.test.ts` (5 test, doğrudan
+`placeZonesContent` üzerinden, gerçek B:O genişlikleriyle), `src/methods/fiveN1K/
+xlsxSurvival.test.ts` (2 test, gerçek registry/`buildA3Layout` üzerinden) — hepsi düzeltme
+öncesi koda karşı KIRMIZI doğrulandı, sonra düzeltmeyle YEŞİL.

@@ -22,7 +22,21 @@ diffle görünür ve denetlenebilir.
 | D — kapsam belgesi (P-26'nın iki kusur sınıfı, dilim önerisi) | `D-i18n-blok-hizasi.md` | 📝 yazıldı 2026-08-18 — üst seviye kapsam, kod içermiyor |
 | D1 — A3 ihracat etiketlerinin dil farkındalığı | `D1-i18n-ihracat-etiketleri.md` | ✅ BİTTİ 2026-08-18 — Seçenek B (`AskUserQuestion`), gerçek kapsam 29 dizin (tahminin ~2 katı), D-188, P-26'nın i18n yarısı kapandı, P-42 (Fishbone) yeni dosyalandı |
 | D2 — blok hizası kök neden keşfi | `D2-blok-hizasi.md` | ✅ BİTTİ 2026-08-18 (keşif) — kök neden bulundu: `placeZones.ts`'te iki kusur (D-189), düzeltme D2b'ye bırakıldı (P-43). **D-149'un dört oturumluk planı tamamen kapandı.** |
-| D2b — blok hizası düzeltmesi (D2'nin bulduğu kök nedenin düzeltilmesi, P-43) | `D2b-blok-hizasi-duzeltme.md` | 📝 yazıldı 2026-08-18 — henüz yürütülmedi |
+| D2b — blok hizası düzeltmesi (D2'nin bulduğu kök nedenin düzeltilmesi, P-43) | `D2b-blok-hizasi-duzeltme.md` | ⏳ kod+test BİTTİ 2026-08-18 (D-190) — Barış'ın görsel onayı bekleniyor, bkz. `TEMPLATE_ANALYSIS.md` §15.8. Aynı oturumda, plan dışı: `countermeasure`'ın Uygulama Planı önceliklendirme tablosu (D-191). |
+
+## Faz 6'nın kendi dilimleri (D-114) — D-149'un arayüz/yapı planından AYRI bir girişim
+
+Yukarıdaki tablo D-149'un dört oturumluk arayüz/yapı planı (A, B1–B3, C1–C6, D1–D2b) —
+o plan tamamen kapandı. `SPEC.md`'nin kendi Faz 6 planı (D-114) beş dilime bölündü
+(6a–6e); 6a/6b/6c bu dosya kuralından önce (2026-08-03/04/05) sohbette yürütüldüğü için
+buraya yazılmadı. 6e kendi içinde 6e-1/6e-2'ye bölündü (D-193) — ikisi de bitti. **D-114'ün
+beş dilimi (6a–6e) ve `SPEC.md`'nin kendi Faz 6 planı artık tamamen kapandı.**
+
+| Dilim | Dosya | Durum |
+|---|---|---|
+| 6d — Adım 7/8'in kalan yöntemleri + rounds/signOff bağlamaları | `6d-rounds-signoff-adim7-8.md` | ✅ BİTTİ 2026-08-18 — `AskUserQuestion` üç önerilen seçenek de onaylandı, D-192, P-37 (resultVerdict/openItemsNextProblem glif) tamamlandı |
+| 6e-1 — görüntü içe alma mekanizması + açıklama gerektirmeyen 2 yöntem (`gemba-observation-log`, `before-after-photos`) | `6e-goruntu-iceriye-alma.md` | ✅ BİTTİ 2026-08-19 — `AskUserQuestion` iki önerilen seçenek de onaylandı (bölünme + sayısal tavanlar), D-193, P-44 (HEIC yok) yeni dosyalandı |
+| 6e-2 — çizim/açıklama mekanizması + 3 yöntem (`defect-photo-board`, `spaghetti-diagram`, `value-stream-map`) | `6e-2-goruntu-aciklama.md` | ✅ BİTTİ 2026-08-19 — `AskUserQuestion` üç önerilen seçenek de onaylandı, D-194, P-45 kapandı. Gerçek Tauri webview'da görsel doğrulanmadı (bkz. D-194'ün kendi dürüstlük notu). |
 
 ## Kullanım
 
@@ -30,7 +44,7 @@ Yeni oturumu şu iki satırla başlat (dosya adını sıradaki oturuma göre de�
 
 ```
 Önce Anayasamızı Oku (~/.claude/ANAYASA.md) ve AKIS.md'yi (~/.claude/AKIS.md).
-Sonra ~/Developer/pps-hachi/docs/oturumlar/D2-blok-hizasi.md'yi oku ve uygula.
+Sonra ~/Developer/pps-hachi/docs/oturumlar/6e-2-goruntu-aciklama.md'yi oku ve uygula.
 ```
 
 ## Prompt yazarken

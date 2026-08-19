@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { Entry, ProjectModel } from "../model";
+import type { Entry, ProjectModel, Round } from "../model";
 import { createNewProject } from "../model";
 import { applyCommand } from "./applyCommand";
 import { invertCommand } from "./invertCommand";
@@ -284,5 +284,58 @@ describe("invertCommand", () => {
     const restored = applyCommand(applied, invertCommand(command));
 
     expect(restored).toEqual(project);
+  });
+
+  it("rounds.set inverts by swapping before/after", () => {
+    const before: Round[] = [];
+    const after: Round[] = [{ id: "r1", openedAt: "2026-08-18T00:00:00.000Z", reason: "target not met" }];
+    const command: Command = { type: "rounds.set", before, after, undoable: true };
+    expect(invertCommand(command)).toEqual({ ...command, before: after, after: before });
+  });
+
+  it("signOff.set inverts by swapping before/after", () => {
+    const before = {};
+    const after = { preparedBy: { name: "Ada", signedAt: "2026-08-18T00:00:00.000Z" } };
+    const command: Command = { type: "signOff.set", before, after, undoable: true };
+    expect(invertCommand(command)).toEqual({ ...command, before: after, after: before });
+  });
+});
+
+describe("applyCommand — rounds.set", () => {
+  it("replaces project.rounds with the command's after value", () => {
+    const project = makeProject([]);
+    const after: Round[] = [{ id: "r1", openedAt: "2026-08-18T00:00:00.000Z", reason: "target not met" }];
+    const command: Command = { type: "rounds.set", before: project.rounds, after, undoable: true };
+
+    const next = applyCommand(project, command);
+
+    expect(next.rounds).toEqual(after);
+  });
+
+  it("does not mutate the original project", () => {
+    const project = makeProject([]);
+    const before = JSON.parse(JSON.stringify(project));
+    const command: Command = {
+      type: "rounds.set",
+      before: project.rounds,
+      after: [{ id: "r1", openedAt: "2026-08-18T00:00:00.000Z", reason: "x" }],
+      undoable: true,
+    };
+
+    applyCommand(project, command);
+
+    expect(project).toEqual(before);
+  });
+});
+
+describe("applyCommand — signOff.set", () => {
+  it("replaces project.signOff with the command's after value", () => {
+    const project = makeProject([]);
+    const after = { preparedBy: { name: "Ada", signedAt: "2026-08-18T00:00:00.000Z" } };
+    const command: Command = { type: "signOff.set", before: project.signOff, after, undoable: true };
+
+    const next = applyCommand(project, command);
+
+    expect(next.signOff).toEqual(after);
   });
 });

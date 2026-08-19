@@ -17,6 +17,8 @@ export interface EntryRowProps {
   entry: Entry;
   /** `undefined` when this build doesn't recognize `entry.methodId` — P-05's UI half. */
   plugin: ErasedMethodPlugin | undefined;
+  /** D-149(6d): the entry's round ordinal ("Tur N"), precomputed by the caller — `undefined` when untagged. */
+  roundOrdinal?: number | undefined;
   readOnly: boolean;
   canMoveUp: boolean;
   canMoveDown: boolean;
@@ -38,6 +40,7 @@ export interface EntryRowProps {
 export function EntryRow({
   entry,
   plugin,
+  roundOrdinal,
   readOnly,
   canMoveUp,
   canMoveDown,
@@ -61,13 +64,16 @@ export function EntryRow({
       <div className="flex items-start justify-between gap-3">
         <div className="flex flex-col gap-0.5">
           <span className="font-body text-sm font-medium text-ink">{entry.title || "—"}</span>
-          {isUnknown ? (
-            <Badge status="flagged">{t("workspace.unknownMethod.badge")}</Badge>
-          ) : (
-            <span className="font-mono text-2xs uppercase tracking-wide text-ink-muted">
-              {t(plugin.nameKey)}
-            </span>
-          )}
+          <div className="flex items-center gap-1.5">
+            {isUnknown ? (
+              <Badge status="flagged">{t("workspace.unknownMethod.badge")}</Badge>
+            ) : (
+              <span className="font-mono text-2xs uppercase tracking-wide text-ink-muted">
+                {t(plugin.nameKey)}
+              </span>
+            )}
+            {roundOrdinal !== undefined && <Badge>{t("workspace.rounds.badge", { n: roundOrdinal })}</Badge>}
+          </div>
         </div>
         <div className="flex items-center gap-1">
           <Button

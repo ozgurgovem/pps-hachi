@@ -3,6 +3,8 @@ import type { StepId } from "../../../domain/model";
 import { CoachBand } from "./CoachBand";
 import { EntriesBand } from "./EntriesBand";
 import { MethodBand } from "./MethodBand";
+import { RoundsBand } from "./RoundsBand";
+import { SignOffPanel } from "./SignOffPanel";
 
 interface StepPageProps {
   stepId: StepId;
@@ -40,6 +42,8 @@ export function StepPage({ stepId, advisory, onDismissAdvisory }: StepPageProps)
       <CoachBand stepId={stepId} />
       <MethodBand stepId={stepId} />
       <EntriesBand stepId={stepId} />
+      {stepId === 7 && <RoundsBand />}
+      {stepId === 8 && <SignOffPanel />}
     </main>
   );
 }

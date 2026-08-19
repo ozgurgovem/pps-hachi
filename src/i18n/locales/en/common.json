@@ -141,6 +141,51 @@
       "missing": "Referenced entry no longer exists ({{id}})",
       "remove": "Unlink \"{{title}}\"",
       "removeShort": "Unlink"
+    },
+    "entryImages": {
+      "pickDialogTitle": "Choose a photo",
+      "addPhoto": "Add photo",
+      "importing": "Importing…",
+      "remove": "Remove photo",
+      "thumbnailUnavailable": "No preview",
+      "annotate": "Annotate"
+    },
+    "entryAnnotationEditor": {
+      "title": "Annotate photo",
+      "toolArrow": "Arrow",
+      "toolCircle": "Circle",
+      "toolCallout": "Callout",
+      "toolPath": "Draw",
+      "listEmpty": "No markup yet — pick a tool above, then draw on the photo.",
+      "shapeArrow": "Arrow",
+      "shapeCircle": "Circle",
+      "shapeCallout": "Callout: {{text}}",
+      "shapePath": "Freehand line",
+      "removeAnnotation": "Remove {{shape}}",
+      "done": "Done"
+    },
+    "rounds": {
+      "fieldLabel": "Round",
+      "none": "Not part of a round",
+      "ordinal": "Round {{n}}",
+      "badge": "Round {{n}}",
+      "bandTitle": "Analysis rounds",
+      "empty": "No rounds opened yet.",
+      "openedOn": "Opened {{date}}",
+      "closedOn": "Closed {{date}}",
+      "reasonLabel": "Why is a new round starting?",
+      "reasonPlaceholder": "e.g. Target not met, returning to Step 4",
+      "startNew": "Start new analysis round"
+    },
+    "signOff": {
+      "title": "Closure & sign-off",
+      "preparedBy": "Prepared by",
+      "reviewedBy": "Reviewed by",
+      "approvedBy": "Approved by",
+      "namePlaceholder": "Name",
+      "sign": "Sign",
+      "unsign": "Clear",
+      "signedOn": "Signed {{date}}"
     }
   },
   "methods": {
@@ -507,13 +552,24 @@
         "expectedEffect": "Expected effect",
         "owner": "Owner",
         "targetDate": "Target date",
-        "status": "Status"
+        "status": "Status",
+        "impactScore": "Impact score (1-5, high = high impact)",
+        "costScore": "Cost score (1-5, high = cheap)",
+        "durationScore": "Duration score (1-5, high = fast)",
+        "priorityDecision": "Priority decision"
       },
       "statuses": {
         "proposed": "Proposed",
         "approved": "Approved",
         "rejected": "Rejected"
       },
+      "priorityDecisions": {
+        "pending": "Pending",
+        "pursue": "Pursue",
+        "abandon": "Abandoned"
+      },
+      "priorityScore": "Priority score: {{score}}",
+      "priorityScoreUnscored": "Priority score: fill in Impact/Cost/Duration to compute",
       "references": {
         "rootCause": {
           "label": "Root causes addressed",
@@ -761,6 +817,42 @@
         "calculationNote": "Calculation note"
       }
     },
+    "gembaObservationLog": {
+      "name": "Gemba observation log",
+      "useWhen": "Use this to record what you saw on the shop floor — date, place, observer and a photo.",
+      "photosLabel": "Photo",
+      "fields": {
+        "date": "Date",
+        "place": "Place",
+        "observer": "Observer",
+        "whatWasSeen": "What was seen"
+      }
+    },
+    "beforeAfterPhotos": {
+      "name": "Before / after photos",
+      "useWhen": "Use this to show a countermeasure's physical result — a before photo and an after photo, side by side.",
+      "hint": "Add the before and after photos below — this method has no fields of its own.",
+      "beforeLabel": "Before",
+      "afterLabel": "After"
+    },
+    "defectPhotoBoard": {
+      "name": "Defect photo board",
+      "useWhen": "Use this to mark up a defect photo directly — arrows, circles and callouts pointing at exactly what's wrong.",
+      "hint": "Add a photo below, then use Annotate to mark up the defect — this method has no fields of its own.",
+      "photoLabel": "Photo"
+    },
+    "spaghettiDiagram": {
+      "name": "Spaghetti diagram",
+      "useWhen": "Use this to trace material or people flow over a floor-plan photo — draw the actual path taken.",
+      "hint": "Add a floor-plan photo below, then use Annotate to trace the flow — this method has no fields of its own.",
+      "photoLabel": "Photo"
+    },
+    "valueStreamMap": {
+      "name": "Value stream map",
+      "useWhen": "Use this to attach a value stream map — a whiteboard capture or a scan — and mark up the bottlenecks.",
+      "hint": "Add a photo below, then use Annotate to mark it up — this method has no fields of its own.",
+      "photoLabel": "Photo"
+    },
     "kpiStrip": {
       "name": "KPI strip",
       "useWhen": "Use this for Step 7's KPI tracking tiles — baseline, target and actual side by side, one per metric.",
@@ -877,6 +969,64 @@
         "coachingCapabilityLesson": "Coaching-capability lesson",
         "customerCommunicationLesson": "Customer communication lesson",
         "finalClosureRationale": "Final closure rationale"
+      }
+    },
+    "statisticalConfirmation": {
+      "name": "Statistical confirmation",
+      "useWhen": "Use this to record capability (Cp/Cpk), a p-chart summary and the observed defect rate after the countermeasure was implemented.",
+      "fields": {
+        "cp": "Cp",
+        "cpk": "Cpk",
+        "pChartSummary": "p-chart summary",
+        "defectRate": "Defect rate"
+      }
+    },
+    "realizedCostBenefit": {
+      "name": "Realized cost-benefit",
+      "useWhen": "Use this to record what the countermeasure actually cost and delivered, once results are in.",
+      "fields": {
+        "realizedBenefit": "Realized benefit",
+        "actualCost": "Actual cost",
+        "netBenefit": "Net benefit",
+        "notes": "Notes"
+      }
+    },
+    "resultVerdict": {
+      "name": "Result verdict",
+      "useWhen": "Use this to record whether the target was met, and to open a new analysis round if it wasn't.",
+      "fields": {
+        "verdict": "Verdict",
+        "notes": "Notes"
+      },
+      "statuses": {
+        "pending": "Pending",
+        "met": "Target met",
+        "partiallyMet": "Partially met",
+        "notMet": "Not met"
+      }
+    },
+    "sustainPlan": {
+      "name": "Sustain plan",
+      "useWhen": "Use this to define how the fix will keep being checked after this project closes — audit type, frequency, owner, LPA linkage.",
+      "fields": {
+        "auditType": "Audit type",
+        "frequency": "Frequency",
+        "owner": "Owner",
+        "lpaLinkage": "LPA linkage"
+      }
+    },
+    "openItemsNextProblem": {
+      "name": "Open items / next problem",
+      "useWhen": "Use this to log anything left unresolved, or the next problem this project surfaced.",
+      "columns": {
+        "description": "Description",
+        "owner": "Owner",
+        "targetDate": "Target date",
+        "status": "Status"
+      },
+      "statuses": {
+        "open": "Open",
+        "closed": "Closed"
       }
     }
   },

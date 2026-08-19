@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { Manifest, ProjectModel, StepId } from "../domain/model";
+import type { ImageRef, Manifest, ProjectModel, StepId } from "../domain/model";
 import {
   applyCommand,
   invertCommand,
@@ -14,6 +14,7 @@ import {
   saveHistorySnapshot,
   listHistorySnapshots,
   readHistorySnapshot,
+  importImage,
   type ArchiveEntryPayload,
 } from "../app/routes/launch/ppsxIpc";
 import { errorMessage } from "../app/routes/launch/errorMessage";
@@ -71,6 +72,7 @@ export interface ProjectStoreState {
   undo: () => void;
   redo: () => void;
   saveNow: () => Promise<void>;
+  importEntryImage: (sourcePath: string) => Promise<ImageRef>;
   writeHistorySnapshot: () => Promise<void>;
   refreshHistorySnapshots: () => Promise<void>;
   restoreSnapshot: (timestamp: string) => Promise<void>;
@@ -281,6 +283,58 @@ export const useProjectStore = create<ProjectStoreState>()((set, get) => ({
       set({ saveAgainRequested: false });
       await get().saveNow();
     }
+  },
+
+  /**
+   * D-118/D-193: does **not** know about entries or roles — it imports a
+   * photo into the currently open `.ppsx` and returns the resulting
+   * `ImageRef`, exactly like `saveNow` writes the whole project. The caller
+   * (`EntryImagesField`) attaches the ref to the specific entry/slot it
+   * cares about with its own `dispatch`, then typically calls `saveNow()`
+   * right after to close the window between "bytes durably written" and
+   * "the entry's `images[]` pointing at them" also being durable — a
+   * crash inside that window leaves an orphaned-but-harmless asset entry,
+   * never a dangling reference, since the reference is only ever attached
+   * to in-memory state *after* the bytes are confirmed on disk.
+   */
+  async importEntryImage(sourcePath) {
+    const state = get();
+    if (!state.project || !state.manifest || !state.path) {
+      throw new Error("No project is open");
+    }
+    if (state.readOnly) {
+      throw new Error("Project is read-only");
+    }
+
+    const imageId = crypto.randomUUID();
+    const manifestToWrite: Manifest = { ...state.manifest, modified: new Date().toISOString() };
+    const result = await importImage(
+      state.path,
+      sourcePath,
+      imageId,
+      manifestToWrite,
+      state.project,
+      state.otherEntries,
+      state.diskModifiedMs ?? undefined,
+    );
+
+    set({
+      manifest: manifestToWrite,
+      otherEntries: [...state.otherEntries, result.originalEntry, result.thumbnailEntry],
+      diskModifiedMs: result.modifiedMs,
+      // D-72's own rule: the revision at the *start* of this write — the
+      // caller attaches the returned ImageRef afterward, which correctly
+      // bumps revision past this again and leaves the project dirty until
+      // that follow-up save lands.
+      lastSavedRevision: state.revision,
+      saveStatus: { kind: "saved", at: new Date().toISOString() },
+    });
+
+    return {
+      id: result.imageRef.id,
+      assetPath: result.imageRef.assetPath,
+      thumbnailPath: result.imageRef.thumbnailPath,
+    };
   },
 
   async writeHistorySnapshot() {

@@ -46,6 +46,36 @@ export interface MethodReferenceRole {
   readonly multiple: boolean;
 }
 
+/**
+ * D-118/D-193: a method **declares** how many ingested photos it holds and
+ * whether they're role-tagged — it never renders the upload UI itself,
+ * mirroring `MethodReferenceRole`'s split (D-116) and for the same reason:
+ * the picker needs a Tauri IPC round-trip (`useProjectStore`'s
+ * `importEntryImage`) that `MethodEditorProps`'s pure `{payload, onChange}`
+ * shape cannot express, so it lives in the generic shell
+ * (`EntryImagesField`, beside the title field in `EntryEditorDialog`) and
+ * writes `Entry.images[]` directly.
+ *
+ * `role` is `undefined` for a plain, unrolled, repeatable slot (Gemba's
+ * "photos", `max` > 1); set for a fixed, single-purpose slot (Before/After's
+ * two `max: 1` roled slots). A method with no `imageSlots` accepts no
+ * photos at all — the same "absent = not applicable" posture
+ * `referenceRoles` already uses.
+ *
+ * D-119/6e-2: `annotatable` opts a slot into `EntryImagesField`'s "Annotate"
+ * trigger (opens the shared `EntryAnnotationEditor`, which draws over
+ * `Entry.images[].annotations`). Unset/`false` for the great majority of
+ * slots — Gemba's/Before-After's photos are plain records, never annotated.
+ */
+export interface MethodImageSlot {
+  readonly role?: string;
+  /** i18next key for the slot's label ("Photos", "Before", "After"). */
+  readonly labelKey: string;
+  /** Maximum images this slot accepts. */
+  readonly max: number;
+  readonly annotatable?: boolean;
+}
+
 export interface MethodPlugin<TPayload> {
   readonly id: string;
   readonly steps: readonly StepId[];
@@ -91,6 +121,8 @@ export interface MethodPlugin<TPayload> {
    * default, not a frozen list — see `DECISIONS.md` D-169/D-186.
    */
   readonly tier?: "recommended" | "more";
+  /** D-118/D-193: which image slots this method's entries accept — see `MethodImageSlot`. */
+  readonly imageSlots?: readonly MethodImageSlot[] | undefined;
 }
 
 /**

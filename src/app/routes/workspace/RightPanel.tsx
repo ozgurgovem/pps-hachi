@@ -31,6 +31,7 @@ type DescriptorResult =
 export function RightPanel() {
   const { t } = useTranslation();
   const project = useProjectStore((s) => s.project);
+  const otherEntries = useProjectStore((s) => s.otherEntries);
   const [collapsed, setCollapsed] = useState(false);
   const [previewMode, setPreviewMode] = useState<"screen" | "print">("screen");
   const [isExporting, setIsExporting] = useState(false);
@@ -45,7 +46,7 @@ export function RightPanel() {
     }
     let cancelled = false;
     setDescriptorResult({ status: "loading" });
-    buildProjectA3Layout(project).then(
+    buildProjectA3Layout(project, otherEntries).then(
       (descriptor) => {
         if (!cancelled) {
           setDescriptorResult({ status: "ok", descriptor });
@@ -65,7 +66,7 @@ export function RightPanel() {
     return () => {
       cancelled = true;
     };
-  }, [project]);
+  }, [project, otherEntries]);
 
   // The other half of the ready handshake (`window.ts`): whenever the
   // preview window announces it's listening — on first open, or if it ever

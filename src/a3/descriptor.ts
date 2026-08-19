@@ -71,7 +71,14 @@ export interface ImagePlacement {
   readonly id: string;
   /** Base64-encoded image bytes. The writer/renderer never reads from disk (D-04). */
   readonly data: string;
-  readonly mimeType: "image/png";
+  /**
+   * D-118/D-193: `"image/jpeg"` for an ingested photo embedded straight
+   * from its already-stored bytes (never rasterized) — `rust_xlsxwriter`'s
+   * `Image::new_from_buffer` auto-detects the format from the buffer's own
+   * signature, so this field is metadata only, not consulted by the writer
+   * (`src-tauri/src/xlsx/writer.rs`), same as before this addition.
+   */
+  readonly mimeType: "image/png" | "image/jpeg";
   readonly anchorCell: CellRef;
   readonly offsetXPt?: number;
   readonly offsetYPt?: number;

@@ -12,9 +12,30 @@ describe("CountermeasureEditor", () => {
   it("renders the countermeasure's own fields", () => {
     render(<CountermeasureEditor payload={EMPTY} onChange={vi.fn()} />);
 
-    for (const label of ["Countermeasure", "Expected effect", "Owner", "Target date", "Status"]) {
+    for (const label of [
+      "Countermeasure",
+      "Expected effect",
+      "Owner",
+      "Target date",
+      "Status",
+      "Impact score (1-5, high = high impact)",
+      "Cost score (1-5, high = cheap)",
+      "Duration score (1-5, high = fast)",
+      "Priority decision",
+    ]) {
       expect(screen.getByLabelText(label)).toBeTruthy();
     }
+  });
+
+  it("shows the live computed priority score once all three scores are filled in", () => {
+    const { rerender } = render(<CountermeasureEditor payload={EMPTY} onChange={vi.fn()} />);
+
+    expect(screen.getByText("Priority score: fill in Impact/Cost/Duration to compute")).toBeTruthy();
+
+    const scored: CountermeasurePayload = { ...EMPTY, impactScore: "5", costScore: "4", durationScore: "4" };
+    rerender(<CountermeasureEditor payload={scored} onChange={vi.fn()} />);
+
+    expect(screen.getByText("Priority score: 80")).toBeTruthy();
   });
 
   it("writes the description back into the payload", async () => {

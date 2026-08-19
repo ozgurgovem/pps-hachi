@@ -5,8 +5,10 @@ export {
   buildAddEntryCommand,
   buildDeleteEntryCommand,
   buildDuplicateEntryCommand,
+  buildOpenRoundCommand,
   buildReorderCommand,
   buildSetA3VisibilityCommand,
+  buildSetSignOffCommand,
   buildUpdateEntryCommand,
   type AddEntryInput,
   type DuplicateEntryInput,
@@ -20,4 +22,6 @@ export {
   type EntryRemoveCommand,
   type EntrySetA3VisibilityCommand,
   type EntryUpdateCommand,
+  type RoundsSetCommand,
+  type SignOffSetCommand,
 } from "./types";

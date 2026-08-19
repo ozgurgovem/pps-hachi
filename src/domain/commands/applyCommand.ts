@@ -1,5 +1,8 @@
 import type { Entry, ProjectModel, StepState } from "../model";
-import { CommandPreconditionError, type Command } from "./types";
+import { CommandPreconditionError, type Command, type RoundsSetCommand, type SignOffSetCommand } from "./types";
+
+/** Every command this function handles carries a `stepId` — the two project-scoped ones are routed to `applyToProject` instead. */
+type StepScopedCommand = Exclude<Command, RoundsSetCommand | SignOffSetCommand>;
 
 /** D-71: array position is authoritative; every mutation ends by re-sequencing `order` to match it. */
 function resequence(entries: Entry[]): Entry[] {
@@ -12,7 +15,7 @@ function sameIdSet(a: readonly string[], b: readonly string[]): boolean {
   return b.every((id) => setA.has(id));
 }
 
-function applyToStep(step: StepState, command: Command): StepState {
+function applyToStep(step: StepState, command: StepScopedCommand): StepState {
   switch (command.type) {
     case "entry.insert": {
       if (step.entries.some((entry) => entry.id === command.entry.id)) {
@@ -74,12 +77,31 @@ function applyToStep(step: StepState, command: Command): StepState {
 }
 
 /**
+ * D-149(6d): `rounds`/`signOff` live on `ProjectModel` itself, not inside
+ * any `StepState` — the two project-scoped command types carry no `stepId`
+ * at all, so they're applied here rather than routed into `applyToStep`.
+ * No precondition check, the same posture `entry.update`'s `before` already
+ * has (D-70 trusts the caller built `before` from state it just read).
+ */
+function applyToProject(project: ProjectModel, command: RoundsSetCommand | SignOffSetCommand): ProjectModel {
+  switch (command.type) {
+    case "rounds.set":
+      return { ...project, rounds: [...command.after] };
+    case "signOff.set":
+      return { ...project, signOff: command.after };
+  }
+}
+
+/**
  * D-70: the one function allowed to mutate `ProjectModel`. Every store
  * action, undo and redo routes through this — never a direct `set()` on
  * `steps`, so the 100-deep undo invariant can't be silently invalidated by
  * a mutation the dispatcher never saw.
  */
 export function applyCommand(project: ProjectModel, command: Command): ProjectModel {
+  if (command.type === "rounds.set" || command.type === "signOff.set") {
+    return applyToProject(project, command);
+  }
   const step = project.steps[command.stepId];
   const nextStep = applyToStep(step, command);
   return { ...project, steps: { ...project.steps, [command.stepId]: nextStep } };

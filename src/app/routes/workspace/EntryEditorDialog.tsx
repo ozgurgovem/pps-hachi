@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import type { EntryReference, StepId } from "../../../domain/model";
+import type { EntryReference, ImageRef, StepId } from "../../../domain/model";
 import { buildAddEntryCommand, buildUpdateEntryCommand } from "../../../domain/commands";
 import type { ErasedMethodPlugin } from "../../../methods";
 import { useProjectStore } from "../../../state";
 import { Button, DialogClose, DialogContent, DialogRoot, Input, Label } from "../../../ui";
+import { EntryImagesField } from "./EntryImagesField";
 import { EntryReferenceField } from "./EntryReferenceField";
+import { EntryRoundField } from "./EntryRoundField";
 
 export type EntryEditorMode =
   | { kind: "create" }
@@ -15,7 +17,17 @@ export type EntryEditorMode =
       initialTitle: string;
       initialPayload: unknown;
       initialReferences?: readonly EntryReference[] | undefined;
+      initialRoundId?: string | undefined;
+      initialImages?: readonly ImageRef[] | undefined;
     };
+
+/**
+ * D-149(6d)/D-58: rounds iterate the step 4-7 analysis loop ("step-7 failure
+ * → step-4 loop history", SPEC.md §4.2) — the picker only offers tagging on
+ * the steps a round actually spans, so it doesn't show up as a confusing,
+ * always-irrelevant control on Steps 1-3/8.
+ */
+const ROUND_TAGGABLE_STEPS: readonly StepId[] = [4, 5, 6, 7];
 
 interface EntryEditorDialogProps {
   stepId: StepId;
@@ -42,11 +54,15 @@ export function EntryEditorDialog({ stepId, plugin, mode, open, onOpenChange }: 
   const [createTitle, setCreateTitle] = useState("");
   const [createPayload, setCreatePayload] = useState<unknown>(() => plugin.createEmptyPayload());
   const [createReferences, setCreateReferences] = useState<readonly EntryReference[]>([]);
+  const [createRoundId, setCreateRoundId] = useState<string | undefined>(undefined);
+  const [createImages, setCreateImages] = useState<readonly ImageRef[]>([]);
 
   const isEdit = mode.kind === "edit";
   const title = isEdit ? mode.initialTitle : createTitle;
   const payload = isEdit ? mode.initialPayload : createPayload;
   const references = isEdit ? (mode.initialReferences ?? []) : createReferences;
+  const roundId = isEdit ? mode.initialRoundId : createRoundId;
+  const images = isEdit ? (mode.initialImages ?? []) : createImages;
   const step = project?.steps[stepId];
 
   function handleTitleChange(nextTitle: string) {
@@ -98,6 +114,40 @@ export function EntryEditorDialog({ stepId, plugin, mode, open, onOpenChange }: 
     setCreateReferences(nextReferences);
   }
 
+  /** Same discrete-choice posture as `handleReferencesChange` — dispatches directly, no coalescing. */
+  function handleRoundChange(nextRoundId: string | null) {
+    if (mode.kind === "edit" && step) {
+      sealTextEditCoalescing();
+      dispatch(
+        buildUpdateEntryCommand(step, stepId, mode.entryId, {
+          title,
+          payload,
+          now: new Date().toISOString(),
+          roundId: nextRoundId,
+        }),
+      );
+      return;
+    }
+    setCreateRoundId(nextRoundId ?? undefined);
+  }
+
+  /** Same discrete-choice posture as `handleReferencesChange`/`handleRoundChange` — dispatches directly, no coalescing. */
+  function handleImagesChange(nextImages: readonly ImageRef[]) {
+    if (mode.kind === "edit" && step) {
+      sealTextEditCoalescing();
+      dispatch(
+        buildUpdateEntryCommand(step, stepId, mode.entryId, {
+          title,
+          payload,
+          now: new Date().toISOString(),
+          images: nextImages,
+        }),
+      );
+      return;
+    }
+    setCreateImages(nextImages);
+  }
+
   function handleSave() {
     if (mode.kind === "create" && step) {
       const command = buildAddEntryCommand(step, stepId, {
@@ -106,11 +156,15 @@ export function EntryEditorDialog({ stepId, plugin, mode, open, onOpenChange }: 
         payload: createPayload,
         now: new Date().toISOString(),
         references: createReferences,
+        roundId: createRoundId,
+        images: createImages,
       });
       dispatch(command);
       setCreateTitle("");
       setCreatePayload(plugin.createEmptyPayload());
       setCreateReferences([]);
+      setCreateRoundId(undefined);
+      setCreateImages([]);
     }
     onOpenChange(false);
   }
@@ -142,6 +196,14 @@ export function EntryEditorDialog({ stepId, plugin, mode, open, onOpenChange }: 
           </div>
 
           <Editor payload={payload} onChange={handlePayloadChange} />
+
+          {project && project.rounds.length > 0 && ROUND_TAGGABLE_STEPS.includes(stepId) && (
+            <EntryRoundField rounds={project.rounds} value={roundId} onChange={handleRoundChange} />
+          )}
+
+          {plugin.imageSlots && plugin.imageSlots.length > 0 && (
+            <EntryImagesField slots={plugin.imageSlots} images={images} onChange={handleImagesChange} />
+          )}
 
           {project &&
             plugin.referenceRoles?.map((role) => (

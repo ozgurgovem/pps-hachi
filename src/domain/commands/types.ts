@@ -1,4 +1,4 @@
-import type { A3Visibility, Entry, StepId } from "../model";
+import type { A3Visibility, Entry, Round, SignOffState, StepId } from "../model";
 
 /**
  * D-70: every mutation to `ProjectModel` is one of these, dispatched through
@@ -58,12 +58,34 @@ export interface EntriesReorderCommand extends BaseCommand {
   readonly after: readonly string[];
 }
 
+/**
+ * D-58/D-149(6d): project-level, not step-scoped — unlike every command
+ * above, `rounds` lives on `ProjectModel` itself. `before`/`after` are full
+ * array values (the round count is always small, D-71's array-position
+ * discipline doesn't buy anything here the way it does for a 100-entry
+ * reorder).
+ */
+export interface RoundsSetCommand extends BaseCommand {
+  readonly type: "rounds.set";
+  readonly before: readonly Round[];
+  readonly after: readonly Round[];
+}
+
+/** Project-level, same reasoning as `RoundsSetCommand`. */
+export interface SignOffSetCommand extends BaseCommand {
+  readonly type: "signOff.set";
+  readonly before: SignOffState;
+  readonly after: SignOffState;
+}
+
 export type Command =
   | EntryInsertCommand
   | EntryRemoveCommand
   | EntryUpdateCommand
   | EntrySetA3VisibilityCommand
-  | EntriesReorderCommand;
+  | EntriesReorderCommand
+  | RoundsSetCommand
+  | SignOffSetCommand;
 
 /**
  * D-70: thrown by `applyCommand` when a command's precondition doesn't hold

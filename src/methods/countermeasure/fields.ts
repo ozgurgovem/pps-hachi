@@ -7,7 +7,11 @@ export type CountermeasureFieldKey =
   | "expectedEffect"
   | "owner"
   | "targetDate"
-  | "status";
+  | "status"
+  | "impactScore"
+  | "costScore"
+  | "durationScore"
+  | "priorityDecision";
 
 export const COUNTERMEASURE_STATUS_OPTIONS = [
   { value: "proposed", labelKey: "methods.countermeasure.statuses.proposed" },
@@ -27,6 +31,34 @@ export const COUNTERMEASURE_STATUS_TONE: Readonly<Record<string, StatusTone>> = 
   approved: "positive",
   proposed: "caution",
   rejected: "negative",
+};
+
+/**
+ * Barış's "Uygulama Planı" table (2026-08-18): a separate decision from
+ * `status` above — whether to schedule this countermeasure *now*, given its
+ * computed priority score (`priorityScoreOf`). "pending" first so a fresh
+ * countermeasure defaults to it (`emptyFieldFormValues` picks each select's
+ * first option).
+ */
+export const COUNTERMEASURE_PRIORITY_DECISION_OPTIONS = [
+  { value: "pending", labelKey: "methods.countermeasure.priorityDecisions.pending" },
+  { value: "pursue", labelKey: "methods.countermeasure.priorityDecisions.pursue" },
+  { value: "abandon", labelKey: "methods.countermeasure.priorityDecisions.abandon" },
+] as const;
+
+export const COUNTERMEASURE_PRIORITY_DECISION_EXPORT_LABELS: Readonly<
+  Record<string, Readonly<Record<A3Language, string>>>
+> = {
+  pending: { tr: "Beklemede", en: "Pending" },
+  pursue: { tr: "Uygulanacak", en: "Pursue" },
+  abandon: { tr: "Vazgeçildi", en: "Abandoned" },
+};
+
+/** Applied to the computed priority-score line (`renderCountermeasureToA3`), not the title — `status`'s glyph already owns the title. */
+export const COUNTERMEASURE_PRIORITY_DECISION_TONE: Readonly<Record<string, StatusTone>> = {
+  pursue: "positive",
+  pending: "caution",
+  abandon: "negative",
 };
 
 /**
@@ -72,5 +104,30 @@ export const COUNTERMEASURE_FIELDS = [
     exportLabel: { tr: "Durum", en: "Status" },
     type: "select",
     options: COUNTERMEASURE_STATUS_OPTIONS,
+  },
+  {
+    key: "impactScore",
+    labelKey: "methods.countermeasure.fields.impactScore",
+    exportLabel: { tr: "Etki", en: "Impact" },
+    type: "text",
+  },
+  {
+    key: "costScore",
+    labelKey: "methods.countermeasure.fields.costScore",
+    exportLabel: { tr: "Maliyet puanı", en: "Cost score" },
+    type: "text",
+  },
+  {
+    key: "durationScore",
+    labelKey: "methods.countermeasure.fields.durationScore",
+    exportLabel: { tr: "Süre puanı", en: "Duration score" },
+    type: "text",
+  },
+  {
+    key: "priorityDecision",
+    labelKey: "methods.countermeasure.fields.priorityDecision",
+    exportLabel: { tr: "Öncelik kararı", en: "Priority decision" },
+    type: "select",
+    options: COUNTERMEASURE_PRIORITY_DECISION_OPTIONS,
   },
 ] as const satisfies readonly FieldFormField<CountermeasureFieldKey>[];

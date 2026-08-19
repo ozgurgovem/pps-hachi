@@ -10,6 +10,13 @@ describe("CountermeasurePayloadSchema", () => {
     expect(empty).toMatchObject({ status: "proposed" });
   });
 
+  /** Barış's "Uygulama Planı" table (2026-08-18): a separate decision from `status`, defaults to unscheduled. */
+  it("defaults the priority decision to pending, separate from status", () => {
+    const empty = countermeasureMethod.createEmptyPayload();
+
+    expect(empty).toMatchObject({ priorityDecision: "pending", impactScore: "", costScore: "", durationScore: "" });
+  });
+
   it("accepts a status this build does not know", () => {
     expect(
       CountermeasurePayloadSchema.safeParse({

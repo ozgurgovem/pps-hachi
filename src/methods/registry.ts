@@ -2,12 +2,14 @@ import type { ReactNode } from "react";
 import type { A3EntryRendererMap, A3ImageKind, A3ImageSize } from "../a3/methodContract";
 import type { StepId } from "../domain/model";
 import { actionItemMethod } from "./actionItem";
+import { beforeAfterPhotosMethod } from "./beforeAfterPhotos";
 import { categoryBreakdownMethod } from "./categoryBreakdown";
 import { causeEffectMatrixMethod } from "./causeEffectMatrix";
 import { comparativeAnalysisMethod } from "./comparativeAnalysis";
 import { checkSheetMethod } from "./checkSheet";
 import { containmentIcaMethod } from "./containmentIca";
 import { costApprovalMethod } from "./costApproval";
+import { defectPhotoBoardMethod } from "./defectPhotoBoard";
 import { distributionChartMethod } from "./distributionChart";
 import { documentUpdatesTrackerMethod } from "./documentUpdatesTracker";
 import { errorProofingHierarchyMethod } from "./errorProofingHierarchy";
@@ -17,17 +19,24 @@ import { fiveN1KMethod } from "./fiveN1K";
 import { fiveW2HMethod } from "./fiveW2H";
 import { fiveWhyMethod } from "./fiveWhy";
 import { gapStatementMethod } from "./gapStatement";
+import { gembaObservationLogMethod } from "./gembaObservationLog";
 import { genericTextMethod } from "./genericText";
 import { implementationIssuesLogMethod } from "./implementationIssuesLog";
 import { isIsNotMethod } from "./isIsNot";
 import { lessonsLearnedMethod } from "./lessonsLearned";
 import { msaGageRrMethod } from "./msaGageRr";
+import { openItemsNextProblemMethod } from "./openItemsNextProblem";
 import { paretoMethod } from "./pareto";
 import { problemImpactMethod } from "./problemImpact";
 import { problemTypeClassifierMethod } from "./problemTypeClassifier";
 import { processFlowSipocMethod } from "./processFlowSipoc";
+import { realizedCostBenefitMethod } from "./realizedCostBenefit";
+import { resultVerdictMethod } from "./resultVerdict";
 import { smartTargetMethod } from "./smartTarget";
+import { spaghettiDiagramMethod } from "./spaghettiDiagram";
+import { statisticalConfirmationMethod } from "./statisticalConfirmation";
 import { sustainmentAuditMethod } from "./sustainmentAudit";
+import { sustainPlanMethod } from "./sustainPlan";
 import { stratificationMatrixMethod } from "./stratificationMatrix";
 import { threeLeggedFiveWhyMethod } from "./threeLeggedFiveWhy";
 import { tpmLossTaxonomyMethod } from "./tpmLossTaxonomy";
@@ -44,6 +53,7 @@ import { kpiStripMethod } from "./kpiStrip";
 import { pfmeaLinkageMethod } from "./pfmeaLinkage";
 import { pointOfCauseMethod } from "./pointOfCause";
 import { sideEffectRiskAssessmentMethod } from "./sideEffectRiskAssessment";
+import { valueStreamMapMethod } from "./valueStreamMap";
 import { weightedDecisionMatrixMethod } from "./weightedDecisionMatrix";
 import { whyWhyTreeMethod } from "./whyWhyTree";
 import { yokotenTrackerMethod } from "./yokotenTracker";
@@ -64,7 +74,23 @@ import { vocComplaintMethod } from "./vocComplaint";
  * mechanism this slice introduces (D-167/D-177/P-36). Oturum C4 adds Step
  * 7's `sustainment-audit` and Step 8's `document-updates-tracker`/
  * `yokoten-tracker`/`lessons-learned` — B1's §13.4 remaining four
- * candidates, zero new mechanisms, none carrying a reference role.
+ * candidates, zero new mechanisms, none carrying a reference role. Oturum
+ * 6d adds Steps 7-8's remaining plain methods (`statistical-confirmation`,
+ * `realized-cost-benefit`, `result-verdict`, `sustain-plan`,
+ * `open-items-next-problem`) plus the rounds/signOff binding mechanism
+ * (`RoundsBand`/`SignOffPanel`/`EntryRoundField`, not registry entries).
+ * Oturum 6e-1 adds `gemba-observation-log` (Step 2) and `before-after-photos`
+ * (Step 6) — the two image-bearing methods needing no annotation — plus the
+ * image-ingestion mechanism itself (D-118/D-193: Rust `image_import`
+ * command, `Entry.images[]`'s `role` field, `A3ImageRequest`'s `asset`
+ * source, `EntryImagesField`). Oturum 6e-2 adds the three annotation-needing
+ * image methods (`defect-photo-board`, `spaghetti-diagram`,
+ * `value-stream-map`) plus the annotation drawing-tool mechanism itself
+ * (D-119: `Entry.images[].annotations`, the `"annotated-photo"` `A3ImageKind`,
+ * `AnnotatedPhotoCanvas`/`EntryAnnotationEditor`) — only `defect-photo-board`
+ * registers the shared renderer, `spaghetti-diagram`/`value-stream-map`
+ * reuse it by kind-string dispatch (C2's `problem-impact`-reusing-`pareto`
+ * precedent).
  */
 export const METHOD_REGISTRY: readonly ErasedMethodPlugin[] = [
   registerMethod(genericTextMethod),
@@ -109,11 +135,21 @@ export const METHOD_REGISTRY: readonly ErasedMethodPlugin[] = [
   registerMethod(implementationIssuesLogMethod),
   registerMethod(fiveN1KMethod),
   registerMethod(problemImpactMethod),
+  registerMethod(gembaObservationLogMethod),
+  registerMethod(beforeAfterPhotosMethod),
+  registerMethod(defectPhotoBoardMethod),
+  registerMethod(spaghettiDiagramMethod),
+  registerMethod(valueStreamMapMethod),
   registerMethod(kpiStripMethod),
   registerMethod(sustainmentAuditMethod),
   registerMethod(documentUpdatesTrackerMethod),
   registerMethod(yokotenTrackerMethod),
   registerMethod(lessonsLearnedMethod),
+  registerMethod(statisticalConfirmationMethod),
+  registerMethod(realizedCostBenefitMethod),
+  registerMethod(resultVerdictMethod),
+  registerMethod(sustainPlanMethod),
+  registerMethod(openItemsNextProblemMethod),
 ];
 
 export function getMethodsForStep(stepId: StepId): readonly ErasedMethodPlugin[] {

@@ -17,6 +17,7 @@ import {
   buildReorderCommand,
   buildSetA3VisibilityCommand,
 } from "../../../domain/commands";
+import { roundOrdinal } from "../../../domain/selectors";
 import { getMethodById } from "../../../methods";
 import { useProjectStore } from "../../../state";
 import { Button, DialogContent, DialogRoot } from "../../../ui";
@@ -89,6 +90,7 @@ export function EntriesBand({ stepId }: EntriesBandProps) {
                   <EntryRow
                     entry={entry}
                     plugin={getMethodById(entry.methodId)}
+                    roundOrdinal={entry.roundId ? roundOrdinal(project?.rounds ?? [], entry.roundId) : undefined}
                     readOnly={readOnly}
                     canMoveUp={index > 0}
                     canMoveDown={index < entries.length - 1}
@@ -125,6 +127,8 @@ export function EntriesBand({ stepId }: EntriesBandProps) {
             initialTitle: editingEntry.title,
             initialPayload: editingEntry.payload,
             initialReferences: editingEntry.references,
+            initialRoundId: editingEntry.roundId,
+            initialImages: editingEntry.images,
           }}
           open
           onOpenChange={(open) => {

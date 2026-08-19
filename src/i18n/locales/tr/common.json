@@ -141,6 +141,51 @@
       "missing": "Bağlanan kayıt artık mevcut değil ({{id}})",
       "remove": "\"{{title}}\" bağını kaldır",
       "removeShort": "Bağı kaldır"
+    },
+    "entryImages": {
+      "pickDialogTitle": "Bir fotoğraf seçin",
+      "addPhoto": "Fotoğraf ekle",
+      "importing": "İçe aktarılıyor…",
+      "remove": "Fotoğrafı kaldır",
+      "thumbnailUnavailable": "Önizleme yok",
+      "annotate": "Açıkla"
+    },
+    "entryAnnotationEditor": {
+      "title": "Fotoğrafı açıkla",
+      "toolArrow": "Ok",
+      "toolCircle": "Daire",
+      "toolCallout": "Not balonu",
+      "toolPath": "Çizgi",
+      "listEmpty": "Henüz işaretleme yok — yukarıdan bir araç seçip fotoğraf üzerine çizin.",
+      "shapeArrow": "Ok",
+      "shapeCircle": "Daire",
+      "shapeCallout": "Not balonu: {{text}}",
+      "shapePath": "Serbest çizgi",
+      "removeAnnotation": "{{shape}} kaldır",
+      "done": "Bitti"
+    },
+    "rounds": {
+      "fieldLabel": "Tur",
+      "none": "Bir tura bağlı değil",
+      "ordinal": "Tur {{n}}",
+      "badge": "Tur {{n}}",
+      "bandTitle": "Analiz turları",
+      "empty": "Henüz açılmış bir tur yok.",
+      "openedOn": "Açıldı: {{date}}",
+      "closedOn": "Kapandı: {{date}}",
+      "reasonLabel": "Yeni tur neden başlıyor?",
+      "reasonPlaceholder": "örn. Hedefe ulaşılmadı, Adım 4'e dönülüyor",
+      "startNew": "Yeni analiz turu başlat"
+    },
+    "signOff": {
+      "title": "Kapanış ve onay",
+      "preparedBy": "Hazırlayan",
+      "reviewedBy": "İnceleyen",
+      "approvedBy": "Onaylayan",
+      "namePlaceholder": "Ad",
+      "sign": "İmzala",
+      "unsign": "Temizle",
+      "signedOn": "İmzalandı: {{date}}"
     }
   },
   "methods": {
@@ -507,13 +552,24 @@
         "expectedEffect": "Beklenen etki",
         "owner": "Sorumlu",
         "targetDate": "Hedef tarih",
-        "status": "Durum"
+        "status": "Durum",
+        "impactScore": "Etki puanı (1-5, yüksek = yüksek etki)",
+        "costScore": "Maliyet puanı (1-5, yüksek = ucuz)",
+        "durationScore": "Süre puanı (1-5, yüksek = hızlı)",
+        "priorityDecision": "Öncelik kararı"
       },
       "statuses": {
         "proposed": "Önerildi",
         "approved": "Onaylandı",
         "rejected": "Reddedildi"
       },
+      "priorityDecisions": {
+        "pending": "Beklemede",
+        "pursue": "Uygulanacak",
+        "abandon": "Vazgeçildi"
+      },
+      "priorityScore": "Öncelik puanı: {{score}}",
+      "priorityScoreUnscored": "Öncelik puanı: Etki/Maliyet/Süre puanlarının hepsini girin",
       "references": {
         "rootCause": {
           "label": "Giderilen kök nedenler",
@@ -761,6 +817,42 @@
         "calculationNote": "Hesap notu"
       }
     },
+    "gembaObservationLog": {
+      "name": "Gemba gözlem kaydı",
+      "useWhen": "Sahada gördüklerinizi kaydetmek için kullanın — tarih, yer, gözlemci ve bir fotoğraf.",
+      "photosLabel": "Fotoğraf",
+      "fields": {
+        "date": "Tarih",
+        "place": "Yer",
+        "observer": "Gözlemci",
+        "whatWasSeen": "Gözlenen"
+      }
+    },
+    "beforeAfterPhotos": {
+      "name": "Önce / sonra fotoğrafları",
+      "useWhen": "Bir karşı önlemin fiziksel sonucunu göstermek için kullanın — bir önce fotoğrafı, bir sonra fotoğrafı, yan yana.",
+      "hint": "Önce ve sonra fotoğraflarını aşağıdan ekleyin — bu yöntemin kendine ait bir alanı yok.",
+      "beforeLabel": "Önce",
+      "afterLabel": "Sonra"
+    },
+    "defectPhotoBoard": {
+      "name": "Hata fotoğraf panosu",
+      "useWhen": "Bir hata fotoğrafını doğrudan işaretlemek için kullanın — sorunun tam olarak nerede olduğunu gösteren oklar, daireler ve not balonları.",
+      "hint": "Aşağıdan bir fotoğraf ekleyin, sonra hatayı işaretlemek için Açıkla'yı kullanın — bu yöntemin kendine ait bir alanı yok.",
+      "photoLabel": "Fotoğraf"
+    },
+    "spaghettiDiagram": {
+      "name": "Spagetti diyagramı",
+      "useWhen": "Bir yerleşim planı fotoğrafı üzerinde malzeme veya insan akışını izlemek için kullanın — izlenen gerçek yolu çizin.",
+      "hint": "Aşağıdan bir yerleşim planı fotoğrafı ekleyin, sonra akışı izlemek için Açıkla'yı kullanın — bu yöntemin kendine ait bir alanı yok.",
+      "photoLabel": "Fotoğraf"
+    },
+    "valueStreamMap": {
+      "name": "Değer akış haritası",
+      "useWhen": "Bir değer akış haritası eklemek için kullanın — bir beyaz tahta fotoğrafı ya da tarama — ve darboğazları işaretleyin.",
+      "hint": "Aşağıdan bir fotoğraf ekleyin, sonra işaretlemek için Açıkla'yı kullanın — bu yöntemin kendine ait bir alanı yok.",
+      "photoLabel": "Fotoğraf"
+    },
     "kpiStrip": {
       "name": "KPI şeridi",
       "useWhen": "Adım 7'nin KPI izleme karoları için kullanın — önce, hedef ve sonra değerleri yan yana, her metrik için bir karo.",
@@ -877,6 +969,64 @@
         "coachingCapabilityLesson": "Koçluk yetkinliği dersi",
         "customerCommunicationLesson": "Müşteri iletişimi dersi",
         "finalClosureRationale": "Nihai kapanış gerekçesi"
+      }
+    },
+    "statisticalConfirmation": {
+      "name": "İstatistiksel doğrulama",
+      "useWhen": "Karşı önlem uygulandıktan sonra yeterlilik (Cp/Cpk), p-kontrol grafiği özeti ve gözlenen hata oranını kaydetmek için kullanın.",
+      "fields": {
+        "cp": "Cp",
+        "cpk": "Cpk",
+        "pChartSummary": "p-kontrol grafiği özeti",
+        "defectRate": "Hata oranı"
+      }
+    },
+    "realizedCostBenefit": {
+      "name": "Gerçekleşen maliyet-fayda",
+      "useWhen": "Sonuçlar netleştiğinde karşı önlemin gerçekte neye mal olduğunu ve neyi sağladığını kaydetmek için kullanın.",
+      "fields": {
+        "realizedBenefit": "Gerçekleşen fayda",
+        "actualCost": "Gerçekleşen maliyet",
+        "netBenefit": "Net fayda",
+        "notes": "Notlar"
+      }
+    },
+    "resultVerdict": {
+      "name": "Sonuç kararı",
+      "useWhen": "Hedefe ulaşılıp ulaşılmadığını kaydetmek ve ulaşılmadıysa yeni bir analiz turu başlatmak için kullanın.",
+      "fields": {
+        "verdict": "Sonuç",
+        "notes": "Notlar"
+      },
+      "statuses": {
+        "pending": "Bekliyor",
+        "met": "Hedefe ulaşıldı",
+        "partiallyMet": "Kısmen ulaşıldı",
+        "notMet": "Ulaşılmadı"
+      }
+    },
+    "sustainPlan": {
+      "name": "Sürdürme planı",
+      "useWhen": "Bu proje kapandıktan sonra düzeltmenin nasıl kontrol edilmeye devam edileceğini tanımlamak için kullanın — denetim tipi, sıklık, sahip, LPA bağlantısı.",
+      "fields": {
+        "auditType": "Denetim tipi",
+        "frequency": "Sıklık",
+        "owner": "Sahip",
+        "lpaLinkage": "LPA bağlantısı"
+      }
+    },
+    "openItemsNextProblem": {
+      "name": "Açık maddeler / sıradaki problem",
+      "useWhen": "Çözülmeden kalan herhangi bir şeyi veya bu projenin ortaya çıkardığı bir sonraki problemi kaydetmek için kullanın.",
+      "columns": {
+        "description": "Açıklama",
+        "owner": "Sahip",
+        "targetDate": "Hedef tarih",
+        "status": "Durum"
+      },
+      "statuses": {
+        "open": "Açık",
+        "closed": "Kapalı"
       }
     }
   },

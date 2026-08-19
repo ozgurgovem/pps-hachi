@@ -13,16 +13,24 @@ vi.mock("../app/routes/launch/ppsxIpc", async () => {
     saveHistorySnapshot: vi.fn(),
     listHistorySnapshots: vi.fn(),
     readHistorySnapshot: vi.fn(),
+    importImage: vi.fn(),
   };
 });
 
-import { writePpsx, saveHistorySnapshot, listHistorySnapshots, readHistorySnapshot } from "../app/routes/launch/ppsxIpc";
+import {
+  writePpsx,
+  saveHistorySnapshot,
+  listHistorySnapshots,
+  readHistorySnapshot,
+  importImage,
+} from "../app/routes/launch/ppsxIpc";
 import { selectCanRedo, selectCanUndo, selectIsDirty, useProjectStore } from "./projectStore";
 
 const mockWrite = vi.mocked(writePpsx);
 const mockSaveSnapshot = vi.mocked(saveHistorySnapshot);
 const mockListSnapshots = vi.mocked(listHistorySnapshots);
 const mockReadSnapshot = vi.mocked(readHistorySnapshot);
+const mockImportImage = vi.mocked(importImage);
 
 const initialState = useProjectStore.getState();
 
@@ -32,6 +40,7 @@ beforeEach(() => {
   mockSaveSnapshot.mockReset().mockResolvedValue(undefined);
   mockListSnapshots.mockReset().mockResolvedValue([]);
   mockReadSnapshot.mockReset();
+  mockImportImage.mockReset();
 });
 
 afterEach(() => {
@@ -436,6 +445,84 @@ describe("saveNow", () => {
     await vi.waitFor(() => expect(mockWrite).toHaveBeenCalledTimes(2));
 
     expect(useProjectStore.getState().lastSavedRevision).toBe(2);
+  });
+});
+
+describe("importEntryImage", () => {
+  const importResult = {
+    imageRef: { id: "img-1", assetPath: "assets/img_img-1.jpg", thumbnailPath: "assets/thumb_img-1.jpg" },
+    originalEntry: { name: "assets/img_img-1.jpg", bytes: [1, 2, 3] },
+    thumbnailEntry: { name: "assets/thumb_img-1.jpg", bytes: [4, 5] },
+    modifiedMs: 5000,
+  };
+
+  it("imports the photo, folds the new entries into otherEntries, and returns the ImageRef", async () => {
+    mockImportImage.mockResolvedValueOnce(importResult);
+    useProjectStore.getState().loadProject(freshOutcome());
+
+    const ref = await useProjectStore.getState().importEntryImage("/tmp/photo.jpg");
+
+    expect(ref).toEqual(importResult.imageRef);
+    const state = useProjectStore.getState();
+    expect(state.otherEntries).toEqual([importResult.originalEntry, importResult.thumbnailEntry]);
+    expect(state.diskModifiedMs).toBe(5000);
+    expect(state.saveStatus.kind).toBe("saved");
+  });
+
+  it("passes the current project/otherEntries/expectedModifiedMs through to the IPC call", async () => {
+    mockImportImage.mockResolvedValueOnce(importResult);
+    useProjectStore.getState().loadProject(freshOutcome());
+
+    await useProjectStore.getState().importEntryImage("/tmp/photo.jpg");
+
+    expect(mockImportImage).toHaveBeenCalledWith(
+      "/tmp/test.ppsx",
+      "/tmp/photo.jpg",
+      expect.any(String),
+      expect.anything(),
+      expect.anything(),
+      [],
+      1000,
+    );
+  });
+
+  it("sets lastSavedRevision to the revision at call time, leaving room for the caller's own follow-up dispatch to stay dirty", async () => {
+    mockImportImage.mockResolvedValueOnce(importResult);
+    useProjectStore.getState().loadProject(freshOutcome());
+    useProjectStore.getState().dispatch({
+      type: "entry.insert",
+      stepId: 4,
+      entry: makeEntry({ id: "new" }),
+      index: 0,
+      undoable: true,
+    });
+
+    await useProjectStore.getState().importEntryImage("/tmp/photo.jpg");
+
+    expect(useProjectStore.getState().lastSavedRevision).toBe(1);
+    expect(selectIsDirty(useProjectStore.getState())).toBe(false);
+  });
+
+  it("throws without calling the IPC layer when no project is open", async () => {
+    await expect(useProjectStore.getState().importEntryImage("/tmp/photo.jpg")).rejects.toThrow();
+    expect(mockImportImage).not.toHaveBeenCalled();
+  });
+
+  it("throws without calling the IPC layer when the project is read-only", async () => {
+    useProjectStore.getState().loadProject(freshOutcome({ readOnly: true }));
+
+    await expect(useProjectStore.getState().importEntryImage("/tmp/photo.jpg")).rejects.toThrow();
+    expect(mockImportImage).not.toHaveBeenCalled();
+  });
+
+  it("propagates a rejection from the IPC layer without mutating otherEntries", async () => {
+    mockImportImage.mockRejectedValueOnce(new Error("decode failed"));
+    useProjectStore.getState().loadProject(freshOutcome());
+
+    await expect(useProjectStore.getState().importEntryImage("/tmp/photo.jpg")).rejects.toThrow(
+      "decode failed",
+    );
+    expect(useProjectStore.getState().otherEntries).toEqual([]);
   });
 });
 

@@ -1,11 +1,14 @@
 import { describe, expect, it } from "vitest";
-import type { Entry, StepState } from "../model";
+import type { Entry, ProjectModel, Round, StepState } from "../model";
+import { createNewProject } from "../model";
 import {
   buildAddEntryCommand,
   buildDeleteEntryCommand,
   buildDuplicateEntryCommand,
+  buildOpenRoundCommand,
   buildReorderCommand,
   buildSetA3VisibilityCommand,
+  buildSetSignOffCommand,
   buildUpdateEntryCommand,
 } from "./builders";
 
@@ -55,6 +58,60 @@ describe("buildAddEntryCommand", () => {
     });
     expect(command.entry.id).toBeTruthy();
   });
+
+  it("carries roundId onto the new entry when provided", () => {
+    const step = makeStep([]);
+
+    const command = buildAddEntryCommand(step, 4, {
+      methodId: "generic-text",
+      title: "New",
+      payload: {},
+      now: "2026-08-02T01:00:00.000Z",
+      roundId: "r1",
+    });
+
+    expect(command.entry.roundId).toBe("r1");
+  });
+
+  it("omits roundId entirely when not provided", () => {
+    const step = makeStep([]);
+
+    const command = buildAddEntryCommand(step, 4, {
+      methodId: "generic-text",
+      title: "New",
+      payload: {},
+      now: "2026-08-02T01:00:00.000Z",
+    });
+
+    expect("roundId" in command.entry).toBe(false);
+  });
+
+  it("carries images imported before save onto the new entry", () => {
+    const step = makeStep([]);
+
+    const command = buildAddEntryCommand(step, 2, {
+      methodId: "gemba-observation-log",
+      title: "New",
+      payload: {},
+      now: "2026-08-02T01:00:00.000Z",
+      images: [{ id: "img-1", assetPath: "assets/img_img-1.jpg" }],
+    });
+
+    expect(command.entry.images).toEqual([{ id: "img-1", assetPath: "assets/img_img-1.jpg" }]);
+  });
+
+  it("starts with an empty images array when none are provided", () => {
+    const step = makeStep([]);
+
+    const command = buildAddEntryCommand(step, 4, {
+      methodId: "generic-text",
+      title: "New",
+      payload: {},
+      now: "2026-08-02T01:00:00.000Z",
+    });
+
+    expect(command.entry.images).toEqual([]);
+  });
 });
 
 describe("buildUpdateEntryCommand", () => {
@@ -77,6 +134,89 @@ describe("buildUpdateEntryCommand", () => {
     expect(() =>
       buildUpdateEntryCommand(step, 4, "missing", { title: "x", payload: {}, now: "2026-08-02T00:00:00.000Z" }),
     ).toThrow();
+  });
+
+  it("leaves an existing roundId alone when the input omits it", () => {
+    const step = makeStep([makeEntry({ id: "a", roundId: "r1" })]);
+
+    const command = buildUpdateEntryCommand(step, 4, "a", {
+      title: "Renamed",
+      payload: {},
+      now: "2026-08-02T02:00:00.000Z",
+    });
+
+    expect(command.after.roundId).toBe("r1");
+  });
+
+  it("sets roundId when the input provides one", () => {
+    const step = makeStep([makeEntry({ id: "a" })]);
+
+    const command = buildUpdateEntryCommand(step, 4, "a", {
+      title: "Renamed",
+      payload: {},
+      now: "2026-08-02T02:00:00.000Z",
+      roundId: "r2",
+    });
+
+    expect(command.after.roundId).toBe("r2");
+  });
+
+  it("clears roundId when the input explicitly passes null", () => {
+    const step = makeStep([makeEntry({ id: "a", roundId: "r1" })]);
+
+    const command = buildUpdateEntryCommand(step, 4, "a", {
+      title: "Renamed",
+      payload: {},
+      now: "2026-08-02T02:00:00.000Z",
+      roundId: null,
+    });
+
+    expect(command.after.roundId).toBeUndefined();
+    expect("roundId" in command.after).toBe(false);
+  });
+
+  it("leaves existing images alone when the input omits them", () => {
+    const step = makeStep([makeEntry({ id: "a", images: [{ id: "img-1", assetPath: "x" }] })]);
+
+    const command = buildUpdateEntryCommand(step, 4, "a", {
+      title: "Renamed",
+      payload: {},
+      now: "2026-08-02T02:00:00.000Z",
+    });
+
+    expect(command.after.images).toEqual([{ id: "img-1", assetPath: "x" }]);
+  });
+
+  it("replaces images when the input provides a new list", () => {
+    const step = makeStep([makeEntry({ id: "a", images: [{ id: "img-1", assetPath: "x" }] })]);
+
+    const command = buildUpdateEntryCommand(step, 4, "a", {
+      title: "Renamed",
+      payload: {},
+      now: "2026-08-02T02:00:00.000Z",
+      images: [
+        { id: "img-1", assetPath: "x" },
+        { id: "img-2", assetPath: "y", role: "after" },
+      ],
+    });
+
+    expect(command.after.images).toEqual([
+      { id: "img-1", assetPath: "x" },
+      { id: "img-2", assetPath: "y", role: "after" },
+    ]);
+  });
+
+  it("clears images when the input explicitly passes an empty array", () => {
+    const step = makeStep([makeEntry({ id: "a", images: [{ id: "img-1", assetPath: "x" }] })]);
+
+    const command = buildUpdateEntryCommand(step, 4, "a", {
+      title: "Renamed",
+      payload: {},
+      now: "2026-08-02T02:00:00.000Z",
+      images: [],
+    });
+
+    expect(command.after.images).toEqual([]);
   });
 });
 
@@ -135,5 +275,78 @@ describe("buildSetA3VisibilityCommand", () => {
       before: "primary",
       after: "appendix",
     });
+  });
+});
+
+function makeProject(rounds: Round[] = []): ProjectModel {
+  const { project } = createNewProject({ title: "Test", language: "en", appVersion: "0.1.0" });
+  return { ...project, rounds };
+}
+
+describe("buildOpenRoundCommand", () => {
+  it("appends a fresh round when none are open", () => {
+    const project = makeProject([]);
+
+    const command = buildOpenRoundCommand(project, "target not met", "2026-08-18T00:00:00.000Z");
+
+    expect(command).toMatchObject({ type: "rounds.set", before: [], undoable: true });
+    expect(command.after).toHaveLength(1);
+    expect(command.after[0]).toMatchObject({
+      reason: "target not met",
+      openedAt: "2026-08-18T00:00:00.000Z",
+    });
+    expect(command.after[0]?.id).toBeTruthy();
+  });
+
+  it("closes any still-open round while opening the new one", () => {
+    const openRound: Round = { id: "r1", openedAt: "2026-08-01T00:00:00.000Z", reason: "first" };
+    const project = makeProject([openRound]);
+
+    const command = buildOpenRoundCommand(project, "second pass", "2026-08-18T00:00:00.000Z");
+
+    expect(command.after).toHaveLength(2);
+    expect(command.after[0]).toMatchObject({ id: "r1", closedAt: "2026-08-18T00:00:00.000Z" });
+    expect(command.after[1]).toMatchObject({ reason: "second pass" });
+  });
+
+  it("leaves an already-closed round untouched", () => {
+    const closedRound: Round = {
+      id: "r1",
+      openedAt: "2026-08-01T00:00:00.000Z",
+      closedAt: "2026-08-05T00:00:00.000Z",
+      reason: "first",
+    };
+    const project = makeProject([closedRound]);
+
+    const command = buildOpenRoundCommand(project, "second pass", "2026-08-18T00:00:00.000Z");
+
+    expect(command.after[0]).toEqual(closedRound);
+  });
+});
+
+describe("buildSetSignOffCommand", () => {
+  it("sets the given role, leaving other roles untouched", () => {
+    const project = makeProject();
+    project.signOff.reviewedBy = { name: "Existing", signedAt: "2026-08-01T00:00:00.000Z" };
+
+    const command = buildSetSignOffCommand(project, "preparedBy", {
+      name: "Ada",
+      signedAt: "2026-08-18T00:00:00.000Z",
+    });
+
+    expect(command).toMatchObject({ type: "signOff.set", undoable: true });
+    expect(command.after).toMatchObject({
+      preparedBy: { name: "Ada", signedAt: "2026-08-18T00:00:00.000Z" },
+      reviewedBy: { name: "Existing", signedAt: "2026-08-01T00:00:00.000Z" },
+    });
+  });
+
+  it("clears a role when given undefined", () => {
+    const project = makeProject();
+    project.signOff.approvedBy = { name: "Ada", signedAt: "2026-08-18T00:00:00.000Z" };
+
+    const command = buildSetSignOffCommand(project, "approvedBy", undefined);
+
+    expect("approvedBy" in command.after).toBe(false);
   });
 });

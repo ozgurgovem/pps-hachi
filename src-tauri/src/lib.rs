@@ -1,4 +1,5 @@
 pub mod commands;
+pub mod images;
 pub mod ppsx;
 pub mod xlsx;
 
@@ -10,6 +11,7 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             ppsx::commands::ppsx_read,
             ppsx::commands::ppsx_write,
+            ppsx::commands::image_import,
             ppsx::commands::recent_list,
             ppsx::commands::recent_upsert,
             ppsx::commands::history_list,

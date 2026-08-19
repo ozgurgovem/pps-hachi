@@ -20,6 +20,9 @@ export interface PendingImageSlot {
   readonly anchorCell: string;
   readonly widthPt: number;
   readonly heightPt: number;
+  /** D-118/D-193: carried straight through from `A3ImageRequest` — see its own doc comment. */
+  readonly source?: "asset" | undefined;
+  readonly assetImageId?: string | undefined;
 }
 
 export interface PlacedBlockContent {
@@ -76,7 +79,7 @@ export function placeBlockContent(
   for (const entry of entries) {
     const renderer = rendererMap[entry.methodId];
     const content = renderer
-      ? renderer(entry.payload, { id: entry.id, title: entry.title, language })
+      ? renderer(entry.payload, { id: entry.id, title: entry.title, language, images: entry.images })
       : { lines: [{ text: entry.title, bold: true }] };
 
     if (content.zones) {
@@ -146,6 +149,8 @@ export function placeBlockContent(
         anchorCell: `${block.contentColumns.first}${row}`,
         widthPt: blockWidthPt,
         heightPt: heightOfRows(contentRows, row, imageRowSpan),
+        source: content.image.source,
+        assetImageId: content.image.assetImageId,
       });
       row += imageRowSpan;
     }

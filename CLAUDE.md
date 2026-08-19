@@ -180,7 +180,7 @@ language is the real threat to this bar, and it is Oturum B's job.
 
 ## Current state
 
-Phase: 6 of 12 (slice 6c of D-114's five; 6d–6e remain)
+Phase: 6 of 12 — DONE (all five slices 6a–6e shipped; 6e's own 6e-1/6e-2 split both closed)
 Stack decision (Tauri vs Electron fallback): Tauri v2, revisit only if Phase 4 stalls
 App name: **PPS Hachi** (八 — eight). Repo `pps-hachi`. Set 2026-08-01, see DECISIONS.md D-29.
 AI layer: specified, not started. Phases 8–10.
@@ -1258,3 +1258,210 @@ changed, only documentation and (removed) scratch files.
 discovery, and discovery is complete; the fix itself is **D2b**, not yet scheduled, tracked as
 **P-43**.
 Not yet committed to git.
+
+**Oturum D — D2b (P-43's fix + an unrelated countermeasure feature, same session): code and
+tests DONE 2026-08-18, D2b's own visual sign-off still pending.** Two `AskUserQuestion` rounds
+before any code, both Barış's recommended option: `src/a3/layout/placeZones.ts`'s two D-189
+defects fixed — Kusur 1, a zone's line stack now spreads across `rowsUsed =
+min(maxLinesAcrossZones, availableRows)` physical rows (one line per row when the band has
+room, falling back to today's single-row `\n`-join exactly when `smart-target`'s single
+153.75 pt row forces it, "üstten hizala"); Kusur 2, a zone under 50% of its own requested
+width borrows a column from its widest neighbour ("Seçenek C" — the algorithm itself
+unchanged, three options hand-simulated against real B:O numbers before Barış picked). 7 new
+regression tests, all RED-verified against the pre-fix code before being trusted GREEN;
+`scripts/gen-a3-fixture.ts` regenerated and diffed **byte-identical** — `smart-target`'s
+D-178-LOCKED visual proven, not assumed, untouched. A real, unplanned finding surfaced mid-fix:
+the whole B3 cumulative artifact was built against §12.8's still-unbuilt `pps-8step-auto`
+canvas, never against `farplas-7step-tr`'s real uneven B:O geometry — D-189's bug only lives
+on the real grid, so the eight already-approved B3 mockups needed no re-verification, but a
+new section (real `farplas-7step-tr` geometry, five-n1k before/after + smart-target's
+zero-change confirmation) was added to the same cumulative artifact URL — see D-190,
+`TEMPLATE_ANALYSIS.md` §15.8. **Still open**: Barış has not yet looked at the redeployed
+artifact — `CLAUDE.md`'s own Block Visual Verification Loop requires his concrete sign-off
+before P-43/P-26's layout half can read closed, a passing test suite is not sufficient on its
+own.
+Mid-session, Barış asked (in chat, not a written session prompt) for a completely different,
+unplanned feature: `countermeasure` (Step 5) gained his own "Uygulama Planı" table — three 1-5
+favorability scores (Etki/Maliyet/Süre, high = impactful/cheap/fast, never raw magnitude) and
+a computed, multiplied priority score, plus a separate manual `priorityDecision`
+(pending/pursue/abandon, never inferred from the score — D-41's "a human always decides"
+precedent). Two `AskUserQuestion` rounds resolved it before code: extend `countermeasure`
+rather than build a new method (its existing owner/targetDate/rootCause-reference fields
+already matched most of what the table needed), and make the pursue/abandon call manual rather
+than an auto-computed threshold. KN ID/KÖ ID (the reference photo's own row-numbering columns)
+were deliberately not added as new fields — already covered by the entry's own position and its
+existing `rootCause` reference role; a free-text duplicate would have been a second,
+driftable representation of a fact already tracked structurally. See D-191 for the full
+design/backward-compatibility record (an entry persisted before these fields existed is
+guarded with `?? ""`, the same fix shape C1/D-180 already established for this bug class).
+`npm test` 916/916 (up from 905/905 — 11 new: 7 for D-190, 4 for D-191), exit code 0 (checked
+via a separate logfile + `echo $?`, not piped through `tail`). `npm run lint` clean (the one
+pre-existing `ThemeProvider` warning). `npm run build` green (same pre-existing chunk-size
+warning). `cargo test` 89/89, `cargo clippy --all-targets -- -D warnings` and `cargo fmt --
+check` all clean — Rust untouched by either change, confirmed. Not yet committed to git —
+holding the commit until D2b's visual sign-off lands, per this project's own B3-established
+practice of committing a visual-approval-gated change only once approved; the countermeasure
+feature has no such gate and could be committed separately/sooner if asked.
+
+**Oturum 6d (SPEC.md's own Phase 6, D-114's fourth slice — Steps 7–8's remaining plain
+methods + rounds/signOff bindings): DONE 2026-08-18.** Not part of D-149's four-session
+arayüz plan (that plan is fully closed) — this is Phase 6's own fifth-slice map, whose 6a/6b/6c
+shipped earlier and whose 6d/6e were never started before this session. §2.1's own
+verification step (re-derive scope from `SPEC.md` §1.3 line by line, per D-137's own lesson
+about trusting a slice summary) found two of Adım 7's bullets already fully shipped and needing
+no new code: "Result KPI chart" + "Before-Target-After comparison card" both by `kpiStrip`
+(D-167/D-177), "Process confirmation audit" by `sustainmentAudit` (D-183). Five new plain
+methods followed straight from SPEC's own field lists, zero new mechanism of their own
+(`shared/fieldForm.ts`/`rowTable.ts`): Step 7 — `statistical-confirmation` (Cp/Cpk/p-chart
+summary/defect rate), `realized-cost-benefit` (realized benefit/actual cost/net benefit/
+notes), `result-verdict` (a verdict select — pending/met/partiallyMet/notMet — plus notes);
+Step 8 — `sustain-plan` (audit type/frequency/owner/LPA linkage, a genuinely different,
+forward-looking artefact from `sustainmentAudit`'s own backward-looking log), `open-items-
+next-problem` (a row table: description/owner/target date/status).
+**The one new mechanism this slice introduces — binding `rounds`/`signOff` (D-58, defined
+since Phase 2, never before read or written by any interface) into the app.** Three real
+design questions, all resolved via one `AskUserQuestion` round before any code, all three of
+Barış's recommended options confirmed: (1) Adım 7's "Verdict… → if not met, 'Return to Step 4'
+loop" (`SPEC.md` §1.2 S7) is a plain field plus a **manual** "Yeni analiz turu başlat"
+control, not automatic navigation — Phase 7's readiness/gate state machine (D-85) doesn't
+exist yet, and building a fragment of it here would have been a second new mechanism
+competing with this slice's own budget. (2) A round opens only via that manual control
+(`buildOpenRoundCommand`, closes any still-open round first); Steps 4-7 keep showing every
+entry unconditionally, no round filter — matching D-58's own "no snapshot, one entry list"
+design — with an optional per-entry round tag (`EntryRoundField`, generic shell UI in
+`EntryEditorDialog`, the same architectural slot `EntryReferenceField`/D-125 already
+established). (3) `signOff` lives in a new `SignOffPanel`, Step 8's own page only
+(`StepPage.tsx`'s first-ever per-step conditional render).
+New commands, the first ever without a `stepId`: `rounds.set`/`signOff.set`
+(`src/domain/commands/types.ts`), applied directly against `ProjectModel`
+(`applyCommand.ts` branches before routing into the existing step-scoped `applyToStep`, whose
+parameter type was narrowed to `Exclude<Command, RoundsSetCommand | SignOffSetCommand>` so the
+compiler proves every step-scoped case is still handled). `buildOpenRoundCommand`/
+`buildSetSignOffCommand` (`builders.ts`) follow the existing before/after-full-value shape
+`entries.reorder` already uses. `Entry.roundId` (D-58, never before written by any builder) is
+threaded through `AddEntryInput`/`UpdateEntryInput` with the same three-state shape
+`nodeTree.ts`'s `parentId` already established: `undefined`/omitted leaves it alone, `null`
+clears it, a string sets it. Deliberately kept simple: both new command types stay
+`undoable: true` like every other command — `types.ts`'s own D-80 comment once floated a
+non-undoable sign-off command, but `dispatch()`/`undo()` don't actually consult the
+`undoable` flag anywhere today, so wiring real non-undoable behavior would have been a second,
+unrelated dispatcher-level mechanism outside this slice's budget. New pure selectors
+`findOpenRound`/`roundOrdinal` (`src/domain/selectors/rounds.ts`). See D-192 for the full
+record.
+`npm test` 995/995 (up from 916/916 — 79 new: 22 domain/commands, 5 domain/selectors, 58
+across the five new method directories, 14 across `EntryRoundField`/`RoundsBand`/
+`SignOffPanel`), exit code 0 (checked via a separate logfile + `echo $?`, not piped through
+`tail`, per D-143's own repeated lesson). `npm run lint` clean (the one pre-existing
+`ThemeProvider` warning). `npm run build` green (same pre-existing chunk-size warning).
+`cargo test` 89/89, `cargo clippy --all-targets -- -D warnings` and `cargo fmt -- --check` all
+clean — Rust genuinely untouched, confirmed: `roundId`/`rounds`/`signOff`'s wire shape never
+changed, only which interfaces read/write already-existing optional fields.
+`scripts/gen-a3-fixture.ts` confirmed unaffected by direct read (it already hardcodes
+`signOff: {}`/`rounds: []` and touches none of this slice's five new method ids) — not
+re-run. Only Phase 6e (image ingestion + annotation + the five image-bearing methods) remains
+of D-114's own five-slice Phase 6 map. Not yet committed to git.
+
+**Oturum 6e-1 (image ingestion mechanism + two non-annotation image-bearing methods): DONE
+2026-08-19.** Per `docs/oturumlar/6e-goruntu-iceriye-alma.md`, closing D-118's own "numeric
+caps and exact IPC surface land with 6e" deferral. Two real open questions went to Barış via
+one `AskUserQuestion` round before any code, both recommended options confirmed: split 6e into
+6e-1 (this session — the ingestion mechanism itself plus the two methods needing no
+annotation, `gemba-observation-log`/`before-after-photos`) and 6e-2 (a future session — the
+drawing-tool mechanism plus `defect-photo-board`/`spaghetti-diagram`/`value-stream-map`, filed
+P-45), matching D-138's own "two unproven mechanisms in one slice" precedent exactly; and
+numeric caps of 2400px/JPEG-85 for the stored original, 400px/JPEG-80 for the thumbnail.
+**Rust** (`src-tauri/src/images/`, new `image` 0.25.10 + `kamadak-exif` 0.6.1 dependencies):
+`ingest_image_bytes` decodes, reads EXIF orientation, applies the matching pixel transform
+(all 8 EXIF codes, each verified against a hand-derived exact pixel grid, mutation-checked),
+downscales (never upscales), and re-encodes JPEG — which is *how* EXIF is stripped
+unconditionally, verified structurally (no `"Exif"` byte sequence survives), not just
+asserted. New Tauri command `image_import` reads the source file itself (raw bytes never
+cross into TypeScript) and calls **`write_ppsx` completely unchanged** — D-64/D-67/D-91/D-92's
+hardened write path was deliberately not touched or forked, proven safe against a
+path-traversal-smuggling `imageId` with a dedicated test. **TypeScript**: `ImageRef` gains
+optional `role?`; `A3ImageRequest`/`PendingImageSlot` gain optional `source?: "asset"` +
+`assetImageId?` (D-118 point 4's "source discriminant" — `place.ts` computes identical
+geometry either way, only the composition root's new resolver, `resolveAssetImages.ts`,
+forks); `A3ImageKind` gains `"asset-photo"`; `ImagePlacement.mimeType` widens to include
+`"image/jpeg"` (zero Rust changes needed — `rust_xlsxwriter` already auto-detects format and
+never consulted this field); `A3EntrySummary` gains optional `images?` + `resolveA3Images`,
+mirroring `language?`/`resolveA3Language` exactly. New generic shell `EntryImagesField.tsx`
+(D-125's precedent applied a second time) driven by a new declarative
+`MethodPlugin.imageSlots?` field; new store action `importEntryImage` whose ordering is
+safety-critical — the Rust write always completes before the returned `ImageRef` is ever
+attached to an entry, so a failed import never produces a dangling reference. Gemba's SPEC
+plural "photos" reads as one-photo-per-entry (D-124's "one traceable node = one Entry"
+precedent), avoiding a second unproven dynamic-width-zones mechanism; `before-after-photos`
+uses a static two-zone strip instead (D-38/`smartTarget`'s already-proven pattern). See D-193
+for the full record; P-44 (no HEIC decode path) and P-45 (6e-2 itself) are the two gaps this
+session filed rather than solved.
+`npm test` 1040/1040 (244 files, up from 995/995 at 236 — 45 new tests across the ingestion
+mechanism's domain/a3/state/IPC layers plus the two new methods), exit code 0 (checked via a
+separate logfile, not piped through `tail`). `npm run lint` clean (the one pre-existing
+`ThemeProvider` warning). `npm run build` green (same pre-existing chunk-size warning).
+`cargo test` 103/103 (up from 89/89 — 14 new), `cargo clippy --all-targets -- -D warnings` and
+`cargo fmt -- --check` both clean. `scripts/gen-a3-fixture.ts` regenerated and diffed
+**byte-identical** — confirms this slice's additions are genuinely additive. Not yet committed
+to git.
+
+**Oturum 6e-2 (annotation mechanism + 3 image-bearing methods): DONE 2026-08-19 — D-114's Phase
+6 map (6a–6e) and `SPEC.md`'s own Phase 6 plan are now both fully complete.** Per
+`docs/oturumlar/6e-2-goruntu-aciklama.md`, closing P-45 with the three annotation-needing
+methods (`defect-photo-board`, `spaghetti-diagram`, `value-stream-map`) plus the drawing
+mechanism itself — D-119 (LOCKED since Phase 6, unbuilt until now) already settled the
+storage/compositing design, this session implemented it. One `AskUserQuestion` round before
+any code, all three recommended options confirmed: hand-rolled SVG overlay (not a canvas
+library, `KpiStripChart`'s own D-182 precedent, avoiding a third dependency inside the
+capture path `rasterize.ts` has needed real-webview fixes for three times — D-105/D-113/
+D-136), one shared `EntryAnnotationEditor.tsx` (D-125's generic-shell precedent a second
+time) rather than a per-method editor, one shape vocabulary (arrow/circle/callout/freehand
+path) for all three methods.
+`domain/model/entry.ts` gains `AnnotationSchema` (loose, D-51's posture, normalized 0..1
+coordinates) and `ImageRef.annotations?` (additive, no migration). Export path exactly per
+D-119: an annotated photo becomes a `spec`-sourced `"annotated-photo"` slot (new
+`A3ImageKind`) through the existing D-102 rasterize path; an unannotated one keeps D-118's
+cheap direct `asset` path — decided automatically inside a new shared
+`renderAnnotatedPhotoBlock` (`src/methods/shared/annotatedPhoto.ts`), written once for all
+three methods (D-127's extraction discipline, here extracted before even the first use).
+**Real architectural finding, not anticipated by D-119**: `renderToA3`'s pure first pass has
+no access to a photo's bytes, only `A3EntryImageRef` — so an annotated slot's `spec` can only
+carry a *reference* (`{assetImageId, annotations}`), never the photo itself. New
+`resolveAnnotatedPhotoSpecs` (`src/a3/render/resolveAssetImages.ts`) resolves that reference
+against `otherEntries` at the composition root, exactly mirroring the existing
+`resolveAssetImagePlacements` — `place.ts` never touches bytes, the D-43/D-94 purity boundary
+holds. **Real type-level finding**: Zod's `z.looseObject` (D-51) infers an index signature
+TypeScript won't bridge automatically into a hand-written structural-mirror type in the
+write direction — `AnnotatedPhotoCanvas` (the shared photo+overlay renderer, D-102/D-103's
+dual-mode pattern a second time after Fishbone) standardizes on the mirror type
+(`A3EntryAnnotation`) throughout; the one necessary cast back to the domain shape happens
+once, at `EntryImagesField.handleAnnotationsChange`, documented the same way
+`registerMethod`'s own pre-existing erasure cast already is. `EntryImagesField.tsx` gained
+an "Annotate" button per thumbnail on slots declaring `imageSlots[].annotatable`, opening
+`EntryAnnotationEditor` in a widened Dialog; the editor's own shape list is keyboard/
+screen-reader reachable for removal even though drawing itself is inherently pointer-driven
+(D-86's own "canvas is mouse-only, every effect separately reachable" posture). Three new
+methods, all following `before-after-photos`' empty-payload precedent; only
+`defect-photo-board` registers the shared `"annotated-photo"` renderer, the other two reuse
+it via kind-string dispatch (C2's own `problem-impact`-reusing-`pareto` precedent), each
+proven end-to-end in its own `xlsxSurvival.test.ts`. One unrelated environment fix made along
+the way: jsdom has no `PointerEvent` constructor at all, so `fireEvent.pointerDown/Move/Up`
+was silently dropping `clientX`/`clientY` with zero error — fixed once in the shared
+`src/test/setup.ts` (a guarded `MouseEvent`-subclassing polyfill), not per-test. See D-194 for
+the full record; P-45 closed.
+`npm test` 1107/1107 (up from 1040/1040 — 67 new tests across the domain-model schema, the
+shared substrate/canvas/resolver, the three new method directories, and the UI wiring), exit
+code 0 (checked via a separate logfile, not piped through `tail`). `npm run lint` clean (the
+one pre-existing `ThemeProvider` warning). `npm run build` green (same pre-existing
+chunk-size warning) — the domain/mirror-type index-signature mismatch above was caught here,
+not by `npm test` (`vitest` transpiles via esbuild and does not itself type-check — a real
+reminder that green tests and a green build are two different gates). `cargo test` 112/112
+(103 lib + 2 + 7, unchanged from D-193 — Rust genuinely untouched, confirmed by running).
+`cargo clippy --all-targets -- -D warnings` and `cargo fmt -- --check` both clean.
+`scripts/gen-a3-fixture.ts` regenerated (via `npx vite-node` — bare `tsx` fails on
+`@xyflow/react`'s CSS import, a pre-existing environment quirk, not new) and diffed
+**byte-identical**. **Honestly unverified**: no real Tauri/WKWebView walkthrough of the
+drawing UI happened this session (no display in this environment) — unit tests cover the
+pointer-drawing math and the rasterize-mode SVG structure, but not pixel-for-pixel capture
+fidelity in the real pipeline, the same class of thing D-105/D-113/D-136 needed a real
+browser to find before. Flagged the same way P-21 was, not claimed as done. Not yet committed
+to git.
