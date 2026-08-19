@@ -38,13 +38,26 @@ beş dilimi (6a–6e) ve `SPEC.md`'nin kendi Faz 6 planı artık tamamen kapand�
 | 6e-1 — görüntü içe alma mekanizması + açıklama gerektirmeyen 2 yöntem (`gemba-observation-log`, `before-after-photos`) | `6e-goruntu-iceriye-alma.md` | ✅ BİTTİ 2026-08-19 — `AskUserQuestion` iki önerilen seçenek de onaylandı (bölünme + sayısal tavanlar), D-193, P-44 (HEIC yok) yeni dosyalandı |
 | 6e-2 — çizim/açıklama mekanizması + 3 yöntem (`defect-photo-board`, `spaghetti-diagram`, `value-stream-map`) | `6e-2-goruntu-aciklama.md` | ✅ BİTTİ 2026-08-19 — `AskUserQuestion` üç önerilen seçenek de onaylandı, D-194, P-45 kapandı. Gerçek Tauri webview'da görsel doğrulanmadı (bkz. D-194'ün kendi dürüstlük notu). |
 
+## Faz 7 — `SPEC.md` §6'nın kendi sıradaki fazı
+
+`SPEC.md`'nin faz tablosu: "Coaching content, readiness rules, traceability view,
+step-7→4 loop, appendix overflow." Faz 6 (6a–6e) tamamen kapandığı için sırada bu var.
+Dört alt-teslimat birbirinden çok farklı olgunlukta (step-7→4 döngüsü ve appendix
+overflow zaten var; readiness/traceability hiç yok) — Oturum A'nın kendi emsaliyle
+önce bir **kapsam belirleme** oturumu (kod yok), sonra dilimlere bölünmüş inşa
+oturumları.
+
+| Dilim | Dosya | Durum |
+|---|---|---|
+| Kapsam belirleme — sekiz gate kuralının veri durumu + dilim planı önerisi | `faz7-kapsam-belirleme.md` | 📝 yazıldı 2026-08-19 — henüz yürütülmedi |
+
 ## Kullanım
 
 Yeni oturumu şu iki satırla başlat (dosya adını sıradaki oturuma göre değiştir):
 
 ```
-Önce Anayasamızı Oku (~/.claude/ANAYASA.md) ve AKIS.md'yi (~/.claude/AKIS.md).
-Sonra ~/Developer/pps-hachi/docs/oturumlar/6e-2-goruntu-aciklama.md'yi oku ve uygula.
+Önce Anayasamızı Oku (~/.claude/ANAYASA.md).
+Sonra ~/Developer/pps-hachi/docs/oturumlar/faz7-kapsam-belirleme.md'yi oku ve uygula.
 ```
 
 ## Prompt yazarken
