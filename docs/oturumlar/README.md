@@ -47,9 +47,24 @@ overflow zaten var; readiness/traceability hiç yok) — Oturum A'nın kendi ems
 önce bir **kapsam belirleme** oturumu (kod yok), sonra dilimlere bölünmüş inşa
 oturumları.
 
-| Dilim | Dosya | Durum |
+**Kapsam belirleme BİTTİ 2026-08-19 (D-195).** Sekiz gate kuralının (S1-S8) her biri
+gerçek koda karşı doğrulandı — S1 (gap sayısallaştırma) hiçbir Step 1 metodunda
+yapılandırılmış alan olmadığı için tamamen boş çıktı (kendi açık sorusunu doğurdu,
+aşağıya bkz.); S4 (kök neden verified) beklenenden zengin çıktı, `hypothesisVerification`
+VE `whyWhyTree`'nin `outcome` alanı iki bağımsız mevcut sinyal; S2/S3/S6/S8 mekanik
+kontrol edilebilir bulundu; S5/S7 kısmen var. Üç gerçek açık soru `AskUserQuestion` ile
+Barış'a soruldu, üçü de cevaplandı (D-195): S4 kaynağı = hypothesisVerification VEYA
+whyWhyTree; traceability yeri = RightPanel'in 3. sekmesi; provisional işaret = A3
+bloğunun kenarında yeni görsel işaret (kendi Block Visual Verification Loop turunu
+gerektiriyor). Step-7→4 döngüsü (D-192) ve appendix overflow (D-100) zaten var,
+doğrulandı — ayrı dilim gerekmiyor.
+
+| Dilim | Kapsam | Durum |
 |---|---|---|
-| Kapsam belirleme — sekiz gate kuralının veri durumu + dilim planı önerisi | `faz7-kapsam-belirleme.md` | 📝 yazıldı 2026-08-19 — henüz yürütülmedi |
+| Kapsam belirleme — sekiz gate kuralının veri durumu + dilim planı önerisi | — | ✅ BİTTİ 2026-08-19 — D-195, üç `AskUserQuestion` cevaplandı |
+| G1 — readiness seçicisi + sekiz gate kuralı + StepStepper complete/flagged + amber advisory | `src/domain/readiness/` (yeni), `stepStatus.ts`, `StepPage.tsx`'in advisory'si. Kendi açık sorusu: S1'in gap-sayısallaştırma alanı (gapStatement'a yeni yapılandırılmış alan mı, yoksa metin ayrıştırma mı) — G1'in kendi promptunun başında Barış'a sorulmalı. | ⏳ henüz yazılmadı |
+| G2 — Traceability görünümü (RightPanel'in 3. sekmesi) | Zaten var olan `findOrphanedReferences`/`findReferencesTo`/`listReferenceableEntries`'i (D-117) + G1'in ürettiği readiness verisini okuyan yeni bir sekme | ⏳ henüz yazılmadı, G1'in ardından |
+| G3 — "Provisional" A3 kenar işareti (D-165/D-41'in üçüncü görsel katmanı) | `buildA3Layout.ts` + `HtmlA3Renderer.tsx`. Kendi Block Visual Verification Loop turunu gerektirir — en pahalı dilim. | ⏳ henüz yazılmadı, G1'in ardından, kendi görsel onay turu ayrı |
 
 ## Kullanım
 

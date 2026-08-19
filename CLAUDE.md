@@ -180,7 +180,10 @@ language is the real threat to this bar, and it is Oturum B's job.
 
 ## Current state
 
-Phase: 6 of 12 — DONE (all five slices 6a–6e shipped; 6e's own 6e-1/6e-2 split both closed)
+Phase: 7 of 12 — scope determined, not yet built (D-195: eight gate rules S1-S8 verified
+  against real code, split into three slices G1/G2/G3, three open design questions answered
+  by Barış — see `docs/oturumlar/README.md`'s Faz 7 section for the slice table). Phase 6
+  (all five slices 6a–6e, plus 6e's own 6e-1/6e-2 split) fully closed 2026-08-19.
 Stack decision (Tauri vs Electron fallback): Tauri v2, revisit only if Phase 4 stalls
 App name: **PPS Hachi** (八 — eight). Repo `pps-hachi`. Set 2026-08-01, see DECISIONS.md D-29.
 AI layer: specified, not started. Phases 8–10.
