@@ -109,11 +109,33 @@
       "hide": "Hide coaching"
     },
     "jumpAdvisory": "Step {{step}} has no entries yet — you can still work on it out of order.",
+    "readiness": {
+      "s1": "The gap isn't quantified yet — add a number, a unit, and a baseline period.",
+      "s2NoDataEntry": "This step is opinion only — add at least one data-based entry (Pareto, trend, check sheet, or stratification).",
+      "s2NoPointOfCause": "No point of cause has been nominated yet.",
+      "s3": "Not every SMART target field is filled in yet (metric, baseline, target, unit, due date).",
+      "s4": "No root cause is verified yet — mark a hypothesis confirmed, or confirm a root cause in the why-why tree.",
+      "s5NoVerifiedRootCause": "At least one countermeasure isn't linked to a verified root cause.",
+      "s5UnjustifiedHierarchy": "A countermeasure sits at the weakest error-proofing level (procedure/training) with no documented reason.",
+      "s6": "At least one action has no owner or no due date.",
+      "s7": "A result is recorded but the process confirmation (sustainment audit) is empty.",
+      "s8NoDocumentUpdated": "No document has been marked updated.",
+      "s8YokotenEmpty": "The yokoten (read-across) table is empty."
+    },
+    "traceability": {
+      "orphansTitle": "Broken references",
+      "orphanLine": "Step {{step}} — \"{{title}}\" points at an entry that no longer exists ({{role}}).",
+      "empty": "No traceability chains are recorded yet — link a root cause, a countermeasure, or an action to a step behind it to start one.",
+      "nodeLabel": "Step {{step}}: {{title}}",
+      "jumpAriaLabel": "Go to step {{step}}: {{title}}",
+      "standardGapNote": "Steps 7 and 8 aren't linked into this chain yet — today's reference model traces problem → root cause → countermeasure → action, not as far as the standardization step."
+    },
     "rightPanel": {
       "collapse": "Collapse panel",
       "expand": "Expand panel",
       "openInNewWindow": "Open in new window",
       "preview": "Preview",
+      "traceability": "Traceability",
       "assistant": "Assistant",
       "previewStub": "The A3 preview renders here once the exporter ships in Phase 4.",
       "screenMode": "Screen",
@@ -318,7 +340,10 @@
       "useWhen": "Use this to state the problem as the distance between the ideal and actual condition.",
       "idealLabel": "Ideal",
       "actualLabel": "Actual",
-      "gapLabel": "Gap"
+      "gapLabel": "Gap",
+      "gapValueLabel": "Gap size",
+      "unitLabel": "Unit",
+      "baselinePeriodLabel": "Baseline period"
     },
     "fiveW2H": {
       "name": "5W2H",

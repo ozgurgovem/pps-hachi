@@ -16,6 +16,20 @@ exports[`buildA3Layout > matches the golden-file snapshot for a representative p
       ],
     },
   ],
+  "provisionalBlocks": [
+    {
+      "range": "B7:O21",
+      "stepIds": [
+        1,
+      ],
+    },
+    {
+      "range": "B57:O58",
+      "stepIds": [
+        3,
+      ],
+    },
+  ],
   "sheets": {
     "a3": {
       "cells": [

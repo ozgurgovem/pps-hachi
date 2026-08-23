@@ -110,4 +110,57 @@ describe("HtmlA3Renderer", () => {
     const header = screen.getByText("1. PROBLEMİN TANIMLANMASI");
     expect(header.style.color).toBe("rgb(255, 255, 255)");
   });
+
+  /**
+   * G3/D-198: a `generic-text` Step 1 entry never satisfies S1's
+   * `gap-statement`-specific check (D-196), so its block is expected to
+   * carry the approved "Aday A" marker — a dashed graphite border, no fill,
+   * no label.
+   */
+  it("renders a dashed graphite border overlay for a provisional block", () => {
+    const project = fixtureProject();
+    const { descriptor } = buildA3Layout(
+      { ...project, steps: { ...project.steps, 1: { entries: [] } } },
+      farplas7StepTr,
+      { rendererMap },
+    );
+    // Sanity: this fixture's Step 1 is empty, so nothing is flagged yet.
+    expect(descriptor.provisionalBlocks).toEqual([]);
+
+    const flaggedProject: ProjectModel = {
+      ...project,
+      steps: {
+        ...project.steps,
+        1: {
+          entries: [
+            {
+              id: "entry-1",
+              methodId: "generic-text",
+              title: "Ön Kapı Paneli Gürültü Problemi",
+              order: 0,
+              a3Visibility: "primary",
+              payload: { text: "Kapı panelinden zaman zaman ses geliyor." },
+              images: [],
+              createdAt: "2026-01-01T00:00:00.000Z",
+              updatedAt: "2026-01-01T00:00:00.000Z",
+              provenance: { origin: "human" },
+            },
+          ],
+        },
+      },
+    };
+    const { descriptor: flaggedDescriptor } = buildA3Layout(flaggedProject, farplas7StepTr, {
+      rendererMap,
+    });
+    expect(flaggedDescriptor.provisionalBlocks).toEqual([{ stepIds: [1], range: "B7:O21" }]);
+
+    const { container } = render(<HtmlA3Renderer descriptor={flaggedDescriptor} mode="screen" />);
+
+    const markers = container.querySelectorAll('[aria-hidden="true"]');
+    expect(markers).toHaveLength(1);
+    const marker = markers[0] as HTMLElement;
+    expect(marker.style.borderStyle).toBe("dashed");
+    expect(marker.style.borderColor).toBe("rgb(32, 36, 31)"); // #20241F
+    expect(marker.style.backgroundColor).toBe("");
+  });
 });

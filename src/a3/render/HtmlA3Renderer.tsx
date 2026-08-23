@@ -28,6 +28,18 @@ export interface HtmlA3RendererProps {
 
 const PT_TO_PX = 96 / 72;
 
+/**
+ * G3/D-198: "provisional" block marker — Aday A of the Block Visual
+ * Verification Loop, approved by Barış with no changes. Deliberately just a
+ * dashed line, no fill, no label: the app's own `--graphite` ink (D-49),
+ * reused here as the literal sheet ARGB `FF20241F` so screen and print stay
+ * WYSIWYG (D-03) — zero overlap with D-165's 9 semantic colors or D-47's 4
+ * PDCA header fills, verified against `TEMPLATE_ANALYSIS.md` §14.1's hex
+ * table before picking it.
+ */
+const PROVISIONAL_BORDER_PT = 2;
+const PROVISIONAL_BORDER_COLOR = "#20241F";
+
 interface MergeSpan {
   readonly colSpan: number;
   readonly rowSpan: number;
@@ -205,6 +217,34 @@ export function HtmlA3Renderer({ descriptor, mode }: HtmlA3RendererProps) {
               marginTop: `${(image.offsetYPt ?? 0) * PT_TO_PX * scale}px`,
               objectFit: "contain",
               zIndex: 1,
+            }}
+          />
+        );
+      })}
+      {descriptor.provisionalBlocks.map((marker) => {
+        const { start, end } = parseRange(marker.range);
+        const startColumnIndex = columnIndexByKey.get(start.column);
+        const startRowIndex = rowIndexByNumber.get(start.row);
+        const endColumnIndex = columnIndexByKey.get(end.column);
+        const endRowIndex = rowIndexByNumber.get(end.row);
+        if (
+          startColumnIndex === undefined ||
+          startRowIndex === undefined ||
+          endColumnIndex === undefined ||
+          endRowIndex === undefined
+        ) {
+          return null;
+        }
+        return (
+          <div
+            key={`provisional-${marker.stepIds.join("-")}`}
+            aria-hidden="true"
+            style={{
+              gridColumn: `${startColumnIndex + 1} / span ${endColumnIndex - startColumnIndex + 1}`,
+              gridRow: `${startRowIndex + 1} / span ${endRowIndex - startRowIndex + 1}`,
+              border: `${PROVISIONAL_BORDER_PT * PT_TO_PX * scale}px dashed ${PROVISIONAL_BORDER_COLOR}`,
+              pointerEvents: "none",
+              zIndex: 2,
             }}
           />
         );

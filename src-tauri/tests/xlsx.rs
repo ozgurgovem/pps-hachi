@@ -264,3 +264,59 @@ fn every_dropped_entry_id_is_recoverable_from_an_appendix() {
         "dropped entry content should be recoverable from an appendix; got: {all_appendix_text}"
     );
 }
+
+/// G3/D-198: a provisional block's dashed marker must land in the workbook
+/// as a real, unfilled, dashed `Shape` — one per `provisionalBlocks` entry —
+/// and never touch any cell's own format (the whole reason a floating shape
+/// was chosen over per-cell border surgery, see `write_provisional_markers`'s
+/// own doc comment). Also proves the a3-only scoping: appendix sheets, which
+/// never carry a `provisionalBlocks` entry, get no shape drawing at all.
+#[test]
+fn provisional_blocks_land_as_unfilled_dashed_shapes_on_the_a3_sheet_only() {
+    let descriptor = load_descriptor();
+    assert!(
+        !descriptor.provisional_blocks.is_empty(),
+        "fixture should exercise at least one provisional block — see scripts/gen-a3-fixture.ts"
+    );
+
+    let bytes = write_a3_workbook(&descriptor).expect("workbook should write");
+    let entries = zip_entry_names(&bytes);
+    let drawing_entries: Vec<&String> = entries
+        .iter()
+        .filter(|name| name.starts_with("xl/drawings/drawing") && name.ends_with(".xml"))
+        .collect();
+
+    // The a3 sheet already embeds 5 chart/photo images (its own drawing
+    // part) — the shapes must land in that same drawing part alongside them,
+    // not a second one, and appendix sheets (plain text, no images, no
+    // markers) must gain no drawing part of their own.
+    assert_eq!(
+        drawing_entries.len(),
+        1,
+        "expected exactly one drawing part (the a3 sheet's), got: {entries:?}"
+    );
+
+    let drawing_xml = read_zip_entry(&bytes, drawing_entries[0]).expect("drawing part readable");
+    let shape_count =
+        drawing_xml.matches("<xdr:sp ").count() + drawing_xml.matches("<xdr:sp>").count();
+    assert_eq!(
+        shape_count,
+        descriptor.provisional_blocks.len(),
+        "expected one <xdr:sp> shape per provisionalBlocks entry, got drawing xml: {drawing_xml}"
+    );
+
+    // Unfilled (noFill) and dashed (prstDash val="dash"), never a solid fill
+    // that would obscure the block's own content underneath the outline.
+    assert!(
+        drawing_xml.contains("noFill"),
+        "provisional marker shape should have no fill: {drawing_xml}"
+    );
+    assert!(
+        drawing_xml.contains(r#"prstDash val="dash""#),
+        "provisional marker shape should use a dashed line: {drawing_xml}"
+    );
+    assert!(
+        drawing_xml.to_lowercase().contains("20241f"),
+        "provisional marker shape should use the app's graphite ink (#20241F): {drawing_xml}"
+    );
+}

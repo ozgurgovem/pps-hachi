@@ -55,6 +55,7 @@ function fakeDescriptor(templateId: string): A3LayoutDescriptor {
       appendices: [],
     },
     overflowWarnings: [],
+    provisionalBlocks: [],
   };
 }
 

@@ -1867,3 +1867,103 @@ Kalıcı test kanıtı: `src/a3/layout/placeZones.test.ts` (5 test, doğrudan
 `placeZonesContent` üzerinden, gerçek B:O genişlikleriyle), `src/methods/fiveN1K/
 xlsxSurvival.test.ts` (2 test, gerçek registry/`buildA3Layout` üzerinden) — hepsi düzeltme
 öncesi koda karşı KIRMIZI doğrulandı, sonra düzeltmeyle YEŞİL.
+
+## 16. G3 — "Provisional" A3 kenar işareti, Faz 7'nin son dilimi, 2026-08-23
+
+`docs/oturumlar/G3-provisional-kenar-isareti.md`'nin işi — D-165/D-41'in üçüncü, bağımsız
+görsel katmanı: bir stepin `evaluateReadiness` sonucu `flagged` ise, o stepi basan A3 bloğu
+kenarıyla işaretlenir (SPEC.md §1.2). D-195'in kendi notuna göre üç dilimin en pahalısı —
+kendi Block Visual Verification Loop turunu gerektiren tek dilim.
+
+### 16.1 Kapsam — üç `AskUserQuestion`, üçü de önerilen seçenek
+
+1. **İşaret nerede görünsün?** → **Seçenek B, hem önizleme hem export.** SPEC'in lafzı
+   yalnızca "preview" diyordu ama `CLAUDE.md`'nin "defensible document" teması (IATF
+   denetiminde tek gerçek kayıt export edilen dosyadır) export'u da kapsamayı haklı
+   çıkardı. `writer.rs`'a dokunmayı ve descriptor'a yeni bir alan taşımayı gerektirdi.
+2. **Appendix'e düşen entry'nin provisional durumu appendix sayfasında görünsün mü?** →
+   **Hayır, yalnızca ana sayfa.** Appendix zaten "bu entry sığmadı" diye ayrı bir sinyal
+   taşıyor; `buildAppendixSheets`/`flattenContentForAppendix`'e hiç dokunulmadı.
+3. **Step 7→4 döngüsündeki (D-192) açık bir round, o roundun adımlarını otomatik
+   provisional yapsın mı?** → **Hayır.** `evaluateReadiness` (D-196, LOCKED) round'dan
+   bilerek habersiz kalıyor; bu G1'in kapsamına dönerdi, G3'ün değil.
+
+### 16.2 Görsel dil — Block Visual Verification Loop, tek tur
+
+Üç aday mockup'landı (Claude Artifact, gerçek `farplas-7step-tr` pt→px ölçeğinde — D2b'nin
+dersi: §12.8'in henüz inşa edilmemiş `pps-8step-auto` tuvaline göre DEĞİL):
+
+- **Aday A — yalnızca kesikli çerçeve** (grafit, etiketsiz)
+- **Aday B — kesikli çerçeve + "TASLAK" köşe etiketi**
+- **Aday C — yalnızca köşe etiketi, çerçevesiz**
+
+**Barış'ın kararı: Aday A, değişikliksiz onaylandı (tek tur).** Kesin değerler:
+
+| Özellik | Değer |
+|---|---|
+| Şekil | Bloğun tüm dikdörtgeni (başlık satırı + son içerik satırı) etrafında kesikli çizgi |
+| Renk | `#20241F` — uygulamanın kendi `--graphite` mürekkep tonu (D-49), sayfanın ARGB
+  sistemine `FF20241F` olarak birebir taşındı |
+| Çizgi | 2 pt (ekran/önizleme), 1.5 pt (export — `ShapeLineDashType::Dash`) |
+| Dolgu | Yok — blok içeriği hiçbir zaman örtülmüyor |
+| Etiket | Yok — Aday B/C'nin "TASLAK" etiketi reddedildi |
+
+**Renk seçimi neden `#20241F`:** `TEMPLATE_ANALYSIS.md` §14.1'in hex tablosuna karşı
+doğrulandı — D-165 Katman A'nın 3 rengi (`#8FBF4F`/`#4A90D9`/`#E0342A`), Katman B'nin 6
+rengi (`#C68A2E`/`#5F4470`/`#2F7A6E`/`#8B3A5C`/`#8A5A3B`/`#556677`) ve D-47'nin 4 PDCA
+başlık rengi (`#FF0000`/`#FFFF00`/`#00CCFF`/`#008000`) ile SIFIR çakışma. Metafor kasıtlı:
+"aynı kalem, kesik çizgi" — grafit her zaman sayfanın kendi mürekkebiydi (D-135), burada
+yalnızca *desen* (kesikli) yeni bir anlam taşıyor, yeni bir renk değil.
+
+### 16.3 Veri katmanı
+
+`evaluateReadiness(project)` `buildA3Layout` içinden çağrılıyor (zaten tam `ProjectModel`
+alıyordu, ayrı bir parametre taşımaya gerek kalmadı). Yeni saf fonksiyon
+`src/a3/layout/provisional.ts`'in `computeProvisionalBlockMarker` — `OverflowWarning`'in
+emsaliyle: blok, `appSteps`'ından HERHANGİ biri flagged ise işaretleniyor (OR mantığı,
+Adım 5+6 birleşik bloğu gibi çok-adımlı bloklar için). `A3LayoutDescriptor` yeni bir
+`provisionalBlocks: readonly ProvisionalBlockMarker[]` alanı taşıyor
+(`{ stepIds, range }` — bloğun tam dikdörtgeni, örn. `"B7:O21"`).
+
+### 16.4 Render — `HtmlA3Renderer.tsx`
+
+Her `provisionalBlocks` girdisi için, mevcut `columnIndexByKey`/`rowIndexByNumber`
+lookup'ları kullanılarak CSS Grid'de bir kapsayıcı `<div>` (`aria-hidden`, `pointerEvents:
+"none"`) — yalnızca `border: dashed`, dolgu yok. Ekran/print ölçeklemesi zaten var olan
+`scale` çarpanıyla otomatik. Sheet'in kendi hücre `border` alanı hâlâ hiç render edilmiyor
+(P-17, bilinen kapsam dışı) — bu, `HtmlA3Renderer`'ın ilk gerçek border render'ı, tamamen
+bağımsız bir mekanizma.
+
+### 16.5 Export — `writer.rs`, kayda değer bir mimari karar
+
+**Hücre-kenarı border overlay'i (ör. `Worksheet::set_range_format_with_border`) bilerek
+REDDEDİLDİ.** `rust_xlsxwriter` 0.97.0'ın kaynağı okunarak doğrulandı:
+`insert_cell_format`/`update_cell_format` bir hücrenin `xf_index`'ini **tamamen
+DEĞİŞTİRİYOR** (`*xf_index = format_id;`) — bloğun kenar hücrelerine (blok başlığının PDCA
+dolgusu, P-37'nin ton renkleri, D-102'nin zone stilleri) border eklemeye çalışmak, o
+hücrelerin TÜM mevcut biçimlendirmesini sessizce siler. Bunun yerine **yüzen bir `Shape`**
+(`Shape::textbox()`, boş metin, `set_no_fill()` + kesikli `ShapeLine`) — `write_images`'in
+zaten kullandığı, hücre biçimlendirmesinden tamamen bağımsız aynı mekanizma (D-102).
+Sıfır risk: hiçbir mevcut hücre stiline dokunulmuyor.
+
+Şeklin piksel boyutu, `src/a3/layout/measure.ts`'in `excelColumnWidthToPt`'sinin zaten
+kullandığı AYNI yaklaşıklıkla hesaplanıyor (`px = round(charWidth × 7 + 5)`) — Excel'in
+karakter-genişliği biriminin evrensel doğru bir piksel karşılığı yok (D-04'ün kendi notu),
+ve dekoratif bir işaret şeklinin hücre sınırlarına piksel-kesin hizalanması gerekmiyor.
+Satır yükseklikleri zaten kesin pt cinsinden (`RowDef.heightPt`), yaklaşıklık gerekmiyor.
+
+`write_sheet` yalnızca `a3` sayfası için `provisional_blocks` alıyor — appendix sayfaları
+hiç almıyor (`&[]`), `overflowWarnings`'in zaten taşıdığı a3-sayfası-yalnızca kapsamıyla
+aynı.
+
+### 16.6 Test kanıtı
+
+- `src/a3/layout/provisional.test.ts` (4 test, saf fonksiyon)
+- `src/a3/buildA3Layout.test.ts` (+2 test: flagged/empty; golden-file snapshot güncellendi)
+- `src/a3/render/HtmlA3Renderer.test.tsx` (+1 test: kesikli grafit border render ediliyor)
+- `src-tauri/tests/xlsx.rs::provisional_blocks_land_as_unfilled_dashed_shapes_on_the_a3_sheet_only`
+  — gerçek drawing XML'i doğrudan inceliyor (`<xdr:sp>` sayısı, `noFill`, `prstDash
+  val="dash"`, `20241F`); mutasyon-doğrulandı (`write_provisional_markers` çağrısı geçici
+  olarak devre dışı bırakıldı → test KIRMIZI oldu, sonra geri yüklendi → YEŞİL).
+- `scripts/gen-a3-fixture.ts` yeniden çalıştırıldı — saf ekleme diff (fixture'ın Adım 1/2/4
+  entry'leri gerçek gate kurallarını karşılamadığı için üçü de flagged, beklenen).

@@ -1,10 +1,14 @@
 use std::collections::{HashMap, HashSet};
 
 use base64::Engine;
-use rust_xlsxwriter::{Format, Image, Workbook, Worksheet};
+use rust_xlsxwriter::{
+    Format, Image, Shape, ShapeFormat, ShapeLine, ShapeLineDashType, Workbook, Worksheet,
+};
 
-use super::cell_ref::parse_range;
-use super::descriptor::{A3LayoutDescriptor, CellData, CellValue, SheetDescriptor};
+use super::cell_ref::{parse_cell_ref, parse_range};
+use super::descriptor::{
+    A3LayoutDescriptor, CellData, CellValue, ProvisionalBlockMarker, SheetDescriptor,
+};
 use super::error::XlsxWriteError;
 use super::styles::build_format_cache;
 
@@ -24,9 +28,12 @@ pub fn write_a3_workbook(descriptor: &A3LayoutDescriptor) -> Result<Vec<u8>, Xls
         &descriptor.sheets.a3,
         &formats,
         &default_format,
+        &descriptor.provisional_blocks,
     )?;
     for appendix in &descriptor.sheets.appendices {
-        write_sheet(&mut workbook, appendix, &formats, &default_format)?;
+        // Appendix sheets never carry a provisional marker — `provisionalBlocks`
+        // is a3-sheet-only, the same scoping `overflowWarnings` already has.
+        write_sheet(&mut workbook, appendix, &formats, &default_format, &[])?;
     }
 
     Ok(workbook.save_to_buffer()?)
@@ -37,6 +44,7 @@ fn write_sheet(
     sheet: &SheetDescriptor,
     formats: &HashMap<String, Format>,
     default_format: &Format,
+    provisional_blocks: &[ProvisionalBlockMarker],
 ) -> Result<(), XlsxWriteError> {
     let worksheet = workbook.add_worksheet();
     worksheet.set_name(&sheet.name)?;
@@ -53,6 +61,7 @@ fn write_sheet(
     let covered = write_merges(worksheet, sheet, &cells_by_ref, formats, default_format)?;
     write_loose_cells(worksheet, sheet, &covered, formats, default_format)?;
     write_images(worksheet, sheet)?;
+    write_provisional_markers(worksheet, sheet, provisional_blocks)?;
     apply_page_setup(worksheet, sheet)?;
 
     Ok(())
@@ -175,6 +184,82 @@ fn write_images(worksheet: &mut Worksheet, sheet: &SheetDescriptor) -> Result<()
         worksheet.insert_image_with_offset(parsed.row, parsed.col, &image, x_offset, y_offset)?;
     }
     Ok(())
+}
+
+/// G3/D-198: the approved "Aday A" mark — a dashed, unfilled rectangle drawn
+/// as a floating `Shape` anchored to the block's top-left cell, never a cell
+/// border. A per-cell border overlay (`Worksheet::set_range_format_with_border`)
+/// was considered and rejected: it replaces a cell's *entire* existing format
+/// (confirmed by reading `rust_xlsxwriter` 0.97.0's `insert_cell_format`,
+/// `*xf_index = format_id`), which would have silently stripped D-165/D-41's
+/// already-LOCKED PDCA header fills, tone colors, and zone styling from every
+/// perimeter cell. A floating shape is the same decoupled-from-cell-format
+/// mechanism `write_images` already uses (D-102) — zero risk to any existing
+/// style. `#20241F` is the app's own `--graphite` ink (D-49), reused literally
+/// so screen and print stay WYSIWYG (D-03); checked against every hex in
+/// `TEMPLATE_ANALYSIS.md` §14.1 to confirm zero overlap with D-165's 9
+/// semantic colors or D-47's 4 PDCA header fills.
+fn write_provisional_markers(
+    worksheet: &mut Worksheet,
+    sheet: &SheetDescriptor,
+    markers: &[ProvisionalBlockMarker],
+) -> Result<(), XlsxWriteError> {
+    if markers.is_empty() {
+        return Ok(());
+    }
+
+    let line = ShapeLine::new()
+        .set_color("#20241F")
+        .set_width(1.5)
+        .set_dash_type(ShapeLineDashType::Dash);
+    let format = ShapeFormat::new().set_no_fill().set_line(&line);
+
+    for marker in markers {
+        let range = parse_range(&marker.range)?;
+        let width_px = column_range_width_px(sheet, range.start.col, range.end.col);
+        let height_px = row_range_height_pt(sheet, range.start.row, range.end.row) * PT_TO_PX;
+
+        let shape = Shape::textbox()
+            .set_width(width_px.round() as u32)
+            .set_height(height_px.round() as u32)
+            .set_format(&format);
+        worksheet.insert_shape(range.start.row, range.start.col, &shape)?;
+    }
+
+    Ok(())
+}
+
+/// Same "character width → pixel" approximation `src/a3/layout/measure.ts`'s
+/// `excelColumnWidthToPt` already uses for the on-screen preview (Calibri-11
+/// max-digit-width ≈ 7 px + 5 px padding) — there is no universally-correct
+/// conversion (D-04's own comment on `ColumnDef.charWidth`), and a decorative
+/// marker shape doesn't need pixel-exact cell-boundary alignment the way a
+/// data cell would.
+fn column_range_width_px(sheet: &SheetDescriptor, start_col: u16, end_col: u16) -> f64 {
+    sheet
+        .columns
+        .iter()
+        .filter_map(|column| {
+            let parsed = parse_cell_ref(&format!("{}1", column.key)).ok()?;
+            if parsed.col >= start_col && parsed.col <= end_col {
+                Some((column.char_width * 7.0 + 5.0).round())
+            } else {
+                None
+            }
+        })
+        .sum()
+}
+
+fn row_range_height_pt(sheet: &SheetDescriptor, start_row: u32, end_row: u32) -> f64 {
+    sheet
+        .rows
+        .iter()
+        .filter(|row| {
+            let zero_based_index = row.index - 1;
+            zero_based_index >= start_row && zero_based_index <= end_row
+        })
+        .map(|row| row.height_pt)
+        .sum()
 }
 
 fn apply_page_setup(

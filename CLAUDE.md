@@ -180,10 +180,8 @@ language is the real threat to this bar, and it is Oturum B's job.
 
 ## Current state
 
-Phase: 7 of 12 — scope determined, not yet built (D-195: eight gate rules S1-S8 verified
-  against real code, split into three slices G1/G2/G3, three open design questions answered
-  by Barış — see `docs/oturumlar/README.md`'s Faz 7 section for the slice table). Phase 6
-  (all five slices 6a–6e, plus 6e's own 6e-1/6e-2 split) fully closed 2026-08-19.
+Phase: 7 of 12 — FULLY DONE 2026-08-23. All three D-195 slices (G1/G2/G3) shipped.
+  Phase 6 (all five slices 6a–6e, plus 6e's own 6e-1/6e-2 split) fully closed 2026-08-19.
 Stack decision (Tauri vs Electron fallback): Tauri v2, revisit only if Phase 4 stalls
 App name: **PPS Hachi** (八 — eight). Repo `pps-hachi`. Set 2026-08-01, see DECISIONS.md D-29.
 AI layer: specified, not started. Phases 8–10.
@@ -1468,3 +1466,152 @@ pointer-drawing math and the rasterize-mode SVG structure, but not pixel-for-pix
 fidelity in the real pipeline, the same class of thing D-105/D-113/D-136 needed a real
 browser to find before. Flagged the same way P-21 was, not claimed as done. Not yet committed
 to git.
+
+**Faz 7 — G1 (readiness selector + all eight gate rules + StepStepper complete/flagged +
+StepPage's amber advisory): DONE 2026-08-20.** Per `docs/oturumlar/G1-readiness-secici.md`,
+the first of D-195's three Faz 7 slices (G2/G3 not started). Two `AskUserQuestion` rounds
+before any code, both Barış's recommended option: S1's "gap must be quantified" (§1.2) —
+**Option A**, three new structured fields on `gapStatement` (`gapValue: number`, `unit:
+string`, `baselinePeriod: string`) beside its existing free-text `ideal`/`actual`/`gap`,
+scoped to `gapStatement` only (not `fiveG5N1K`) — and `StepStatus`'s new `"complete"` — the
+direct complement of `"flagged"` (entry exists + `readiness.status === "ok"`), reusing the
+same selector rather than inventing a per-field completeness concept nothing else in this
+codebase has. One observed consequence of that choice, documented rather than hidden:
+`"inProgress"` is no longer producible by `getStepStatus` (a non-empty step's readiness is
+binary), so the type/Badge/i18n keep it without `getStepStatus` ever emitting it today.
+`src/domain/readiness/` (new): `evaluateReadiness(project)` computes all eight S1–S8 rules
+per step, **with zero imports from `src/methods/*`** — a method's `index.ts` re-exports its
+React `Editor` alongside its id constant, so importing either would pull React into
+`src/domain` at the module-graph level even though ESLint's `no-restricted-imports` (literal
+specifiers only) wouldn't catch it; methodIds and payload shapes are literal
+strings/duck-typing instead, the same defensive-read posture Oturum C1's `RowTableEditor.tsx`
+`?? ""` fix already established for opaque (`z.unknown()`, D-52) payloads. Every rule reads
+only its own step's entries — none needed a cross-step lookup, not even S5 (checks
+`countermeasure.references[]`/linked `error-proofing-hierarchy` entries, both Step 5-local,
+without walking D-116's references back to Step 4). **A step with zero entries never
+evaluates its rule and never flags** — matches D-192/`WorkspaceShell`'s existing "jumping to
+an empty step is a reassurance, not a warning" philosophy and resolves S2's own literal "must
+exist" wording without a brand-new project opening to every step reading red; this also means
+the new `ReadinessAdvisory.tsx` (StepPage's amber advisory, under the H1 per SPEC's "in the
+step header") and `WorkspaceShell`'s existing jump-advisory can never both be visible for the
+same step, so no priority rule between them was needed. Two rules read more literally against
+SPEC than D-195's own flattened scope table: S7 only flags an empty `sustainment-audit` when a
+`result-verdict` entry actually carries a recorded (non-`"pending"`) verdict — `RoundsBand`/
+`resultVerdict` stay read-only, D-192 untouched — and S8's "document marked updated" reads
+`document-updates-tracker`'s own `status === "complete"` (§13.2's `Lists & Settings`
+dictionary) rather than "any field non-blank". **Not implemented, filed as P-46**: SPEC's own
+S4 second sentence ("flag if any 5-Why chain terminates on a person") — D-195's table never
+carried it, and detecting "does this text blame a person" needs a new heuristic mechanism
+outside G1's one-mechanism (D-114) budget. `npm test` 1143/1143 (263 files, up from 1107/1107
+at 244 — 36 new tests), exit code 0 (checked via a separate logfile + `echo $?`, not piped
+through `tail`). `npm run lint` clean (the one pre-existing `ThemeProvider` warning). `npm run
+build` green (same pre-existing chunk-size warning) — caught one `readonly`/mutable array
+mismatch in a new test file here, not in `npm test` (vitest doesn't type-check). `cargo test`
+112/112, `cargo clippy --all-targets -- -D warnings` and `cargo fmt -- --check` both clean —
+Rust genuinely untouched, confirmed by running. `scripts/gen-a3-fixture.ts` was not re-run —
+`gapStatement` isn't one of the fixture's five real methods (grep-confirmed), so the
+descriptor/style table is unaffected. Not yet committed to git.
+
+**Faz 7 — G2 (traceability view, `RightPanel`'s third tab): DONE 2026-08-21.** Per
+`docs/oturumlar/G2-traceability-gorunumu.md`, the second of D-195's three Faz 7 slices. Three
+`AskUserQuestion` rounds before any code, all three recommended options confirmed: (1) view
+shape → **Option A, a text/list indented chain** (a React Flow visual graph — Option B — and a
+two-phase plan — Option C — both declined; D-195 had already settled the *location* as the
+existing Tabs primitive, which made B's own design-round cost hard to justify here). (2) the
+gap between "chain stops at Step 6" and SPEC's own "to standard" wording → **a static note
+appended below the chain** (a new reference role — the third option — declined, since it would
+have shifted this slice's scope from a view onto the reference architecture itself). (3) node
+clickability → **yes, clicking jumps via `setActiveStep`** (the same "click jumps" precedent
+`StepStepper` already sets). **This slice's one new mechanism (D-114's budget):**
+`src/app/routes/workspace/traceability.ts`'s `buildTraceabilityChains` — a pure function
+walking D-116's `Entry.references[]` *backwards* from storage direction (a countermeasure
+*holds* a `rootCause` reference pointing at the root cause; the chain reads target → holder,
+via `findReferencesTo`). **No `methodId` is hardcoded anywhere in the file** — a chain root is
+any entry targeted by at least one reference but holding none itself, entirely generic over
+`references[]`'s existing shape (the same posture D-117's own selectors already take), so a
+future reference-bearing method needs zero changes here. The same entry can legitimately appear
+more than once across chains or branches — `ica-pca-transition` holds two roles
+(`containment` → Step 1, `countermeasure` → Step 5) and so appears as a child under two
+independent roots, which is correct: two real, independent paths through the reference graph,
+not a bug. A defensive cycle guard (`visitedPath`, tracked per descent path) was added and
+mutation-verified — removing it made the one deliberately-planted-cycle test throw (a
+stack-overflow-shaped error), confirming the guard is load-bearing, then restored. The orphan
+warning wrote **no new selector** — `findOrphanedReferences` (D-117) is consumed directly,
+inside a block reusing `ReadinessAdvisory`'s (D-196) own `border-danger`/`text-danger` visual
+language rather than inventing a new one. §2.3's readiness integration: a node whose step reads
+`flagged` in `evaluateReadiness` (D-196, read-only here) gets the same `Badge status="flagged"`
+`StepStepper` already uses. `TraceabilityView.tsx` (component) stays split from `traceability.ts`
+(pure chain-building logic, its own test file) per §4's own "the chain-building logic must stay
+testable as a pure function" instruction. Deliberately untouched, per §3's scope-out list:
+`evaluateReadiness.ts`'s own rules, `findOrphanedReferences`/`findReferencesTo`/
+`listReferenceableEntries`'s own logic, any new reference role or a `meta.linkedRecords[]`
+writer, and `HtmlA3Renderer.tsx`/`buildA3Layout.ts` (G3's job, not this slice's). `npm test`
+1156/1156 (265 files, up from 1143/1143 at 263 — 13 new: `traceability.test.ts`'s 8 plus
+`TraceabilityView.test.tsx`'s 5), exit code 0 (checked via a separate logfile + `echo $?`, not
+piped through `tail`). `npm run lint` clean (the one pre-existing `ThemeProvider` warning).
+`npm run build` green (same pre-existing chunk-size warning). `cargo test` 112/112,
+`cargo clippy --all-targets -- -D warnings` and `cargo fmt -- --check` both clean — Rust
+genuinely untouched, confirmed by running (this slice is TS-only). `scripts/gen-a3-fixture.ts`
+was not re-run — this slice changes no template style and no `A3ImageKind` (grep-confirmed).
+Only G3 ("provisional" A3 edge marker, its own Block Visual Verification Loop round) remains of
+D-195's three-slice Faz 7 plan; its own launch prompt is written at this session's close. Not
+yet committed to git.
+
+**Faz 7 — G3 ("provisional" A3 block edge marker, D-195's third and final slice): DONE
+2026-08-23. Faz 7 (G1/G2/G3) is now fully closed.** Three `AskUserQuestion` rounds before any
+code, all three Barış's recommended option: (1) where the marker shows — **Option B, both
+preview and export** (SPEC's own wording says only "preview," but the app's "defensible
+document" theme argued for export too — Option A/preview-only and Option C/an export
+confirmation dialog were both declined); (2) an entry dropped to an appendix — **no appendix
+marking**, main sheet only; (3) an open Step 7→4 round (D-192) auto-marking its steps
+provisional — **no**, that would have reopened G1's own LOCKED `evaluateReadiness` scope.
+**The visual language itself needed its own Block Visual Verification Loop round** (D-195's own
+note — the most expensive of the three slices) — three candidates mocked up as a Claude
+Artifact at `farplas-7step-tr`'s real pt→px scale (D2b's own lesson: never against §12.8's
+still-unbuilt `pps-8step-auto` canvas): a dashed border only, a dashed border plus a "TASLAK"
+corner tag, and a tag alone. **Barış approved Candidate A outright, no revision needed**: a
+dashed `#20241F` line (the app's own `--graphite` ink, D-49) around the block's full rectangle
+(header through last content row), no fill, no label — checked against every hex in
+`TEMPLATE_ANALYSIS.md` §14.1 to confirm zero overlap with D-165's 9 semantic colors and D-47's
+4 PDCA header fills.
+Data layer (D-114's one mechanism for this slice): `evaluateReadiness(project)` is called
+directly inside `buildA3Layout` (it already receives the full `ProjectModel`, so no new
+parameter was needed; `src/domain/readiness` sits under `src/domain`'s own purity boundary,
+so the import doesn't touch D-43/D-94). New pure `src/a3/layout/provisional.ts`
+(`computeProvisionalBlockMarker`, mirroring `computeOverflowWarning`'s shape) flags a block
+when **any** of its `appSteps` reads `flagged` — OR across steps, so a multi-step block like
+the shipped template's merged Step 5+6 countermeasures/implementation block marks as one unit.
+`A3LayoutDescriptor` gained `provisionalBlocks: readonly ProvisionalBlockMarker[]`
+(`{ stepIds, range }`, the block's full rectangle, e.g. `"B7:O21"`).
+`HtmlA3Renderer.tsx` renders one dashed, unfilled, `aria-hidden`, pointer-events-none overlay
+`<div>` per marker using the existing column/row-index lookups — the component's first real
+border render (the sheet's own `CellStyle.border` field has never been rendered on screen,
+P-17, a known, separate gap).
+**The real architectural decision landed on the export side.** A per-cell border overlay
+(`Worksheet::set_range_format_with_border`) was seriously considered and rejected after
+reading `rust_xlsxwriter` 0.97.0's own source: `insert_cell_format`/`update_cell_format`
+**replace** a cell's entire format (`*xf_index = format_id;`), which would have silently
+stripped D-165/D-41/P-37's already-LOCKED PDCA header fills, tone colors, and zone styling off
+every perimeter cell the marker touched. Used a floating `Shape` instead (`Shape::textbox()`,
+empty text, `set_no_fill()` + a dashed `ShapeLine`) — the exact same cell-format-independent
+mechanism `write_images` already established for D-102's chart PNGs, zero risk to any existing
+style. The shape's pixel size uses the same character-width-to-pixel approximation
+`excelColumnWidthToPt` already uses for the screen preview (`px = round(charWidth × 7 + 5)`,
+D-04's own note that there is no universally-correct conversion) — acceptable for a decorative
+marker that doesn't need pixel-exact cell-boundary alignment; row heights are exact pt, no
+approximation needed there. `write_sheet` now takes a `provisional_blocks` slice, passed only
+for the a3 sheet (`&[]` for every appendix) — the same a3-only scoping `overflowWarnings`
+already has.
+`npm test` 1163/1163 (266 files, up from 1156/1156 at 265 — 7 new: `provisional.test.ts`'s 4,
+`buildA3Layout.test.ts`'s +2, `HtmlA3Renderer.test.tsx`'s +1; golden-file snapshot updated),
+exit code 0 (checked via a separate logfile + `echo $?`, not piped through `tail`). `npm run
+lint` clean (the one pre-existing `ThemeProvider` warning). `npm run build` green (same
+pre-existing chunk-size warning). `cargo test` 113/113 (up from 112/112 — the new
+`provisional_blocks_land_as_unfilled_dashed_shapes_on_the_a3_sheet_only`, mutation-verified:
+disabling the `write_provisional_markers` call turned it RED, restoring it turned it GREEN),
+`cargo clippy --all-targets -- -D warnings` and `cargo fmt -- --check` both clean.
+`scripts/gen-a3-fixture.ts` re-run — a pure 20-line additive diff (the new `provisionalBlocks`
+field; the fixture's Step 1/2/4 entries genuinely don't satisfy their gate rules, so all three
+read flagged, expected and correct). **`SPEC.md`'s own Phase 7 row ("Coaching content,
+readiness rules, traceability view, step-7→4 loop, appendix overflow") is now fully satisfied.**
+Not yet committed to git.

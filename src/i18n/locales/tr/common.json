@@ -109,11 +109,33 @@
       "hide": "Rehberliği gizle"
     },
     "jumpAdvisory": "{{step}}. adımda henüz giriş yok — yine de sırayla ilerlemeden çalışabilirsiniz.",
+    "readiness": {
+      "s1": "Boşluk henüz sayısallaştırılmadı — bir sayı, birim ve baseline dönemi girin.",
+      "s2NoDataEntry": "Bu adım yalnızca görüşe dayanıyor — en az bir veri temelli girdi ekleyin (Pareto, trend, kontrol formu veya stratifikasyon).",
+      "s2NoPointOfCause": "Nedensellik noktası (point of cause) henüz belirlenmedi.",
+      "s3": "SMART hedef alanlarının tamamı (metrik, baseline, hedef, birim, termin) doldurulmadı.",
+      "s4": "Doğrulanmış bir kök neden yok — bir hipotezi doğrulanmış işaretleyin veya why-why ağacında bir kök nedeni onaylayın.",
+      "s5NoVerifiedRootCause": "En az bir karşı önlem doğrulanmış bir kök nedene bağlı değil.",
+      "s5UnjustifiedHierarchy": "Hata önleme hiyerarşisinde en zayıf seviye (prosedür/eğitim) seçilmiş ama gerekçe girilmemiş.",
+      "s6": "En az bir aksiyonun sorumlusu veya termini eksik.",
+      "s7": "Sonuç kaydedildi ama süreç doğrulaması (sürdürme denetimi) boş.",
+      "s8NoDocumentUpdated": "Hiçbir doküman güncellendi olarak işaretlenmedi.",
+      "s8YokotenEmpty": "Yokoten (yaygınlaştırma) tablosu boş."
+    },
+    "traceability": {
+      "orphansTitle": "Kopuk referanslar",
+      "orphanLine": "Adım {{step}} — \"{{title}}\" artık var olmayan bir girişi işaret ediyor ({{role}}).",
+      "empty": "Henüz kayıtlı bir izlenebilirlik zinciri yok — bir zinciri başlatmak için bir kök nedeni, karşı önlemi veya aksiyonu kendinden önceki adıma bağlayın.",
+      "nodeLabel": "Adım {{step}}: {{title}}",
+      "jumpAriaLabel": "Adım {{step}}'e git: {{title}}",
+      "standardGapNote": "Adım 7 ve Adım 8 henüz bu zincire bağlı değil — bugünkü referans modeli sorun → kök neden → karşı önlem → aksiyon zincirini izliyor, standartlaştırma adımına kadar uzanmıyor."
+    },
     "rightPanel": {
       "collapse": "Paneli daralt",
       "expand": "Paneli genişlet",
       "openInNewWindow": "Yeni pencerede aç",
       "preview": "Önizleme",
+      "traceability": "İzlenebilirlik",
       "assistant": "Asistan",
       "previewStub": "A3 önizlemesi, dışa aktarıcı Faz 4'te gelince burada görünecek.",
       "screenMode": "Ekran",
@@ -318,7 +340,10 @@
       "useWhen": "Problemi ideal durum ile mevcut durum arasındaki fark olarak ifade etmek için kullanın.",
       "idealLabel": "İdeal",
       "actualLabel": "Mevcut",
-      "gapLabel": "Boşluk"
+      "gapLabel": "Boşluk",
+      "gapValueLabel": "Boşluk büyüklüğü",
+      "unitLabel": "Birim",
+      "baselinePeriodLabel": "Baseline dönemi"
     },
     "fiveW2H": {
       "name": "5W2H",

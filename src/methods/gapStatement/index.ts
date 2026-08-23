@@ -13,6 +13,6 @@ export const gapStatementMethod: MethodPlugin<GapStatementPayload> = {
   useWhenKey: "methods.gapStatement.useWhen",
   schema: GapStatementPayloadSchema,
   Editor: GapStatementEditor,
-  createEmptyPayload: () => ({ ideal: "", actual: "", gap: "" }),
+  createEmptyPayload: () => ({ ideal: "", actual: "", gap: "", gapValue: 0, unit: "", baselinePeriod: "" }),
   renderToA3: renderGapStatementToA3,
 };

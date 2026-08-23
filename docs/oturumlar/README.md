@@ -62,9 +62,12 @@ doğrulandı — ayrı dilim gerekmiyor.
 | Dilim | Kapsam | Durum |
 |---|---|---|
 | Kapsam belirleme — sekiz gate kuralının veri durumu + dilim planı önerisi | — | ✅ BİTTİ 2026-08-19 — D-195, üç `AskUserQuestion` cevaplandı |
-| G1 — readiness seçicisi + sekiz gate kuralı + StepStepper complete/flagged + amber advisory | `src/domain/readiness/` (yeni), `stepStatus.ts`, `StepPage.tsx`'in advisory'si. Kendi açık sorusu: S1'in gap-sayısallaştırma alanı (gapStatement'a yeni yapılandırılmış alan mı, yoksa metin ayrıştırma mı, yoksa Step 1'de herhangi bir sayısal-veri sinyali mi) — G1'in kendi promptunun başında `AskUserQuestion` ile Barış'a sorulmalı. | 📝 yazıldı 2026-08-19 — `G1-readiness-secici.md`, henüz yürütülmedi |
-| G2 — Traceability görünümü (RightPanel'in 3. sekmesi) | Zaten var olan `findOrphanedReferences`/`findReferencesTo`/`listReferenceableEntries`'i (D-117) + G1'in ürettiği readiness verisini okuyan yeni bir sekme | ⏳ henüz yazılmadı, G1'in ardından |
-| G3 — "Provisional" A3 kenar işareti (D-165/D-41'in üçüncü görsel katmanı) | `buildA3Layout.ts` + `HtmlA3Renderer.tsx`. Kendi Block Visual Verification Loop turunu gerektirir — en pahalı dilim. | ⏳ henüz yazılmadı, G1'in ardından, kendi görsel onay turu ayrı |
+| G1 — readiness seçicisi + sekiz gate kuralı + StepStepper complete/flagged + amber advisory | `src/domain/readiness/` (yeni), `stepStatus.ts`, `StepPage.tsx`'in `ReadinessAdvisory`'si, `gapStatement`'ın S1 alanları. | ✅ BİTTİ 2026-08-20 — D-196, iki `AskUserQuestion` cevaplandı (S1 = Seçenek A/yalnızca gapStatement, complete = entry var + uyarı yok). P-46 yeni dosyalandı (S4'ün kişi-suçlama yarısı yok). |
+| G2 — Traceability görünümü (RightPanel'in 3. sekmesi) | Zaten var olan `findOrphanedReferences`/`findReferencesTo`/`listReferenceableEntries`'i (D-117) + G1'in ürettiği readiness verisini okuyan yeni bir sekme | ✅ BİTTİ 2026-08-21 — D-197, üç `AskUserQuestion` cevaplandı (görünüm = metin/liste zinciri, Step 7/8 boşluğu = sabit not, düğüm tıklama = zıplar). Tek yeni mekanizma: `src/app/routes/workspace/traceability.ts`'in jenerik `buildTraceabilityChains`'i. |
+| G3 — "Provisional" A3 kenar işareti (D-165/D-41'in üçüncü görsel katmanı) | `buildA3Layout.ts` + `HtmlA3Renderer.tsx` + `src-tauri/src/xlsx/writer.rs`. Kendi Block Visual Verification Loop turunu gerektirdi — en pahalı dilim. | ✅ BİTTİ 2026-08-23 — D-198, üç `AskUserQuestion` cevaplandı (kapsam = önizleme+export, appendix = yalnızca ana sayfa, round-farkındalığı = hayır). Görsel: Aday A (kesikli grafit çerçeve, `#20241F`), tek turda değişikliksiz onaylandı. |
+
+**Faz 7 (G1/G2/G3) artık tamamen BİTTİ** — `SPEC.md`'nin kendi Faz 7 satırı tam olarak
+karşılandı, Faz 8'in kendi launch prompt'u ayrı bir gelecek oturumun işi.
 
 ## Kullanım
 

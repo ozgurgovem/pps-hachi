@@ -1,17 +1,31 @@
 import type { StepState } from "../../../domain/model";
+import type { ReadinessResult } from "../../../domain/readiness";
 
 /**
- * D-85: SPEC.md §2.2 lists four left-rail completion states (empty / in
- * progress / complete / flagged), but "complete" and "flagged" both require
- * the readiness gate rules (§1.2, S1-S8) that don't ship until Phase 7 —
- * `StepState.readiness` is deliberately never persisted (D-53) and no gate
- * rule exists yet to derive it from. Phase 3 computes only the two states
- * that are honest without that system: an entry-count check, the same
- * provisional-selector pattern D-65 already used for the launch screen's
- * `currentStep`. Wiring `complete`/`flagged` in is Phase 7 work.
+ * D-85/D-196 (G1): SPEC.md §2.2 lists four left-rail completion states
+ * (empty / in progress / complete / flagged). `complete`/`flagged` now read
+ * from the Phase 7 readiness selector (`src/domain/readiness`) — per
+ * Barış's own confirmed answer, "complete" is simply "not empty and the
+ * readiness selector found nothing to flag" (the direct complement of
+ * "flagged"), not a separate per-field completeness concept this app has no
+ * other machinery for.
+ *
+ * `"inProgress"` stays in the union (Badge/i18n already carry it) but is
+ * never produced by `getStepStatus` today: a non-empty step's readiness is
+ * binary (`"ok"` or `"flagged"`, see `evaluateReadiness.ts`), so once a step
+ * has an entry it is always either complete or flagged. Documented rather
+ * than quietly left dead — a future rule that can express a genuine
+ * in-between state would use it.
  */
-export type StepStatus = "empty" | "inProgress";
+export type StepStatus = "empty" | "inProgress" | "complete" | "flagged";
 
-export function getStepStatus(step: StepState): StepStatus {
-  return step.entries.length === 0 ? "empty" : "inProgress";
+export function isStepEmpty(step: StepState): boolean {
+  return step.entries.length === 0;
+}
+
+export function getStepStatus(step: StepState, readiness: ReadinessResult): StepStatus {
+  if (isStepEmpty(step)) {
+    return "empty";
+  }
+  return readiness.status === "flagged" ? "flagged" : "complete";
 }

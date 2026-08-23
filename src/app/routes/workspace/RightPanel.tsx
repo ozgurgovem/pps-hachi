@@ -8,6 +8,7 @@ import type { A3LayoutDescriptor } from "../../../a3/descriptor";
 import { openOrFocusA3PreviewWindow, listenForPreviewReady, pushDescriptorToPreviewWindow } from "../a3PreviewWindow/window";
 import { errorMessage } from "../launch/errorMessage";
 import { buildProjectA3Layout } from "./a3Preview";
+import { TraceabilityView } from "./TraceabilityView";
 import { xlsxExport } from "./xlsxIpc";
 
 const XLSX_FILTER = [{ name: "Excel Workbook", extensions: ["xlsx"] }];
@@ -148,6 +149,7 @@ export function RightPanel() {
       <TabsRoot defaultValue="preview" className="flex flex-1 flex-col p-3">
         <TabsList>
           <TabsTrigger value="preview">{t("workspace.rightPanel.preview")}</TabsTrigger>
+          <TabsTrigger value="traceability">{t("workspace.rightPanel.traceability")}</TabsTrigger>
           {aiEnabled && <TabsTrigger value="assistant">{t("workspace.rightPanel.assistant")}</TabsTrigger>}
         </TabsList>
         <TabsContent value="preview">
@@ -199,6 +201,9 @@ export function RightPanel() {
               )}
             </div>
           </div>
+        </TabsContent>
+        <TabsContent value="traceability">
+          <TraceabilityView />
         </TabsContent>
         {aiEnabled && <TabsContent value="assistant">{null}</TabsContent>}
       </TabsRoot>

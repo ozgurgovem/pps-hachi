@@ -3,6 +3,7 @@ import type { StepId } from "../../../domain/model";
 import { CoachBand } from "./CoachBand";
 import { EntriesBand } from "./EntriesBand";
 import { MethodBand } from "./MethodBand";
+import { ReadinessAdvisory } from "./ReadinessAdvisory";
 import { RoundsBand } from "./RoundsBand";
 import { SignOffPanel } from "./SignOffPanel";
 
@@ -38,6 +39,7 @@ export function StepPage({ stepId, advisory, onDismissAdvisory }: StepPageProps)
       <h1 className="font-display text-2xl font-semibold text-ink">
         {stepId}. {t(`workspace.steps.${stepId}.name`)}
       </h1>
+      <ReadinessAdvisory stepId={stepId} />
 
       <CoachBand stepId={stepId} />
       <MethodBand stepId={stepId} />

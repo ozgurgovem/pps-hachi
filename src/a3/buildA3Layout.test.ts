@@ -231,4 +231,26 @@ describe("buildA3Layout", () => {
     expect(cellByRef("R59")).toBe("ONAY 1");
     expect(cellByRef("Y59")).toBe("MÜD-YÖN. ONAYI");
   });
+
+  it("marks a block provisional when its step's readiness is flagged, and leaves other blocks unmarked", () => {
+    // A `generic-text` entry never satisfies S1's `gap-statement`-specific
+    // check (D-196), so Step 1's block is expected to flag — Step 2 stays
+    // empty and D-196's "an empty step never flags" rule keeps it unmarked.
+    const project = fixtureProject({
+      steps: {
+        ...fixtureProject().steps,
+        1: { entries: [fixtureEntry({})] },
+      },
+    });
+
+    const { descriptor } = buildA3Layout(project, farplas7StepTr, { rendererMap });
+
+    expect(descriptor.provisionalBlocks).toEqual([{ stepIds: [1], range: "B7:O21" }]);
+  });
+
+  it("marks no blocks provisional when every step is empty", () => {
+    const { descriptor } = buildA3Layout(fixtureProject(), farplas7StepTr, { rendererMap });
+
+    expect(descriptor.provisionalBlocks).toEqual([]);
+  });
 });

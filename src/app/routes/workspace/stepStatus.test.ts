@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 import type { Entry, StepState } from "../../../domain/model";
-import { getStepStatus } from "./stepStatus";
+import type { ReadinessResult } from "../../../domain/readiness";
+import { getStepStatus, isStepEmpty } from "./stepStatus";
+
+const OK: ReadinessResult = { status: "ok", warnings: [] };
+const FLAGGED: ReadinessResult = { status: "flagged", warnings: [{ rule: "S1", messageKey: "workspace.readiness.s1" }] };
 
 function makeEntry(): Entry {
   return {
@@ -17,14 +21,30 @@ function makeEntry(): Entry {
   };
 }
 
-describe("getStepStatus", () => {
-  it("is empty when the step has no entries", () => {
-    const step: StepState = { entries: [] };
-    expect(getStepStatus(step)).toBe("empty");
+describe("isStepEmpty", () => {
+  it("is true when the step has no entries", () => {
+    expect(isStepEmpty({ entries: [] })).toBe(true);
   });
 
-  it("is inProgress when the step has at least one entry", () => {
+  it("is false when the step has at least one entry", () => {
+    expect(isStepEmpty({ entries: [makeEntry()] })).toBe(false);
+  });
+});
+
+describe("getStepStatus", () => {
+  it("is empty when the step has no entries, regardless of readiness", () => {
+    const step: StepState = { entries: [] };
+    expect(getStepStatus(step, FLAGGED)).toBe("empty");
+    expect(getStepStatus(step, OK)).toBe("empty");
+  });
+
+  it("is complete when the step has entries and readiness found nothing to flag", () => {
     const step: StepState = { entries: [makeEntry()] };
-    expect(getStepStatus(step)).toBe("inProgress");
+    expect(getStepStatus(step, OK)).toBe("complete");
+  });
+
+  it("is flagged when the step has entries and readiness reports a warning", () => {
+    const step: StepState = { entries: [makeEntry()] };
+    expect(getStepStatus(step, FLAGGED)).toBe("flagged");
   });
 });

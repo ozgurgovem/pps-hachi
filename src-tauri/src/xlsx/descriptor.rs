@@ -169,10 +169,18 @@ pub struct OverflowWarning {
 
 #[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
+pub struct ProvisionalBlockMarker {
+    pub step_ids: Vec<u8>,
+    pub range: String,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct A3LayoutDescriptor {
     pub template_id: String,
     pub language: String,
     pub styles: Vec<CellStyle>,
     pub sheets: Sheets,
     pub overflow_warnings: Vec<OverflowWarning>,
+    pub provisional_blocks: Vec<ProvisionalBlockMarker>,
 }

@@ -1215,5 +1215,25 @@
         "s3-e2"
       ]
     }
+  ],
+  "provisionalBlocks": [
+    {
+      "stepIds": [
+        1
+      ],
+      "range": "B7:O21"
+    },
+    {
+      "stepIds": [
+        2
+      ],
+      "range": "B22:O56"
+    },
+    {
+      "stepIds": [
+        4
+      ],
+      "range": "P7:AB21"
+    }
   ]
 }

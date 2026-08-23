@@ -6,15 +6,22 @@ import { GapStatementEditor } from "./Editor";
 import type { GapStatementPayload } from "./schema";
 
 function emptyPayload(): GapStatementPayload {
-  return { ideal: "", actual: "", gap: "" };
+  return { ideal: "", actual: "", gap: "", gapValue: 0, unit: "", baselinePeriod: "" };
 }
 
 describe("GapStatementEditor", () => {
   it("renders one labeled field per Ideal/Actual/Gap dimension", () => {
     render(<GapStatementEditor payload={emptyPayload()} onChange={vi.fn()} />);
-    for (const label of [/^Ideal/, /^Actual/, /^Gap/]) {
+    for (const label of [/^Ideal/, /^Actual/, /^Gap$/]) {
       expect(screen.getByLabelText(label)).toBeTruthy();
     }
+  });
+
+  it("renders the gap-quantification fields — number, unit, baseline period", () => {
+    render(<GapStatementEditor payload={emptyPayload()} onChange={vi.fn()} />);
+    expect(screen.getByLabelText(/Gap size/)).toBeTruthy();
+    expect(screen.getByLabelText(/^Unit/)).toBeTruthy();
+    expect(screen.getByLabelText(/Baseline period/)).toBeTruthy();
   });
 
   it("updates only the edited field, leaving the others untouched", async () => {
@@ -27,5 +34,16 @@ describe("GapStatementEditor", () => {
     const lastCall = onChange.mock.calls[onChange.mock.calls.length - 1]![0] as GapStatementPayload;
     expect(lastCall.ideal).toBe("X");
     expect(lastCall.actual).toBe("3 leaks");
+  });
+
+  it("writes the gap value as a number", async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    render(<GapStatementEditor payload={emptyPayload()} onChange={onChange} />);
+
+    await user.type(screen.getByLabelText(/Gap size/), "3");
+
+    const lastCall = onChange.mock.calls[onChange.mock.calls.length - 1]![0] as GapStatementPayload;
+    expect(lastCall.gapValue).toBe(3);
   });
 });

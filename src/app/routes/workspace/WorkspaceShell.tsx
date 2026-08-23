@@ -5,7 +5,7 @@ import { useProjectStore } from "../../../state";
 import { RightPanel } from "./RightPanel";
 import { StepPage } from "./StepPage";
 import { StepStepper } from "./StepStepper";
-import { getStepStatus } from "./stepStatus";
+import { isStepEmpty } from "./stepStatus";
 import { WorkspaceTopBar } from "./WorkspaceTopBar";
 
 /** SPEC.md §2.2's three-region layout: left rail / center / right panel. */
@@ -24,7 +24,7 @@ export function WorkspaceShell() {
   const handleNavigate = (stepId: StepId) => {
     // SPEC.md §2.2: jumping to a step with no entries yet is always allowed —
     // this is a reassurance, not a warning, so it never blocks the navigation.
-    if (stepId !== activeStepId && getStepStatus(project.steps[stepId]) === "empty") {
+    if (stepId !== activeStepId && isStepEmpty(project.steps[stepId])) {
       setAdvisoryStepId(stepId);
     } else {
       setAdvisoryStepId(null);

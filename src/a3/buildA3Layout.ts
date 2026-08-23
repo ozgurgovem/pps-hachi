@@ -1,4 +1,5 @@
 import { columnLetterToIndex, parseRange } from "./cellRef";
+import { evaluateReadiness } from "../domain/readiness";
 import { STEP_IDS, type Entry, type ProjectModel, type StepId } from "../domain/model";
 import type {
   A3LayoutDescriptor,
@@ -6,6 +7,7 @@ import type {
   ImagePlacement,
   MergedRange,
   OverflowWarning,
+  ProvisionalBlockMarker,
   RowDef,
   SheetDescriptor,
 } from "./descriptor";
@@ -13,6 +15,7 @@ import { computeBlockBudget } from "./layout/budget";
 import { entryLineStyleId, type ColumnWidth } from "./layout/contentStyle";
 import { excelColumnWidthToPt } from "./layout/measure";
 import { computeOverflowWarning } from "./layout/overflow";
+import { computeProvisionalBlockMarker } from "./layout/provisional";
 import { placeBlockContent, type PendingImageSlot } from "./layout/place";
 import type { A3BlockContent, A3EntryRendererMap, A3TextLine } from "./methodContract";
 import type { A3Template, TemplateBlock } from "./templates/types";
@@ -57,10 +60,12 @@ export function buildA3Layout(
   options: BuildA3LayoutOptions,
 ): BuildA3LayoutResult {
   const allEntries = flattenEntries(project);
+  const readinessByStep = evaluateReadiness(project);
 
   const cells: CellData[] = [];
   const dynamicMerges: MergedRange[] = [];
   const overflowWarnings: OverflowWarning[] = [];
+  const provisionalBlocks: ProvisionalBlockMarker[] = [];
   const droppedEntryIds = new Set<string>();
   const pendingImages: PendingImageSlot[] = [];
 
@@ -129,6 +134,11 @@ export function buildA3Layout(
         droppedEntryIds.add(id);
       }
     }
+
+    const provisionalMarker = computeProvisionalBlockMarker(block, readinessByStep);
+    if (provisionalMarker) {
+      provisionalBlocks.push(provisionalMarker);
+    }
   }
 
   // Static template merges (`template.merges`) include a whole-row merge for
@@ -175,6 +185,7 @@ export function buildA3Layout(
       styles: template.styles,
       sheets: { a3: a3Sheet, appendices },
       overflowWarnings,
+      provisionalBlocks,
     },
     pendingImages,
   };

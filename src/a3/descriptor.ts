@@ -134,6 +134,20 @@ export interface OverflowWarning {
   readonly droppedEntryIds: readonly string[];
 }
 
+/**
+ * G3 (D-198): SPEC.md §1.2 — "the A3 preview marks the step 'provisional'"
+ * when its `readiness` evaluation is flagged. Mirrors `OverflowWarning`'s own
+ * shape: the descriptor records *which block, what rectangle*, never *how to
+ * draw it* — `HtmlA3Renderer` and the Rust writer each render their own
+ * visual treatment (a dashed outline, D-198) from this geometry alone.
+ */
+export interface ProvisionalBlockMarker {
+  /** Usually one step; e.g. [5, 6] for the template block that merges "develop" and "implement". */
+  readonly stepIds: readonly StepId[];
+  /** The block's full printed rectangle — header row through its last content row, e.g. "B7:O21". */
+  readonly range: RangeRef;
+}
+
 export interface A3LayoutDescriptor {
   readonly templateId: string;
   readonly language: "tr" | "en";
@@ -143,4 +157,5 @@ export interface A3LayoutDescriptor {
     readonly appendices: readonly SheetDescriptor[];
   };
   readonly overflowWarnings: readonly OverflowWarning[];
+  readonly provisionalBlocks: readonly ProvisionalBlockMarker[];
 }
