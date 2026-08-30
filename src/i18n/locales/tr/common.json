@@ -208,7 +208,8 @@
       "sign": "İmzala",
       "unsign": "Temizle",
       "signedOn": "İmzalandı: {{date}}"
-    }
+    },
+    "settings": "Ayarlar"
   },
   "methods": {
     "genericText": {
@@ -1124,5 +1125,32 @@
   "a3PreviewWindow": {
     "fitToWindow": "Pencereye sığdır",
     "waiting": "Ana pencere bekleniyor…"
+  },
+  "settings": {
+    "backToLaunch": "Çalışma alanına dön",
+    "title": "Ayarlar",
+    "ai": {
+      "providerName": "Vorion",
+      "statusLoading": "Yükleniyor…",
+      "statusNotConnected": "Bağlı değil",
+      "statusConfigured": "Yapılandırıldı",
+      "apiKeyLabel": "API anahtarı",
+      "apiKeyPlaceholder": "nk_live_…",
+      "saveKey": "Anahtarı kaydet",
+      "removeKey": "Anahtarı kaldır",
+      "getKeyLink": "vorionai.com'dan anahtar al",
+      "defaultModel": "Varsayılan model",
+      "fastModel": "Hızlı model (opsiyonel)",
+      "noFastModel": "Yok",
+      "selectModelPlaceholder": "Bir model seçin",
+      "refreshModels": "Modelleri yenile",
+      "testConnection": "Bağlantıyı test et",
+      "testingConnection": "Test ediliyor…",
+      "connectionSuccess": "Bağlandı — {{latency}} ms",
+      "connectionError": "Hata: {{reason}}",
+      "enableAssistance": "Yapay zeka desteğini etkinleştir",
+      "noModelSelected": "Seçilmedi",
+      "replaceKeyPlaceholder": "Değiştirmek için yeni bir anahtar yapıştırın"
+    }
   }
 }

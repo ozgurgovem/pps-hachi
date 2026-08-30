@@ -1,3 +1,4 @@
+pub mod ai;
 pub mod commands;
 pub mod images;
 pub mod ppsx;
@@ -18,6 +19,13 @@ pub fn run() {
             ppsx::commands::history_save,
             ppsx::commands::history_read,
             commands::xlsx::xlsx_export,
+            ai::commands::ai_set_key,
+            ai::commands::ai_key_status,
+            ai::commands::ai_remove_key,
+            ai::commands::ai_test_connection,
+            ai::commands::ai_list_models,
+            ai::commands::ai_get_settings,
+            ai::commands::ai_set_settings,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

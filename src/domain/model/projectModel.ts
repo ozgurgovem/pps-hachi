@@ -16,9 +16,13 @@ const LinkedRecordSchema = z.looseObject({
 /** §8.11: shape owned by the AI/redaction layer (Phase 8+) — loose and near-empty until then. */
 const RedactionPolicySchema = z.looseObject({});
 
+/** D-199/D-200: single provider (Farplas's own Vorion gateway) — supersedes
+ * the original three-provider draft. D-52's loose/additive posture means no
+ * migration is needed for this narrowing; no project has ever set this to
+ * anything but `undefined` (no Settings UI existed before Faz 8). */
 const AiMetaSchema = z.looseObject({
   enabled: z.boolean(),
-  providerId: z.enum(["anthropic", "openai", "google"]).optional(),
+  providerId: z.enum(["vorion"]).optional(),
   modelId: z.string().optional(),
   redaction: RedactionPolicySchema,
 });

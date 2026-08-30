@@ -208,7 +208,8 @@
       "sign": "Sign",
       "unsign": "Clear",
       "signedOn": "Signed {{date}}"
-    }
+    },
+    "settings": "Settings"
   },
   "methods": {
     "genericText": {
@@ -1124,5 +1125,32 @@
   "a3PreviewWindow": {
     "fitToWindow": "Fit to window",
     "waiting": "Waiting for the main window…"
+  },
+  "settings": {
+    "backToLaunch": "Back to workspace",
+    "title": "Settings",
+    "ai": {
+      "providerName": "Vorion",
+      "statusLoading": "Loading…",
+      "statusNotConnected": "Not connected",
+      "statusConfigured": "Configured",
+      "apiKeyLabel": "API key",
+      "apiKeyPlaceholder": "nk_live_…",
+      "saveKey": "Save key",
+      "removeKey": "Remove key",
+      "getKeyLink": "Get a key at vorionai.com",
+      "defaultModel": "Default model",
+      "fastModel": "Fast model (optional)",
+      "noFastModel": "None",
+      "selectModelPlaceholder": "Select a model",
+      "refreshModels": "Refresh models",
+      "testConnection": "Test connection",
+      "testingConnection": "Testing…",
+      "connectionSuccess": "Connected — {{latency}} ms",
+      "connectionError": "Error: {{reason}}",
+      "enableAssistance": "Enable AI assistance",
+      "noModelSelected": "Not selected",
+      "replaceKeyPlaceholder": "Paste a new key to replace it"
+    }
   }
 }

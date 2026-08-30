@@ -138,7 +138,7 @@ fn fully_populated_project(id: &str) -> Value {
             "closedAt": now,
             "language": "tr",
             "linkedRecords": [{ "type": "8D", "ref": "8D-2026-091" }],
-            "ai": { "enabled": true, "providerId": "anthropic", "modelId": "claude-sonnet-5", "redaction": {} }
+            "ai": { "enabled": true, "providerId": "vorion", "modelId": "openai/gpt-4o", "redaction": {} }
         },
         "templateId": "farplas-7step-tr",
         "steps": {

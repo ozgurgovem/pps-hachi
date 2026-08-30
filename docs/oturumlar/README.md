@@ -96,8 +96,8 @@ D-199.
 | Dilim | Kapsam | Durum |
 |---|---|---|
 | Kapsam belirleme — yedi alt-teslimatın veri durumu + tek-sağlayıcı (Vorion) keşfi + dilim planı | — | ✅ BİTTİ 2026-08-30 — D-199, dört soru düz metinle cevaplandı |
-| Dilim 1 — Settings shell (minimal) + Rust `LlmProvider` trait + `keyring` + model-keşif + test connection | `docs/oturumlar/faz8-dilim1-vorion-temel.md` | 📝 launch prompt yazıldı, henüz başlanmadı |
-| Dilim 2 — Streaming completion uçtan uca (SSE→Tauri Channel) + `RightPanel`'in Assistant sekmesinde çıplak chat kutusu + provenance plumbing | — | Henüz yazılmadı, Dilim 1'in ardından |
+| Dilim 1 — Settings shell (minimal) + Rust `LlmProvider` trait + `keyring` + model-keşif + test connection | `docs/oturumlar/faz8-dilim1-vorion-temel.md` | ✅ BİTTİ 2026-08-30 — D-200, iki `AskUserQuestion` cevaplandı, Barış'ın kendi yetkili taramasından beş ekran görüntüsü turuyla gerçek API şekli doğrulandı (tahmin yok). `npm test` 1179/1179, `cargo test` 123/123, ikisi de exit 0; `cargo clippy`/`cargo fmt` temiz. Dürüstçe owed: gerçek bir Tauri penceresinde/gerçek anahtarla uçtan uca deneme bu ortamdan yapılamadı. |
+| Dilim 2 — Streaming completion uçtan uca (SSE→Tauri Channel) + `RightPanel`'in Assistant sekmesinde çıplak chat kutusu + provenance plumbing | `docs/oturumlar/faz8-dilim2-vorion-streaming.md` | 📝 launch prompt yazıldı, henüz başlanmadı |
 | Dilim 3 — D-20'nin Playwright "AI kapalı" mutlu-yol testi | — | Vorion'dan bağımsız, Dilim 1/2'den önce veya paralel yapılabilir |
 
 ## Kullanım

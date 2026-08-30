@@ -59,9 +59,11 @@ the terminology. Write the UI for them, not for a beginner.
   provider list was wrong for the real deployment. Vorion's own "LLM Service" (Predictions
   + LLM Configuration only — never its Agent/RAG/Marketplace/Custom-Assistants surface,
   which would risk D-15/D-16's boundary from Vorion's side) is the entire integration
-  target; base URL `https://vorionai.com/api/llm`, auth via an `x-api-key` header (not
-  Bearer). See D-199 for the full provider comparison and why the original three-provider
-  table no longer applies to this deployment.
+  target; base URL `https://vorionai.com/api/llm`, every actual endpoint one level deeper
+  under `/api/v1/` (e.g. `.../api/llm/api/v1/prediction/predict` — confirmed against real
+  docs in Dilim 1, D-200, not the shallower path D-199 first assumed), auth via an
+  `x-api-key` header (not Bearer). See D-199/D-200 for the full provider comparison and the
+  real, doc-verified request/response shapes.
 - **Keys live in the OS keychain and never enter the webview.** Every provider call
   originates in Rust. If you find yourself writing `fetch` to an provider domain in
   TypeScript, stop — that is the wrong layer.
@@ -188,9 +190,9 @@ language is the real threat to this bar, and it is Oturum B's job.
 
 ## Current state
 
-Phase: 8 of 12 — kapsam belirlendi 2026-08-30, henüz inşa edilmedi. Phase 7 (D-195's
-  three slices G1/G2/G3) FULLY DONE 2026-08-23. Phase 6 (all five slices 6a–6e, plus 6e's
-  own 6e-1/6e-2 split) fully closed 2026-08-19.
+Phase: 8 of 12 — Dilim 1 of 3 DONE 2026-08-30 (D-200), Dilim 2/3 not started. Phase 7
+  (D-195's three slices G1/G2/G3) FULLY DONE 2026-08-23. Phase 6 (all five slices 6a–6e,
+  plus 6e's own 6e-1/6e-2 split) fully closed 2026-08-19.
 **Faz 8 kapsam belirleme (D-199, 2026-08-30): no code.** Confirmed the 2026-08-23 pre-scan
   against real code — Settings route doesn't exist, `src/ai/` is empty, `Cargo.toml` has no
   `keyring`/HTTP client, no Playwright, `RightPanel`'s Assistant tab is literally `{null}`.
@@ -210,11 +212,75 @@ Phase: 8 of 12 — kapsam belirlendi 2026-08-30, henüz inşa edilmedi. Phase 7 
   slices (down from the original H1–H5 sketch, single-provider reality collapsed it):
   Dilim 1 (Settings shell + `LlmProvider` trait + keyring + model discovery + test
   connection), Dilim 2 (streaming chat panel + provenance plumbing), Dilim 3 (D-20's long-
-  unenforced Playwright "AI off" happy-path test, independent of Vorion). Dilim 1's own
-  launch prompt: `docs/oturumlar/faz8-dilim1-vorion-temel.md`. Full record: D-199.
+  unenforced Playwright "AI off" happy-path test, independent of Vorion). Full record: D-199.
+**Faz 8 — Dilim 1 (Settings shell + keyring + Vorion `list_models`/`test_connection`): DONE
+  2026-08-30 (D-200).** Two `AskUserQuestion` rounds before any code, both Barış's
+  recommended option: (1) Settings entry point → a gear icon in `WorkspaceTopBar` (route
+  `/settings`), not `LaunchScreen` — connecting a provider already needs an open project;
+  (2) the still-unverifiable Vorion request/response shape → Barış pasted real screenshots
+  from his own authenticated `vorionai.com/docs` session rather than proceeding on a
+  documented guess. **What those screenshots corrected, beyond D-199's own findings**: the
+  real path nests one level deeper (`/api/<service>/api/v1/<resource>`, e.g.
+  `.../api/llm/api/v1/prediction/predict`); Prediction endpoints take `multipart/form-data`
+  (a JSON `data` field + optional `files`), never a plain JSON body; Synchronous Prediction's
+  real body is `prompt.text` (required) + `llm_name` (required, provider id) + optional
+  `llm_group_name`/`conversation_id`/etc., its response carries `response`/`message_id`/
+  `model_name`/`model_provider`/token counts; `GET /llm/api/v1/llms`'s `group_name` field is
+  exactly what a prediction request calls `llm_group_name` (confirmed by the docs' own worked
+  example), which is why `ModelInfo.id` is built as `"{provider_name}/{group_name}"` — a
+  verified mapping, not a guess. "Get Available LLMs (Grouped)"'s own `LLMSummary` item shape
+  was never shown (only its type name), so **List LLMs** (whose full schema was shown, and
+  whose `available_only` default is already `true`) was used instead of guessing that shape.
+  New Rust module `src-tauri/src/ai/`: `error.rs` (`AiError`, kept to only the variants an
+  existing call site constructs — an unused variant fails this crate's own
+  `cargo clippy --all-targets -- -D warnings` gate), `keychain.rs` (`SecretStore` trait +
+  real `KeyringSecretStore` + test-only `FakeSecretStore` — no test ever touches the real OS
+  keychain, D-134's own lesson about non-interactive permission-prompt hangs), `settings.rs`
+  (`AiSettings` — `enabled`/`defaultModelId`/`fastModelId` only, never the key; degrades to
+  defaults on a missing/corrupt file like `ppsx::recent_index` does, deliberately without
+  `ppsx::atomic`'s crash-safe rename since losing this file only costs re-picking a model),
+  `provider.rs` (`LlmProvider` trait — `list_models`/`test_connection` only; `complete()` is
+  Dilim 2's addition, deliberately not declared yet), `vorion.rs` (`VorionProvider`, the real
+  adapter), `commands.rs` (seven new commands). Dependencies verified against current
+  sources, not memory: `keyring` 4.2.0 (crates.io API JSON, not a WebFetch summary — the
+  crate recently restructured around `v1` (this app's correct choice, macOS+Windows only) vs
+  `cli` (multi-backend selection, not needed here); `delete_credential()` is the current
+  method name, `delete_password()` is the old one) and `reqwest` 0.13.4 with `json` +
+  `multipart` features (multipart is opt-in, not default — the first `cargo check` caught
+  its absence). `AiMetaSchema.providerId` narrowed from the three-provider enum to
+  `z.enum(["vorion"])` (D-52's additive posture meant no migration) — this invalidated
+  `fixtures/ppsx/fully-populated.ppsx`'s hardcoded `"anthropic"` fixture value (test data,
+  not real user data; regenerated via `cargo run --bin gen_ppsx_fixtures`), while its
+  entry-level `Provenance.model.providerId: "anthropic"` was deliberately left unchanged —
+  a live demonstration of CLAUDE.md's own "changing the model doesn't rewrite old
+  provenance" rule. Key-leak testing, per CLAUDE.md's explicit instruction, at two layers:
+  a Rust test (`a_saved_key_never_appears_in_a_produced_ppsx_file`) that sets a fake key,
+  writes a real `.ppsx` via the real `write_ppsx`, and inspects the produced file's raw
+  bytes on disk; a TS test asserting the rendered UI and the input's displayed value never
+  contain a real entered key, only `masked_preview`'s `"nk_live_…d41d"` shape. SPEC.md
+  §8.3's "Re-entry replaces; there is no reveal" is implemented literally — the paste field
+  stays visible even once a key is configured, so replacing it never requires removing
+  first (caught and fixed by re-reading the spec text, then locked with a regression test).
+  `npm test` 1179/1179 (268 files, up from 1163/266 — 16 new tests), exit code 0 (checked,
+  not piped through `tail`). `npm run lint` clean (the one pre-existing `ThemeProvider`
+  warning). `npm run build` green (same pre-existing chunk-size warning;
+  `exactOptionalPropertyTypes` caught a `SelectRoot value={x ?? undefined}` pattern, fixed
+  with the same sentinel-value convention `EntryRoundField`/`whyWhyTree` already use, not a
+  new invention). `cargo test` 123/123 (up from 113 — 20 new, including a deserialize test
+  against the real documented "List LLMs" JSON shape), `cargo clippy --all-targets -- -D
+  warnings` and `cargo fmt -- --check` both clean. **Honestly unverified**: this environment
+  has no display/Tauri runtime — a real key was never actually written to a real OS keychain
+  or sent to real `vorionai.com` in this session; everything is built and unit-tested against
+  the confirmed real API shape, but the live round-trip (same class of gap as D-105/D-113/
+  D-136) is still owed from Barış running `npm run tauri dev` with a real key. Deliberately
+  not built this dilim: D-21's 24h model-list cache (YAGNI — the done-criterion only asked
+  for live population), pagination beyond the first 100 models, `complete()`/Streaming
+  Prediction (Dilim 2), any touch of Vorion's Agent/RAG/Marketplace surface (D-15/D-16,
+  never sent `tool_ids`/`mcp_server_ids`/`agent_id`/`knowledge_base_ids`). Dilim 2's own
+  launch prompt: `docs/oturumlar/faz8-dilim2-vorion-streaming.md`.
 Stack decision (Tauri vs Electron fallback): Tauri v2, revisit only if Phase 4 stalls
 App name: **PPS Hachi** (八 — eight). Repo `pps-hachi`. Set 2026-08-01, see DECISIONS.md D-29.
-AI layer: specified, not started. Phases 8–10.
+AI layer: Dilim 1 of Faz 8 done (keychain + Vorion connection/model-discovery). Faz 9–10 not started.
 Templates: two company .xls files analysed; see reference/TEMPLATE_ANALYSIS.md
 Template geometry: VERIFIED 2026-08-01 against both .xls files. Five errors found and
   corrected in place — the largest was the column widths: the real split is 49.7/50.3, NOT
