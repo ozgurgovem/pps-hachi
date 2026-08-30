@@ -61,3 +61,30 @@ futures-util = { version = "0.3", default-features = false, features = ["std"] }
 calamine = "0.36.1"
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
 
+# Faz 8 Dilim 3 (D-20 "AI kapalı" mutlu-yol E2E'si). A `[target.'cfg(debug_
+# assertions)'.dependencies]` table was tried first (the pattern @wdio/tauri-
+# service's own docs show) and empirically DISPROVED by running
+# `cargo check --release` against it: Cargo resolves `[target.'cfg(...)']`
+# dependency tables once, independent of profile — `debug_assertions` in that
+# position does not distinguish debug from release the way it does inside
+# `#[cfg(debug_assertions)]` in source. A real `cargo check --release` still
+# pulled both crates in, which would have shipped WebdriverIO's execute/mock
+# bridge and its embedded WebDriver HTTP server in a real Farplas binary. An
+# explicit, opt-in Cargo feature is the correct mechanism: with no `--features
+# e2e-test`, `dep:tauri-plugin-wdio`/`dep:tauri-plugin-wdio-webdriver` are
+# never even resolved, verified the same way (`cargo check --release` after
+# this fix compiles neither crate). Both crate versions verified against
+# crates.io directly (not WebSearch, which reported a stale 1.0.0-next.0 —
+# the real published version is 1.3.0, maintained under webdriverio/
+# desktop-mobile).
+[dependencies.tauri-plugin-wdio]
+version = "1"
+optional = true
+
+[dependencies.tauri-plugin-wdio-webdriver]
+version = "1"
+optional = true
+
+[features]
+e2e-test = ["dep:tauri-plugin-wdio", "dep:tauri-plugin-wdio-webdriver"]
+

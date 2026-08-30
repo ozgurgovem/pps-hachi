@@ -6,9 +6,30 @@ pub mod xlsx;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    tauri::Builder::default()
+    let builder = tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
-        .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_dialog::init());
+
+    // Faz 8 Dilim 3 (D-20): WebdriverIO's execute/mock/log bridge and its
+    // embedded WebDriver server, gated behind the `e2e-test` Cargo feature —
+    // never on by default, so a plain `cargo build`/`cargo build --release`
+    // (CI's real "Build app (unsigned)" step, and any real Farplas binary)
+    // never even resolves these crates (Cargo.toml's `optional = true` +
+    // `dep:` feature syntax). `#[cfg(debug_assertions)]` was tried first and
+    // empirically disproved — `[target.'cfg(debug_assertions)'.dependencies]`
+    // does not vary by profile in Cargo.toml, so `cargo check --release`
+    // still pulled both crates in; see Cargo.toml's own comment. The matching
+    // `wdio:default`/`wdio-webdriver:default` capability permissions live in
+    // `capabilities-e2e/e2e-test.json` — build.rs stages it into
+    // `capabilities/` only when this same feature is active, since
+    // tauri-build validates every permission in that folder unconditionally,
+    // regardless of tauri.conf.json's own capabilities allowlist.
+    #[cfg(feature = "e2e-test")]
+    let builder = builder
+        .plugin(tauri_plugin_wdio::init())
+        .plugin(tauri_plugin_wdio_webdriver::init());
+
+    builder
         .invoke_handler(tauri::generate_handler![
             ppsx::commands::ppsx_read,
             ppsx::commands::ppsx_write,

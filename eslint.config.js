@@ -68,6 +68,20 @@ const migrationsModelBoundary = {
   },
 }
 
+// Faz 8 Dilim 3 (D-20): `e2e/**` specs run under WebdriverIO's mocha
+// framework (`mochaOpts: { ui: "bdd" }`) — describe/it/before/after are
+// injected as real globals by the mocha test runner at run time, not
+// imported, and the specs also use Node's fs/os/path directly (the wdio
+// process itself, not the webview). `**/*.{ts,tsx}`'s own block below sets
+// `globals.browser` project-wide; this block adds mocha+node on top for this
+// one directory rather than narrowing the base set for everyone else.
+const e2eGlobals = {
+  files: ['e2e/**/*.{ts,tsx}'],
+  languageOptions: {
+    globals: { ...globals.mocha, ...globals.node },
+  },
+}
+
 export default tseslint.config(
   { ignores: ['dist', 'src-tauri/target'] },
   {
@@ -91,4 +105,5 @@ export default tseslint.config(
   },
   pureModuleBoundary,
   migrationsModelBoundary,
+  e2eGlobals,
 )

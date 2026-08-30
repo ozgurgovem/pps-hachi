@@ -515,8 +515,11 @@ Images           Rust-side sharp-equivalent (`image` crate) for resize/thumbnail
 Excel            rust_xlsxwriter (Rust backend) — images, merges, print setup, formats
 PDF              Tauri print pipeline from the same descriptor
 i18n             i18next, TR + EN, all strings externalized from day one
-Testing          Vitest (unit), Playwright (e2e), cargo test (Rust), golden-file tests
-                 for the A3 descriptor and a byte-level xlsx regression test
+Testing          Vitest (unit), WebdriverIO (e2e — D-20, Faz 8 Dilim 3; the real
+                 Tauri v2 E2E path, chosen over this line's original "Playwright"
+                 after Playwright turned out to have no official Tauri support),
+                 cargo test (Rust), golden-file tests for the A3 descriptor and
+                 a byte-level xlsx regression test
 Updates          tauri-plugin-updater
 
 AI transport     Rust: reqwest + tokio, streaming via Tauri channels. All provider calls
@@ -558,8 +561,8 @@ Ship something runnable at the end of every phase. Do not build the whole thing 
 | 12 | Polish, i18n TR/EN complete, PDF/PNG export, packaging, signing, auto-update | Signed installers for both platforms |
 
 Phases 8–10 are additive. Everything before them must remain fully functional with AI
-switched off, and that stays true after them — verified by a Playwright suite that runs
-the whole happy path with no keys configured.
+switched off, and that stays true after them — verified by a WebdriverIO E2E suite
+(`e2e/`, D-20/Faz 8 Dilim 3) that runs the whole happy path with no keys configured.
 
 ---
 

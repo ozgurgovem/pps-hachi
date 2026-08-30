@@ -190,7 +190,8 @@ language is the real threat to this bar, and it is Oturum B's job.
 
 ## Current state
 
-Phase: 8 of 12 — Dilim 1/2 of 3 DONE (D-200 2026-08-30, D-201 2026-08-31), Dilim 3 not started. Phase 7
+Phase: 8 of 12 — all three dilims DONE (D-200 2026-08-30, D-201 2026-08-31, D-202 2026-08-31) —
+  Phase 8 itself is complete. Phase 7
   (D-195's three slices G1/G2/G3) FULLY DONE 2026-08-23. Phase 6 (all five slices 6a–6e,
   plus 6e's own 6e-1/6e-2 split) fully closed 2026-08-19.
 **Faz 8 kapsam belirleme (D-199, 2026-08-30): no code.** Confirmed the 2026-08-23 pre-scan
@@ -375,10 +376,98 @@ Phase: 8 of 12 — Dilim 1/2 of 3 DONE (D-200 2026-08-30, D-201 2026-08-31), Dil
   this dilim: Resume Stream/reconnect (P-48), `editDistance` computation (P-47), Dilim 3
   (Playwright), §8.5's real New Project AI step (the debug toggle is an explicit bridge, not
   the real thing), any touch of Vorion's Agent/RAG/Marketplace surface (D-15/D-16, untouched).
+**Faz 8 — Dilim 3 (D-20's "AI off" happy-path E2E suite, Vorion-independent): DONE
+  2026-08-31 (D-202) — Faz 8 is now fully complete.** §2.1's own open question — SPEC.md's
+  "Playwright" was written Gün-1 with no real research into Tauri's actual E2E ecosystem —
+  was researched for real this session (tauri.app/webdriver.io fetched live, npm/crates.io
+  JSON pulled directly via `curl`, not trusted from a summary). Finding: Playwright has no
+  official Tauri support (one small, single-maintainer community crate exists,
+  `tauri-plugin-playwright`, 39 stars); Tauri v2's real, current, official path is
+  **WebdriverIO + `@wdio/tauri-service`**, whose `embedded` driver mode needs no native
+  driver install on macOS, Windows, or Linux (raw `tauri-driver` itself has no macOS support
+  at all — only the embedded provider does). Barış was given four real options via
+  `AskUserQuestion` (the original A/B/C plus a fourth, the community Playwright crate found
+  during research) and explicitly delegated the decision ("en doğru kararı senin vermeni
+  tercih ederim") rather than picking — Anayasa Madde 9's "decide yourself when you already
+  have the information" applied directly. WebdriverIO was chosen: most faithful to D-20's
+  literal ask (drives a real compiled binary — real Rust backend, real `write_ppsx`/
+  `xlsx_export`, real keychain-absent state), officially maintained (webdriverio-community,
+  the `webdriverio/desktop-mobile` monorepo), zero external dependencies on either target
+  platform. **A concrete WebSearch hallucination caught by going to the primary source**: one
+  search pass reported `@wdio/tauri-service` as `1.0.0-next.0`; the real npm registry (fetched
+  directly) shows **1.3.0**, published via GitHub Actions OIDC, maintained by WebdriverIO's
+  own core team (christian-bromann, wswebcreation-nl) — Anayasa Madde 8's lesson applied to
+  WebSearch itself this time, not just a vendor's own chatbot.
+  **Two real Cargo/tauri-build traps, both found empirically (by running `cargo check
+  --release`), not by trusting the docs' own example pattern.** First: the docs' own
+  `[target.'cfg(debug_assertions)'.dependencies]` pattern was tried, then DISPROVED — a real
+  `cargo check --release` still compiled `tauri-plugin-wdio`/`tauri-plugin-wdio-webdriver`
+  in, because Cargo resolves `[target.'cfg(...)']` dependency tables once, independent of
+  profile — `debug_assertions` behaves differently there than inside `#[cfg(debug_assertions)]`
+  in source. Fixed with an explicit, opt-in Cargo feature (`e2e-test`, gating both crates as
+  `optional = true` dependencies) — re-verified empirically: `cargo check --release` now
+  never resolves them, `--features e2e-test` does. Second, found immediately after fixing the
+  first: with the crates excluded, `cargo check --release` then failed with `Permission
+  wdio:default not found` — reading `tauri-build` 2.6.3's actual source (`acl.rs`, pulled from
+  the local cargo registry cache) showed `validate_capabilities()` checks every permission in
+  every file under `capabilities/` against whatever plugins are actually compiled in,
+  completely independent of `tauri.conf.json`'s own `security.capabilities` allowlist — a
+  WebFetch summary of the docs had claimed the allowlist would make an unlisted capability's
+  permissions inert, and reading the real source proved that claim wrong. Fixed by moving the
+  `wdio:default`/`wdio-webdriver:default` permissions into a new sibling directory,
+  `capabilities-e2e/e2e-test.json` (never scanned by `capabilities/`'s own glob), with a new
+  three-line `build.rs` that copies it into `capabilities/` only when the `e2e-test` feature
+  is active and removes it otherwise — self-healing on every single build, so an interrupted
+  E2E build can never silently leave a stale permission behind in the next real build. All of
+  this was round-tripped empirically (feature off → on → off again, `cargo check --release`
+  each time) and then proven end-to-end for real: `npm run test:e2e:build` actually produced
+  `src-tauri/target/debug/pps-hachi`, an 80 MB real arm64 Mach-O binary — the one part of
+  this dilim that could be verified as truly working in this display-less environment.
+  **Frontend**: `src/main.tsx` gained `if (import.meta.env.MODE === "e2e") void
+  import("@wdio/tauri-plugin")` — confirmed both directions by actually building both ways:
+  a real `npm run build` (production) has zero occurrences of `"wdio"` in the output bundle
+  (`grep`-checked), while the new `npm run build:e2e` (`vite build --mode e2e`) puts the
+  plugin in its own 16.5 kB chunk. `withGlobalTauri: true` lives only in the new
+  `e2e/tauri.e2e.conf.json`, merged in via `tauri build`'s own real, documented `--config`
+  flag (not a `TAURI_CONFIG` env var — that was checked against Tauri's own environment-
+  variables reference page and found not to exist, an assumption corrected before it was
+  used). New `e2e/wdio.conf.ts` (`driverProvider: "embedded"`) and
+  `e2e/specs/ai-off-happy-path.spec.ts` cover §2.2's minimal scope: launch screen → new
+  project with no AI step (native `save()` dialog mocked via
+  `browser.tauri.mock("plugin:dialog|save")`, the exact IPC string confirmed by reading
+  `node_modules/@tauri-apps/plugin-dialog/dist-js/index.js` directly) → one `generic-text`
+  entry in each of the 8 steps → A3 preview renders with no error → Export A3 (second mock)
+  produces a real file on disk that is a real zip (`"PK"` magic bytes checked, not just the
+  mock's return value) → the Assistant tab never appears. CI: two new steps added to both
+  matrix legs (`test:e2e:build`, `test:e2e`), between `cargo clippy` and the real
+  "Build app (unsigned)" step — CI cost turned out lower than the launch prompt feared, since
+  the embedded provider needs no native driver install on either OS. `SPEC.md`'s "Playwright"
+  wording (Phase 0 table + the Phase 8-10 done-criterion) corrected to WebdriverIO.
+  **Honestly unverified, two distinct gaps this time, same class as D-105/D-113/D-136/D-200/
+  D-201**: (1) this environment has no display — the E2E spec's BUILD was proven real, but
+  the wdio testrunner itself, against a real Tauri window, was never actually run; (2) a
+  deeper, specific assumption: this app calls `invoke()` via the `@tauri-apps/api/core` ESM
+  import (confirmed to forward to `window.__TAURI_INTERNALS__.invoke` by reading its source),
+  while `tauri-plugin-wdio`'s own docs describe its mock as intercepting
+  `window.__TAURI__.core.invoke` — every documented example triggers a mocked command from
+  inside `browser.tauri.execute()`, never from a real UI click, so whether the same
+  interception also catches a real button's own `invoke()` call was never confirmed by
+  running it. Filed as **P-49**. The spec is deliberately built so a wrong assumption here
+  fails loudly (a real native dialog opens with nothing to dismiss it, timing out) rather
+  than passing silently. Barış's own `npm run test:e2e:build && npm run test:e2e` on a real
+  screened macOS or Windows machine is what closes P-49 and this dilim's remaining gap.
+  `npm test` 1206/1206 (unchanged — this dilim added no Vitest tests, only excluded `e2e/**`
+  from its discovery), exit code 0. `npm run lint`/`npx tsc --noEmit` both clean. `npm run
+  build` green (same pre-existing chunk-size warning). `cargo test` 136/136 (unchanged — no
+  new Rust tests, only build-graph changes), `cargo clippy --all-targets -- -D warnings` and
+  `cargo fmt -- --check` both clean. `scripts/gen-a3-fixture.ts` not re-run (no template
+  style, `A3ImageKind`, or model schema touched). **Faz 8 (all three dilims) is now fully
+  closed.**
 Stack decision (Tauri vs Electron fallback): Tauri v2, revisit only if Phase 4 stalls
 App name: **PPS Hachi** (八 — eight). Repo `pps-hachi`. Set 2026-08-01, see DECISIONS.md D-29.
-AI layer: Dilim 1/2 of Faz 8 done (keychain + Vorion connection/model-discovery + streaming
-  completion/Assistant chat panel/provenance). Dilim 3 (Playwright) + Faz 9–10 not started.
+AI layer: Faz 8 fully done (keychain + Vorion connection/model-discovery + streaming
+  completion/Assistant chat panel/provenance + the D-20 "AI off" WebdriverIO E2E suite).
+  Faz 9–10 not started.
 Templates: two company .xls files analysed; see reference/TEMPLATE_ANALYSIS.md
 Template geometry: VERIFIED 2026-08-01 against both .xls files. Five errors found and
   corrected in place — the largest was the column widths: the real split is 49.7/50.3, NOT

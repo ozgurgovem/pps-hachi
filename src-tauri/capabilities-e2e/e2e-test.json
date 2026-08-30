@@ -1,0 +1,7 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "e2e-test",
+  "description": "Faz 8 Dilim 3 (D-20) — E2E-test-only capability: tauri-plugin-wdio's execute/mock/log bridge and tauri-plugin-wdio-webdriver's embedded WebDriver server. Lives OUTSIDE src-tauri/capabilities/ on purpose: tauri-build validates every permission in every file under that folder against whatever plugins are actually compiled in, regardless of tauri.conf.json's own capabilities allowlist (confirmed by reading tauri-build 2.6.3's acl.rs directly, not assumed — an earlier design that left this file inside capabilities/ broke `cargo check --release`). build.rs copies this file into capabilities/e2e-test.json only when the `e2e-test` Cargo feature is active, and removes it otherwise — self-healing on every build, so a build interrupted mid-way can never leave a stale copy behind unnoticed.",
+  "windows": ["main"],
+  "permissions": ["wdio:default", "wdio-webdriver:default"]
+}

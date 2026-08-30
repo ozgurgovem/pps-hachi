@@ -21,6 +21,11 @@ dist-ssr/
 src-tauri/target/
 src-tauri/gen/
 
+# Faz 8 Dilim 3 (D-20): build.rs stages this from capabilities-e2e/ only when
+# the `e2e-test` Cargo feature is active, and removes it otherwise on every
+# build — self-healing, but ignored too in case a build is killed mid-way.
+src-tauri/capabilities/e2e-test.json
+
 # --- Tooling ---
 .venv/
 venv/

@@ -72,6 +72,17 @@ jobs:
         working-directory: src-tauri
         run: cargo clippy --all-targets -- -D warnings
 
+      # D-20 / Faz 8 Dilim 3: the "AI off" happy-path E2E suite. Builds a
+      # separate debug binary via `tauri build --debug --no-bundle --features
+      # e2e-test` (never `--release`, never the flags the step below uses) —
+      # see e2e/wdio.conf.ts and DECISIONS.md for why. `driverProvider:
+      # "embedded"` needs no native driver install on either runner.
+      - name: E2E test build (AI off happy path)
+        run: npm run test:e2e:build
+
+      - name: E2E test (AI off happy path)
+        run: npm run test:e2e
+
       - name: Build app (unsigned)
         run: npm run tauri build
         env:
