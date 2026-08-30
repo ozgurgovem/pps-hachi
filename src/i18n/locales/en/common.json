@@ -146,6 +146,19 @@
       "previewError": "The A3 preview could not be built for this project.",
       "previewLoading": "Building the A3 preview…"
     },
+    "assistant": {
+      "noModelConfigured": "No model is chosen for this project yet.",
+      "goToSettings": "Go to Settings",
+      "promptLabel": "Ask the assistant",
+      "promptPlaceholder": "Ask a question…",
+      "send": "Send",
+      "streaming": "Thinking…",
+      "cancel": "Cancel",
+      "cancelling": "Cancelling…",
+      "responseLabel": "Response",
+      "accept": "Accept",
+      "reject": "Reject"
+    },
     "entryDialog": {
       "createTitle": "New entry",
       "editTitle": "Edit entry",
@@ -1150,7 +1163,11 @@
       "connectionError": "Error: {{reason}}",
       "enableAssistance": "Enable AI assistance",
       "noModelSelected": "Not selected",
-      "replaceKeyPlaceholder": "Paste a new key to replace it"
+      "replaceKeyPlaceholder": "Paste a new key to replace it",
+      "debugProjectAiHeading": "Enable AI for this project (debug)",
+      "debugProjectAiHint": "Temporary, until the New Project dialog's own AI step ships (SPEC.md §8.5) — this is what makes the workspace's Assistant tab appear on the currently open project.",
+      "debugProjectAiLabel": "Enable AI for the open project",
+      "debugProjectAiNoProject": "Open a project first."
     }
   }
 }

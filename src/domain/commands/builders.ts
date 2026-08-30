@@ -1,9 +1,11 @@
 import type {
   A3Visibility,
+  AiMeta,
   Entry,
   EntryReference,
   ImageRef,
   ProjectModel,
+  Provenance,
   Round,
   SignOffEntry,
   StepId,
@@ -15,6 +17,7 @@ import {
   type EntrySetA3VisibilityCommand,
   type EntryUpdateCommand,
   type EntriesReorderCommand,
+  type MetaAiSetCommand,
   type RoundsSetCommand,
   type SignOffSetCommand,
 } from "./types";
@@ -58,6 +61,15 @@ export interface AddEntryInput {
    * (never `undefined`, unlike `references`).
    */
   images?: readonly ImageRef[] | undefined;
+  /**
+   * D-15/D-18/D-201: omitted means `{ origin: "human" }`, this builder's
+   * pre-existing default — every call site before the Assistant panel wrote
+   * an entry by hand and stays byte-identical. The Assistant's Accept
+   * button is the first caller to pass `{ origin: "ai-accepted", model,
+   * generatedAt, acceptedBy, acceptedAt }` explicitly; there is still no
+   * other path from a model response into `ProjectModel` (D-15 LOCKED).
+   */
+  provenance?: Provenance | undefined;
 }
 
 /** Drops an empty list rather than storing `references: []` — see `AddEntryInput.references`. */
@@ -94,7 +106,7 @@ export function buildAddEntryCommand(step: StepState, stepId: StepId, input: Add
     images: input.images ? [...input.images] : [],
     createdAt: input.now,
     updatedAt: input.now,
-    provenance: { origin: "human" },
+    provenance: input.provenance ?? { origin: "human" },
     ...referenceFields(input.references),
     ...(input.roundId === undefined ? undefined : { roundId: input.roundId }),
   };
@@ -253,4 +265,14 @@ export function buildSetSignOffCommand(
     after[role] = entry;
   }
   return { type: "signOff.set", before, after, undoable: true };
+}
+
+/**
+ * D-201: sets the whole `meta.ai` slice at once — unlike `buildSetSignOffCommand`'s
+ * single-role patch, every caller today (the Settings screen's temporary
+ * debug toggle) already has the complete next value in hand, so there is no
+ * partial-update case to preserve.
+ */
+export function buildSetAiMetaCommand(project: ProjectModel, ai: AiMeta): MetaAiSetCommand {
+  return { type: "meta.ai.set", before: project.meta.ai, after: ai, undoable: true };
 }

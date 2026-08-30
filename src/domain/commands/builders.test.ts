@@ -8,6 +8,7 @@ import {
   buildOpenRoundCommand,
   buildReorderCommand,
   buildSetA3VisibilityCommand,
+  buildSetAiMetaCommand,
   buildSetSignOffCommand,
   buildUpdateEntryCommand,
 } from "./builders";
@@ -84,6 +85,43 @@ describe("buildAddEntryCommand", () => {
     });
 
     expect("roundId" in command.entry).toBe(false);
+  });
+
+  it("defaults provenance to human-origin when not provided", () => {
+    const step = makeStep([]);
+
+    const command = buildAddEntryCommand(step, 4, {
+      methodId: "generic-text",
+      title: "New",
+      payload: {},
+      now: "2026-08-02T01:00:00.000Z",
+    });
+
+    expect(command.entry.provenance).toEqual({ origin: "human" });
+  });
+
+  it("carries an explicit AI-accepted provenance onto the new entry (D-15/D-201)", () => {
+    const step = makeStep([]);
+
+    const command = buildAddEntryCommand(step, 4, {
+      methodId: "generic-text",
+      title: "New",
+      payload: { text: "assistant reply" },
+      now: "2026-08-31T01:00:00.000Z",
+      provenance: {
+        origin: "ai-accepted",
+        model: { providerId: "vorion", modelId: "openai/gpt-4o", promptVersion: "bare-chat-v1" },
+        generatedAt: "2026-08-31T00:59:00.000Z",
+        acceptedAt: "2026-08-31T01:00:00.000Z",
+      },
+    });
+
+    expect(command.entry.provenance).toEqual({
+      origin: "ai-accepted",
+      model: { providerId: "vorion", modelId: "openai/gpt-4o", promptVersion: "bare-chat-v1" },
+      generatedAt: "2026-08-31T00:59:00.000Z",
+      acceptedAt: "2026-08-31T01:00:00.000Z",
+    });
   });
 
   it("carries images imported before save onto the new entry", () => {
@@ -348,5 +386,25 @@ describe("buildSetSignOffCommand", () => {
     const command = buildSetSignOffCommand(project, "approvedBy", undefined);
 
     expect("approvedBy" in command.after).toBe(false);
+  });
+});
+
+describe("buildSetAiMetaCommand", () => {
+  it("captures the project's current meta.ai as before and the given value as after", () => {
+    const project = makeProject();
+
+    const command = buildSetAiMetaCommand(project, {
+      enabled: true,
+      providerId: "vorion",
+      modelId: "openai/gpt-4o",
+      redaction: {},
+    });
+
+    expect(command).toEqual({
+      type: "meta.ai.set",
+      before: project.meta.ai,
+      after: { enabled: true, providerId: "vorion", modelId: "openai/gpt-4o", redaction: {} },
+      undoable: true,
+    });
   });
 });

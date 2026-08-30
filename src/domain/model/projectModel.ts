@@ -85,6 +85,8 @@ export const ProjectModelSchema = z.looseObject({
 
 export type ProjectModel = z.infer<typeof ProjectModelSchema>;
 export type Person = z.infer<typeof PersonSchema>;
+/** D-201: `meta.ai` in isolation — `MetaAiSetCommand`'s `before`/`after` shape. */
+export type AiMeta = ProjectModel["meta"]["ai"];
 export type SignOffState = ProjectModel["signOff"];
 
 export { STEP_IDS };

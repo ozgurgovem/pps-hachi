@@ -5,10 +5,13 @@ import { MemoryRouter } from "react-router";
 import "../../../i18n";
 import { SettingsScreen } from "./SettingsScreen";
 import * as settingsIpc from "../../../ai/settingsIpc";
+import { createNewProject } from "../../../domain/model";
+import { useProjectStore } from "../../../state";
 
 vi.mock("../../../ai/settingsIpc");
 
 const mocked = vi.mocked(settingsIpc);
+const initialProjectStoreState = useProjectStore.getState();
 
 const EMPTY_SETTINGS: settingsIpc.AiSettings = {
   enabled: false,
@@ -26,6 +29,7 @@ function renderSettingsScreen() {
 
 afterEach(() => {
   vi.clearAllMocks();
+  useProjectStore.setState(initialProjectStoreState, true);
 });
 
 describe("SettingsScreen", () => {
@@ -180,5 +184,77 @@ describe("SettingsScreen", () => {
     await user.click(screen.getByLabelText("Enable AI assistance"));
 
     expect(mocked.setAiSettings).toHaveBeenCalledWith(expect.objectContaining({ enabled: true }));
+  });
+
+  describe("debug: enable AI for the open project (D-201)", () => {
+    test("shows a message instead of the toggle when no project is open", async () => {
+      mocked.getKeyStatus.mockResolvedValueOnce(null);
+      mocked.getAiSettings.mockResolvedValueOnce(EMPTY_SETTINGS);
+
+      renderSettingsScreen();
+
+      expect(await screen.findByText("Open a project first.")).toBeTruthy();
+      expect(screen.queryByRole("checkbox", { name: "Enable AI for the open project" })).toBeNull();
+    });
+
+    test("shows the toggle unchecked for an open project with AI not yet enabled", async () => {
+      const { project } = createNewProject({ title: "T", language: "en", appVersion: "0.1.0" });
+      useProjectStore.setState({ ...initialProjectStoreState, project });
+      mocked.getKeyStatus.mockResolvedValueOnce(null);
+      mocked.getAiSettings.mockResolvedValueOnce(EMPTY_SETTINGS);
+
+      renderSettingsScreen();
+
+      const toggle = await screen.findByRole("checkbox", { name: "Enable AI for the open project" });
+      expect(toggle.getAttribute("aria-checked")).toBe("false");
+    });
+
+    test("checking the toggle sets meta.ai.enabled/providerId on the open project", async () => {
+      const user = userEvent.setup();
+      const { project } = createNewProject({ title: "T", language: "en", appVersion: "0.1.0" });
+      useProjectStore.setState({ ...initialProjectStoreState, project });
+      mocked.getKeyStatus.mockResolvedValueOnce(null);
+      mocked.getAiSettings.mockResolvedValueOnce(EMPTY_SETTINGS);
+
+      renderSettingsScreen();
+      await screen.findByRole("checkbox", { name: "Enable AI for the open project" });
+
+      await user.click(screen.getByRole("checkbox", { name: "Enable AI for the open project" }));
+
+      const updated = useProjectStore.getState().project;
+      expect(updated?.meta.ai.enabled).toBe(true);
+      expect(updated?.meta.ai.providerId).toBe("vorion");
+    });
+
+    test("falls back to the global default model when the project has none set yet", async () => {
+      const user = userEvent.setup();
+      const { project } = createNewProject({ title: "T", language: "en", appVersion: "0.1.0" });
+      useProjectStore.setState({ ...initialProjectStoreState, project });
+      mocked.getKeyStatus.mockResolvedValueOnce(null);
+      mocked.getAiSettings.mockResolvedValueOnce({ ...EMPTY_SETTINGS, defaultModelId: "openai/gpt-4o" });
+
+      renderSettingsScreen();
+      await screen.findByRole("checkbox", { name: "Enable AI for the open project" });
+
+      await user.click(screen.getByRole("checkbox", { name: "Enable AI for the open project" }));
+
+      expect(useProjectStore.getState().project?.meta.ai.modelId).toBe("openai/gpt-4o");
+    });
+
+    test("never overwrites a model the project already has chosen", async () => {
+      const user = userEvent.setup();
+      const { project } = createNewProject({ title: "T", language: "en", appVersion: "0.1.0" });
+      const withModel = { ...project, meta: { ...project.meta, ai: { ...project.meta.ai, modelId: "vorion" } } };
+      useProjectStore.setState({ ...initialProjectStoreState, project: withModel });
+      mocked.getKeyStatus.mockResolvedValueOnce(null);
+      mocked.getAiSettings.mockResolvedValueOnce({ ...EMPTY_SETTINGS, defaultModelId: "openai/gpt-4o" });
+
+      renderSettingsScreen();
+      await screen.findByRole("checkbox", { name: "Enable AI for the open project" });
+
+      await user.click(screen.getByRole("checkbox", { name: "Enable AI for the open project" }));
+
+      expect(useProjectStore.getState().project?.meta.ai.modelId).toBe("vorion");
+    });
   });
 });

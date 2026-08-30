@@ -1,8 +1,16 @@
 import type { Entry, ProjectModel, StepState } from "../model";
-import { CommandPreconditionError, type Command, type RoundsSetCommand, type SignOffSetCommand } from "./types";
+import {
+  CommandPreconditionError,
+  type Command,
+  type MetaAiSetCommand,
+  type RoundsSetCommand,
+  type SignOffSetCommand,
+} from "./types";
 
-/** Every command this function handles carries a `stepId` — the two project-scoped ones are routed to `applyToProject` instead. */
-type StepScopedCommand = Exclude<Command, RoundsSetCommand | SignOffSetCommand>;
+/** Every command this function handles carries a `stepId` — the project-scoped ones are routed to `applyToProject` instead. */
+type StepScopedCommand = Exclude<Command, RoundsSetCommand | SignOffSetCommand | MetaAiSetCommand>;
+
+type ProjectScopedCommand = RoundsSetCommand | SignOffSetCommand | MetaAiSetCommand;
 
 /** D-71: array position is authoritative; every mutation ends by re-sequencing `order` to match it. */
 function resequence(entries: Entry[]): Entry[] {
@@ -77,18 +85,21 @@ function applyToStep(step: StepState, command: StepScopedCommand): StepState {
 }
 
 /**
- * D-149(6d): `rounds`/`signOff` live on `ProjectModel` itself, not inside
- * any `StepState` — the two project-scoped command types carry no `stepId`
- * at all, so they're applied here rather than routed into `applyToStep`.
- * No precondition check, the same posture `entry.update`'s `before` already
- * has (D-70 trusts the caller built `before` from state it just read).
+ * D-149(6d)/D-201: `rounds`/`signOff`/`meta.ai` live on `ProjectModel`
+ * itself, not inside any `StepState` — these project-scoped command types
+ * carry no `stepId` at all, so they're applied here rather than routed into
+ * `applyToStep`. No precondition check, the same posture `entry.update`'s
+ * `before` already has (D-70 trusts the caller built `before` from state it
+ * just read).
  */
-function applyToProject(project: ProjectModel, command: RoundsSetCommand | SignOffSetCommand): ProjectModel {
+function applyToProject(project: ProjectModel, command: ProjectScopedCommand): ProjectModel {
   switch (command.type) {
     case "rounds.set":
       return { ...project, rounds: [...command.after] };
     case "signOff.set":
       return { ...project, signOff: command.after };
+    case "meta.ai.set":
+      return { ...project, meta: { ...project.meta, ai: command.after } };
   }
 }
 
@@ -99,7 +110,7 @@ function applyToProject(project: ProjectModel, command: RoundsSetCommand | SignO
  * a mutation the dispatcher never saw.
  */
 export function applyCommand(project: ProjectModel, command: Command): ProjectModel {
-  if (command.type === "rounds.set" || command.type === "signOff.set") {
+  if (command.type === "rounds.set" || command.type === "signOff.set" || command.type === "meta.ai.set") {
     return applyToProject(project, command);
   }
   const step = project.steps[command.stepId];

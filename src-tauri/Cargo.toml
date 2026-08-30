@@ -47,8 +47,17 @@ keyring = "4"
 # Barış in his authenticated session, not assumed. Default features (kept
 # on, unlike most other deps here, because they include `default-tls` — HTTPS
 # needs a TLS backend) plus `json` and `multipart`, both opt-in on reqwest 0.13.
-reqwest = { version = "0.13", features = ["json", "multipart"] }
+# D-201: `stream` added for Streaming Prediction (SSE) — `Response::
+# bytes_stream()` is gated behind it (confirmed against reqwest 0.13.4's own
+# `Cargo.toml` feature table, not assumed).
+reqwest = { version = "0.13", features = ["json", "multipart", "stream"] }
+# D-201: only `StreamExt::next()` is needed to drive `bytes_stream()`'s
+# `futures_core::Stream` — reqwest already pulls this crate in transitively
+# at 0.3.33 (confirmed in `Cargo.lock`), declared directly here only because
+# a transitive dependency's items aren't nameable from this crate otherwise.
+futures-util = { version = "0.3", default-features = false, features = ["std"] }
 
 [dev-dependencies]
 calamine = "0.36.1"
+tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
 

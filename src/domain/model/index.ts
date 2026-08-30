@@ -30,5 +30,6 @@ export {
   type Person,
   type SignOffEntry,
   type SignOffState,
+  type AiMeta,
 } from "./projectModel";
 export { createNewProject, type CreateProjectParams, type NewProject } from "./createProject";

@@ -146,6 +146,19 @@
       "previewError": "Bu proje için A3 önizlemesi oluşturulamadı.",
       "previewLoading": "A3 önizlemesi hazırlanıyor…"
     },
+    "assistant": {
+      "noModelConfigured": "Bu proje için henüz bir model seçilmedi.",
+      "goToSettings": "Ayarlara git",
+      "promptLabel": "Asistana sor",
+      "promptPlaceholder": "Bir soru sor…",
+      "send": "Gönder",
+      "streaming": "Düşünüyor…",
+      "cancel": "İptal et",
+      "cancelling": "İptal ediliyor…",
+      "responseLabel": "Yanıt",
+      "accept": "Kabul et",
+      "reject": "Reddet"
+    },
     "entryDialog": {
       "createTitle": "Yeni giriş",
       "editTitle": "Girişi düzenle",
@@ -1150,7 +1163,11 @@
       "connectionError": "Hata: {{reason}}",
       "enableAssistance": "Yapay zeka desteğini etkinleştir",
       "noModelSelected": "Seçilmedi",
-      "replaceKeyPlaceholder": "Değiştirmek için yeni bir anahtar yapıştırın"
+      "replaceKeyPlaceholder": "Değiştirmek için yeni bir anahtar yapıştırın",
+      "debugProjectAiHeading": "Bu proje için AI'yi etkinleştir (debug)",
+      "debugProjectAiHint": "Geçici — New Project diyaloğunun kendi AI adımı (SPEC.md §8.5) gelene kadar; çalışma alanının Assistant sekmesinin açık proje üzerinde görünmesini sağlayan şey bu.",
+      "debugProjectAiLabel": "Açık proje için AI'yi etkinleştir",
+      "debugProjectAiNoProject": "Önce bir proje aç."
     }
   }
 }

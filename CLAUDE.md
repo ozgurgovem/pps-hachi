@@ -190,7 +190,7 @@ language is the real threat to this bar, and it is Oturum B's job.
 
 ## Current state
 
-Phase: 8 of 12 — Dilim 1 of 3 DONE 2026-08-30 (D-200), Dilim 2/3 not started. Phase 7
+Phase: 8 of 12 — Dilim 1/2 of 3 DONE (D-200 2026-08-30, D-201 2026-08-31), Dilim 3 not started. Phase 7
   (D-195's three slices G1/G2/G3) FULLY DONE 2026-08-23. Phase 6 (all five slices 6a–6e,
   plus 6e's own 6e-1/6e-2 split) fully closed 2026-08-19.
 **Faz 8 kapsam belirleme (D-199, 2026-08-30): no code.** Confirmed the 2026-08-23 pre-scan
@@ -278,9 +278,107 @@ Phase: 8 of 12 — Dilim 1 of 3 DONE 2026-08-30 (D-200), Dilim 2/3 not started. 
   Prediction (Dilim 2), any touch of Vorion's Agent/RAG/Marketplace surface (D-15/D-16,
   never sent `tool_ids`/`mcp_server_ids`/`agent_id`/`knowledge_base_ids`). Dilim 2's own
   launch prompt: `docs/oturumlar/faz8-dilim2-vorion-streaming.md`.
+**Faz 8 — Dilim 2 (streaming completion + Assistant chat panel + provenance): DONE
+  2026-08-31 (D-201).** §2.1's own documentation gate was run for real again: Barış shared
+  six screenshots from his authenticated `vorionai.com/docs` session (Streaming Prediction's
+  Parameters/Request Body/Response Schema tables, a cURL example, Cancel Prediction's
+  Parameters/Response Schema table, a cURL example) before any Rust `complete()` code was
+  written. **Real shape, confirmed rather than assumed**: Streaming Prediction (`POST
+  /llm/api/v1/prediction/predict/stream`) shares Synchronous's `multipart/form-data`+`data`
+  request shape, but its `text/event-stream` response has no token counts anywhere (unlike
+  Synchronous) — `CompletionMeta` deliberately carries none, matching §8.12's own Faz 9/10
+  scoping. Each SSE frame: `conversation_id`/`stream_id` (first frame only)/`chunk_index`/
+  `chunk`/`is_final`/`round_number`/`message_id` (only when `is_final`)/`error`/
+  `tool_progress`/`rag_sources` (the last two always null in this app's traffic — D-15/D-16's
+  boundary means `tool_ids`/`mcp_server_ids`/`knowledge_base_ids` are never sent). Cancel
+  Prediction (`POST /llm/api/v1/prediction/predict/cancel`) is the one Prediction-family
+  exception — plain `application/json`, not multipart. The docs also show a
+  `/stream/resume/:stream_id` reconnect mechanism (more robust than this dilim's own
+  Cancel-only interruption handling) — real, documented, deliberately not built (**P-48**,
+  out of this dilim's own done-criteria).
+  **Rust** (`src-tauri/src/ai/`): `provider.rs` gained `complete()`/`cancel()` on
+  `LlmProvider` plus `CompletionRequest`/`StreamEvent` (`Started`/`Chunk`/`Done`/`Error`,
+  camelCase-serialized for the TS side)/`CompletionMeta`/`CancelResult`; `vorion.rs` gained
+  the real implementation — `drain_sse_events` (pure, operates on `Vec<u8>`, splits on `\n\n`
+  byte boundaries) + `strip_carriage_returns`. **A real bug caught while writing the code,
+  before any test ran**: the first draft decoded each network chunk to UTF-8 independently
+  (`String::from_utf8_lossy` per `bytes_stream()` item) before concatenating — a Turkish
+  character (ğ/ş/ç/ö/ü, multi-byte UTF-8) split exactly across two network reads would have
+  corrupted into U+FFFD on both halves, a direct hit against this file's own "Turkish
+  characters... will be tested with real Turkish data" warning. Fixed by buffering raw bytes
+  and only decoding a complete, `\n\n`-bounded (always-ASCII-boundary) event slice — a
+  regression test (`drain_sse_events_reassembles_a_turkish_character_split_across_two_network_reads`)
+  deliberately splits `"değil"`'s `ğ` mid-character across two simulated reads to prove it.
+  **A second real bug, this one caught by the tests themselves**: `StreamChunkPayload`/
+  `CancelResult` were first given `#[serde(rename_all = "camelCase")]`, wrongly copied from
+  the TS-facing types — they actually deserialize Vorion's real `snake_case` wire shape,
+  and `cargo test` failed 4 tests with a genuine `missing field "conversationId"` error.
+  Fixed by re-applying the same wire-shape/TS-shape split `LlmListItem`→`model_info_from_item`
+  (D-200) already established: `StreamChunkPayload` stays plain snake_case, a new
+  `CancelPredictionResponse` (snake_case, Deserialize-only) is mapped into the TS-facing
+  `CancelResult` by `cancel_result_from_response`. New Cargo deps, both verified against
+  source: `reqwest`'s `stream` feature (gates `bytes_stream()`), `futures-util` (only for
+  `StreamExt::next()`; already a transitive dep at 0.3.33, confirmed in `Cargo.lock`). Two
+  new `AiError` variants: `StreamFailed(String)` (Vorion's own `error` field or a failed HTTP
+  status), `StreamIncomplete` (the connection ended with no `is_final` frame ever received —
+  SPEC.md §8.14's "partial content is discarded, not half-written into a proposal," applied
+  literally).
+  **TypeScript**: new `src/ai/completionIpc.ts` — `completeStreaming(prompt, modelId,
+  onEvent)` (builds a `Channel<StreamEvent>`, the returned promise resolves only once a real
+  final frame arrives) + `cancelCompletion(conversationId, streamId)`. New
+  `src/app/routes/workspace/AssistantPanel.tsx`, wired into `RightPanel`'s third tab in
+  place of the old `{null}`: D-15/D-16 apply in full — the streamed response is only shown,
+  no path writes to `ProjectModel` automatically. The SPEC-listed "Accept / Edit & Accept /
+  Reject" triad was deliberately collapsed to **one editable textarea + Accept + Reject** —
+  the textarea's content differing from the original streamed text automatically selects
+  `origin: "ai-edited"` vs `"ai-accepted"`, while Accept itself stays the one required human
+  gate, both the letter and the spirit of D-15 intact. An accepted response becomes a
+  `generic-text` entry (D-82, valid on all 8 steps) on the currently active step; **the
+  title is the user's own prompt, the body is the response** — the first draft used the
+  response text for both (a title that was just a copy of its own body), caught and fixed
+  while writing the code, now reads as a real Q&A pair. `Provenance.model.promptVersion` has
+  no real versioned prompt file to point at yet (§8.7 is Faz 9) — a `"bare-chat-v1"` literal
+  stands in, honestly naming "this dilim's bare-chat code path" rather than inventing a fake
+  version. `acceptedBy` is filled from `project.meta.owner.name` rather than inventing a new
+  identity-entry flow. `editDistance` (§8.13) is **not computed** this dilim — a real
+  normalized distance measure was out of budget, the field stays optional, filed as **P-47**.
+  **Debug enablement**: no real UI sets `project.meta.ai.enabled` yet (§8.5's New Project AI
+  step is out of scope, and this dilim's own launch prompt said to ask Barış how to test) —
+  `AskUserQuestion`, Barış's recommended option: a small, explicitly temporary, dashed-border
+  "Enable AI for this project (debug)" section in `SettingsScreen`, never overwriting a model
+  the project already has, falling back to `AiSettings.defaultModelId` otherwise. This needed
+  **one new mechanism**: `Command` gained `meta.ai.set` (D-58's `rounds.set`/`signOff.set`
+  precedent — project-level, no `stepId`; `applyCommand`/`invertCommand`/`applyToProject` all
+  extended), `buildSetAiMetaCommand` (`builders.ts`), a new `AiMeta` type export
+  (`ProjectModel["meta"]["ai"]`). `buildAddEntryCommand`'s `AddEntryInput` also gained an
+  optional `provenance` field (omitted still means `{origin: "human"}` — every pre-existing
+  call site stays byte-identical); the Assistant's Accept is the first caller to set it
+  explicitly.
+  **Key-leak re-verified** (§2.6's own done-criterion): the new `ai_complete`/`ai_cancel`
+  commands never touch `write_ppsx` (Dilim 1's `a_saved_key_never_appears_in_a_produced_ppsx_file`
+  still passes, same code path untouched), and the raw key never crosses into the streamed
+  response at all — only `prompt`/`modelId`/`channel` cross the IPC boundary, the key stays
+  server-side, read from the keychain inside Rust. No new leak surface.
+  `npm test` 1206/1206 (270 files, up from 1179/1179 at 268 — 27 new tests:
+  `completionIpc.test.ts`'s 5, `AssistantPanel.test.tsx`'s 11, `builders.test.ts`/
+  `applyCommand.test.ts`'s 6 combined, `SettingsScreen.test.tsx`'s +5), exit code 0 (checked,
+  not piped through `tail`). `npm run lint` clean (the one pre-existing `ThemeProvider`
+  warning). `npm run build` green (same pre-existing chunk-size warning). `cargo test`
+  136/136 (up from 123 — 13 new), `cargo clippy --all-targets -- -D warnings` and `cargo fmt
+  -- --check` both clean. `scripts/gen-a3-fixture.ts` not re-run — this dilim touched no
+  template style, `A3ImageKind`, or `AiMetaSchema`'s own Zod shape (only a derived TS type +
+  a new Command type), fixtures unaffected. **Honestly unverified**, same class of gap as
+  D-105/D-113/D-136/D-200: this environment has no display/Tauri runtime — a real stream
+  actually arriving token-by-token from real `vorionai.com`, and a real Cancel actually
+  closing an SSE connection, were never tried in this session; Barış's own
+  `npm run tauri dev` round-trip with a real key+model is still owed. Deliberately not built
+  this dilim: Resume Stream/reconnect (P-48), `editDistance` computation (P-47), Dilim 3
+  (Playwright), §8.5's real New Project AI step (the debug toggle is an explicit bridge, not
+  the real thing), any touch of Vorion's Agent/RAG/Marketplace surface (D-15/D-16, untouched).
 Stack decision (Tauri vs Electron fallback): Tauri v2, revisit only if Phase 4 stalls
 App name: **PPS Hachi** (八 — eight). Repo `pps-hachi`. Set 2026-08-01, see DECISIONS.md D-29.
-AI layer: Dilim 1 of Faz 8 done (keychain + Vorion connection/model-discovery). Faz 9–10 not started.
+AI layer: Dilim 1/2 of Faz 8 done (keychain + Vorion connection/model-discovery + streaming
+  completion/Assistant chat panel/provenance). Dilim 3 (Playwright) + Faz 9–10 not started.
 Templates: two company .xls files analysed; see reference/TEMPLATE_ANALYSIS.md
 Template geometry: VERIFIED 2026-08-01 against both .xls files. Five errors found and
   corrected in place — the largest was the column widths: the real split is 49.7/50.3, NOT

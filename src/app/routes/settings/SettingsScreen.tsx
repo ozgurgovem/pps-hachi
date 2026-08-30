@@ -12,6 +12,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../../../ui";
+import { buildSetAiMetaCommand } from "../../../domain/commands";
+import { useProjectStore } from "../../../state";
 import { errorMessage } from "../launch/errorMessage";
 import {
   getAiSettings,
@@ -45,6 +47,8 @@ type KeyState = { status: "loading" } | { status: "unset" } | { status: "set"; m
  */
 export function SettingsScreen() {
   const { t } = useTranslation();
+  const project = useProjectStore((s) => s.project);
+  const dispatch = useProjectStore((s) => s.dispatch);
   const [keyState, setKeyState] = useState<KeyState>({ status: "loading" });
   const [keyInput, setKeyInput] = useState("");
   const [keyActionError, setKeyActionError] = useState<string | null>(null);
@@ -145,6 +149,29 @@ export function SettingsScreen() {
     } finally {
       setIsTestingConnection(false);
     }
+  }
+
+  /**
+   * D-201: temporary debug control — §8.5's real New Project AI step (enable/
+   * provider/model/redaction choice at project creation) doesn't exist yet,
+   * so this is the only way to get `project.meta.ai.enabled` to `true` and
+   * make the workspace's Assistant tab appear. Falls back to the global
+   * default model (Settings' own `defaultModelId`) only when the project
+   * doesn't already have one — never overwrites a model already chosen.
+   */
+  function handleToggleProjectAi(checked: boolean) {
+    if (!project) {
+      return;
+    }
+    const nextModelId = project.meta.ai.modelId ?? settings?.defaultModelId ?? undefined;
+    dispatch(
+      buildSetAiMetaCommand(project, {
+        enabled: checked,
+        providerId: "vorion",
+        redaction: project.meta.ai.redaction,
+        ...(nextModelId === undefined ? undefined : { modelId: nextModelId }),
+      }),
+    );
   }
 
   return (
@@ -318,6 +345,25 @@ export function SettingsScreen() {
             />
             <Label htmlFor="ai-enabled">{t("settings.ai.enableAssistance")}</Label>
           </div>
+        )}
+      </section>
+
+      {/* D-201: temporary, removed once SPEC.md §8.5's real New Project AI
+          step ships — see `handleToggleProjectAi`'s own comment. */}
+      <section className="flex flex-col gap-2 rounded-control border border-dashed border-border bg-surface-raised p-6">
+        <h2 className="font-display text-lg text-ink">{t("settings.ai.debugProjectAiHeading")}</h2>
+        <p className="font-body text-sm text-ink-muted">{t("settings.ai.debugProjectAiHint")}</p>
+        {project ? (
+          <div className="flex items-center gap-2 pt-2">
+            <Checkbox
+              id="ai-project-enabled-debug"
+              checked={project.meta.ai.enabled}
+              onCheckedChange={(checked) => handleToggleProjectAi(checked === true)}
+            />
+            <Label htmlFor="ai-project-enabled-debug">{t("settings.ai.debugProjectAiLabel")}</Label>
+          </div>
+        ) : (
+          <p className="font-body text-sm text-ink-muted">{t("settings.ai.debugProjectAiNoProject")}</p>
         )}
       </section>
     </main>

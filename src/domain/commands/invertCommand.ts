@@ -21,5 +21,7 @@ export function invertCommand(command: Command): Command {
       return { ...command, before: command.after, after: command.before };
     case "signOff.set":
       return { ...command, before: command.after, after: command.before };
+    case "meta.ai.set":
+      return { ...command, before: command.after, after: command.before };
   }
 }

@@ -1,8 +1,12 @@
+use tauri::ipc::Channel;
 use tauri::{AppHandle, Manager};
 
 use super::error::AiError;
 use super::keychain::{masked_preview, KeyringSecretStore, SecretStore};
-use super::provider::{ConnectionStatus, LlmProvider, ModelInfo};
+use super::provider::{
+    CancelResult, CompletionMeta, CompletionRequest, ConnectionStatus, LlmProvider, ModelInfo,
+    StreamEvent,
+};
 use super::settings::{self, AiSettings};
 use super::vorion::VorionProvider;
 
@@ -75,6 +79,47 @@ pub async fn ai_list_models() -> Result<Vec<ModelInfo>, String> {
         .ok_or_else(|| AiError::NoKeyConfigured.to_string())?;
     VorionProvider::new(api_key)
         .list_models()
+        .await
+        .map_err(|e| e.to_string())
+}
+
+/// D-201: `prompt`/`model_id` cross the IPC boundary as plain `#[tauri::
+/// command]` arguments (same posture as `ai_test_connection`'s `model_id`),
+/// `channel` is Tauri's own convention for a command that streams progress
+/// back before its promise resolves. Never touches `ProjectModel` — D-15's
+/// LOCKED rule means only an explicit Accept in the frontend can do that;
+/// this command's only job is to get Vorion's tokens onto the wire.
+#[tauri::command]
+pub async fn ai_complete(
+    prompt: String,
+    model_id: String,
+    channel: Channel<StreamEvent>,
+) -> Result<CompletionMeta, String> {
+    let api_key = KeyringSecretStore
+        .get()
+        .map_err(|e| e.to_string())?
+        .ok_or_else(|| AiError::NoKeyConfigured.to_string())?;
+    VorionProvider::new(api_key)
+        .complete(CompletionRequest { prompt, model_id }, channel)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+/// SPEC.md §8.14 "Stream interrupted mid-response": the frontend calls this
+/// once it has captured `conversationId`/`streamId` off the first
+/// `StreamEvent::Started` — Cancel Prediction is a plain request/response,
+/// no channel involved.
+#[tauri::command]
+pub async fn ai_cancel(
+    conversation_id: String,
+    stream_id: Option<String>,
+) -> Result<CancelResult, String> {
+    let api_key = KeyringSecretStore
+        .get()
+        .map_err(|e| e.to_string())?
+        .ok_or_else(|| AiError::NoKeyConfigured.to_string())?;
+    VorionProvider::new(api_key)
+        .cancel(&conversation_id, stream_id.as_deref())
         .await
         .map_err(|e| e.to_string())
 }

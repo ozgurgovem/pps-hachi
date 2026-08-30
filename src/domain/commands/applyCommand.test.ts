@@ -299,6 +299,13 @@ describe("invertCommand", () => {
     const command: Command = { type: "signOff.set", before, after, undoable: true };
     expect(invertCommand(command)).toEqual({ ...command, before: after, after: before });
   });
+
+  it("meta.ai.set inverts by swapping before/after (D-201)", () => {
+    const before = { enabled: false, redaction: {} };
+    const after = { enabled: true, providerId: "vorion" as const, modelId: "openai/gpt-4o", redaction: {} };
+    const command: Command = { type: "meta.ai.set", before, after, undoable: true };
+    expect(invertCommand(command)).toEqual({ ...command, before: after, after: before });
+  });
 });
 
 describe("applyCommand — rounds.set", () => {
@@ -337,5 +344,33 @@ describe("applyCommand — signOff.set", () => {
     const next = applyCommand(project, command);
 
     expect(next.signOff).toEqual(after);
+  });
+});
+
+describe("applyCommand — meta.ai.set (D-201)", () => {
+  it("replaces project.meta.ai with the command's after value, leaving the rest of meta untouched", () => {
+    const project = makeProject([]);
+    const after = { enabled: true, providerId: "vorion" as const, modelId: "openai/gpt-4o", redaction: {} };
+    const command: Command = { type: "meta.ai.set", before: project.meta.ai, after, undoable: true };
+
+    const next = applyCommand(project, command);
+
+    expect(next.meta.ai).toEqual(after);
+    expect(next.meta.title).toBe(project.meta.title);
+  });
+
+  it("does not mutate the original project", () => {
+    const project = makeProject([]);
+    const before = JSON.parse(JSON.stringify(project));
+    const command: Command = {
+      type: "meta.ai.set",
+      before: project.meta.ai,
+      after: { enabled: true, redaction: {} },
+      undoable: true,
+    };
+
+    applyCommand(project, command);
+
+    expect(project).toEqual(before);
   });
 });

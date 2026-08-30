@@ -1,8 +1,13 @@
+use futures_util::StreamExt;
 use serde::{Deserialize, Serialize};
 use std::time::Instant;
+use tauri::ipc::Channel;
 
 use super::error::AiError;
-use super::provider::{ConnectionStatus, LlmProvider, ModelInfo};
+use super::provider::{
+    CancelResult, CompletionMeta, CompletionRequest, ConnectionStatus, LlmProvider, ModelInfo,
+    StreamEvent,
+};
 
 /// Confirmed against the real `vorionai.com/docs` "Synchronous Prediction"
 /// reference (Barış's authenticated session, 2026-08-30) — not assumed. The
@@ -67,6 +72,103 @@ struct LlmListItem {
 #[derive(Debug, Deserialize)]
 struct ListLlmsResponse {
     items: Vec<LlmListItem>,
+}
+
+/// One parsed SSE frame's JSON payload, matching Vorion's real Streaming
+/// Prediction response schema (Barış's authenticated session, 2026-08-31) —
+/// not assumed. Fields this adapter never reads (`round_number`,
+/// `tool_progress`, `rag_sources`) are simply absent from this struct;
+/// `serde` ignores unknown JSON fields by default (the same posture
+/// `LlmListItem` already takes on "List LLMs"), so their presence in the
+/// real wire payload is harmless.
+#[derive(Debug, Deserialize)]
+struct StreamChunkPayload {
+    conversation_id: String,
+    #[serde(default)]
+    stream_id: Option<String>,
+    #[serde(default)]
+    chunk: String,
+    #[serde(default)]
+    is_final: bool,
+    #[serde(default)]
+    message_id: Option<String>,
+    #[serde(default)]
+    error: Option<String>,
+}
+
+/// Strips every `\r` byte from a raw network chunk before it joins the
+/// accumulation buffer, so the buffer only ever needs to recognise `\n\n`
+/// as an SSE event boundary (the spec permits `\r\n`, `\n`, or bare `\r` as
+/// a line terminator; valid JSON can never itself contain a raw, unescaped
+/// `\r` byte, so this can never corrupt a chunk's real text). Safe at the
+/// byte level for any UTF-8 payload, including Turkish text: `\r` (0x0D) is
+/// ASCII and can never appear as a continuation byte of a multi-byte
+/// sequence, so removing it never splits one.
+fn strip_carriage_returns(bytes: &[u8]) -> Vec<u8> {
+    bytes.iter().copied().filter(|&b| b != b'\r').collect()
+}
+
+/// Drains every *complete* SSE event (terminated by a blank line, per the
+/// `text/event-stream` spec — https://html.spec.whatwg.org/multipage/
+/// server-sent-events.html) out of `buffer`, leaving any trailing partial
+/// event for the next network read to complete. Operates on raw bytes
+/// rather than a `String`: a network read can split a multi-byte UTF-8
+/// character (Turkish ğ/ş/ç/ö/ü included) across two `bytes_stream()` items,
+/// and decoding each item independently before concatenating would corrupt
+/// it — see `strip_carriage_returns`'s doc comment for why draining on a
+/// `\n\n` byte boundary is always UTF-8-safe. Only `data:` lines are read;
+/// an `event:`/`id:`/`retry:` line or a `:`-prefixed comment (Vorion's docs
+/// show none of these for this endpoint, but the SSE spec allows any of
+/// them) is silently skipped rather than treated as an error — the same
+/// "unknown fields are ignored" posture `StreamChunkPayload` already takes
+/// one layer up. Multiple `data:` lines within one event are joined with
+/// `\n`, per spec, though Vorion's own examples only ever show one.
+fn drain_sse_events(buffer: &mut Vec<u8>) -> Vec<String> {
+    let mut events = Vec::new();
+    while let Some(boundary) = buffer.windows(2).position(|w| w == b"\n\n") {
+        let raw_event_bytes: Vec<u8> = buffer.drain(..boundary + 2).collect();
+        let raw_event = String::from_utf8_lossy(&raw_event_bytes);
+        let data = raw_event
+            .lines()
+            .filter_map(|line| line.strip_prefix("data:"))
+            .map(|value| value.strip_prefix(' ').unwrap_or(value))
+            .collect::<Vec<_>>()
+            .join("\n");
+        if !data.is_empty() {
+            events.push(data);
+        }
+    }
+    events
+}
+
+#[derive(Debug, Serialize)]
+struct CancelPredictionRequest {
+    conversation_id: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    stream_id: Option<String>,
+    reason: String,
+}
+
+/// Only the fields this adapter reads from Cancel Prediction's real
+/// response (Barış's authenticated session, 2026-08-31) — `conversation_id`/
+/// `stream_id` just echo the caller's own request back, so they're not
+/// captured here. Kept snake_case (Vorion's real wire shape) and mapped into
+/// the TS-facing, camelCase `CancelResult` by `cancel_result_from_response`,
+/// the same wire-shape/TS-shape split `LlmListItem`→`model_info_from_item`
+/// already establishes one type over.
+#[derive(Debug, Deserialize)]
+struct CancelPredictionResponse {
+    success: bool,
+    message: String,
+    partial_response_saved: bool,
+}
+
+fn cancel_result_from_response(response: CancelPredictionResponse) -> CancelResult {
+    CancelResult {
+        success: response.success,
+        message: response.message,
+        partial_response_saved: response.partial_response_saved,
+    }
 }
 
 fn model_info_from_item(item: LlmListItem) -> ModelInfo {
@@ -168,6 +270,117 @@ impl LlmProvider for VorionProvider {
                 error: Some(err.to_string()),
             },
         })
+    }
+
+    /// D-201: Streaming Prediction — `multipart/form-data` request (same
+    /// `data` shape as Synchronous/`test_connection`), `text/event-stream`
+    /// response, parsed by hand via `reqwest::bytes_stream()` (D-200
+    /// deliberately skipped adding an SSE crate; this dilim tried the manual
+    /// parse first, per its own §2.2 note, and it stayed simple enough that
+    /// no crate was warranted).
+    async fn complete(
+        &self,
+        req: CompletionRequest,
+        tx: Channel<StreamEvent>,
+    ) -> Result<CompletionMeta, AiError> {
+        let (llm_name, llm_group_name) = split_model_id(&req.model_id);
+        let request = PredictionRequest {
+            prompt: PredictionPrompt { text: req.prompt },
+            llm_name,
+            llm_group_name,
+        };
+        let data = serde_json::to_string(&request)?;
+        let form = reqwest::multipart::Form::new().text("data", data);
+
+        let response = self
+            .http
+            .post(format!("{BASE_URL}/prediction/predict/stream"))
+            .header("x-api-key", &self.api_key)
+            .multipart(form)
+            .send()
+            .await?;
+
+        if !response.status().is_success() {
+            let status = response.status().as_u16();
+            let body = response.text().await.unwrap_or_default();
+            let message = format!("{status}: {body}");
+            let _ = tx.send(StreamEvent::Error {
+                message: message.clone(),
+            });
+            return Err(AiError::StreamFailed(message));
+        }
+
+        let mut byte_stream = response.bytes_stream();
+        let mut buffer: Vec<u8> = Vec::new();
+        let mut started_sent = false;
+        let mut final_meta: Option<CompletionMeta> = None;
+
+        while let Some(next) = byte_stream.next().await {
+            let bytes = next?;
+            buffer.extend(strip_carriage_returns(&bytes));
+
+            for raw_event in drain_sse_events(&mut buffer) {
+                let payload: StreamChunkPayload = serde_json::from_str(&raw_event)?;
+
+                if !started_sent {
+                    started_sent = true;
+                    let _ = tx.send(StreamEvent::Started {
+                        conversation_id: payload.conversation_id.clone(),
+                        stream_id: payload.stream_id.clone(),
+                    });
+                }
+
+                if let Some(message) = payload.error {
+                    let _ = tx.send(StreamEvent::Error {
+                        message: message.clone(),
+                    });
+                    return Err(AiError::StreamFailed(message));
+                }
+
+                if !payload.chunk.is_empty() {
+                    let _ = tx.send(StreamEvent::Chunk {
+                        text: payload.chunk,
+                    });
+                }
+
+                if payload.is_final {
+                    let meta = CompletionMeta {
+                        conversation_id: payload.conversation_id,
+                        stream_id: payload.stream_id,
+                        message_id: payload.message_id,
+                    };
+                    let _ = tx.send(StreamEvent::Done { meta: meta.clone() });
+                    final_meta = Some(meta);
+                }
+            }
+        }
+
+        final_meta.ok_or(AiError::StreamIncomplete)
+    }
+
+    /// Cancel Prediction — plain JSON, unlike every Prediction endpoint
+    /// (confirmed against the real reference: `Content-Type:
+    /// application/json`, not multipart).
+    async fn cancel(
+        &self,
+        conversation_id: &str,
+        stream_id: Option<&str>,
+    ) -> Result<CancelResult, AiError> {
+        let request = CancelPredictionRequest {
+            conversation_id: conversation_id.to_string(),
+            stream_id: stream_id.map(|s| s.to_string()),
+            reason: "user_cancelled".to_string(),
+        };
+        let response: CancelPredictionResponse = self
+            .http
+            .post(format!("{BASE_URL}/prediction/predict/cancel"))
+            .header("x-api-key", &self.api_key)
+            .json(&request)
+            .send()
+            .await?
+            .json()
+            .await?;
+        Ok(cancel_result_from_response(response))
     }
 }
 
@@ -312,6 +525,222 @@ mod tests {
                 name: "GPT-4o".to_string(),
                 provider: "openai".to_string(),
             }]
+        );
+    }
+
+    // D-201: `drain_sse_events`/`StreamChunkPayload` are pure and tested
+    // directly, the same posture D-200's `split_model_id`/`model_info_from_item`
+    // already took — no mock HTTP server is introduced for `complete()`/
+    // `cancel()` themselves, matching this crate's existing convention of
+    // never mocking `reqwest` (D-200 didn't either).
+
+    #[test]
+    fn drain_sse_events_extracts_a_single_complete_event() {
+        let mut buffer = b"data: {\"chunk\":\"hi\"}\n\n".to_vec();
+
+        let events = drain_sse_events(&mut buffer);
+
+        assert_eq!(events, vec!["{\"chunk\":\"hi\"}".to_string()]);
+        assert_eq!(buffer, Vec::<u8>::new());
+    }
+
+    #[test]
+    fn drain_sse_events_leaves_a_trailing_partial_event_buffered() {
+        let mut buffer = b"data: {\"chunk\":\"hi\"}\n\ndata: {\"chunk\":\"partial".to_vec();
+
+        let events = drain_sse_events(&mut buffer);
+
+        assert_eq!(events, vec!["{\"chunk\":\"hi\"}".to_string()]);
+        assert_eq!(buffer, b"data: {\"chunk\":\"partial".to_vec());
+    }
+
+    #[test]
+    fn drain_sse_events_joins_multiple_data_lines_in_one_event_with_newline() {
+        let mut buffer = b"data: line one\ndata: line two\n\n".to_vec();
+
+        let events = drain_sse_events(&mut buffer);
+
+        assert_eq!(events, vec!["line one\nline two".to_string()]);
+    }
+
+    #[test]
+    fn drain_sse_events_ignores_non_data_lines_and_comments() {
+        let mut buffer = b"event: ping\n: keepalive\ndata: {\"chunk\":\"hi\"}\n\n".to_vec();
+
+        let events = drain_sse_events(&mut buffer);
+
+        assert_eq!(events, vec!["{\"chunk\":\"hi\"}".to_string()]);
+    }
+
+    #[test]
+    fn drain_sse_events_returns_nothing_for_an_empty_buffer() {
+        let mut buffer: Vec<u8> = Vec::new();
+
+        assert_eq!(drain_sse_events(&mut buffer), Vec::<String>::new());
+    }
+
+    #[test]
+    fn strip_carriage_returns_removes_every_cr_byte() {
+        let stripped = strip_carriage_returns(b"data: hi\r\n\r\n");
+
+        assert_eq!(stripped, b"data: hi\n\n".to_vec());
+    }
+
+    /// The regression this whole byte-buffer design exists to prevent:
+    /// decoding each network chunk to UTF-8 independently, before
+    /// concatenating, would corrupt a Turkish character split across two
+    /// `bytes_stream()` reads. `ğ` (U+011F) encodes as the two bytes
+    /// `0xC4 0x9F` — this test splits exactly between them, simulating two
+    /// separate network reads, and proves the byte-level buffer reassembles
+    /// it correctly before any UTF-8 decoding happens.
+    #[test]
+    fn drain_sse_events_reassembles_a_turkish_character_split_across_two_network_reads() {
+        let full_event = "data: {\"chunk\":\"değil\"}\n\n".as_bytes().to_vec();
+        let split_point = full_event
+            .windows(2)
+            .position(|w| w == [0xC4, 0x9F])
+            .expect("the test fixture must contain the two-byte ğ encoding")
+            + 1;
+        let (first_read, second_read) = full_event.split_at(split_point);
+
+        let mut buffer: Vec<u8> = Vec::new();
+        buffer.extend(strip_carriage_returns(first_read));
+        assert_eq!(drain_sse_events(&mut buffer), Vec::<String>::new());
+
+        buffer.extend(strip_carriage_returns(second_read));
+        let events = drain_sse_events(&mut buffer);
+
+        assert_eq!(events, vec!["{\"chunk\":\"değil\"}".to_string()]);
+    }
+
+    /// Deserializes a chunk shaped exactly like Vorion's real Streaming
+    /// Prediction response schema (Barış's authenticated session,
+    /// 2026-08-31), including fields this adapter never reads
+    /// (`round_number`, `tool_progress`, `rag_sources`), proving they're
+    /// safely ignored rather than only asserting it in a comment.
+    #[test]
+    fn stream_chunk_payload_deserializes_from_the_real_documented_shape() {
+        let body = serde_json::json!({
+            "conversation_id": "550e8400-e29b-41d4-a716-446655440000",
+            "stream_id": "str-abc123",
+            "chunk_index": 0,
+            "chunk": "Hello",
+            "is_final": false,
+            "round_number": 0,
+            "message_id": null,
+            "error": null,
+            "tool_progress": null,
+            "rag_sources": null
+        })
+        .to_string();
+
+        let payload: StreamChunkPayload = serde_json::from_str(&body).unwrap();
+
+        assert_eq!(
+            payload.conversation_id,
+            "550e8400-e29b-41d4-a716-446655440000"
+        );
+        assert_eq!(payload.stream_id, Some("str-abc123".to_string()));
+        assert_eq!(payload.chunk, "Hello");
+        assert!(!payload.is_final);
+        assert_eq!(payload.message_id, None);
+        assert_eq!(payload.error, None);
+    }
+
+    /// The final frame: `chunk` empty, `is_final: true`, `message_id`
+    /// populated — per the docs' own "after this, `message_id` and
+    /// `rag_sources` are populated" note.
+    #[test]
+    fn stream_chunk_payload_deserializes_a_final_frame() {
+        let body = serde_json::json!({
+            "conversation_id": "550e8400-e29b-41d4-a716-446655440000",
+            "stream_id": "str-abc123",
+            "chunk": "",
+            "is_final": true,
+            "message_id": "msg-999"
+        })
+        .to_string();
+
+        let payload: StreamChunkPayload = serde_json::from_str(&body).unwrap();
+
+        assert!(payload.is_final);
+        assert_eq!(payload.message_id, Some("msg-999".to_string()));
+    }
+
+    /// A stream-level failure, e.g. `context_length_exceeded` — the docs'
+    /// own example error.
+    #[test]
+    fn stream_chunk_payload_deserializes_an_error_frame() {
+        let body = serde_json::json!({
+            "conversation_id": "550e8400-e29b-41d4-a716-446655440000",
+            "chunk": "",
+            "is_final": true,
+            "error": "context_length_exceeded"
+        })
+        .to_string();
+
+        let payload: StreamChunkPayload = serde_json::from_str(&body).unwrap();
+
+        assert_eq!(payload.error, Some("context_length_exceeded".to_string()));
+    }
+
+    #[test]
+    fn cancel_prediction_request_serializes_with_vorions_exact_field_names() {
+        let request = CancelPredictionRequest {
+            conversation_id: "550e8400-e29b-41d4-a716-446655440000".to_string(),
+            stream_id: Some("str-abc123".to_string()),
+            reason: "user_cancelled".to_string(),
+        };
+
+        let json = serde_json::to_value(&request).unwrap();
+
+        assert_eq!(
+            json["conversation_id"],
+            "550e8400-e29b-41d4-a716-446655440000"
+        );
+        assert_eq!(json["stream_id"], "str-abc123");
+        assert_eq!(json["reason"], "user_cancelled");
+    }
+
+    #[test]
+    fn cancel_prediction_request_omits_stream_id_when_absent_rather_than_sending_null() {
+        let request = CancelPredictionRequest {
+            conversation_id: "550e8400-e29b-41d4-a716-446655440000".to_string(),
+            stream_id: None,
+            reason: "user_cancelled".to_string(),
+        };
+
+        let json = serde_json::to_value(&request).unwrap();
+
+        assert!(!json.as_object().unwrap().contains_key("stream_id"));
+    }
+
+    /// Deserializes a response shaped exactly like Vorion's real Cancel
+    /// Prediction reference, including fields this adapter never reads
+    /// (`conversation_id`, `stream_id` echo back the caller's own input),
+    /// then maps it into the TS-facing `CancelResult`.
+    #[test]
+    fn cancel_result_deserializes_from_the_real_documented_shape() {
+        let body = serde_json::json!({
+            "success": true,
+            "conversation_id": "550e8400-e29b-41d4-a716-446655440000",
+            "stream_id": "str-abc123",
+            "message": "Prediction cancelled",
+            "partial_response_saved": true,
+            "message_id": "msg-999"
+        })
+        .to_string();
+
+        let response: CancelPredictionResponse = serde_json::from_str(&body).unwrap();
+        let result = cancel_result_from_response(response);
+
+        assert_eq!(
+            result,
+            CancelResult {
+                success: true,
+                message: "Prediction cancelled".to_string(),
+                partial_response_saved: true,
+            }
         );
     }
 }

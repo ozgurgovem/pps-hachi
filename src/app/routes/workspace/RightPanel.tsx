@@ -7,6 +7,7 @@ import { HtmlA3Renderer } from "../../../a3/render/HtmlA3Renderer";
 import type { A3LayoutDescriptor } from "../../../a3/descriptor";
 import { openOrFocusA3PreviewWindow, listenForPreviewReady, pushDescriptorToPreviewWindow } from "../a3PreviewWindow/window";
 import { errorMessage } from "../launch/errorMessage";
+import { AssistantPanel } from "./AssistantPanel";
 import { buildProjectA3Layout } from "./a3Preview";
 import { TraceabilityView } from "./TraceabilityView";
 import { xlsxExport } from "./xlsxIpc";
@@ -205,7 +206,11 @@ export function RightPanel() {
         <TabsContent value="traceability">
           <TraceabilityView />
         </TabsContent>
-        {aiEnabled && <TabsContent value="assistant">{null}</TabsContent>}
+        {aiEnabled && (
+          <TabsContent value="assistant">
+            <AssistantPanel />
+          </TabsContent>
+        )}
       </TabsRoot>
     </aside>
   );

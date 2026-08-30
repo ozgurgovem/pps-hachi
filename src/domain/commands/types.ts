@@ -1,4 +1,4 @@
-import type { A3Visibility, Entry, Round, SignOffState, StepId } from "../model";
+import type { A3Visibility, AiMeta, Entry, Round, SignOffState, StepId } from "../model";
 
 /**
  * D-70: every mutation to `ProjectModel` is one of these, dispatched through
@@ -78,6 +78,20 @@ export interface SignOffSetCommand extends BaseCommand {
   readonly after: SignOffState;
 }
 
+/**
+ * D-201: project-level, same reasoning as `RoundsSetCommand`/
+ * `SignOffSetCommand`. A **temporary** debug-only command — the Settings
+ * screen's "Enable AI for this project" toggle is standing in for §8.5's
+ * real New Project AI step, which does not exist yet; both the toggle and
+ * this command type get removed once that step ships (see
+ * `SettingsScreen.tsx`'s own comment).
+ */
+export interface MetaAiSetCommand extends BaseCommand {
+  readonly type: "meta.ai.set";
+  readonly before: AiMeta;
+  readonly after: AiMeta;
+}
+
 export type Command =
   | EntryInsertCommand
   | EntryRemoveCommand
@@ -85,7 +99,8 @@ export type Command =
   | EntrySetA3VisibilityCommand
   | EntriesReorderCommand
   | RoundsSetCommand
-  | SignOffSetCommand;
+  | SignOffSetCommand
+  | MetaAiSetCommand;
 
 /**
  * D-70: thrown by `applyCommand` when a command's precondition doesn't hold

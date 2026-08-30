@@ -25,4 +25,19 @@ pub enum AiError {
 
     #[error("request error: {0}")]
     Http(#[from] reqwest::Error),
+
+    /// D-201: a Vorion-reported failure mid-stream (its own documented
+    /// `error` field on a chunk, e.g. `context_length_exceeded`) or a
+    /// non-success HTTP status opening the stream — distinct from `Http`,
+    /// which is a transport failure, not the provider answering with a
+    /// failure of its own.
+    #[error("stream failed: {0}")]
+    StreamFailed(String),
+
+    /// SPEC.md §8.14: "Stream interrupted mid-response → partial content is
+    /// discarded, not half-written into a proposal." The connection closed
+    /// (no transport error, no reported `error` field) before a frame with
+    /// `is_final: true` ever arrived.
+    #[error("the stream ended before a final response was received")]
+    StreamIncomplete,
 }
