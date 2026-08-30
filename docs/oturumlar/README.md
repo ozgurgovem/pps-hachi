@@ -67,7 +67,38 @@ doğrulandı — ayrı dilim gerekmiyor.
 | G3 — "Provisional" A3 kenar işareti (D-165/D-41'in üçüncü görsel katmanı) | `buildA3Layout.ts` + `HtmlA3Renderer.tsx` + `src-tauri/src/xlsx/writer.rs`. Kendi Block Visual Verification Loop turunu gerektirdi — en pahalı dilim. | ✅ BİTTİ 2026-08-23 — D-198, üç `AskUserQuestion` cevaplandı (kapsam = önizleme+export, appendix = yalnızca ana sayfa, round-farkındalığı = hayır). Görsel: Aday A (kesikli grafit çerçeve, `#20241F`), tek turda değişikliksiz onaylandı. |
 
 **Faz 7 (G1/G2/G3) artık tamamen BİTTİ** — `SPEC.md`'nin kendi Faz 7 satırı tam olarak
-karşılandı, Faz 8'in kendi launch prompt'u ayrı bir gelecek oturumun işi.
+karşılandı.
+
+## Faz 8 — `SPEC.md` §6'nın kendi sıradaki fazı: AI foundation
+
+`SPEC.md`'nin faz tablosu: "provider abstraction, keychain storage, Settings tab,
+connection test, model discovery, streaming chat panel, provenance plumbing." Yedi
+alt-teslimat tek cümlede sıralanmış ama olgunluk açısından çok farklı — Oturum A/Faz 7
+kapsam-belirleme emsaliyle önce ölçüm, sonra dilim.
+
+**Kapsam belirleme BİTTİ 2026-08-30 (D-199).** 2026-08-23'ün kendi ön taraması gerçek koda
+karşı yeniden doğrulandı, birebir eşleşti (Settings rotası yok, `src/ai/` boş, Rust'ta
+keyring/HTTP client yok, Playwright yok, Assistant sekmesi `{null}`). **Oturumun asıl
+bulgusu D-13'ü kısmen geçersiz kıldı**: `SPEC.md` §8.2'nin üç-sağlayıcı (Anthropic/OpenAI/
+Google) varsayımı bu dağıtımda geçerli değil — Farplas yalnızca kendi kurumsal AI
+gateway'ini, **Vorion**'u (`vorionai.com`) kullanabiliyor. Vorion'un kendi chatbot'u kendi
+dokümantasyonu hakkında iki kez kanıtlanmış yanlış/uydurma cevap verdi (Anayasa Madde 8'in
+canlı bir uygulaması) — gerçek API Reference ancak Barış'ın yetkili tarayıcı oturumunda
+doğrudan bulundu: base URL `https://vorionai.com/api/<service>`, `x-api-key` header'ı,
+LLM Service'in Predictions (Synchronous/Streaming SSE/Cancel) + LLM Configuration (List
+LLMs/Get Available LLMs Grouped) alt kümeleri `LlmProvider` trait'inin (§8.2) ihtiyaçlarına
+birebir uyuyor. **Bilinçli sınır kararı**: PPS Hachi yalnızca bu alt kümeye dokunacak,
+Vorion'un Agent/RAG/Marketplace yüzeyine hiç girmeyecek (D-15/D-16'nın LOCKED sınırını
+Vorion'un tarafında delme riskinden kaçınmak için). Dört gerçek açık soru düz metinle
+(`AskUserQuestion` bu oturumda reddedildi) Barış'a soruldu, hepsi cevaplandı — tam kayıt:
+D-199.
+
+| Dilim | Kapsam | Durum |
+|---|---|---|
+| Kapsam belirleme — yedi alt-teslimatın veri durumu + tek-sağlayıcı (Vorion) keşfi + dilim planı | — | ✅ BİTTİ 2026-08-30 — D-199, dört soru düz metinle cevaplandı |
+| Dilim 1 — Settings shell (minimal) + Rust `LlmProvider` trait + `keyring` + model-keşif + test connection | `docs/oturumlar/faz8-dilim1-vorion-temel.md` | 📝 launch prompt yazıldı, henüz başlanmadı |
+| Dilim 2 — Streaming completion uçtan uca (SSE→Tauri Channel) + `RightPanel`'in Assistant sekmesinde çıplak chat kutusu + provenance plumbing | — | Henüz yazılmadı, Dilim 1'in ardından |
+| Dilim 3 — D-20'nin Playwright "AI kapalı" mutlu-yol testi | — | Vorion'dan bağımsız, Dilim 1/2'den önce veya paralel yapılabilir |
 
 ## Kullanım
 
@@ -75,7 +106,7 @@ Yeni oturumu şu iki satırla başlat (dosya adını sıradaki oturuma göre de�
 
 ```
 Önce Anayasamızı Oku (~/.claude/ANAYASA.md).
-Sonra ~/Developer/pps-hachi/docs/oturumlar/faz7-kapsam-belirleme.md'yi oku ve uygula.
+Sonra ~/Developer/pps-hachi/docs/oturumlar/faz8-dilim1-vorion-temel.md'yi oku ve uygula.
 ```
 
 ## Prompt yazarken
