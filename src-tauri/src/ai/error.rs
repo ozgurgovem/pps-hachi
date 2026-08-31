@@ -40,4 +40,18 @@ pub enum AiError {
     /// `is_final: true` ever arrived.
     #[error("the stream ended before a final response was received")]
     StreamIncomplete,
+
+    /// J1/§8.7: Vorion's Prediction family has no native structured-output
+    /// parameter (confirmed against real Synchronous/Streaming Prediction
+    /// docs, Barış's authenticated session, 2026-08-31 — neither endpoint's
+    /// Request Body table has anything like `response_format`/`json_schema`)
+    /// — `complete_structured` asks for JSON via the prompt text instead, so
+    /// the model's `response` field can still fail to parse as JSON at all.
+    /// The `Display` is deliberately just the raw text with no prefix: the
+    /// frontend's `.map_err(|e| e.to_string())` boundary (matching every
+    /// other command in this crate) means this string IS what SPEC.md §8.14
+    /// calls "the raw response, surfaced to the user as text" — a label
+    /// belongs in the TS layer, not baked into the error message itself.
+    #[error("{0}")]
+    StructuredOutputNotJson(String),
 }

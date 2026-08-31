@@ -49,6 +49,8 @@ pub fn run() {
             ai::commands::ai_set_settings,
             ai::commands::ai_complete,
             ai::commands::ai_cancel,
+            ai::commands::ai_complete_structured,
+            ai::commands::ai_capabilities,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

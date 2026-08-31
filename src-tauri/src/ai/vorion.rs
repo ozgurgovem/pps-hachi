@@ -5,8 +5,8 @@ use tauri::ipc::Channel;
 
 use super::error::AiError;
 use super::provider::{
-    CancelResult, CompletionMeta, CompletionRequest, ConnectionStatus, LlmProvider, ModelInfo,
-    StreamEvent,
+    CancelResult, Capabilities, CompletionMeta, CompletionRequest, ConnectionStatus, LlmProvider,
+    ModelInfo, StreamEvent, StructuredRequest,
 };
 
 /// Confirmed against the real `vorionai.com/docs` "Synchronous Prediction"
@@ -161,6 +161,68 @@ struct CancelPredictionResponse {
     success: bool,
     message: String,
     partial_response_saved: bool,
+}
+
+/// Only the field this adapter reads from Synchronous Prediction's real
+/// response (the same endpoint `test_connection` already calls, D-200) —
+/// `message_id`/token counts/`rag_sources`/etc. are all real documented
+/// fields this dilim has no use for, ignored the same way `LlmListItem`
+/// already ignores fields it doesn't read.
+#[derive(Debug, Deserialize)]
+struct PredictionResponse {
+    response: String,
+}
+
+/// J1/§2.2: Vorion has no native structured-output parameter (confirmed
+/// against the real docs, §2.1's own finding) — the schema is embedded
+/// directly into the prompt text as the only way to ask for JSON-shaped
+/// output. This is the one place this crate touches `schema`'s content at
+/// all, and only to serialize it verbatim; nothing here branches on what
+/// the schema says (D-04's "dumb serializer" boundary, `StructuredRequest`'s
+/// own doc comment).
+fn build_structured_prompt(logical_prompt: &str, schema: &serde_json::Value) -> String {
+    let schema_json = serde_json::to_string_pretty(schema).unwrap_or_else(|_| schema.to_string());
+    format!(
+        "{logical_prompt}\n\n---\n\nRespond with ONLY a single JSON object matching the JSON \
+         Schema below. No prose, no markdown code fences, no explanation before or after — the \
+         entire response body must be valid, parseable JSON on its own.\n\nJSON Schema:\n{schema_json}"
+    )
+}
+
+/// Strips a single leading/trailing markdown code fence (```` ```json `` ``
+/// or plain ```` ``` ````) if the whole trimmed response is wrapped in one —
+/// a common model habit even when explicitly told not to. Anything else
+/// (including a response that's already bare JSON) passes through
+/// unchanged; `serde_json::from_str` is the real judge of validity, not this
+/// function.
+fn strip_json_code_fence(text: &str) -> &str {
+    let trimmed = text.trim();
+    let Some(after_open) = trimmed.strip_prefix("```") else {
+        return trimmed;
+    };
+    let after_open = after_open.strip_prefix("json").unwrap_or(after_open);
+    let after_open = after_open.strip_prefix('\n').unwrap_or(after_open);
+    match after_open.strip_suffix("```") {
+        Some(body) => body.trim(),
+        None => trimmed,
+    }
+}
+
+/// Parses Vorion's `response` text as the raw JSON value `complete_structured`
+/// promises — trying the text as-is first, then with a markdown code fence
+/// stripped, since a model can wrap valid JSON in one despite instructions
+/// not to. `AiError::StructuredOutputNotJson` carries the *original*
+/// (unstripped) text: SPEC.md §8.14's "surface the raw response to the user
+/// as text" means the literal model output, not this adapter's cleanup
+/// attempt.
+fn parse_structured_response(raw: &str) -> Result<serde_json::Value, AiError> {
+    if let Ok(value) = serde_json::from_str(raw) {
+        return Ok(value);
+    }
+    if let Ok(value) = serde_json::from_str(strip_json_code_fence(raw)) {
+        return Ok(value);
+    }
+    Err(AiError::StructuredOutputNotJson(raw.to_string()))
 }
 
 fn cancel_result_from_response(response: CancelPredictionResponse) -> CancelResult {
@@ -381,6 +443,48 @@ impl LlmProvider for VorionProvider {
             .json()
             .await?;
         Ok(cancel_result_from_response(response))
+    }
+
+    /// J1/§2.2: Synchronous Prediction, not Streaming — a JSON payload has
+    /// to be complete before it can be parsed at all, so there is no benefit
+    /// to token-by-token delivery here, and reusing `test_connection`'s
+    /// already-proven request shape (multipart `data`, `PredictionRequest`)
+    /// keeps this dilim's one new mechanism smaller than re-deriving SSE
+    /// handling for a case that never needs it.
+    async fn complete_structured(
+        &self,
+        req: StructuredRequest,
+    ) -> Result<serde_json::Value, AiError> {
+        let (llm_name, llm_group_name) = split_model_id(&req.model_id);
+        let request = PredictionRequest {
+            prompt: PredictionPrompt {
+                text: build_structured_prompt(&req.prompt, &req.schema),
+            },
+            llm_name,
+            llm_group_name,
+        };
+        let data = serde_json::to_string(&request)?;
+        let form = reqwest::multipart::Form::new().text("data", data);
+
+        let response: PredictionResponse = self
+            .http
+            .post(format!("{BASE_URL}/prediction/predict"))
+            .header("x-api-key", &self.api_key)
+            .multipart(form)
+            .send()
+            .await?
+            .json()
+            .await?;
+
+        parse_structured_response(&response.response)
+    }
+
+    /// §2.1's own finding: neither Synchronous nor Streaming Prediction has
+    /// a `response_format`/`json_schema`/`output_schema` parameter anywhere
+    /// in the real docs (Barış's authenticated session, 2026-08-31) —
+    /// `complete_structured` is prompt engineering, not a native feature.
+    fn capabilities(&self) -> Capabilities {
+        Capabilities { json_schema: false }
     }
 }
 
@@ -719,6 +823,88 @@ mod tests {
     /// Prediction reference, including fields this adapter never reads
     /// (`conversation_id`, `stream_id` echo back the caller's own input),
     /// then maps it into the TS-facing `CancelResult`.
+    // J1/§2.2: `build_structured_prompt`/`strip_json_code_fence`/
+    // `parse_structured_response` are pure and tested directly, the same
+    // posture D-200/D-201's own SSE-parsing functions already took.
+
+    #[test]
+    fn build_structured_prompt_embeds_the_schema_and_a_json_only_instruction() {
+        let schema =
+            serde_json::json!({"type": "object", "properties": {"unit": {"type": "string"}}});
+
+        let prompt = build_structured_prompt("Draft a Pareto chart.", &schema);
+
+        assert!(prompt.contains("Draft a Pareto chart."));
+        assert!(prompt.contains("ONLY a single JSON object"));
+        assert!(prompt.contains("\"unit\""));
+    }
+
+    #[test]
+    fn strip_json_code_fence_removes_a_json_tagged_fence() {
+        let wrapped = "```json\n{\"a\":1}\n```";
+
+        assert_eq!(strip_json_code_fence(wrapped), "{\"a\":1}");
+    }
+
+    #[test]
+    fn strip_json_code_fence_removes_a_bare_fence() {
+        let wrapped = "```\n{\"a\":1}\n```";
+
+        assert_eq!(strip_json_code_fence(wrapped), "{\"a\":1}");
+    }
+
+    #[test]
+    fn strip_json_code_fence_leaves_unwrapped_text_unchanged() {
+        assert_eq!(strip_json_code_fence("{\"a\":1}"), "{\"a\":1}");
+    }
+
+    #[test]
+    fn parse_structured_response_accepts_bare_json() {
+        let value = parse_structured_response("{\"a\":1}").unwrap();
+
+        assert_eq!(value, serde_json::json!({"a": 1}));
+    }
+
+    #[test]
+    fn parse_structured_response_rejects_json_embedded_in_surrounding_prose() {
+        let value =
+            parse_structured_response("Sure, here you go:\n```json\n{\"a\":1}\n```").unwrap_err();
+
+        // The prose-plus-fence case is deliberately NOT recovered — only a
+        // response that is *entirely* a fenced block (after trimming) is
+        // unwrapped. Recovering JSON embedded in arbitrary prose would be
+        // exactly the kind of silent leniency this dilim's own instructions
+        // explicitly reject ("no prose... the entire response must be valid
+        // JSON on its own").
+        assert!(matches!(value, AiError::StructuredOutputNotJson(_)));
+    }
+
+    #[test]
+    fn parse_structured_response_unwraps_a_fully_fenced_response() {
+        let value = parse_structured_response("```json\n{\"a\":1}\n```").unwrap();
+
+        assert_eq!(value, serde_json::json!({"a": 1}));
+    }
+
+    #[test]
+    fn parse_structured_response_fails_with_the_original_unstripped_text() {
+        let raw = "not json at all, just prose";
+
+        let error = parse_structured_response(raw).unwrap_err();
+
+        match error {
+            AiError::StructuredOutputNotJson(text) => assert_eq!(text, raw),
+            other => panic!("expected StructuredOutputNotJson, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn vorion_provider_reports_no_native_json_schema_support() {
+        let provider = VorionProvider::new("fake-key".to_string());
+
+        assert_eq!(provider.capabilities(), Capabilities { json_schema: false });
+    }
+
     #[test]
     fn cancel_result_deserializes_from_the_real_documented_shape() {
         let body = serde_json::json!({

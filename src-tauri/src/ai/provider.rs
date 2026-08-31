@@ -96,6 +96,38 @@ pub struct CancelResult {
     pub partial_response_saved: bool,
 }
 
+/// J1/SPEC.md §8.2/§8.7: `prompt` is the *logical* prompt — step context,
+/// method-specific instructions, the user's own data — already assembled by
+/// the caller (today: `EntryProposalField`, reading a prompt-library file).
+/// `schema` is a JSON Schema (converted from the method's own Zod schema by
+/// `z.toJSONSchema()` on the TS side, D-04's "dumb serializer" boundary:
+/// this crate never interprets a single field of it). Which HTTP request(s)
+/// this becomes, and how the schema gets communicated to the provider, is
+/// entirely `VorionProvider`'s concern — a future adapter with native
+/// structured-output support would use `schema` completely differently.
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct StructuredRequest {
+    pub prompt: String,
+    pub schema: serde_json::Value,
+    pub model_id: String,
+}
+
+/// SPEC.md §8.2's own draft field list (`vision`, `pdf_native`, `caching`,
+/// `max_context`, `cost_per_mtok`) is kept out until something actually
+/// reads it — this crate's own `AiError` doc comment already states the
+/// reason: an unused field/variant is a claim about the future, not the
+/// present. `json_schema` is the one field J1 itself needs:
+/// `VorionProvider::capabilities` reports `false` because the real
+/// Prediction docs (§2.1's own finding) show no native structured-output
+/// parameter — `complete_structured` is a prompt-engineering layer, not a
+/// pass-through to a provider feature.
+#[derive(Debug, Clone, Copy, Serialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct Capabilities {
+    pub json_schema: bool,
+}
+
 /// SPEC.md §8.2's provider abstraction, sized to the single Vorion adapter
 /// D-199 / this dilim's §2.2 settled on rather than the three-provider
 /// draft.
@@ -125,4 +157,19 @@ pub trait LlmProvider {
         conversation_id: &str,
         stream_id: Option<&str>,
     ) -> Result<CancelResult, AiError>;
+
+    /// J1/SPEC.md §8.7: a schema-bound draft, not a stream. Returns the raw
+    /// `serde_json::Value` the model produced — validating it against the
+    /// method's real Zod schema (and retrying once on failure) is the
+    /// caller's job, not this trait's; this layer's only failure mode is
+    /// "the model's response wasn't even parseable as JSON" (`AiError::
+    /// StructuredOutputNotJson`).
+    async fn complete_structured(
+        &self,
+        req: StructuredRequest,
+    ) -> Result<serde_json::Value, AiError>;
+
+    /// See `Capabilities`'s own doc comment for why this is one field, not
+    /// SPEC.md §8.2's full draft list.
+    fn capabilities(&self) -> Capabilities;
 }

@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import type { EntryReference, ImageRef, StepId } from "../../../domain/model";
+import type { EntryReference, ImageRef, Provenance, StepId } from "../../../domain/model";
 import { buildAddEntryCommand, buildUpdateEntryCommand } from "../../../domain/commands";
 import type { ErasedMethodPlugin } from "../../../methods";
 import { useProjectStore } from "../../../state";
 import { Button, DialogClose, DialogContent, DialogRoot, Input, Label } from "../../../ui";
 import { EntryImagesField } from "./EntryImagesField";
+import { EntryProposalField } from "./EntryProposalField";
 import { EntryReferenceField } from "./EntryReferenceField";
 import { EntryRoundField } from "./EntryRoundField";
 
@@ -56,6 +57,7 @@ export function EntryEditorDialog({ stepId, plugin, mode, open, onOpenChange }: 
   const [createReferences, setCreateReferences] = useState<readonly EntryReference[]>([]);
   const [createRoundId, setCreateRoundId] = useState<string | undefined>(undefined);
   const [createImages, setCreateImages] = useState<readonly ImageRef[]>([]);
+  const [createProvenance, setCreateProvenance] = useState<Provenance | undefined>(undefined);
 
   const isEdit = mode.kind === "edit";
   const title = isEdit ? mode.initialTitle : createTitle;
@@ -148,6 +150,32 @@ export function EntryEditorDialog({ stepId, plugin, mode, open, onOpenChange }: 
     setCreateImages(nextImages);
   }
 
+  /**
+   * J1/D-125: `EntryProposalField` never dispatches itself — in edit mode,
+   * accepting a draft is a discrete choice onto the entry that already
+   * exists, dispatched immediately (the same posture `handleReferencesChange`/
+   * `handleImagesChange`/`handleRoundChange` already take). In create mode
+   * there is no entry yet, so the draft and its `Provenance` join the same
+   * local state every other generic field already writes to, carried
+   * through by the existing "Save" button.
+   */
+  function handleAcceptProposal(nextPayload: unknown, provenance: Provenance) {
+    if (mode.kind === "edit" && step) {
+      sealTextEditCoalescing();
+      dispatch(
+        buildUpdateEntryCommand(step, stepId, mode.entryId, {
+          title,
+          payload: nextPayload,
+          now: new Date().toISOString(),
+          provenance,
+        }),
+      );
+      return;
+    }
+    setCreatePayload(nextPayload);
+    setCreateProvenance(provenance);
+  }
+
   function handleSave() {
     if (mode.kind === "create" && step) {
       const command = buildAddEntryCommand(step, stepId, {
@@ -158,6 +186,7 @@ export function EntryEditorDialog({ stepId, plugin, mode, open, onOpenChange }: 
         references: createReferences,
         roundId: createRoundId,
         images: createImages,
+        provenance: createProvenance,
       });
       dispatch(command);
       setCreateTitle("");
@@ -165,6 +194,7 @@ export function EntryEditorDialog({ stepId, plugin, mode, open, onOpenChange }: 
       setCreateReferences([]);
       setCreateRoundId(undefined);
       setCreateImages([]);
+      setCreateProvenance(undefined);
     }
     onOpenChange(false);
   }
@@ -194,6 +224,17 @@ export function EntryEditorDialog({ stepId, plugin, mode, open, onOpenChange }: 
               onBlur={sealTextEditCoalescing}
             />
           </div>
+
+          {project && plugin.aiProposal && project.meta.ai.modelId && (
+            <EntryProposalField
+              stepId={stepId}
+              plugin={plugin}
+              promptVersion={plugin.aiProposal.promptVersion}
+              modelId={project.meta.ai.modelId}
+              acceptedBy={project.meta.owner.name}
+              onAccept={handleAcceptProposal}
+            />
+          )}
 
           <Editor payload={payload} onChange={handlePayloadChange} />
 

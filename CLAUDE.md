@@ -507,11 +507,99 @@ Phase: 9 of 12 — kapsam belirlendi (D-203, 2026-08-31), henüz inşa edilmedi.
   registry (own launch prompt decides scope/subdivision — almost certainly too large for one
   slice). P-48/P-49 untouched, still open. Docs updated this session: this section, `DECISIONS.md`
   D-203, `docs/oturumlar/README.md`'s new Faz 9 table.
+**Faz 9 — J1 (Vorion structured output + Pareto reference proposal): DONE 2026-08-31 (D-204).**
+  §2.1's own blocking question — WebFetch tried first (the real docs page is a client-rendered
+  SPA returning only its loading shell, `awaiting signal…`; the OpenAPI path 401'd), then Barış
+  shared eight real screenshots from his own authenticated `vorionai.com/docs` session covering
+  both Synchronous and Streaming Prediction's full Parameters/Request Body/Response Schema
+  tables. **Resolved definitively to possibility (b)**: neither endpoint has a
+  `response_format`/`json_schema`/`output_schema` parameter anywhere (the tables are thorough
+  enough to list `execution_metadata.node_execution_id`) — structured output is prompt
+  engineering only, the fourth time D-199/D-200/D-201's "screenshot, never guess" discipline
+  paid off. `capabilities().json_schema` carries this finding as `false`.
+  **Rust** (`src-tauri/src/ai/`): `provider.rs` gained `complete_structured(StructuredRequest) ->
+  Result<serde_json::Value, AiError>` and `capabilities() -> Capabilities` on `LlmProvider` —
+  `Capabilities` deliberately holds only `json_schema: bool`, not SPEC §8.2's full draft list
+  (`vision`/`pdf_native`/`caching`/`max_context`/`cost_per_mtok`), matching `AiError`'s own
+  "only a variant/field something actually constructs" discipline. `vorion.rs`'s
+  `complete_structured` calls **Synchronous, not Streaming, Prediction** (the same multipart
+  `data` shape `test_connection` already established) — a JSON body has to be complete before
+  it's parseable, so SSE buys nothing here; the schema is embedded directly into the prompt
+  text by `build_structured_prompt` (Rust never interprets it, only
+  `serde_json::to_string_pretty`s it in — D-04's "dumb serializer" boundary). `parse_structured_response`
+  tries the raw response, then (only if the *entire* trimmed response is one fenced block) a
+  markdown-code-fence-stripped version — JSON embedded in surrounding prose is deliberately NOT
+  recovered, matching the prompt's own "no prose... valid JSON on its own" instruction; either
+  way it fails, `AiError::StructuredOutputNotJson(raw_text)` carries the literal raw text with no
+  prefix, since that string crosses the `.map_err(|e| e.to_string())` boundary straight into what
+  SPEC §8.14 calls "the raw response, surfaced to the user as text."
+  **A real clippy finding, caught while writing the code**: `capabilities()` with zero
+  production callers failed `cargo clippy --all-targets -- -D warnings` ("never used") — fixed by
+  adding `ai_capabilities`, a Tauri command mirroring `list_models`/`test_connection`'s existing
+  "provider fact" shape. It has no TS wrapper (nothing consumes it this dilim — `EntryProposalField`
+  always takes the prompt-engineering path regardless, since the one provider never reports
+  `true`), a small, honest asymmetry rather than manufactured use.
+  **Prompt library** (`src/ai/prompts/`): `frontMatter.ts` is a small hand-rolled parser
+  (`--- key: value ---`, `[a, b]` for lists) — the same "hand-roll a tiny subset, don't add a
+  library" precedent `coachingMarkdown.ts` (Faz 3) already set; `library.ts` repeats
+  `coachContent.ts`'s exact `import.meta.glob({eager: true, query: "?raw"})` pattern. Exactly one
+  real file this dilim: `2/pareto.v1.md`, English-only — unlike coaching content, a prompt sent
+  to the model isn't shown to the user, so no tr/en split is needed (a deliberate scope
+  narrowing, not a gap).
+  **`EntryProposalField`** (D-125's fourth "declare, don't render" application):
+  `MethodPlugin.aiProposal?: { promptVersion }`, rendered beside the title field in
+  `EntryEditorDialog` only when declared and a model is configured. A real **Accept / Edit &
+  Accept / Reject** triple (not D-201's collapsed single-textarea shape) built by reusing the
+  plugin's own `Editor` for review — editing the draft and manually filling the form are
+  literally the same UI, no separate read-only summary was invented. One Accept button whose
+  `origin` (`ai-accepted`/`ai-edited`) is auto-detected from whether the draft changed — the
+  same mechanism `AssistantPanel` (D-201) already established, now over a structured payload via
+  `JSON.stringify` diffing instead of free text. §8.7's retry-once flow lives in
+  `entryProposal.ts`'s `proposeStructuredEntry` (pure, tested independently with a mocked
+  `completeStructured` — the same "logic must stay testable as a pure function" split G2's
+  `traceability.ts` already established) — a Zod validation failure and a Rust-level "not JSON
+  at all" failure both count as one retry-eligible failure class.
+  **P-47 CLOSED**: `src/ai/editDistance.ts`'s `normalizedEditDistance` — Levenshtein distance
+  over each payload's `JSON.stringify()`, normalized by the longer string's length — computed at
+  Accept time into `Provenance.editDistance`. Deliberately coarse/generic rather than
+  field-aware: a field-aware measure would require `EntryProposalField` to know every plugin's
+  payload shape, breaking D-125's declare-don't-render boundary the whole generic-shell pattern
+  depends on.
+  `domain/commands/builders.ts`: `UpdateEntryInput` gained `provenance?` (absent leaves existing
+  provenance alone — the same three-state convention `references`/`images`/`roundId` already
+  use); `EntryProposalField`'s edit-mode Accept is the first caller to pass it explicitly.
+  **Key-leak re-verified** (§2.7, D-200's own precedent) by inspection rather than a new test:
+  `build_structured_prompt`/`parse_structured_response` never receive `api_key` in their
+  signatures, and `VorionProvider` has no `#[derive(Debug, ...)]` (already un-loggable via
+  `{:?}`) — the existing `a_saved_key_never_appears_in_a_produced_ppsx_file` test stayed green,
+  and the new IPC surface repeats the exact same `KeyringSecretStore.get()` →
+  `VorionProvider::new(api_key)` pattern every other command already uses.
+  `npm test` 1243/1243 (276 files, up from 1206/1206 — 37 new tests across 6 new files), exit
+  code 0 (checked via a separate logfile, not piped through `tail`). `npm run lint` clean (the
+  one pre-existing `ThemeProvider` warning). `npm run build` green (same pre-existing chunk-size
+  warning) — caught one real `exactOptionalPropertyTypes` mismatch in a test file
+  (`MethodPlugin<ParetoPayload>` isn't assignable to `ErasedMethodPlugin`), fixed by using
+  `getMethodById("pareto")` instead of the raw typed export. `cargo test` 145 lib (up from 136 —
+  9 new) + 2 fixture + 8 xlsx = 155 total, `cargo clippy --all-targets -- -D warnings` and
+  `cargo fmt -- --check` both clean. `scripts/gen-a3-fixture.ts` regenerated and diffed
+  **byte-identical** — `aiProposal` is a pure UI declaration, never touched by
+  `buildA3Layout`/the xlsx writer. Deliberately not built this dilim: J2 (real file ingestion/
+  redaction), J3 (generalizing beyond Pareto), §8.6's Critique/Extract/Review modes, §8.10/§8.12,
+  P-48/P-49 (untouched). New **P-50**: the prompt file front-matter's `contextSlices` field is
+  parsed but never consumed — J1 gathers no automatic project context (manual entry only), so it
+  stays documentation-only until J2/J3 give it a real reader. Not yet committed to git. **Honestly
+  unverified, same class of gap as D-105/D-113/D-136/D-200/D-201**: no real Tauri/WKWebView
+  walkthrough happened this session (no display in this environment) — a real Vorion Synchronous
+  Prediction call with a real key was never made, "AI ile öner" was never clicked in a real
+  window. Everything is built and unit-tested against the confirmed real API shape, but the live
+  round-trip is still owed from Barış's own `npm run tauri dev`.
 Stack decision (Tauri vs Electron fallback): Tauri v2, revisit only if Phase 4 stalls
 App name: **PPS Hachi** (八 — eight). Repo `pps-hachi`. Set 2026-08-01, see DECISIONS.md D-29.
 AI layer: Faz 8 fully done (keychain + Vorion connection/model-discovery + streaming
   completion/Assistant chat panel/provenance + the D-20 "AI off" WebdriverIO E2E suite).
-  Faz 9–10 not started.
+  Faz 9 — J1 done (structured output + Pareto reference proposal via `EntryProposalField`);
+  J2 (real file ingestion + redaction) and J3 (generalize beyond Pareto) not started.
+  Faz 10 not started.
 Templates: two company .xls files analysed; see reference/TEMPLATE_ANALYSIS.md
 Template geometry: VERIFIED 2026-08-01 against both .xls files. Five errors found and
   corrected in place — the largest was the column widths: the real split is 49.7/50.3, NOT

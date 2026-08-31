@@ -123,6 +123,18 @@ export interface MethodPlugin<TPayload> {
   readonly tier?: "recommended" | "more";
   /** D-118/D-193: which image slots this method's entries accept — see `MethodImageSlot`. */
   readonly imageSlots?: readonly MethodImageSlot[] | undefined;
+  /**
+   * J1/§2.4: the fourth application of D-125's "declare, don't render"
+   * pattern (after `referenceRoles`/`imageSlots`/`tier`) — a method opts
+   * into the generic "AI ile öner" trigger (`EntryProposalField`, beside
+   * the title field in `EntryEditorDialog`) by naming which prompt-library
+   * file version to use. The file itself lives at
+   * `src/ai/prompts/{step}/{id}.{promptVersion}.md` (SPEC.md §8.7) — the
+   * method never touches Vorion, JSON Schema conversion, or the Accept
+   * flow directly, mirroring how a plugin never renders its own reference
+   * picker or image uploader.
+   */
+  readonly aiProposal?: { readonly promptVersion: string } | undefined;
 }
 
 /**

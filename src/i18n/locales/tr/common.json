@@ -168,6 +168,21 @@
       "cancel": "Vazgeç",
       "close": "Kapat"
     },
+    "entryProposal": {
+      "trigger": "AI ile öner",
+      "title": "AI ile öner",
+      "inputLabel": "Ham veri",
+      "inputPlaceholder": "Ham veriyi yapıştırın veya yazın — kopyalanmış bir tablo, sayı listesi ya da düz bir açıklama olabilir",
+      "propose": "Öner",
+      "proposing": "Öneriliyor…",
+      "cancel": "Vazgeç",
+      "reviewHint": "Aşağıdaki taslağı gözden geçirin, gerekirse düzenleyin, sonra kabul edin.",
+      "accept": "Kabul et",
+      "reject": "Reddet",
+      "retry": "Tekrar dene",
+      "failed": "AI'nin yanıtı geçerli bir girişe dönüştürülemedi. Hiçbir şey yazılmadı — ham yanıtı:",
+      "missingPromptFile": "Bu method için henüz bir istem dosyası yapılandırılmamış."
+    },
     "references": {
       "searchLabel": "Kayıt bul",
       "searchPlaceholder": "Başlığa göre filtrele",

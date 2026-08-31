@@ -168,6 +168,21 @@
       "cancel": "Cancel",
       "close": "Close"
     },
+    "entryProposal": {
+      "trigger": "Propose with AI",
+      "title": "Propose with AI",
+      "inputLabel": "Raw data",
+      "inputPlaceholder": "Paste or type the raw data — pasted table text, a list of counts, or a plain description works",
+      "propose": "Propose",
+      "proposing": "Proposing…",
+      "cancel": "Cancel",
+      "reviewHint": "Review and edit the draft below, then accept it.",
+      "accept": "Accept",
+      "reject": "Reject",
+      "retry": "Try again",
+      "failed": "The AI's response couldn't be turned into a valid entry. Nothing was written — here is its raw response:",
+      "missingPromptFile": "No prompt file is configured for this method yet."
+    },
     "references": {
       "searchLabel": "Find an entry",
       "searchPlaceholder": "Filter by title",

@@ -20,4 +20,5 @@ export const paretoMethod: MethodPlugin<ParetoPayload> = {
   renderToA3: renderParetoToA3,
   imageKind: "pareto-chart",
   renderImage: (spec, size) => createElement(ParetoChart, { spec: spec as ParetoChartSpec, size }),
+  aiProposal: { promptVersion: "v1" },
 };

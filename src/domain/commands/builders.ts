@@ -139,6 +139,17 @@ export interface UpdateEntryInput {
    * the whole list, which is how removing the last image works.
    */
   images?: readonly ImageRef[] | undefined;
+  /**
+   * J1: absent means "leave whatever provenance this entry already has
+   * alone" — the same posture `references`/`images` already take, and for
+   * the same reason: every pre-existing edit path (title keystrokes, the
+   * plugin's own `Editor`) has no opinion on provenance and must not
+   * silently reset an `ai-accepted`/`ai-edited` entry back to unmarked.
+   * `EntryProposalField`'s Accept-onto-an-existing-entry path is the first
+   * caller to pass this explicitly (D-15's Accept step, applied to an
+   * update rather than a fresh insert).
+   */
+  provenance?: Provenance | undefined;
 }
 
 export function buildUpdateEntryCommand(
@@ -151,12 +162,14 @@ export function buildUpdateEntryCommand(
   const nextReferences = input.references === undefined ? before.references : input.references;
   const nextRoundId = input.roundId === undefined ? before.roundId : (input.roundId ?? undefined);
   const nextImages = input.images === undefined ? before.images : input.images;
+  const nextProvenance = input.provenance === undefined ? before.provenance : input.provenance;
   const after: Entry = {
     ...withoutRoundId(withoutReferences(before)),
     title: input.title,
     payload: input.payload,
     images: [...nextImages],
     updatedAt: input.now,
+    provenance: nextProvenance,
     ...referenceFields(nextReferences),
     ...(nextRoundId === undefined ? undefined : { roundId: nextRoundId }),
   };

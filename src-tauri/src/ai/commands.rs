@@ -4,8 +4,8 @@ use tauri::{AppHandle, Manager};
 use super::error::AiError;
 use super::keychain::{masked_preview, KeyringSecretStore, SecretStore};
 use super::provider::{
-    CancelResult, CompletionMeta, CompletionRequest, ConnectionStatus, LlmProvider, ModelInfo,
-    StreamEvent,
+    CancelResult, Capabilities, CompletionMeta, CompletionRequest, ConnectionStatus, LlmProvider,
+    ModelInfo, StreamEvent, StructuredRequest,
 };
 use super::settings::{self, AiSettings};
 use super::vorion::VorionProvider;
@@ -122,6 +122,47 @@ pub async fn ai_cancel(
         .cancel(&conversation_id, stream_id.as_deref())
         .await
         .map_err(|e| e.to_string())
+}
+
+/// J1/SPEC.md §8.7: a schema-bound draft. `prompt`/`schema`/`model_id` cross
+/// the IPC boundary as plain arguments (same posture as `ai_complete`'s
+/// `prompt`/`model_id`) — no channel, since there is nothing to stream. Like
+/// every command in this file, never touches `ProjectModel` itself; only the
+/// frontend's explicit Accept can do that (D-15).
+#[tauri::command]
+pub async fn ai_complete_structured(
+    prompt: String,
+    schema: serde_json::Value,
+    model_id: String,
+) -> Result<serde_json::Value, String> {
+    let api_key = KeyringSecretStore
+        .get()
+        .map_err(|e| e.to_string())?
+        .ok_or_else(|| AiError::NoKeyConfigured.to_string())?;
+    VorionProvider::new(api_key)
+        .complete_structured(StructuredRequest {
+            prompt,
+            schema,
+            model_id,
+        })
+        .await
+        .map_err(|e| e.to_string())
+}
+
+/// J1/SPEC.md §8.2: exposes `LlmProvider::capabilities` the same way
+/// `ai_list_models`/`ai_test_connection` expose the rest of the provider's
+/// facts — a key is required first, matching those two, since a
+/// capabilities' claim about *this* provider only means something once it's
+/// actually configured. `capabilities()` itself makes no network call; the
+/// key requirement is about consistency with the rest of this file, not a
+/// technical need.
+#[tauri::command]
+pub fn ai_capabilities() -> Result<Capabilities, String> {
+    let api_key = KeyringSecretStore
+        .get()
+        .map_err(|e| e.to_string())?
+        .ok_or_else(|| AiError::NoKeyConfigured.to_string())?;
+    Ok(VorionProvider::new(api_key).capabilities())
 }
 
 fn ai_settings_path(app: &AppHandle) -> Result<std::path::PathBuf, String> {
