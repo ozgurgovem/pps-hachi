@@ -111,9 +111,26 @@ belirleme emsaliyle aynı: ölçüm önce, sonra dilim. `SPEC.md` §8'in metni h
 soru: Vorion'un yapılandırılmış-çıktı (structured output) şekli ayrı bir endpoint mi, yoksa
 Prediction isteğinde bir parametre mi — hiç görülmedi, kodlamadan önce doğrulanmalı.
 
+**Kapsam belirleme BİTTİ 2026-08-31 (D-203).** §0'ın kendi ön taraması gerçek koda karşı
+yeniden doğrulandı, birebir eşleşti. Kendi taramam iki yük taşıyan bulgu ekledi: her method
+plugin'i zaten gerçek bir Zod şeması taşıyor (`MethodPlugin.schema`) — yapılandırılmış
+üretimin ilk günden gerçek bir hedefi var; `calamine` `Cargo.toml`'da var ama yalnızca test
+fixture kodunda kullanılıyor — dosya içeri alma gerçekten yeni bir üretim alt sistemi. Dört
+gerçek açık soru `AskUserQuestion` ile Barış'a soruldu, dördü de önerilen seçenekle
+onaylandı: prompt kütüphanesi `src/ai/prompts/{step}/{methodId}.{version}.md`'de yaşar
+(coaching content'in dosya-değil-JSX emsali); dosya içeri alma kendi dilimi (J2), önce
+elle-veriyle uçtan uca kanıtlanmış bir akıştan (J1) sonra; redaction temel bir gerçek
+hâliyle J2 ile birlikte gelir, ertelenmez (§8.1'in LOCKED "kullanıcının verisi
+kullanıcınındır" ilkesi J2'de teorik olmaktan çıkar); proposal UI'ı yeni bir generic-shell
+alanı (`EntryProposalField`, D-125'in üçüncü uygulaması), AssistantPanel'in mevcut sohbetine
+katlanmaz. Tam kayıt: D-203.
+
 | Dilim | Kapsam | Durum |
 |---|---|---|
-| Kapsam belirleme — beş alt-teslimatın veri durumu + Vorion'un yapılandırılmış-çıktı sorusu + dilim planı | `docs/oturumlar/faz9-kapsam-belirleme.md` | 📝 launch prompt yazıldı 2026-08-31, henüz başlanmadı. |
+| Kapsam belirleme — beş alt-teslimatın veri durumu + Vorion'un yapılandırılmış-çıktı sorusu + dilim planı | `docs/oturumlar/faz9-kapsam-belirleme.md` | ✅ BİTTİ 2026-08-31 — D-203, dört soru `AskUserQuestion` ile cevaplandı (hepsi önerilen seçenek). |
+| J1 — Vorion'un yapılandırılmış-çıktı şeklinin doğrulanması (Barış'ın kendi `vorionai.com/docs` oturumu, kodlamadan ÖNCE) + `LlmProvider.complete_structured`/`capabilities()` + prompt-kütüphanesi mekanizması + TEK referans method (Pareto) elle-girilen veriyle uçtan uca `EntryProposalField` üzerinden | *(henüz yazılmadı)* | ⏳ planlandı, başlanmadı. P-47'yi (`editDistance`) doğal yan etki olarak kapatması bekleniyor. |
+| J2 — Gerçek dosya içeri alma (Rust xlsx/csv okuma+örnekleme, `calamine` ilk kez üretimde; gönderim-öncesi onay sayfası) + temel gerçek `RedactionPolicySchema` (off/customers, terim listesi), J1'in akışına bağlanır | *(henüz yazılmadı)* | ⏳ planlandı, başlanmadı. Faz 9'un kendi lafzî done-koşulunu ("uploaded xlsx"→Pareto önerisi) kapatan dilim budur. |
+| J3 — Per-step prompt kütüphanesinin Pareto'dan registry'nin geri kalan 57 method'una genelleştirilmesi | *(henüz yazılmadı)* | ⏳ planlandı, başlanmadı. Kapsam/alt-bölünme kendi launch prompt'unun kararı. |
 
 ## Kullanım
 

@@ -190,10 +190,10 @@ language is the real threat to this bar, and it is Oturum B's job.
 
 ## Current state
 
-Phase: 8 of 12 — all three dilims DONE (D-200 2026-08-30, D-201 2026-08-31, D-202 2026-08-31) —
-  Phase 8 itself is complete. Phase 7
-  (D-195's three slices G1/G2/G3) FULLY DONE 2026-08-23. Phase 6 (all five slices 6a–6e,
-  plus 6e's own 6e-1/6e-2 split) fully closed 2026-08-19.
+Phase: 9 of 12 — kapsam belirlendi (D-203, 2026-08-31), henüz inşa edilmedi. Phase 8
+  (all three dilims — D-200 2026-08-30, D-201 2026-08-31, D-202 2026-08-31) fully complete.
+  Phase 7 (D-195's three slices G1/G2/G3) FULLY DONE 2026-08-23. Phase 6 (all five slices
+  6a–6e, plus 6e's own 6e-1/6e-2 split) fully closed 2026-08-19.
 **Faz 8 kapsam belirleme (D-199, 2026-08-30): no code.** Confirmed the 2026-08-23 pre-scan
   against real code — Settings route doesn't exist, `src/ai/` is empty, `Cargo.toml` has no
   `keyring`/HTTP client, no Playwright, `RightPanel`'s Assistant tab is literally `{null}`.
@@ -464,6 +464,49 @@ Phase: 8 of 12 — all three dilims DONE (D-200 2026-08-30, D-201 2026-08-31, D-
   style, `A3ImageKind`, or model schema touched). **Faz 8 (all three dilims) is now fully
   closed.** Faz 9's own kapsam-belirleme launch prompt:
   `docs/oturumlar/faz9-kapsam-belirleme.md`.
+**Faz 9 kapsam belirleme (D-203, 2026-08-31): no code.** Re-verified `faz9-kapsam-belirleme.md`'s
+  own §0 pre-scan against real code — matched exactly: all named files exist, `RedactionPolicySchema`
+  is still `z.looseObject({})`, `complete_structured`/`generateStructured`/`StructuredRequest`
+  appear nowhere, `LlmProvider` has `list_models`/`test_connection`/`complete`/`cancel` but no
+  `capabilities`. Own scan beyond the prompt's own list found two load-bearing facts: **every
+  method plugin already owns a real Zod schema** (`MethodPlugin.schema: ZodType<TPayload>`,
+  `src/methods/types.ts`) — SPEC §8.7's "every method plugin already owns a Zod schema, convert
+  it to JSON Schema" is not aspirational, it is already true today, so structured generation has
+  a real, reusable target from day one; and **`calamine` is in `Cargo.toml` but used only in
+  `src-tauri/tests/xlsx.rs`** (Phase 4's dev-only round-trip reading) — §8.9's file ingestion is
+  a genuinely new production subsystem, the crate being present is not evidence any wiring exists.
+  `Provenance.editDistance` (P-47) is already a real, if uncomputed, schema field (`0..1 optional`)
+  — a real Accept/Edit&Accept/Reject flow naturally has a place to fill it. Four real open design
+  questions went to Barış via one `AskUserQuestion` round, all four recommended options confirmed:
+  (1) per-step prompt library lives at SPEC's own proposed
+  `src/ai/prompts/{step}/{methodId}.{version}.md`, mirroring `src/content/coaching/{tr,en}/step-N.md`'s
+  (Phase 3) already-established "content lives in files, not JSX" convention; (2) file ingestion
+  (§8.9) is its own slice (J2) **after** a first end-to-end proposal flow proven with manually-typed
+  data (J1) — D-114's "one new mechanism per slice" budget, since Rust-side xlsx/csv reading +
+  sampling is a substantial subsystem on its own; (3) redaction (§8.11) ships a basic real version
+  **with** J2, not deferred further — the moment J2 sends real production spreadsheet content to
+  Vorion is exactly the moment §8.1's LOCKED "the user's data is the user's" principle stops being
+  theoretical, and CLAUDE.md's own "summarize and sample, show what's transmitted" warning applies
+  directly; (4) the proposal UI is a new generic-shell field (`EntryProposalField`, a third
+  application of D-125's `EntryReferenceField`/`EntryImagesField` pattern) triggered from each
+  method card, **not** folded into `AssistantPanel`'s existing free-text chat — a schema-bound
+  Pareto draft is structurally a pre-filled entry to review, not a chat bubble; `AssistantPanel`'s
+  Socratic default chat stays untouched and parallel. **Proposed three-slice plan** (written to
+  `docs/oturumlar/README.md`'s own Faz 9 section, not finalized code): **J1** — Vorion's real
+  structured-output shape verified against Barış's own authenticated `vorionai.com/docs` session
+  (D-199/D-200/D-201's own discipline: screenshots, never a guess) **before any code**, then
+  `complete_structured`/`capabilities()` added to `LlmProvider`, the prompt-library file mechanism,
+  and one reference method (Pareto, matching the phase's own literal done-criterion) proposed
+  end-to-end through `EntryProposalField` with manually-entered data — closes P-47 naturally as a
+  side effect of building a real Accept/Edit&Accept/Reject flow. **J2** — real file ingestion
+  (Rust xlsx/csv read + sample + attachment-review confirmation sheet, `calamine` wired into
+  production for the first time) plus a basic real `RedactionPolicySchema` (off/customers, a term
+  list, `preserveNumbers: true`), wired into J1's flow — this is what actually closes Faz 9's own
+  literal done-criterion ("propose a valid Pareto entry from an uploaded xlsx"). **J3** — the
+  per-step prompt library mechanism generalized from Pareto to the rest of the 57-entry method
+  registry (own launch prompt decides scope/subdivision — almost certainly too large for one
+  slice). P-48/P-49 untouched, still open. Docs updated this session: this section, `DECISIONS.md`
+  D-203, `docs/oturumlar/README.md`'s new Faz 9 table.
 Stack decision (Tauri vs Electron fallback): Tauri v2, revisit only if Phase 4 stalls
 App name: **PPS Hachi** (八 — eight). Repo `pps-hachi`. Set 2026-08-01, see DECISIONS.md D-29.
 AI layer: Faz 8 fully done (keychain + Vorion connection/model-discovery + streaming
