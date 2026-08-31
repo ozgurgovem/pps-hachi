@@ -128,7 +128,7 @@ katlanmaz. Tam kayıt: D-203.
 | Dilim | Kapsam | Durum |
 |---|---|---|
 | Kapsam belirleme — beş alt-teslimatın veri durumu + Vorion'un yapılandırılmış-çıktı sorusu + dilim planı | `docs/oturumlar/faz9-kapsam-belirleme.md` | ✅ BİTTİ 2026-08-31 — D-203, dört soru `AskUserQuestion` ile cevaplandı (hepsi önerilen seçenek). |
-| J1 — Vorion'un yapılandırılmış-çıktı şeklinin doğrulanması (Barış'ın kendi `vorionai.com/docs` oturumu, kodlamadan ÖNCE) + `LlmProvider.complete_structured`/`capabilities()` + prompt-kütüphanesi mekanizması + TEK referans method (Pareto) elle-girilen veriyle uçtan uca `EntryProposalField` üzerinden | *(henüz yazılmadı)* | ⏳ planlandı, başlanmadı. P-47'yi (`editDistance`) doğal yan etki olarak kapatması bekleniyor. |
+| J1 — Vorion'un yapılandırılmış-çıktı şeklinin doğrulanması (Barış'ın kendi `vorionai.com/docs` oturumu, kodlamadan ÖNCE) + `LlmProvider.complete_structured`/`capabilities()` + prompt-kütüphanesi mekanizması + TEK referans method (Pareto) elle-girilen veriyle uçtan uca `EntryProposalField` üzerinden | `docs/oturumlar/J1-pareto-yapilandirilmis-oneri.md` | 📝 launch prompt yazıldı 2026-08-31, henüz başlanmadı. P-47'yi (`editDistance`) doğal yan etki olarak kapatması bekleniyor. |
 | J2 — Gerçek dosya içeri alma (Rust xlsx/csv okuma+örnekleme, `calamine` ilk kez üretimde; gönderim-öncesi onay sayfası) + temel gerçek `RedactionPolicySchema` (off/customers, terim listesi), J1'in akışına bağlanır | *(henüz yazılmadı)* | ⏳ planlandı, başlanmadı. Faz 9'un kendi lafzî done-koşulunu ("uploaded xlsx"→Pareto önerisi) kapatan dilim budur. |
 | J3 — Per-step prompt kütüphanesinin Pareto'dan registry'nin geri kalan 57 method'una genelleştirilmesi | *(henüz yazılmadı)* | ⏳ planlandı, başlanmadı. Kapsam/alt-bölünme kendi launch prompt'unun kararı. |
 
@@ -138,7 +138,7 @@ Yeni oturumu şu iki satırla başlat (dosya adını sıradaki oturuma göre de�
 
 ```
 Önce Anayasamızı Oku (~/.claude/ANAYASA.md).
-Sonra ~/Developer/pps-hachi/docs/oturumlar/faz8-dilim1-vorion-temel.md'yi oku ve uygula.
+Sonra ~/Developer/pps-hachi/docs/oturumlar/J1-pareto-yapilandirilmis-oneri.md'yi oku ve uygula.
 ```
 
 ## Prompt yazarken
