@@ -462,7 +462,8 @@ Phase: 8 of 12 — all three dilims DONE (D-200 2026-08-30, D-201 2026-08-31, D-
   new Rust tests, only build-graph changes), `cargo clippy --all-targets -- -D warnings` and
   `cargo fmt -- --check` both clean. `scripts/gen-a3-fixture.ts` not re-run (no template
   style, `A3ImageKind`, or model schema touched). **Faz 8 (all three dilims) is now fully
-  closed.**
+  closed.** Faz 9's own kapsam-belirleme launch prompt:
+  `docs/oturumlar/faz9-kapsam-belirleme.md`.
 Stack decision (Tauri vs Electron fallback): Tauri v2, revisit only if Phase 4 stalls
 App name: **PPS Hachi** (八 — eight). Repo `pps-hachi`. Set 2026-08-01, see DECISIONS.md D-29.
 AI layer: Faz 8 fully done (keychain + Vorion connection/model-discovery + streaming

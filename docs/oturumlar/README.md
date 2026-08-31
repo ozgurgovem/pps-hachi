@@ -100,6 +100,21 @@ D-199.
 | Dilim 2 — Streaming completion uçtan uca (SSE→Tauri Channel) + `RightPanel`'in Assistant sekmesinde çıplak chat kutusu + provenance plumbing | `docs/oturumlar/faz8-dilim2-vorion-streaming.md` | ✅ BİTTİ 2026-08-31 — D-201, Barış'ın altı ekran görüntüsüyle Streaming/Cancel Prediction'ın gerçek şekli doğrulandı (tahmin yok). Kodlarken iki gerçek hata kendi kendine yakalandı: bir Türkçe-karakter UTF-8 bölünme riski (tasarım incelemesiyle) ve bir wire-shape/TS-shape karışıklığı (`cargo test` kırmızı verdi). `npm test` 1206/1206, `cargo test` 136/136, ikisi de exit 0; `cargo clippy`/`cargo fmt` temiz. Debug amaçlı geçici bir "Enable AI for this project" anahtarı `SettingsScreen`'e eklendi (§8.5'in gerçek New Project AI adımı gelene kadar). Owed: gerçek Tauri penceresinde uçtan uca deneme (aynı D-105/D-113/D-136/D-200 sınıfı gap). P-47 (`editDistance` hesaplanmadı), P-48 (Resume Stream uygulanmadı) açık. |
 | Dilim 3 — D-20'nin "AI kapalı" mutlu-yol testi + gerçek E2E araç seçimi (SPEC'in "Playwright" sözcüğü kodlamadan önce Tauri v2'nin güncel E2E ekosistemine karşı doğrulanmalı) | `docs/oturumlar/faz8-dilim3-playwright-ai-kapali.md` | ✅ BİTTİ 2026-08-31 — D-202. Araştırma sonucu **WebdriverIO** seçildi (Playwright'ın resmi Tauri desteği yok); karar Barış tarafından bilinçli olarak devredildi. İki gerçek Cargo/tauri-build tuzağı yalnızca `cargo check --release` ile ampirik olarak bulundu ve düzeltildi (`[target.'cfg(debug_assertions)']` profile göre değişmiyor → açık `e2e-test` Cargo feature'ına geçildi; `tauri-build` capabilities allowlist'i build-time validation'da hiç uygulamıyor → `e2e-test.json` `capabilities-e2e/`'e taşındı, `build.rs` kendi kendini onaran bir kopyala/sil mekanizmasıyla feature'a göre `capabilities/`'i uzlaştırıyor). Gerçek uçtan uca `npm run test:e2e:build` çalıştırılıp `src-tauri/target/debug/pps-hachi` gerçekten üretildi. `npm test` 1206/1206, `cargo test` 136/136 (değişmedi, bu dilim yeni Rust testi eklemedi), ikisi de exit 0; `cargo clippy`/`cargo fmt`/`tsc --noEmit` temiz; üretim `dist/`'inde `wdio` sıfır kez geçiyor (grep ile doğrulandı). CI'a her iki platforma da iki yeni adım eklendi. **Dürüstçe owed**: bu ortamda ekran yok, `e2e/specs/*.spec.ts`'in kendisi (yalnızca build'i değil, gerçek wdio testrunner'ını) hiç çalıştırılmadı; `browser.tauri.mock()`'ün bu app'in gerçek UI'ında tetiklenen `invoke()` çağrılarını gerçekten yakalayıp yakalamadığı da doğrulanmadı (P-49) — test bu varsayım yanlışsa sessizce değil gürültülü şekilde başarısız olacak biçimde tasarlandı. **D-149'un dört-oturumluk arayüz planından bağımsız, Faz 8'in kendi üç dilimi artık tamamen bitti.** |
 
+## Faz 9 — `SPEC.md` §6'nın kendi sıradaki fazı: AI structured generation
+
+`SPEC.md`'nin faz tablosu: "`generateStructured` per provider, per-step prompt library,
+proposal→accept/edit/reject flow, file & image ingestion, redaction layer — Done when: the
+assistant can propose a valid Pareto entry from an uploaded xlsx." Faz 8'in kendi kapsam
+belirleme emsaliyle aynı: ölçüm önce, sonra dilim. `SPEC.md` §8'in metni hâlâ Gün-1'in
+üç-sağlayıcı varsayımıyla yazılmış — D-199/D-200/D-201'in zaten doğruladığı tek-sağlayıcı
+(Vorion) gerçeğinden okunmalı. Bu fazın kendi kalbi, D-199'un bilerek çözülmemiş bıraktığı
+soru: Vorion'un yapılandırılmış-çıktı (structured output) şekli ayrı bir endpoint mi, yoksa
+Prediction isteğinde bir parametre mi — hiç görülmedi, kodlamadan önce doğrulanmalı.
+
+| Dilim | Kapsam | Durum |
+|---|---|---|
+| Kapsam belirleme — beş alt-teslimatın veri durumu + Vorion'un yapılandırılmış-çıktı sorusu + dilim planı | `docs/oturumlar/faz9-kapsam-belirleme.md` | 📝 launch prompt yazıldı 2026-08-31, henüz başlanmadı. |
+
 ## Kullanım
 
 Yeni oturumu şu iki satırla başlat (dosya adını sıradaki oturuma göre değiştir):
