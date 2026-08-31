@@ -129,7 +129,7 @@ katlanmaz. Tam kayıt: D-203.
 |---|---|---|
 | Kapsam belirleme — beş alt-teslimatın veri durumu + Vorion'un yapılandırılmış-çıktı sorusu + dilim planı | `docs/oturumlar/faz9-kapsam-belirleme.md` | ✅ BİTTİ 2026-08-31 — D-203, dört soru `AskUserQuestion` ile cevaplandı (hepsi önerilen seçenek). |
 | J1 — Vorion'un yapılandırılmış-çıktı şeklinin doğrulanması (Barış'ın kendi `vorionai.com/docs` oturumu, kodlamadan ÖNCE) + `LlmProvider.complete_structured`/`capabilities()` + prompt-kütüphanesi mekanizması + TEK referans method (Pareto) elle-girilen veriyle uçtan uca `EntryProposalField` üzerinden | `docs/oturumlar/J1-pareto-yapilandirilmis-oneri.md` | ✅ BİTTİ 2026-08-31 — D-204. §2.1 Barış'ın sekiz ekran görüntüsüyle **(b)**'ye kesin karar verdi: Vorion'da yapılandırılmış-çıktıya özel bir alan yok, `complete_structured` Synchronous Prediction üzerine kurulu bir istem-mühendisliği katmanı. **P-47 KAPANDI** — `normalizedEditDistance` (JSON-stringify üzerinden Levenshtein) Accept anında hesaplanıyor. `npm test` 1243/1243 (1206'dan yukarı), `cargo test` 145 lib + 2 + 8 = 155 (136'dan yukarı), ikisi de exit 0; `cargo clippy`/`cargo fmt`/`tsc --noEmit` temiz; `gen-a3-fixture.ts` diff'i byte-identical. Yeni P-50 (`contextSlices` front-matter alanı hâlâ tüketilmiyor, J2/J3'e owed). |
-| J2 — Gerçek dosya içeri alma (Rust xlsx/csv okuma+örnekleme, `calamine` ilk kez üretimde; gönderim-öncesi onay sayfası) + temel gerçek `RedactionPolicySchema` (off/customers, terim listesi), J1'in akışına bağlanır | *(henüz yazılmadı)* | ⏳ planlandı, başlanmadı. Faz 9'un kendi lafzî done-koşulunu ("uploaded xlsx"→Pareto önerisi) kapatan dilim budur. |
+| J2 — Gerçek dosya içeri alma (Rust xlsx/csv okuma+örnekleme, `calamine` ilk kez üretimde; gönderim-öncesi onay sayfası) + temel gerçek `RedactionPolicySchema` (off/customers, terim listesi), J1'in akışına bağlanır | `docs/oturumlar/J2-dosya-iceri-alma-redaction.md` | 📝 launch prompt yazıldı 2026-09-01, henüz başlanmadı. Kendi taraması `src-tauri/src/ingest/`'in Faz 0'dan beri boş bir iskelet olarak durduğunu buldu (kullanılabilir). SPEC §8.9'un attachment review sheet'i D-203'ün kendi J2 tanımında adı geçmeyen üçüncü bir zorunlu mekanizma — bütçe gergin, ikiye bölünmesi (J2a/J2b) önerilir. |
 | J3 — Per-step prompt kütüphanesinin Pareto'dan registry'nin geri kalan 57 method'una genelleştirilmesi | *(henüz yazılmadı)* | ⏳ planlandı, başlanmadı. Kapsam/alt-bölünme kendi launch prompt'unun kararı. |
 
 ## Kullanım
@@ -138,7 +138,7 @@ Yeni oturumu şu iki satırla başlat (dosya adını sıradaki oturuma göre de�
 
 ```
 Önce Anayasamızı Oku (~/.claude/ANAYASA.md).
-Sonra ~/Developer/pps-hachi/docs/oturumlar/J1-pareto-yapilandirilmis-oneri.md'yi oku ve uygula.
+Sonra ~/Developer/pps-hachi/docs/oturumlar/J2-dosya-iceri-alma-redaction.md'yi oku ve uygula.
 ```
 
 ## Prompt yazarken
