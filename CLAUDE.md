@@ -691,8 +691,11 @@ App name: **PPS Hachi** (八 — eight). Repo `pps-hachi`. Set 2026-08-01, see D
 AI layer: Faz 8 fully done (keychain + Vorion connection/model-discovery + streaming
   completion/Assistant chat panel/provenance + the D-20 "AI off" WebdriverIO E2E suite).
   Faz 9 — J1 and J2 done (structured output + Pareto reference proposal via
-  `EntryProposalField`; real xlsx/csv file ingestion + basic redaction). J3 (generalize
-  beyond Pareto) not started. Faz 10 not started.
+  `EntryProposalField`; real xlsx/csv file ingestion + basic redaction). J3 (generalize the
+  prompt library from Pareto to the rest of the 57-method registry) has its launch prompt
+  written (`docs/oturumlar/J3-prompt-kutuphanesi-genelleme.md`, 2026-09-01) — a full
+  50-method/8-slice inventory, no new mechanism, one slice per step; J3-1 (Step 1, 9
+  methods) is next, not started. Faz 10 not started.
 Templates: two company .xls files analysed; see reference/TEMPLATE_ANALYSIS.md
 Template geometry: VERIFIED 2026-08-01 against both .xls files. Five errors found and
   corrected in place — the largest was the column widths: the real split is 49.7/50.3, NOT
