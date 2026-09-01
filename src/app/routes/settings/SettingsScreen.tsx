@@ -11,8 +11,11 @@ import {
   SelectRoot,
   SelectTrigger,
   SelectValue,
+  Textarea,
 } from "../../../ui";
 import { buildSetAiMetaCommand } from "../../../domain/commands";
+import type { RedactionMode } from "../../../domain/model";
+import { resolveRedactionPolicy } from "../../../ai/redaction";
 import { useProjectStore } from "../../../state";
 import { errorMessage } from "../launch/errorMessage";
 import {
@@ -63,6 +66,18 @@ export function SettingsScreen() {
 
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus | null>(null);
   const [isTestingConnection, setIsTestingConnection] = useState(false);
+
+  /** J2/D-205: local so a keystroke doesn't dispatch (and add an undo step)
+   * on every character — committed on blur via `handleRedactionTermsChange`.
+   * Reset whenever a different project opens, but never while the current
+   * project's own `redaction.terms` changes for an unrelated reason (an
+   * in-flight edit here should not be blown away by, say, an autosave
+   * tick), which is why this depends on `project?.id` rather than `project`. */
+  const [termsInput, setTermsInput] = useState("");
+  useEffect(() => {
+    setTermsInput(resolveRedactionPolicy(project?.meta.ai.redaction).terms.join("\n"));
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- see comment above
+  }, [project?.id]);
 
   useEffect(() => {
     let cancelled = false;
@@ -170,6 +185,39 @@ export function SettingsScreen() {
         providerId: "vorion",
         redaction: project.meta.ai.redaction,
         ...(nextModelId === undefined ? undefined : { modelId: nextModelId }),
+      }),
+    );
+  }
+
+  /**
+   * J2/D-205/§2.2: same temporary-debug posture D-201's `handleToggleProjectAi`
+   * already established for `meta.ai.enabled` — §8.5's real New Project AI
+   * step is where a redaction policy is meant to be chosen, and it doesn't
+   * exist yet. `resolveRedactionPolicy` fills in the two fields left unset.
+   */
+  function handleRedactionModeChange(mode: RedactionMode) {
+    if (!project) {
+      return;
+    }
+    const resolved = resolveRedactionPolicy(project.meta.ai.redaction);
+    dispatch(
+      buildSetAiMetaCommand(project, {
+        ...project.meta.ai,
+        redaction: { mode, terms: [...resolved.terms], preserveNumbers: true },
+      }),
+    );
+  }
+
+  function handleRedactionTermsChange(termsText: string) {
+    if (!project) {
+      return;
+    }
+    const resolved = resolveRedactionPolicy(project.meta.ai.redaction);
+    const terms = termsText.split("\n").map((term) => term.trim()).filter((term) => term.length > 0);
+    dispatch(
+      buildSetAiMetaCommand(project, {
+        ...project.meta.ai,
+        redaction: { mode: resolved.mode, terms, preserveNumbers: true },
       }),
     );
   }
@@ -364,6 +412,45 @@ export function SettingsScreen() {
           </div>
         ) : (
           <p className="font-body text-sm text-ink-muted">{t("settings.ai.debugProjectAiNoProject")}</p>
+        )}
+      </section>
+
+      {/* J2/D-205: same temporary-debug posture as the section above — §8.4's
+          real "Redaction policy" control lives in the not-yet-built full
+          Settings → AI providers screen (SPEC.md §8.4). */}
+      <section className="flex flex-col gap-3 rounded-control border border-dashed border-border bg-surface-raised p-6">
+        <h2 className="font-display text-lg text-ink">{t("settings.ai.redactionHeading")}</h2>
+        <p className="font-body text-sm text-ink-muted">{t("settings.ai.redactionHint")}</p>
+        {project ? (
+          <>
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="redaction-mode">{t("settings.ai.redactionModeLabel")}</Label>
+              <SelectRoot
+                value={resolveRedactionPolicy(project.meta.ai.redaction).mode}
+                onValueChange={(value) => handleRedactionModeChange(value as RedactionMode)}
+              >
+                <SelectTrigger id="redaction-mode">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="off">{t("settings.ai.redactionModeOff")}</SelectItem>
+                  <SelectItem value="customers">{t("settings.ai.redactionModeCustomers")}</SelectItem>
+                </SelectContent>
+              </SelectRoot>
+            </div>
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="redaction-terms">{t("settings.ai.redactionTermsLabel")}</Label>
+              <Textarea
+                id="redaction-terms"
+                value={termsInput}
+                placeholder={t("settings.ai.redactionTermsPlaceholder")}
+                onChange={(event) => setTermsInput(event.target.value)}
+                onBlur={() => handleRedactionTermsChange(termsInput)}
+              />
+            </div>
+          </>
+        ) : (
+          <p className="font-body text-sm text-ink-muted">{t("settings.ai.redactionNoProject")}</p>
         )}
       </section>
     </main>

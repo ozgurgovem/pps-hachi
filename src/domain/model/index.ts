@@ -31,5 +31,7 @@ export {
   type SignOffEntry,
   type SignOffState,
   type AiMeta,
+  type RedactionMode,
+  type RedactionPolicy,
 } from "./projectModel";
 export { createNewProject, type CreateProjectParams, type NewProject } from "./createProject";

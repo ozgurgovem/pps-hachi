@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { EntryReference, ImageRef, Provenance, StepId } from "../../../domain/model";
 import { buildAddEntryCommand, buildUpdateEntryCommand } from "../../../domain/commands";
+import { resolveRedactionPolicy } from "../../../ai/redaction";
 import type { ErasedMethodPlugin } from "../../../methods";
 import { useProjectStore } from "../../../state";
 import { Button, DialogClose, DialogContent, DialogRoot, Input, Label } from "../../../ui";
@@ -232,6 +233,7 @@ export function EntryEditorDialog({ stepId, plugin, mode, open, onOpenChange }: 
               promptVersion={plugin.aiProposal.promptVersion}
               modelId={project.meta.ai.modelId}
               acceptedBy={project.meta.owner.name}
+              redaction={resolveRedactionPolicy(project.meta.ai.redaction)}
               onAccept={handleAcceptProposal}
             />
           )}

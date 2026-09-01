@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 use tauri::ipc::Channel;
 
 use super::error::AiError;
+use super::redaction::RedactionPolicy;
 
 /// One entry in a model selector — provider-agnostic on the Rust→TS boundary
 /// even though today there is exactly one adapter (Vorion, D-199). `id` is
@@ -111,6 +112,11 @@ pub struct StructuredRequest {
     pub prompt: String,
     pub schema: serde_json::Value,
     pub model_id: String,
+    /// J2/D-205: `None` behaves exactly like `Some(RedactionPolicy { mode:
+    /// Off, .. })` — `VorionProvider::complete_structured` defaults it
+    /// rather than requiring every caller to construct an explicit "off"
+    /// policy.
+    pub redaction: Option<RedactionPolicy>,
 }
 
 /// SPEC.md §8.2's own draft field list (`vision`, `pdf_native`, `caching`,

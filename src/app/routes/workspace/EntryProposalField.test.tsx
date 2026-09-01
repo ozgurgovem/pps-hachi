@@ -1,8 +1,11 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { open } from "@tauri-apps/plugin-dialog";
 import "../../../i18n";
 import { getMethodById } from "../../../methods";
+import type { ResolvedRedactionPolicy } from "../../../ai/redaction";
+import { ingestTablePreview } from "../../../ai/ingestIpc";
 import { EntryProposalField } from "./EntryProposalField";
 import * as entryProposal from "./entryProposal";
 
@@ -23,13 +26,25 @@ vi.mock("./entryProposal", async () => {
   return { ...actual, proposeStructuredEntry: vi.fn() };
 });
 
+vi.mock("@tauri-apps/plugin-dialog", () => ({
+  open: vi.fn(),
+}));
+
+vi.mock("../../../ai/ingestIpc", () => ({
+  ingestTablePreview: vi.fn(),
+}));
+
 const mockedPropose = vi.mocked(entryProposal.proposeStructuredEntry);
+const mockedOpen = vi.mocked(open);
+const mockedIngestTablePreview = vi.mocked(ingestTablePreview);
+
+const OFF: ResolvedRedactionPolicy = { mode: "off", terms: [], preserveNumbers: true };
 
 afterEach(() => {
   vi.clearAllMocks();
 });
 
-function renderField(onAccept = vi.fn()) {
+function renderField(onAccept = vi.fn(), redaction: ResolvedRedactionPolicy = OFF) {
   render(
     <EntryProposalField
       stepId={2}
@@ -37,6 +52,7 @@ function renderField(onAccept = vi.fn()) {
       promptVersion="v1"
       modelId="vorion/gpt-4o"
       acceptedBy="Ada"
+      redaction={redaction}
       onAccept={onAccept}
     />,
   );
@@ -61,20 +77,26 @@ describe("EntryProposalField", () => {
     expect(screen.getByRole("button", { name: "Propose" })).toHaveProperty("disabled", true);
   });
 
-  it("calls proposeStructuredEntry with the pareto schema and shows the plugin's own Editor on success", async () => {
+  it("calls proposeStructuredEntry with the pareto schema, modelId and redaction policy on success", async () => {
     const user = userEvent.setup();
     mockedPropose.mockResolvedValueOnce({
       outcome: "success",
       value: { unit: "count", categories: [{ id: "weld", label: "Weld defect", count: 12 }] },
     });
-    renderField();
+    const redaction: ResolvedRedactionPolicy = { mode: "customers", terms: ["Acme Corp"], preserveNumbers: true };
+    renderField(vi.fn(), redaction);
 
     await user.click(screen.getByRole("button", { name: "Propose with AI" }));
     await user.type(screen.getByRole("textbox", { name: "Raw data" }), "weld defect: 12");
     await user.click(screen.getByRole("button", { name: "Propose" }));
 
     expect(mockedPropose).toHaveBeenCalledWith(
-      expect.objectContaining({ userInput: "weld defect: 12", modelId: "vorion/gpt-4o", zodSchema: paretoPlugin.schema }),
+      expect.objectContaining({
+        userInput: "weld defect: 12",
+        modelId: "vorion/gpt-4o",
+        zodSchema: paretoPlugin.schema,
+        redaction,
+      }),
     );
     expect(await screen.findByDisplayValue("Weld defect")).toBeTruthy();
     expect(await screen.findByDisplayValue("12")).toBeTruthy();
@@ -183,5 +205,120 @@ describe("EntryProposalField", () => {
 
     expect(screen.getByRole("button", { name: "Propose with AI" })).toBeTruthy();
     expect(screen.queryByRole("textbox", { name: "Raw data" })).toBeNull();
+  });
+
+  describe("attachment review sheet", () => {
+    function samplePreview() {
+      return {
+        fileName: "defects.xlsx",
+        fileSizeBytes: 20_480,
+        table: {
+          headers: ["Defect Category", "Count"],
+          rowCount: 5,
+          sampleRows: [["Scratch", "3"]],
+          stratifiedBy: null,
+          groupCounts: [],
+          truncated: false,
+        },
+      };
+    }
+
+    it("does nothing when the user dismisses the native file dialog", async () => {
+      const user = userEvent.setup();
+      mockedOpen.mockResolvedValueOnce(null);
+      renderField();
+
+      await user.click(screen.getByRole("button", { name: "Propose with AI" }));
+      await user.click(screen.getByRole("button", { name: "Add file" }));
+
+      expect(mockedIngestTablePreview).not.toHaveBeenCalled();
+      expect(screen.getByRole("button", { name: "Add file" })).toBeTruthy();
+    });
+
+    it("shows a review sheet with file name, size and row count after a file is picked", async () => {
+      const user = userEvent.setup();
+      mockedOpen.mockResolvedValueOnce("/Users/ada/defects.xlsx");
+      mockedIngestTablePreview.mockResolvedValueOnce(samplePreview());
+      renderField();
+
+      await user.click(screen.getByRole("button", { name: "Propose with AI" }));
+      await user.click(screen.getByRole("button", { name: "Add file" }));
+
+      expect(await screen.findByText(/defects\.xlsx/)).toBeTruthy();
+      expect(screen.getByText(/20\.0 KB/)).toBeTruthy();
+      expect(screen.getByText(/5/)).toBeTruthy();
+    });
+
+    it("shows the off-mode redaction note when the project has redaction disabled", async () => {
+      const user = userEvent.setup();
+      mockedOpen.mockResolvedValueOnce("/Users/ada/defects.xlsx");
+      mockedIngestTablePreview.mockResolvedValueOnce(samplePreview());
+      renderField(vi.fn(), OFF);
+
+      await user.click(screen.getByRole("button", { name: "Propose with AI" }));
+      await user.click(screen.getByRole("button", { name: "Add file" }));
+
+      expect(await screen.findByText("Redaction: off")).toBeTruthy();
+    });
+
+    it("shows the active-terms redaction note when the project has customers-mode redaction on", async () => {
+      const user = userEvent.setup();
+      mockedOpen.mockResolvedValueOnce("/Users/ada/defects.xlsx");
+      mockedIngestTablePreview.mockResolvedValueOnce(samplePreview());
+      renderField(vi.fn(), { mode: "customers", terms: ["Acme Corp", "Beta Inc"], preserveNumbers: true });
+
+      await user.click(screen.getByRole("button", { name: "Propose with AI" }));
+      await user.click(screen.getByRole("button", { name: "Add file" }));
+
+      expect(await screen.findByText(/2 term/)).toBeTruthy();
+    });
+
+    it("appends the file summary to the textarea only after Confirm is clicked", async () => {
+      const user = userEvent.setup();
+      mockedOpen.mockResolvedValueOnce("/Users/ada/defects.xlsx");
+      mockedIngestTablePreview.mockResolvedValueOnce(samplePreview());
+      renderField();
+
+      await user.click(screen.getByRole("button", { name: "Propose with AI" }));
+      await user.click(screen.getByRole("button", { name: "Add file" }));
+      await screen.findByText(/defects\.xlsx/);
+
+      const textarea = screen.getByRole("textbox", { name: "Raw data" }) as HTMLTextAreaElement;
+      expect(textarea.value).toBe("");
+
+      await user.click(screen.getByRole("button", { name: "Add to prompt" }));
+
+      expect(textarea.value).toContain("Attached file: defects.xlsx");
+      expect(textarea.value).toContain("Defect Category=Scratch, Count=3");
+      expect(screen.queryByRole("button", { name: "Add to prompt" })).toBeNull();
+    });
+
+    it("discarding a reviewed attachment leaves the textarea untouched", async () => {
+      const user = userEvent.setup();
+      mockedOpen.mockResolvedValueOnce("/Users/ada/defects.xlsx");
+      mockedIngestTablePreview.mockResolvedValueOnce(samplePreview());
+      renderField();
+
+      await user.click(screen.getByRole("button", { name: "Propose with AI" }));
+      await user.click(screen.getByRole("button", { name: "Add file" }));
+      await screen.findByText(/defects\.xlsx/);
+      await user.click(screen.getByRole("button", { name: "Discard" }));
+
+      const textarea = screen.getByRole("textbox", { name: "Raw data" }) as HTMLTextAreaElement;
+      expect(textarea.value).toBe("");
+      expect(screen.getByRole("button", { name: "Add file" })).toBeTruthy();
+    });
+
+    it("shows an error when reading the file fails, without touching the textarea", async () => {
+      const user = userEvent.setup();
+      mockedOpen.mockResolvedValueOnce("/Users/ada/corrupt.xlsx");
+      mockedIngestTablePreview.mockRejectedValueOnce(new Error("could not read the spreadsheet"));
+      renderField();
+
+      await user.click(screen.getByRole("button", { name: "Propose with AI" }));
+      await user.click(screen.getByRole("button", { name: "Add file" }));
+
+      expect(await screen.findByRole("alert")).toHaveProperty("textContent", "could not read the spreadsheet");
+    });
   });
 });

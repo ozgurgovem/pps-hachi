@@ -593,13 +593,106 @@ Phase: 9 of 12 — kapsam belirlendi (D-203, 2026-08-31), henüz inşa edilmedi.
   Prediction call with a real key was never made, "AI ile öner" was never clicked in a real
   window. Everything is built and unit-tested against the confirmed real API shape, but the live
   round-trip is still owed from Barış's own `npm run tauri dev`.
+**Faz 9 — J2 (real file ingestion + basic redaction): DONE 2026-09-01 (D-205).** §2.1's own
+  calamine-API verification (docs.rs, before writing any code) surfaced a real, unpredicted
+  finding: **calamine 0.36.1 has no CSV support at all** — its `Sheets` enum carries exactly
+  `Xls`/`Xlsx`/`Xlsb`/`Ods`, no `Csv` variant anywhere in the crate. SPEC.md §8.9's "xlsx/csv →
+  parsed with calamine" is wrong on the csv half. Four real architectural questions went to
+  Barış via one `AskUserQuestion` round before any code, all four recommended options
+  confirmed: (1) CSV gets its own independent reader — the `csv` crate (BurntSushi, v1.4.0,
+  RFC 4180-compliant, verified against the real crates.io API), not a hand-rolled parser;
+  (2) sampling is **category-stratified** — the first column whose distinct-value ratio is
+  ≤ 50% becomes the stratification key (one representative row + a real count per distinct
+  value), falling back to a plain first-N-rows sample when no column qualifies; (3) redaction
+  runs **in Rust, at transmission time** (`VorionProvider::complete_structured`) — TS never
+  redacts on its own, and since both the user's manually-typed text and any file-derived
+  summary flow into one `userInput` string before crossing into Rust, one call site covers
+  both; (4) ship in one session — real complexity, once the csv-crate and redaction-location
+  questions were settled, did not exceed budget, so no J2a/J2b split was needed.
+  **Rust**, `src-tauri/src/ingest/` (empty since Phase 0, filled for the first time):
+  `table.rs`'s `build_ingested_table` — pure, reader-agnostic, `pick_stratify_column`/
+  `group_rows_by_column` (first-encounter order preserved via a parallel `order: Vec<String>`
+  alongside the `HashMap`), `MAX_SAMPLE_ROWS = 30` (D-118's fixed-number precedent, not
+  Settings-configurable, §3's own scope narrowing); `xlsx_source.rs` (`calamine::
+  open_workbook_auto`/`worksheet_range_at(0)`/`.headers()`/`.rows()`, all verified against
+  docs.rs — first sheet only, see P-52); `csv_source.rs` (`csv::Reader::from_path`/`.headers()`/
+  `.records()`, with a dedicated quoted-field/escaped-quote regression test — the exact case a
+  hand-rolled parser would have gotten wrong); `mod.rs`'s `ingest_table_from_path` — dispatches
+  on extension (only `.xlsx`/`.csv`; calamine's own `.xls`/`.xlsb`/`.ods` are deliberately
+  rejected, D-203's scope), a fixed 25 MB file-size cap; `error.rs`'s `IngestError` (D-200's
+  "only variants a real call site constructs" discipline — no separate corrupt/password-
+  protected/unsupported-internal-format variants, both libraries' own error text already
+  carries that). `commands.rs`'s `ingest_table_preview` command reads file name/size itself
+  (`IngestedTable` stays reader-agnostic). New `src-tauri/src/ai/redaction.rs`: `RedactionPolicy`/
+  `RedactionMode` (`off`/`customers` only — SPEC's `customers-and-parts`/`custom` draft modes
+  stay out of scope), `redact_text` (longest-term-first matching, so "Acme" never partially
+  masks "Acme Corp"), `unredact_json_value` (walks a structured JSON response at any depth —
+  Vorion's reply is schema-shaped JSON, not prose). The token map is **call-scoped**
+  (`RedactionToken`, built and consumed inside one `complete_structured` invocation) — this
+  satisfies SPEC's "session-scoped token map" for J2's own single-request proposal flow, but
+  has no real cross-request identity (the same customer name getting the same letter across
+  separate proposals in one workspace session), a deliberate, documented narrowing. `Structured
+  Request`/`ai_complete_structured` gained an `redaction: Option<RedactionPolicy>` field;
+  `VorionProvider::complete_structured` now runs redact → build request → send → parse →
+  unredact in sequence.
+  **TypeScript**: `RedactionPolicySchema` (`projectModel.ts`) gained real fields (`mode`/
+  `terms`/`preserveNumbers`), all three **optional** — the same "optional schema field +
+  resolve helper" split `language?`/`resolveA3Language` and `images?`/`resolveA3Images`
+  (`methodContract.ts`) already established, so every pre-J2 `redaction: {}` fixture (15+
+  test files) keeps parsing unchanged; `resolveRedactionPolicy` (`src/ai/redaction.ts`)
+  supplies the real defaults. New `src/ai/ingestIpc.ts` (mirrors `EntryImagesField`'s own
+  IPC-wrapping shape). `entryProposal.ts`'s `formatIngestedTableForPrompt` turns an
+  `AttachmentPreview` into a plain, labelled text block (file name, columns, stratified group
+  counts or a plain row count, sample rows) that **supplements** the user's own typed
+  `rawInput`, never replaces it (§2.4's own call); `proposeStructuredEntry` now takes a
+  `redaction: ResolvedRedactionPolicy` parameter, forwarded to `completeStructured` on both
+  the first attempt and the retry. `EntryProposalField.tsx`: a "Dosya ekle"/"Add file" button
+  (`@tauri-apps/plugin-dialog`'s `open()`, `EntryImagesField`'s own `IMAGE_FILTER` pattern
+  applied to `SPREADSHEET_FILTER`) opens SPEC.md §8.9's **attachment review sheet** as a real
+  UI state (`AttachmentState`) — file name/size/row count/the active redaction policy shown,
+  with explicit Confirm/Discard buttons; nothing joins the prompt until Confirm. `EntryEditor
+  Dialog.tsx` now passes `resolveRedactionPolicy(project.meta.ai.redaction)` down.
+  `SettingsScreen.tsx` gained a second temporary debug section (matching D-201's own posture
+  for `meta.ai.enabled`) — a mode selector plus a terms textarea (committed on blur, not per
+  keystroke, to avoid spamming undo history) — SPEC §8.4's real Settings → AI providers
+  "Redaction policy" UI still doesn't exist.
+  **Faz 9's own literal done-criterion** ("propose a valid Pareto entry from an uploaded
+  xlsx") is proven by a permanent PROBE test, `paretoFromXlsxAttachment.probe.test.ts`: a
+  *realistic* `AttachmentPreview` (stratified by a category column, matching what the real
+  Rust algorithm actually produces for a Pareto-shaped sheet) is chained through
+  `formatIngestedTableForPrompt` → `proposeStructuredEntry` and validated against the real
+  Pareto Zod schema, covering both first-attempt success and the one-retry path. Same
+  honestly-owed gap as D-105/D-113/D-136/D-200/D-201/D-204: the TS-side chain is proven, but
+  no real Vorion round trip (a real "Add file" click in a real Tauri window) happened in this
+  display-less environment.
+  **Key-leak re-verified** by inspection (D-200's precedent): `src-tauri/src/ingest/` and
+  `redaction.rs` contain no reference to `api_key`/`KeyringSecretStore`/`keyring` (grep-
+  confirmed), neither touches `write_ppsx` — the key is still read only inside `ai::commands`.
+  **P-50 stays open, explicitly recorded**: the file summary flows straight into `userInput`
+  (as §2.5 anticipated), so `contextSlices` still has no reader — J1's own "don't assume
+  easily closed" lesson held here too. New **P-51** (redaction wired only into
+  `ai_complete_structured`, not `ai_complete`/`AssistantPanel`'s free chat — a real, typed
+  customer name there still goes out unmasked) and **P-52** (only the workbook's first sheet
+  is ever read; data on a second sheet silently produces an empty/incomplete table, no
+  distinct error).
+  `npm test` 1272/1272 (279 files, up from 1243/1243 — 29 new tests), exit code 0 (checked via
+  a separate logfile, not piped through `tail`). `npm run lint` clean (the one pre-existing
+  `ThemeProvider` warning). `npm run build` green (same pre-existing chunk-size warning).
+  `cargo test` 170 lib (up from 145 — 25 new) + 2 fixture + 8 xlsx = 180 total, `cargo clippy
+  --all-targets -- -D warnings` and `cargo fmt -- --check` both clean. `scripts/gen-a3-
+  fixture.ts` not re-run — this dilim touches no template style, `A3ImageKind`, or the export
+  pipeline at all (grep-confirmed); the fixture's own `redaction: {}` stays valid under the
+  new optional-field schema regardless. Deliberately not built this dilim: pdf/docx/pptx
+  ingestion (§8.9's remainder, D-203's own narrowing), §8.4's full Settings → AI providers
+  "Attachment policy" UI, `"customers-and-parts"`/`"custom"` redaction modes, §8.12 (cost
+  counter), J3, P-48/P-49 (untouched). Not yet committed to git.
 Stack decision (Tauri vs Electron fallback): Tauri v2, revisit only if Phase 4 stalls
 App name: **PPS Hachi** (八 — eight). Repo `pps-hachi`. Set 2026-08-01, see DECISIONS.md D-29.
 AI layer: Faz 8 fully done (keychain + Vorion connection/model-discovery + streaming
   completion/Assistant chat panel/provenance + the D-20 "AI off" WebdriverIO E2E suite).
-  Faz 9 — J1 done (structured output + Pareto reference proposal via `EntryProposalField`);
-  J2 (real file ingestion + redaction) and J3 (generalize beyond Pareto) not started.
-  Faz 10 not started.
+  Faz 9 — J1 and J2 done (structured output + Pareto reference proposal via
+  `EntryProposalField`; real xlsx/csv file ingestion + basic redaction). J3 (generalize
+  beyond Pareto) not started. Faz 10 not started.
 Templates: two company .xls files analysed; see reference/TEMPLATE_ANALYSIS.md
 Template geometry: VERIFIED 2026-08-01 against both .xls files. Five errors found and
   corrected in place — the largest was the column widths: the real split is 49.7/50.3, NOT

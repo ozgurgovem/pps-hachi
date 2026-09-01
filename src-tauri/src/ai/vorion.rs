@@ -8,6 +8,7 @@ use super::provider::{
     CancelResult, Capabilities, CompletionMeta, CompletionRequest, ConnectionStatus, LlmProvider,
     ModelInfo, StreamEvent, StructuredRequest,
 };
+use super::redaction::{redact_text, unredact_json_value, RedactionMode, RedactionPolicy};
 
 /// Confirmed against the real `vorionai.com/docs` "Synchronous Prediction"
 /// reference (Barış's authenticated session, 2026-08-30) — not assumed. The
@@ -455,10 +456,18 @@ impl LlmProvider for VorionProvider {
         &self,
         req: StructuredRequest,
     ) -> Result<serde_json::Value, AiError> {
+        let default_policy = RedactionPolicy {
+            mode: RedactionMode::Off,
+            terms: Vec::new(),
+            preserve_numbers: true,
+        };
+        let policy = req.redaction.as_ref().unwrap_or(&default_policy);
+        let (masked_prompt, tokens) = redact_text(&req.prompt, policy);
+
         let (llm_name, llm_group_name) = split_model_id(&req.model_id);
         let request = PredictionRequest {
             prompt: PredictionPrompt {
-                text: build_structured_prompt(&req.prompt, &req.schema),
+                text: build_structured_prompt(&masked_prompt, &req.schema),
             },
             llm_name,
             llm_group_name,
@@ -476,7 +485,9 @@ impl LlmProvider for VorionProvider {
             .json()
             .await?;
 
-        parse_structured_response(&response.response)
+        let mut value = parse_structured_response(&response.response)?;
+        unredact_json_value(&mut value, &tokens);
+        Ok(value)
     }
 
     /// §2.1's own finding: neither Synchronous nor Streaming Prediction has

@@ -1,4 +1,6 @@
 import { z, type ZodType } from "zod";
+import type { AttachmentPreview } from "../../../ai/ingestIpc";
+import type { ResolvedRedactionPolicy } from "../../../ai/redaction";
 import { completeStructured } from "../../../ai/structuredIpc";
 import { errorMessage } from "../launch/errorMessage";
 
@@ -9,6 +11,43 @@ import { errorMessage } from "../launch/errorMessage";
  * pure function," here meaning testable with a mocked `completeStructured`
  * rather than a mocked Tauri runtime and a rendered component.
  */
+
+/**
+ * J2/D-205/§2.4: formats a confirmed attachment into the same kind of text
+ * block the user could have typed by hand — the file-derived summary joins
+ * `userInput` as a supplement, never a replacement, so whatever the user
+ * already wrote stays intact. Deliberately plain, labelled text rather than
+ * a second structured channel: `proposeStructuredEntry` has exactly one
+ * `userInput` string, and giving the file its own parallel path would be a
+ * second, undocumented way to reach the same prompt (P-50's own "no
+ * automatic context slice consumer yet" note applies the same reasoning
+ * here — one input surface, not two).
+ */
+export function formatIngestedTableForPrompt(preview: AttachmentPreview): string {
+  const { fileName, table } = preview;
+  const lines: string[] = [`Attached file: ${fileName}`, `Columns: ${table.headers.join(", ")}`];
+
+  if (table.stratifiedBy) {
+    const truncatedNote = table.truncated ? `, showing the first ${table.groupCounts.length}` : "";
+    lines.push(
+      `Total rows: ${table.rowCount} (stratified sample by "${table.stratifiedBy}", ${table.groupCounts.length} distinct values${truncatedNote})`,
+    );
+    lines.push("Group counts:");
+    for (const group of table.groupCounts) {
+      lines.push(`- ${group.value}: ${group.count}`);
+    }
+  } else {
+    const truncatedNote = table.truncated ? ` (showing the first ${table.sampleRows.length})` : "";
+    lines.push(`Total rows: ${table.rowCount}${truncatedNote}`);
+  }
+
+  lines.push("Sample rows:");
+  for (const row of table.sampleRows) {
+    lines.push(`- ${table.headers.map((header, index) => `${header}=${row[index] ?? ""}`).join(", ")}`);
+  }
+
+  return lines.join("\n");
+}
 
 export function buildProposalPrompt(promptBody: string, userInput: string): string {
   return `${promptBody}\n\n---\n\n## User-provided data\n\n${userInput}`;
@@ -39,10 +78,11 @@ async function attemptStructuredProposal(
   jsonSchema: object,
   modelId: string,
   zodSchema: ZodType<unknown>,
+  redaction: ResolvedRedactionPolicy,
 ): Promise<Attempt> {
   let raw: unknown;
   try {
-    raw = await completeStructured(prompt, jsonSchema, modelId);
+    raw = await completeStructured(prompt, jsonSchema, modelId, redaction);
   } catch (error) {
     const message = errorMessage(error);
     return { success: false, rawText: message, errorSummary: message };
@@ -67,6 +107,7 @@ export interface ProposeStructuredEntryParams {
   readonly userInput: string;
   readonly modelId: string;
   readonly zodSchema: ZodType<unknown>;
+  readonly redaction: ResolvedRedactionPolicy;
 }
 
 /**
@@ -82,13 +123,25 @@ export async function proposeStructuredEntry(params: ProposeStructuredEntryParam
   const jsonSchema = z.toJSONSchema(params.zodSchema, { target: "draft-2020-12" });
 
   const firstPrompt = buildProposalPrompt(params.promptBody, params.userInput);
-  const first = await attemptStructuredProposal(firstPrompt, jsonSchema, params.modelId, params.zodSchema);
+  const first = await attemptStructuredProposal(
+    firstPrompt,
+    jsonSchema,
+    params.modelId,
+    params.zodSchema,
+    params.redaction,
+  );
   if (first.success) {
     return { outcome: "success", value: first.value };
   }
 
   const retryPrompt = buildRetryPrompt(params.promptBody, params.userInput, first.rawText, first.errorSummary);
-  const second = await attemptStructuredProposal(retryPrompt, jsonSchema, params.modelId, params.zodSchema);
+  const second = await attemptStructuredProposal(
+    retryPrompt,
+    jsonSchema,
+    params.modelId,
+    params.zodSchema,
+    params.redaction,
+  );
   if (second.success) {
     return { outcome: "success", value: second.value };
   }

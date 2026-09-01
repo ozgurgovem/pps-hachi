@@ -13,8 +13,24 @@ const LinkedRecordSchema = z.looseObject({
   ref: z.string(),
 });
 
-/** §8.11: shape owned by the AI/redaction layer (Phase 8+) — loose and near-empty until then. */
-const RedactionPolicySchema = z.looseObject({});
+/**
+ * §8.11/D-205 (Faz 9 J2): every field optional so a pre-J2 `redaction: {}`
+ * literal (every fixture and test written before this dilim) keeps parsing
+ * unchanged (D-51/D-128's additive posture) — `resolveRedactionPolicy`
+ * (`src/ai/redaction.ts`) is where an absent field actually becomes a
+ * default, the same "optional schema field + resolve helper" split
+ * `language?`/`resolveA3Language` and `images?`/`resolveA3Images`
+ * (`src/a3/methodContract.ts`) already established. `"customers-and-parts"`/
+ * `"custom"` are real modes in SPEC's own draft type but narrowed out of
+ * this dilim's scope (D-203/§2.2) — adding one later is additive.
+ * `preserveNumbers` is a fixed `true` literal, never actually configurable.
+ */
+const RedactionModeSchema = z.enum(["off", "customers"]);
+const RedactionPolicySchema = z.looseObject({
+  mode: RedactionModeSchema.optional(),
+  terms: z.array(z.string()).optional(),
+  preserveNumbers: z.literal(true).optional(),
+});
 
 /** D-199/D-200: single provider (Farplas's own Vorion gateway) — supersedes
  * the original three-provider draft. D-52's loose/additive posture means no
@@ -87,6 +103,8 @@ export type ProjectModel = z.infer<typeof ProjectModelSchema>;
 export type Person = z.infer<typeof PersonSchema>;
 /** D-201: `meta.ai` in isolation — `MetaAiSetCommand`'s `before`/`after` shape. */
 export type AiMeta = ProjectModel["meta"]["ai"];
+export type RedactionMode = z.infer<typeof RedactionModeSchema>;
+export type RedactionPolicy = z.infer<typeof RedactionPolicySchema>;
 export type SignOffState = ProjectModel["signOff"];
 
 export { STEP_IDS };

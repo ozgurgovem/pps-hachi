@@ -134,4 +134,42 @@ describe("ProjectModelSchema", () => {
 
     expect(result.success).toBe(false);
   });
+
+  // J2/D-205: RedactionPolicySchema gained real optional fields — a pre-J2
+  // `redaction: {}` project (every fixture written before this dilim) must
+  // still parse unchanged.
+  describe("RedactionPolicySchema (J2/D-205)", () => {
+    test("still accepts an empty redaction object, unset fields and all", () => {
+      const base = validProject();
+      const input = { ...base, meta: { ...base.meta, ai: { ...base.meta.ai, redaction: {} } } };
+
+      const result = ProjectModelSchema.safeParse(input);
+
+      expect(result.success).toBe(true);
+    });
+
+    test("accepts a real customers-mode redaction policy", () => {
+      const base = validProject();
+      const input = {
+        ...base,
+        meta: {
+          ...base.meta,
+          ai: { ...base.meta.ai, redaction: { mode: "customers", terms: ["Acme Corp"], preserveNumbers: true } },
+        },
+      };
+
+      const parsed = ProjectModelSchema.parse(input);
+
+      expect(parsed.meta.ai.redaction).toEqual({ mode: "customers", terms: ["Acme Corp"], preserveNumbers: true });
+    });
+
+    test("rejects a mode outside the off/customers enum", () => {
+      const base = validProject();
+      const input = { ...base, meta: { ...base.meta, ai: { ...base.meta.ai, redaction: { mode: "custom" } } } };
+
+      const result = ProjectModelSchema.safeParse(input);
+
+      expect(result.success).toBe(false);
+    });
+  });
 });

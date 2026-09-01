@@ -257,4 +257,83 @@ describe("SettingsScreen", () => {
       expect(useProjectStore.getState().project?.meta.ai.modelId).toBe("vorion");
     });
   });
+
+  describe("debug: redaction policy (J2/D-205)", () => {
+    test("shows a message instead of the controls when no project is open", async () => {
+      mocked.getKeyStatus.mockResolvedValueOnce(null);
+      mocked.getAiSettings.mockResolvedValueOnce(EMPTY_SETTINGS);
+
+      renderSettingsScreen();
+
+      expect(await screen.findByText("Redaction (debug)")).toBeTruthy();
+      expect(screen.queryByLabelText("Mode")).toBeNull();
+    });
+
+    test("defaults to off mode and an empty terms list for a fresh project", async () => {
+      const { project } = createNewProject({ title: "T", language: "en", appVersion: "0.1.0" });
+      useProjectStore.setState({ ...initialProjectStoreState, project });
+      mocked.getKeyStatus.mockResolvedValueOnce(null);
+      mocked.getAiSettings.mockResolvedValueOnce(EMPTY_SETTINGS);
+
+      renderSettingsScreen();
+
+      expect(await screen.findByText("Off")).toBeTruthy();
+      expect(screen.getByLabelText("Terms to mask (one per line)")).toHaveProperty("value", "");
+    });
+
+    test("selecting customers mode persists it onto the project", async () => {
+      const user = userEvent.setup();
+      const { project } = createNewProject({ title: "T", language: "en", appVersion: "0.1.0" });
+      useProjectStore.setState({ ...initialProjectStoreState, project });
+      mocked.getKeyStatus.mockResolvedValueOnce(null);
+      mocked.getAiSettings.mockResolvedValueOnce(EMPTY_SETTINGS);
+
+      renderSettingsScreen();
+      await screen.findByLabelText("Mode");
+
+      await user.click(screen.getByLabelText("Mode"));
+      await user.click(await screen.findByRole("option", { name: "Mask customer names" }));
+
+      expect(useProjectStore.getState().project?.meta.ai.redaction).toEqual({
+        mode: "customers",
+        terms: [],
+        preserveNumbers: true,
+      });
+    });
+
+    test("typing terms and blurring persists the parsed, trimmed list", async () => {
+      const user = userEvent.setup();
+      const { project } = createNewProject({ title: "T", language: "en", appVersion: "0.1.0" });
+      useProjectStore.setState({ ...initialProjectStoreState, project });
+      mocked.getKeyStatus.mockResolvedValueOnce(null);
+      mocked.getAiSettings.mockResolvedValueOnce(EMPTY_SETTINGS);
+
+      renderSettingsScreen();
+      const termsField = await screen.findByLabelText("Terms to mask (one per line)");
+
+      await user.type(termsField, "Acme Corp{enter} Beta Inc {enter}{enter}");
+      await user.tab();
+
+      expect(useProjectStore.getState().project?.meta.ai.redaction.terms).toEqual(["Acme Corp", "Beta Inc"]);
+    });
+
+    test("shows the project's already-set mode and terms on load", async () => {
+      const { project } = createNewProject({ title: "T", language: "en", appVersion: "0.1.0" });
+      const withRedaction = {
+        ...project,
+        meta: {
+          ...project.meta,
+          ai: { ...project.meta.ai, redaction: { mode: "customers" as const, terms: ["Acme Corp"], preserveNumbers: true as const } },
+        },
+      };
+      useProjectStore.setState({ ...initialProjectStoreState, project: withRedaction });
+      mocked.getKeyStatus.mockResolvedValueOnce(null);
+      mocked.getAiSettings.mockResolvedValueOnce(EMPTY_SETTINGS);
+
+      renderSettingsScreen();
+
+      expect(await screen.findByText("Mask customer names")).toBeTruthy();
+      expect(screen.getByLabelText("Terms to mask (one per line)")).toHaveProperty("value", "Acme Corp");
+    });
+  });
 });

@@ -129,7 +129,7 @@ katlanmaz. Tam kayıt: D-203.
 |---|---|---|
 | Kapsam belirleme — beş alt-teslimatın veri durumu + Vorion'un yapılandırılmış-çıktı sorusu + dilim planı | `docs/oturumlar/faz9-kapsam-belirleme.md` | ✅ BİTTİ 2026-08-31 — D-203, dört soru `AskUserQuestion` ile cevaplandı (hepsi önerilen seçenek). |
 | J1 — Vorion'un yapılandırılmış-çıktı şeklinin doğrulanması (Barış'ın kendi `vorionai.com/docs` oturumu, kodlamadan ÖNCE) + `LlmProvider.complete_structured`/`capabilities()` + prompt-kütüphanesi mekanizması + TEK referans method (Pareto) elle-girilen veriyle uçtan uca `EntryProposalField` üzerinden | `docs/oturumlar/J1-pareto-yapilandirilmis-oneri.md` | ✅ BİTTİ 2026-08-31 — D-204. §2.1 Barış'ın sekiz ekran görüntüsüyle **(b)**'ye kesin karar verdi: Vorion'da yapılandırılmış-çıktıya özel bir alan yok, `complete_structured` Synchronous Prediction üzerine kurulu bir istem-mühendisliği katmanı. **P-47 KAPANDI** — `normalizedEditDistance` (JSON-stringify üzerinden Levenshtein) Accept anında hesaplanıyor. `npm test` 1243/1243 (1206'dan yukarı), `cargo test` 145 lib + 2 + 8 = 155 (136'dan yukarı), ikisi de exit 0; `cargo clippy`/`cargo fmt`/`tsc --noEmit` temiz; `gen-a3-fixture.ts` diff'i byte-identical. Yeni P-50 (`contextSlices` front-matter alanı hâlâ tüketilmiyor, J2/J3'e owed). |
-| J2 — Gerçek dosya içeri alma (Rust xlsx/csv okuma+örnekleme, `calamine` ilk kez üretimde; gönderim-öncesi onay sayfası) + temel gerçek `RedactionPolicySchema` (off/customers, terim listesi), J1'in akışına bağlanır | `docs/oturumlar/J2-dosya-iceri-alma-redaction.md` | 📝 launch prompt yazıldı 2026-09-01, henüz başlanmadı. Kendi taraması `src-tauri/src/ingest/`'in Faz 0'dan beri boş bir iskelet olarak durduğunu buldu (kullanılabilir). SPEC §8.9'un attachment review sheet'i D-203'ün kendi J2 tanımında adı geçmeyen üçüncü bir zorunlu mekanizma — bütçe gergin, ikiye bölünmesi (J2a/J2b) önerilir. |
+| J2 — Gerçek dosya içeri alma (Rust xlsx/csv okuma+örnekleme, `calamine` ilk kez üretimde; gönderim-öncesi onay sayfası) + temel gerçek `RedactionPolicySchema` (off/customers, terim listesi), J1'in akışına bağlanır | `docs/oturumlar/J2-dosya-iceri-alma-redaction.md` | ✅ BİTTİ 2026-09-01 — D-205. Kodlamadan önceki calamine-doğrulaması öngörülmeyen bir gerçek buldu: **calamine'in hiç CSV desteği yok** (docs.rs'ten doğrulandı) — SPEC §8.9'un metni yanlıştı; ayrı bir `csv` crate (BurntSushi, v1.4.0) eklendi. Dört `AskUserQuestion` kararı hepsi önerilenle onaylandı: CSV için ayrı crate, kategori-bazlı stratified örnekleme, redaction Rust'ta transmission anında (`VorionProvider::complete_structured`, elle-yazılan+dosyadan-gelen tek noktadan), tek oturumda bitir (J2a/J2b bölünmesi gerekmedi). Faz 9'un kendi lafzî done-koşulu kalıcı bir PROBE testiyle (`paretoFromXlsxAttachment.probe.test.ts`) kanıtlandı. `npm test` 1272/1272 (1243'ten yukarı), `cargo test` 170 lib + 2 + 8 = 180 (155'ten yukarı), ikisi de exit 0; `cargo clippy`/`cargo fmt` temiz; `gen-a3-fixture.ts` dokunulmadı (etkilenmiyor, grep ile doğrulandı). P-50 hâlâ AÇIK (`contextSlices` hâlâ tüketilmiyor). Yeni P-51 (redaction yalnızca `complete_structured`'a bağlı, `AssistantPanel`'in serbest sohbetine değil) ve P-52 (yalnızca ilk xlsx sayfası okunuyor). |
 | J3 — Per-step prompt kütüphanesinin Pareto'dan registry'nin geri kalan 57 method'una genelleştirilmesi | *(henüz yazılmadı)* | ⏳ planlandı, başlanmadı. Kapsam/alt-bölünme kendi launch prompt'unun kararı. |
 
 ## Kullanım
@@ -138,8 +138,11 @@ Yeni oturumu şu iki satırla başlat (dosya adını sıradaki oturuma göre de�
 
 ```
 Önce Anayasamızı Oku (~/.claude/ANAYASA.md).
-Sonra ~/Developer/pps-hachi/docs/oturumlar/J2-dosya-iceri-alma-redaction.md'yi oku ve uygula.
+Sonra ~/Developer/pps-hachi/docs/oturumlar/<sıradaki-dosya>.md'yi oku ve uygula.
 ```
+
+J2 BİTTİ (D-205, 2026-09-01) — sıradaki iş **J3'ün kendi launch prompt'unun yazılması**,
+henüz yazılmadı.
 
 ## Prompt yazarken
 

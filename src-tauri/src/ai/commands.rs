@@ -7,6 +7,7 @@ use super::provider::{
     CancelResult, Capabilities, CompletionMeta, CompletionRequest, ConnectionStatus, LlmProvider,
     ModelInfo, StreamEvent, StructuredRequest,
 };
+use super::redaction::RedactionPolicy;
 use super::settings::{self, AiSettings};
 use super::vorion::VorionProvider;
 
@@ -134,6 +135,7 @@ pub async fn ai_complete_structured(
     prompt: String,
     schema: serde_json::Value,
     model_id: String,
+    redaction: Option<RedactionPolicy>,
 ) -> Result<serde_json::Value, String> {
     let api_key = KeyringSecretStore
         .get()
@@ -144,6 +146,7 @@ pub async fn ai_complete_structured(
             prompt,
             schema,
             model_id,
+            redaction,
         })
         .await
         .map_err(|e| e.to_string())

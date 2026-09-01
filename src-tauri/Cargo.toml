@@ -56,9 +56,22 @@ reqwest = { version = "0.13", features = ["json", "multipart", "stream"] }
 # at 0.3.33 (confirmed in `Cargo.lock`), declared directly here only because
 # a transitive dependency's items aren't nameable from this crate otherwise.
 futures-util = { version = "0.3", default-features = false, features = ["std"] }
+# J2/D-205: verified against docs.rs before writing any ingestion code — the
+# `Sheets` enum this crate's own `open_workbook_auto` returns has exactly
+# four variants (Xls/Xlsx/Xlsb/Ods), no `Csv` variant exists anywhere in the
+# crate. SPEC.md §8.9's "xlsx/csv → parsed with calamine" is wrong on the csv
+# half; moved here from `[dev-dependencies]` (Phase 4's own dev-only round-
+# trip test in `tests/xlsx.rs` keeps compiling unchanged — a crate declared
+# under `[dependencies]` is already available to test builds).
+calamine = "0.36.1"
+# J2/D-205: calamine has no CSV reader at all (confirmed above) — `csv`
+# (BurntSushi, crates.io's de facto standard, RFC 4180-compliant) is the
+# second, independent reader for the csv half of this dilim's scope.
+# Verified current version against the real crates.io API (1.4.0), not
+# assumed.
+csv = "1.4.0"
 
 [dev-dependencies]
-calamine = "0.36.1"
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
 
 # Faz 8 Dilim 3 (D-20 "AI kapalı" mutlu-yol E2E'si). A `[target.'cfg(debug_

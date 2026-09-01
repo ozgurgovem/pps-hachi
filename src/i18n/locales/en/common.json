@@ -181,7 +181,17 @@
       "reject": "Reject",
       "retry": "Try again",
       "failed": "The AI's response couldn't be turned into a valid entry. Nothing was written — here is its raw response:",
-      "missingPromptFile": "No prompt file is configured for this method yet."
+      "missingPromptFile": "No prompt file is configured for this method yet.",
+      "attachment": {
+        "attachButton": "Add file",
+        "pickDialogTitle": "Choose a spreadsheet",
+        "loading": "Reading file…",
+        "rowCount": "{{count}} rows",
+        "redactionOff": "Redaction: off",
+        "redactionActive": "Redaction: {{count}} term(s) will be masked before sending",
+        "confirm": "Add to prompt",
+        "discard": "Discard"
+      }
     },
     "references": {
       "searchLabel": "Find an entry",
@@ -1182,7 +1192,15 @@
       "debugProjectAiHeading": "Enable AI for this project (debug)",
       "debugProjectAiHint": "Temporary, until the New Project dialog's own AI step ships (SPEC.md §8.5) — this is what makes the workspace's Assistant tab appear on the currently open project.",
       "debugProjectAiLabel": "Enable AI for the open project",
-      "debugProjectAiNoProject": "Open a project first."
+      "debugProjectAiNoProject": "Open a project first.",
+      "redactionHeading": "Redaction (debug)",
+      "redactionHint": "Temporary, until the New Project dialog's own AI step ships (SPEC.md §8.5) — masks the listed terms before anything leaves this machine, and restores them in whatever comes back.",
+      "redactionModeLabel": "Mode",
+      "redactionModeOff": "Off",
+      "redactionModeCustomers": "Mask customer names",
+      "redactionTermsLabel": "Terms to mask (one per line)",
+      "redactionTermsPlaceholder": "e.g. Acme Corp",
+      "redactionNoProject": "Open a project to configure redaction."
     }
   }
 }

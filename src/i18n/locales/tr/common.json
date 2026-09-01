@@ -181,7 +181,17 @@
       "reject": "Reddet",
       "retry": "Tekrar dene",
       "failed": "AI'nin yanıtı geçerli bir girişe dönüştürülemedi. Hiçbir şey yazılmadı — ham yanıtı:",
-      "missingPromptFile": "Bu method için henüz bir istem dosyası yapılandırılmamış."
+      "missingPromptFile": "Bu method için henüz bir istem dosyası yapılandırılmamış.",
+      "attachment": {
+        "attachButton": "Dosya ekle",
+        "pickDialogTitle": "Bir tablo dosyası seçin",
+        "loading": "Dosya okunuyor…",
+        "rowCount": "{{count}} satır",
+        "redactionOff": "Gizleme: kapalı",
+        "redactionActive": "Gizleme: gönderim öncesi {{count}} terim maskelenecek",
+        "confirm": "İsteme ekle",
+        "discard": "Vazgeç"
+      }
     },
     "references": {
       "searchLabel": "Kayıt bul",
@@ -1182,7 +1192,15 @@
       "debugProjectAiHeading": "Bu proje için AI'yi etkinleştir (debug)",
       "debugProjectAiHint": "Geçici — New Project diyaloğunun kendi AI adımı (SPEC.md §8.5) gelene kadar; çalışma alanının Assistant sekmesinin açık proje üzerinde görünmesini sağlayan şey bu.",
       "debugProjectAiLabel": "Açık proje için AI'yi etkinleştir",
-      "debugProjectAiNoProject": "Önce bir proje aç."
+      "debugProjectAiNoProject": "Önce bir proje aç.",
+      "redactionHeading": "Gizleme (debug)",
+      "redactionHint": "Geçici — New Project diyaloğunun kendi AI adımı (SPEC.md §8.5) gelene kadar; listedeki terimleri bu makineden hiçbir şey çıkmadan önce maskeler, gelen yanıtta gerçek adlarına geri çevirir.",
+      "redactionModeLabel": "Mod",
+      "redactionModeOff": "Kapalı",
+      "redactionModeCustomers": "Müşteri adlarını maskele",
+      "redactionTermsLabel": "Maskelenecek terimler (satır başına bir tane)",
+      "redactionTermsPlaceholder": "örn. Acme Corp",
+      "redactionNoProject": "Gizleme ayarları için önce bir proje aç."
     }
   }
 }

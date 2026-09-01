@@ -1,6 +1,7 @@
 pub mod ai;
 pub mod commands;
 pub mod images;
+pub mod ingest;
 pub mod ppsx;
 pub mod xlsx;
 
@@ -51,6 +52,7 @@ pub fn run() {
             ai::commands::ai_cancel,
             ai::commands::ai_complete_structured,
             ai::commands::ai_capabilities,
+            ingest::commands::ingest_table_preview,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
