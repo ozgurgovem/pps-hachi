@@ -685,7 +685,7 @@ Phase: 9 of 12 — kapsam belirlendi (D-203, 2026-08-31), henüz inşa edilmedi.
   new optional-field schema regardless. Deliberately not built this dilim: pdf/docx/pptx
   ingestion (§8.9's remainder, D-203's own narrowing), §8.4's full Settings → AI providers
   "Attachment policy" UI, `"customers-and-parts"`/`"custom"` redaction modes, §8.12 (cost
-  counter), J3, P-48/P-49 (untouched). Not yet committed to git.
+  counter), J3, P-48/P-49 (untouched). Committed and pushed (`1dc7d3a`).
 Stack decision (Tauri vs Electron fallback): Tauri v2, revisit only if Phase 4 stalls
 App name: **PPS Hachi** (八 — eight). Repo `pps-hachi`. Set 2026-08-01, see DECISIONS.md D-29.
 AI layer: Faz 8 fully done (keychain + Vorion connection/model-discovery + streaming
