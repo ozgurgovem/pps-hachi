@@ -14,4 +14,5 @@ export const msaGageRrMethod: MethodPlugin<MsaGageRrPayload> = {
   Editor: MsaGageRrEditor,
   createEmptyPayload: () => ({ method: "", evaluator: "", date: "", percentGrr: "", verdict: "inconclusive", note: "" }),
   renderToA3: renderMsaGageRrToA3,
+  aiProposal: { promptVersion: "v1" },
 };

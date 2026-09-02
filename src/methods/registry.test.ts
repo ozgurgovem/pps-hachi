@@ -189,9 +189,20 @@ describe("MethodPlugin.tier (D-169)", () => {
 describe("MethodPlugin.aiProposal across the registry", () => {
   const withAiProposal = METHOD_REGISTRY.filter((plugin) => plugin.aiProposal !== undefined);
 
-  it("has at least the methods J1/J3-1 shipped", () => {
+  it("has at least the methods J1/J3-1/J3-2 shipped", () => {
     const ids = withAiProposal.map((plugin) => plugin.id);
-    expect(ids).toEqual(expect.arrayContaining(["pareto", "gap-statement", "five-g-5n1k", "five-n1k", "five-w2h"]));
+    expect(ids).toEqual(
+      expect.arrayContaining([
+        "pareto",
+        "gap-statement",
+        "five-g-5n1k",
+        "five-n1k",
+        "five-w2h",
+        "trend",
+        "point-of-cause",
+        "distribution-chart",
+      ]),
+    );
   });
 
   it("resolves a real, loadable prompt file for every method that declares aiProposal, whose outputSchema matches the method's own id", () => {

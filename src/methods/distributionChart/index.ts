@@ -23,4 +23,5 @@ export const distributionChartMethod: MethodPlugin<DistributionChartPayload> = {
       spec: spec as HistogramChartSpec | ScatterChartSpec | BoxPlotChartSpec,
       size,
     }),
+  aiProposal: { promptVersion: "v1" },
 };

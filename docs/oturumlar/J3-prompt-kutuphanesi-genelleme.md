@@ -143,17 +143,17 @@ ekleme + bir değişmez testi büyümesi).
 | Dilim | Adım | Method sayısı | Durum |
 |---|---|---|---|
 | **J3-1 (bu dosyanın kendi kapsamı)** | 1 | 9 | ✅ BİTTİ (D-206, 2026-09-01) |
-| J3-2 | 2 | 9 | henüz yazılmadı |
-| J3-3 | 3 | 1 | henüz yazılmadı |
-| J3-4 | 4 | 9 | henüz yazılmadı |
-| J3-5 | 5 | 7 | henüz yazılmadı |
-| J3-6 | 6 | 5 | henüz yazılmadı |
-| J3-7 | 7 | 5 | henüz yazılmadı |
-| J3-8 | 8 | 5 | henüz yazılmadı |
+| J3-2 | 2 | 9 | ✅ BİTTİ (D-207, 2026-09-02) |
+| J3-3 | 3+4 (birleştirildi) | 10 | henüz yazılmadı — `J3-3-adim3-4-prompt-kutuphanesi.md` |
+| J3-4 | 5 | 7 | henüz yazılmadı |
+| J3-5 | 6 | 5 | henüz yazılmadı |
+| J3-6 | 7 | 5 | henüz yazılmadı |
+| J3-7 | 8 | 5 | henüz yazılmadı |
 
-J3-3 (1 method) tek başına bir oturuma değmeyebilir — J3-3'ün kendi launch prompt'unu yazan
-oturum, Adım 3'ü Adım 4 ile (J3-3+J3-4, 10 method) birleştirmeyi düşünebilir; bu o oturumun
-kendi kararı, burada zorlanmıyor.
+**2026-09-02 güncellemesi (D-207):** J3-3 (Adım 3, tek method — `smart-target`) J3-2'nin
+kendi kapanışında Adım 4'ün 9 method'uyla birleştirildi (bu bölümün altındaki eski not zaten
+bunu öngörmüştü) — sekiz dilimlik plan yediye düştü, numaralar J3-4'ten itibaren bir kaydı.
+Eski J3-3/J3-4 ayrımı artık geçerli değil; tablo yukarıda güncel haliyle duruyor.
 
 ### 2.3 THIS session'ın kendi işi: J3-1 (Adım 1, 9 method)
 

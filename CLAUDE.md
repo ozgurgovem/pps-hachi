@@ -738,16 +738,67 @@ Phase: 9 of 12 — kapsam belirlendi (D-203, 2026-08-31), henüz inşa edilmedi.
   `generic-text`'s own `aiProposal`, Critique/Extract/Review modes, §8.10/§8.12,
   P-39/P-47/P-48/P-49/P-50/P-51/P-52 (untouched). J3-2's own launch prompt written:
   `docs/oturumlar/J3-2-adim2-prompt-kutuphanesi.md`. Committed and pushed.
+**Faz 9 — J3-2 (prompt library generalized to Step 2's 9 candidate methods): DONE 2026-09-02
+  (D-207).** `J3-2-adim2-prompt-kutuphanesi.md`'s own §0 pre-scan re-verified against real
+  code, matched exactly (`grep -rln "aiProposal:"` returned exactly 10 files: `pareto` + J3-1's
+  9). One small correction found and left as-is: the launch prompt's own §1.4 pointed at
+  `src/ai/prompts/1/pareto.v1.md`, a typo in the doc itself — the real, correct location is
+  `src/ai/prompts/2/pareto.v1.md` (Step 2, matching Pareto's own step), confirmed by listing
+  the real directory before writing anything. J1/J3-1's mechanism repeated **unchanged** across
+  Step 2's 9 candidate methods — zero new architectural decision, purely quality-bar prompt
+  engineering. New `src/ai/prompts/2/` files alongside `pareto.v1.md`: `category-breakdown.v1.md`
+  (the 5M category set, explicit "skip the row rather than force a category" instruction, kept
+  distinct from Fishbone's own Step 4 job per D-11), `check-sheet.v1.md`, `distribution-chart.v1.md`
+  (the slice's most branchy guidance — pick exactly one of three `chartType`s and populate only
+  the matching `samples`/`points` array, never both), `is-is-not.v1.md` (the Kepner-Tregoe
+  grid's four `...IsNot` fields explicitly flagged as "should stay empty far more often than
+  not" — raw problem text almost never states what was checked and ruled out, a sharper
+  hallucination risk than Pareto's own), `msa-gage-rr.v1.md` (three-valued `verdict` enum,
+  `inconclusive` as the honest default over a falsely confident pass/fail), `point-of-cause.v1.md`
+  (the `evidence` field's criticality — the schema's own code comment about an unsupported POC
+  being "the failure mode this step exists to prevent" carried directly into the prompt text),
+  `process-flow-sipoc.v1.md`, `stratification-matrix.v1.md`, `trend.v1.md` (`events[].at` must
+  exactly match one of `points[].label`, skip an event rather than inventing an approximate
+  point). Every front-matter mirrors `pareto.v1.md`'s shape exactly. All 9 methods' `index.ts`
+  gained `aiProposal: { promptVersion: "v1" }`. i18n untouched (J1's finding still holds).
+  `registry.test.ts`'s existing generic invariant (written in J3-1) covered the new 9
+  automatically with zero changes; only the `arrayContaining` list in "has at least the methods
+  shipped" was extended with three of this slice's methods (`trend`/`point-of-cause`/
+  `distribution-chart`), mutation-checked (`trend`'s `promptVersion` deliberately broken to
+  `"v2-does-not-exist"`, confirmed RED, reverted, confirmed GREEN). **One real side finding**:
+  `src/ai/prompts/library.test.ts`'s own "returns undefined for a method/step/version with no
+  prompt file" test used `getPromptFile(2, "trend", "v1")` as its "doesn't exist yet" example —
+  this slice's own output collided with it (the file now genuinely exists), fixed by swapping
+  in a still-nonexistent combination (`"check-sheet"`/`"v2-does-not-exist"`) — not a regression,
+  a forward-looking "not yet" assumption disproven by this slice's own work. `npm test`
+  1274/1274 (279 files, unchanged from J3-1 — two new prompt-library files are markdown, not
+  test files), exit code 0 (checked via a separate logfile, not piped through `tail`). `npm run
+  lint` clean (the one pre-existing `ThemeProvider` warning). `npm run build` green (same
+  pre-existing chunk-size warning). `cargo test` 180/180 (170 lib + 2 fixture + 8 xlsx,
+  unchanged from J2 — this dilim touches Rust NOT AT ALL, confirmed via `git status
+  src-tauri/`), `cargo clippy --all-targets -- -D warnings` and `cargo fmt -- --check` both
+  clean. `scripts/gen-a3-fixture.ts` not re-run — this dilim touches no `buildA3Layout`/
+  template style/`A3ImageKind` (grep-confirmed across all nine touched `index.ts` files).
+  **J3's plan shrank from eight slices to seven**: J3-3 (Step 3, one method — `smart-target`)
+  merged into J3-4 (Step 4, 9 methods) per J3-1's own §2.2 note anticipating exactly this —
+  too small alone, comparable in size (10) to J3-1/J3-2's own batches once merged. New order:
+  J3-3 (Step 3+4, 10 methods), J3-4 (Step 5, 7), J3-5 (Step 6, 5), J3-6 (Step 7, 5), J3-7
+  (Step 8, 5). J3-3's own launch prompt written: `docs/oturumlar/J3-3-adim3-4-prompt-
+  kutuphanesi.md`, flagging Fishbone's and Why-Why Tree's node/parentId-referencing schemas as
+  this slice's real prompt-engineering difficulty spike (still zero new architecture — Pareto's
+  own "empty list over invented data" principle applies with extra force to an invented cause
+  chain).
 Stack decision (Tauri vs Electron fallback): Tauri v2, revisit only if Phase 4 stalls
 App name: **PPS Hachi** (八 — eight). Repo `pps-hachi`. Set 2026-08-01, see DECISIONS.md D-29.
 AI layer: Faz 8 fully done (keychain + Vorion connection/model-discovery + streaming
   completion/Assistant chat panel/provenance + the D-20 "AI off" WebdriverIO E2E suite).
-  Faz 9 — J1, J2 and J3-1 done (structured output + Pareto reference proposal via
+  Faz 9 — J1, J2, J3-1 and J3-2 done (structured output + Pareto reference proposal via
   `EntryProposalField`; real xlsx/csv file ingestion + basic redaction; prompt library
-  generalized to Step 1's 9 methods). J3's own launch prompt covers the full 50-method/
-  8-slice inventory (`docs/oturumlar/J3-prompt-kutuphanesi-genelleme.md`, 2026-09-01);
-  J3-2 (Step 2, 9 methods) has its own short launch prompt
-  (`docs/oturumlar/J3-2-adim2-prompt-kutuphanesi.md`), not started. Faz 10 not started.
+  generalized to Steps 1 and 2's 18 methods). J3's own launch prompt covers the full
+  50-method inventory (`docs/oturumlar/J3-prompt-kutuphanesi-genelleme.md`, 2026-09-01),
+  now seven slices after J3-3/J3-4 merged (D-207); J3-3 (Step 3+4, 10 methods) has its own
+  short launch prompt (`docs/oturumlar/J3-3-adim3-4-prompt-kutuphanesi.md`), not started.
+  Faz 10 not started.
 Templates: two company .xls files analysed; see reference/TEMPLATE_ANALYSIS.md
 Template geometry: VERIFIED 2026-08-01 against both .xls files. Five errors found and
   corrected in place — the largest was the column widths: the real split is 49.7/50.3, NOT

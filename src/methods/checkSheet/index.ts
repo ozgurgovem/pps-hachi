@@ -14,4 +14,5 @@ export const checkSheetMethod: MethodPlugin<CheckSheetPayload> = {
   Editor: CheckSheetEditor,
   createEmptyPayload: () => ({ rows: [] }),
   renderToA3: renderCheckSheetToA3,
+  aiProposal: { promptVersion: "v1" },
 };

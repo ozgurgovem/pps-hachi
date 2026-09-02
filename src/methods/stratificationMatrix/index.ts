@@ -15,4 +15,5 @@ export const stratificationMatrixMethod: MethodPlugin<StratificationMatrixPayloa
   Editor: StratificationMatrixEditor,
   createEmptyPayload: () => ({ rows: [] }),
   renderToA3: renderStratificationMatrixToA3,
+  aiProposal: { promptVersion: "v1" },
 };

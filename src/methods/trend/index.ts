@@ -20,4 +20,5 @@ export const trendMethod: MethodPlugin<TrendPayload> = {
   renderToA3: renderTrendToA3,
   imageKind: "trend-chart",
   renderImage: (spec, size) => createElement(TrendChart, { spec: spec as TrendChartSpec, size }),
+  aiProposal: { promptVersion: "v1" },
 };

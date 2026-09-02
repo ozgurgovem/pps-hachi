@@ -20,4 +20,5 @@ export const categoryBreakdownMethod: MethodPlugin<CategoryBreakdownPayload> = {
   Editor: CategoryBreakdownEditor,
   createEmptyPayload: () => ({ rows: [] }),
   renderToA3: renderCategoryBreakdownToA3,
+  aiProposal: { promptVersion: "v1" },
 };

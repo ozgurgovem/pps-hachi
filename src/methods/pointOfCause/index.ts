@@ -16,4 +16,5 @@ export const pointOfCauseMethod: MethodPlugin<PointOfCausePayload> = {
   Editor: PointOfCauseEditor,
   createEmptyPayload: () => emptyFieldFormValues(POINT_OF_CAUSE_FIELDS),
   renderToA3: renderPointOfCauseToA3,
+  aiProposal: { promptVersion: "v1" },
 };

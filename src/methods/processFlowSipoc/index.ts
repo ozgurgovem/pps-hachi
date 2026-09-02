@@ -14,4 +14,5 @@ export const processFlowSipocMethod: MethodPlugin<ProcessFlowSipocPayload> = {
   Editor: ProcessFlowSipocEditor,
   createEmptyPayload: () => ({ rows: [] }),
   renderToA3: renderProcessFlowSipocToA3,
+  aiProposal: { promptVersion: "v1" },
 };

@@ -14,6 +14,6 @@ describe("getPromptFile", () => {
   it("returns undefined for a method/step/version with no prompt file", () => {
     expect(getPromptFile(2, "pareto", "v2")).toBeUndefined();
     expect(getPromptFile(4, "pareto", "v1")).toBeUndefined();
-    expect(getPromptFile(2, "trend", "v1")).toBeUndefined();
+    expect(getPromptFile(2, "check-sheet", "v2-does-not-exist")).toBeUndefined();
   });
 });

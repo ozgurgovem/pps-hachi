@@ -23,4 +23,5 @@ export const isIsNotMethod: MethodPlugin<IsIsNotPayload> = {
     extentIsNot: "",
   }),
   renderToA3: renderIsIsNotToA3,
+  aiProposal: { promptVersion: "v1" },
 };
