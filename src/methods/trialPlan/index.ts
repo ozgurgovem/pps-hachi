@@ -16,4 +16,5 @@ export const trialPlanMethod: MethodPlugin<TrialPlanPayload> = {
   Editor: TrialPlanEditor,
   createEmptyPayload: () => emptyFieldFormValues(TRIAL_PLAN_FIELDS),
   renderToA3: renderTrialPlanToA3,
+  aiProposal: { promptVersion: "v1" },
 };

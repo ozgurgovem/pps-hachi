@@ -15,4 +15,5 @@ export const weightedDecisionMatrixMethod: MethodPlugin<WeightedDecisionMatrixPa
   Editor: WeightedDecisionMatrixEditor,
   createEmptyPayload: () => ({ criteria: [], options: [] }),
   renderToA3: renderWeightedDecisionMatrixToA3,
+  aiProposal: { promptVersion: "v1" },
 };

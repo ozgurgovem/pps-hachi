@@ -31,4 +31,5 @@ export const errorProofingHierarchyMethod: MethodPlugin<ErrorProofingHierarchyPa
       multiple: false,
     },
   ],
+  aiProposal: { promptVersion: "v1" },
 };

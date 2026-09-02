@@ -28,4 +28,5 @@ export const countermeasureMethod: MethodPlugin<CountermeasurePayload> = {
       multiple: true,
     },
   ],
+  aiProposal: { promptVersion: "v1" },
 };

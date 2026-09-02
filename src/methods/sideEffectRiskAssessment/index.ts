@@ -32,4 +32,5 @@ export const sideEffectRiskAssessmentMethod: MethodPlugin<SideEffectRiskAssessme
       multiple: false,
     },
   ],
+  aiProposal: { promptVersion: "v1" },
 };

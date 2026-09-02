@@ -14,4 +14,5 @@ export const impactEffortMatrixMethod: MethodPlugin<ImpactEffortMatrixPayload> =
   Editor: ImpactEffortMatrixEditor,
   createEmptyPayload: () => ({ items: [] }),
   renderToA3: renderImpactEffortMatrixToA3,
+  aiProposal: { promptVersion: "v1" },
 };

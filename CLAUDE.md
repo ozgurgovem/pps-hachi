@@ -833,16 +833,68 @@ Phase: 9 of 12 — kapsam belirlendi (D-203, 2026-08-31), henüz inşa edilmedi.
   flagging that four of its seven methods carry reference roles (`hypothesis-verification`,
   `countermeasure`, `error-proofing-hierarchy`, `side-effect-risk-assessment`) — orthogonal to
   `aiProposal` per J1's own finding, prompts should stay silent on the reference field entirely.
+**Faz 9 — J3-4 (prompt library generalized to Step 5's 7 methods): DONE 2026-09-02 (D-209).**
+  `J3-4-adim5-prompt-kutuphanesi.md`'s own §0 pre-scan re-verified against real code, matched
+  exactly (`grep -rln "aiProposal:"` returned exactly 29 files: `pareto` + J3-1's 9 + J3-2's 9
+  + J3-3's 10; all seven named schema files existed). J1/J3-1/J3-2/J3-3's mechanism repeated
+  **unchanged** across Step 5's 7 methods — zero new architectural decision. New
+  `src/ai/prompts/5/` files alongside `pareto.v1.md`: `cost-approval.v1.md` (3-valued
+  `approvalStatus` enum — default to `"pending"` on ambiguity, never a confident-sounding
+  approve/reject hallucination), `countermeasure.v1.md` (this slice's most attention-heavy
+  file — `impactScore`/`costScore`/`durationScore` are all "higher is always more favorable,"
+  with `costScore`/`durationScore` explicitly flagged as the REVERSE of raw magnitude;
+  `priorityDecision` is the one field the model never touches at all, always pinned to
+  `"pending"` per SPEC's "a human always decides" principle — D-191's own rule applied
+  literally), `error-proofing-hierarchy.v1.md` (all six Eliminate→Substitute→Prevent→Detect→
+  Warn→Procedure levels defined with concrete examples, with an explicit "default to the
+  WEAKER adjacent level under ambiguity" instruction — the risk of overstating strength here
+  is particularly sharp), `impact-effort-matrix.v1.md` (`effort` is explicitly named as a
+  plain difficulty score, UNLIKE `countermeasure`'s own reversed favorability scores — a real
+  confusion risk between two Step-5 methods scored on similar-looking 1–5 scales),
+  `side-effect-risk-assessment.v1.md` (required 3-valued `severity` field — default to
+  `"medium"` under insufficient evidence rather than guessing either extreme, repeating J3-1's
+  own required-enum precedent from `problem-type-classifier` but with no `note` field to park
+  the uncertainty in), `trial-plan.v1.md`, `weighted-decision-matrix.v1.md` (`scores` map —
+  explicit instruction to OMIT a criterion×option cell entirely from the map when the source
+  is silent on it, rather than writing a fabricated number; the first time D-120's "blank
+  means unscored, not zero" principle is applied to a `Record<string, string>` rather than a
+  single field). This slice's own attention point — four methods carry a reference role
+  (`hypothesis-verification`, already written in J3-3; `countermeasure`/
+  `error-proofing-hierarchy`/`side-effect-risk-assessment`, new this slice) — each prompt was
+  written focused only on its own payload, never touching the reference field; J1's own
+  finding (`referenceRoles` and `aiProposal` are orthogonal, `EntryProposalField` and
+  `EntryReferenceField` render side by side inside `EntryEditorDialog`) confirmed a fourth and
+  fifth time. All 7 methods' `index.ts` gained `aiProposal: { promptVersion: "v1" }`. i18n
+  untouched (J1's finding still holds). `registry.test.ts`'s existing generic invariant
+  (written in J3-1) covered the new 7 automatically with zero changes; the `arrayContaining`
+  list gained three of this slice's methods (`countermeasure`/`error-proofing-hierarchy`/
+  `weighted-decision-matrix`), mutation-checked (`weighted-decision-matrix`'s `promptVersion`
+  deliberately broken to `"v2-does-not-exist"`, confirmed RED, reverted, confirmed GREEN).
+  `npm test` 1274/1274 (279 files, unchanged from J3-3 — 7 new prompt-library files are
+  markdown, not test files), exit code 0 (checked via a separate logfile, not piped through
+  `tail`). `npm run lint` clean (the one pre-existing `ThemeProvider` warning). `npm run build`
+  green (same pre-existing chunk-size warning). `cargo test` 170 lib + 2 fixture + 8 xlsx = 180
+  (unchanged from J3-3 — this slice touches Rust NOT AT ALL, confirmed via
+  `git status src-tauri/`), `cargo clippy --all-targets -- -D warnings` and `cargo fmt --
+  check` both clean. `scripts/gen-a3-fixture.ts` not re-run — this slice touches no
+  `buildA3Layout`/template style/`A3ImageKind` (grep-confirmed across all seven touched
+  `index.ts` files). **J3's plan now has two slices left**: J3-5 (Step 6, 5 methods —
+  `action-item`/`ica-pca-transition`/`implementation-issues-log`/
+  `training-communication-record`/`trial-result-log`), J3-6 (Step 7, 5), J3-7 (Step 8, 5) —
+  none started. J3-5's own launch prompt written:
+  `docs/oturumlar/J3-5-adim6-prompt-kutuphanesi.md`, flagging that `ica-pca-transition` is the
+  registry's one method carrying two reference roles at once (`containment` + `countermeasure`)
+  and that neither belongs in its prompt text.
 Stack decision (Tauri vs Electron fallback): Tauri v2, revisit only if Phase 4 stalls
 App name: **PPS Hachi** (八 — eight). Repo `pps-hachi`. Set 2026-08-01, see DECISIONS.md D-29.
 AI layer: Faz 8 fully done (keychain + Vorion connection/model-discovery + streaming
   completion/Assistant chat panel/provenance + the D-20 "AI off" WebdriverIO E2E suite).
-  Faz 9 — J1, J2, J3-1, J3-2 and J3-3 done (structured output + Pareto reference proposal via
-  `EntryProposalField`; real xlsx/csv file ingestion + basic redaction; prompt library
-  generalized to Steps 1, 2, 3 and 4's 28 methods). J3's own launch prompt covers the full
-  50-method inventory (`docs/oturumlar/J3-prompt-kutuphanesi-genelleme.md`, 2026-09-01), now
-  seven slices after J3-3/J3-4 merged (D-207); J3-4 (Step 5, 7 methods) has its own short
-  launch prompt (`docs/oturumlar/J3-4-adim5-prompt-kutuphanesi.md`), not started.
+  Faz 9 — J1, J2, J3-1, J3-2, J3-3 and J3-4 done (structured output + Pareto reference
+  proposal via `EntryProposalField`; real xlsx/csv file ingestion + basic redaction; prompt
+  library generalized to Steps 1, 2, 3, 4 and 5's 35 methods). J3's own launch prompt covers
+  the full 50-method inventory (`docs/oturumlar/J3-prompt-kutuphanesi-genelleme.md`,
+  2026-09-01), now seven slices after J3-3/J3-4 merged (D-207); J3-5 (Step 6, 5 methods) has
+  its own short launch prompt (`docs/oturumlar/J3-5-adim6-prompt-kutuphanesi.md`), not started.
   Faz 10 not started.
 Templates: two company .xls files analysed; see reference/TEMPLATE_ANALYSIS.md
 Template geometry: VERIFIED 2026-08-01 against both .xls files. Five errors found and

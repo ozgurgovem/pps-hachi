@@ -16,4 +16,5 @@ export const costApprovalMethod: MethodPlugin<CostApprovalPayload> = {
   Editor: CostApprovalEditor,
   createEmptyPayload: () => emptyFieldFormValues(COST_APPROVAL_FIELDS),
   renderToA3: renderCostApprovalToA3,
+  aiProposal: { promptVersion: "v1" },
 };
