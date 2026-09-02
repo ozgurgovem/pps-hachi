@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { getPromptFile } from "../ai/prompts/library";
 import { REFERENCE_ROLES, STEP_IDS, type StepId } from "../domain/model";
 import { getMethodById, getMethodsForStep, METHOD_REGISTRY } from "./registry";
 import { GENERIC_TEXT_METHOD_ID } from "./genericText";
@@ -166,6 +167,42 @@ describe("MethodPlugin.tier (D-169)", () => {
         .map((plugin) => plugin.id)
         .sort();
       expect(recommendedIds).toEqual([...RECOMMENDED_BY_STEP[stepId]].sort());
+    }
+  });
+});
+
+/**
+ * J1 (D-204) shipped one method (`pareto`) declaring `aiProposal`; J3
+ * generalizes the same mechanism to the rest of the registry, one step at a
+ * time. `aiProposal` is a *declaration* `EntryProposalField` acts on
+ * generically (`getPromptFile(plugin.steps[0], plugin.id,
+ * plugin.aiProposal.promptVersion)`), so the failure mode is silent the same
+ * way an undeclared reference role was in D-116: a method claims a
+ * `promptVersion` with no matching file on disk (a typo in the id, a
+ * forgotten file, a version bump on one side but not the other) and nothing
+ * short of clicking "AI ile öner" in a real window would ever notice —
+ * `EntryProposalField`'s own tests never touch a specific method's prompt
+ * file. One generic registry-wide invariant catches every method that
+ * declares `aiProposal`, today's and every future slice's (J3-2..J3-8), so
+ * this test never grows a duplicate for the next batch of methods.
+ */
+describe("MethodPlugin.aiProposal across the registry", () => {
+  const withAiProposal = METHOD_REGISTRY.filter((plugin) => plugin.aiProposal !== undefined);
+
+  it("has at least the methods J1/J3-1 shipped", () => {
+    const ids = withAiProposal.map((plugin) => plugin.id);
+    expect(ids).toEqual(expect.arrayContaining(["pareto", "gap-statement", "five-g-5n1k", "five-n1k", "five-w2h"]));
+  });
+
+  it("resolves a real, loadable prompt file for every method that declares aiProposal, whose outputSchema matches the method's own id", () => {
+    for (const plugin of withAiProposal) {
+      const promptVersion = plugin.aiProposal?.promptVersion;
+      expect(promptVersion, `${plugin.id} declares aiProposal with no promptVersion`).toBeTruthy();
+
+      const firstStep = plugin.steps[0]!;
+      const file = getPromptFile(firstStep, plugin.id, promptVersion as string);
+      expect(file, `${plugin.id}: no prompt file found for step ${firstStep}, version "${promptVersion}"`).toBeDefined();
+      expect(file?.frontMatter.outputSchema).toBe(plugin.id);
     }
   });
 });

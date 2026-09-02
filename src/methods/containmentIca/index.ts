@@ -14,4 +14,5 @@ export const containmentIcaMethod: MethodPlugin<ContainmentIcaPayload> = {
   Editor: ContainmentIcaEditor,
   createEmptyPayload: () => ({ rows: [] }),
   renderToA3: renderContainmentIcaToA3,
+  aiProposal: { promptVersion: "v1" },
 };

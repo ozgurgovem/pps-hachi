@@ -14,4 +14,5 @@ export const problemTypeClassifierMethod: MethodPlugin<ProblemTypeClassifierPayl
   Editor: ProblemTypeClassifierEditor,
   createEmptyPayload: () => ({ classification: "belowStandard", note: "" }),
   renderToA3: renderProblemTypeClassifierToA3,
+  aiProposal: { promptVersion: "v1" },
 };

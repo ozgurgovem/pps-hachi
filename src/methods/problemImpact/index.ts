@@ -26,4 +26,5 @@ export const problemImpactMethod: MethodPlugin<ProblemImpactPayload> = {
     ...emptyFieldFormValues(PROBLEM_IMPACT_FIELDS),
   }),
   renderToA3: renderProblemImpactToA3,
+  aiProposal: { promptVersion: "v1" },
 };

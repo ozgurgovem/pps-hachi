@@ -15,4 +15,5 @@ export const fiveW2HMethod: MethodPlugin<FiveW2HPayload> = {
   Editor: FiveW2HEditor,
   createEmptyPayload: () => ({ what: "", where: "", when: "", who: "", which: "", how: "", howMuch: "" }),
   renderToA3: renderFiveW2HToA3,
+  aiProposal: { promptVersion: "v1" },
 };

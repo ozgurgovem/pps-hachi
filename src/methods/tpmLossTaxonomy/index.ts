@@ -26,4 +26,5 @@ export const tpmLossTaxonomyMethod: MethodPlugin<TpmLossTaxonomyPayload> = {
     environment: emptyTag(),
   }),
   renderToA3: renderTpmLossTaxonomyToA3,
+  aiProposal: { promptVersion: "v1" },
 };

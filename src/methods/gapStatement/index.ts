@@ -15,4 +15,5 @@ export const gapStatementMethod: MethodPlugin<GapStatementPayload> = {
   Editor: GapStatementEditor,
   createEmptyPayload: () => ({ ideal: "", actual: "", gap: "", gapValue: 0, unit: "", baselinePeriod: "" }),
   renderToA3: renderGapStatementToA3,
+  aiProposal: { promptVersion: "v1" },
 };

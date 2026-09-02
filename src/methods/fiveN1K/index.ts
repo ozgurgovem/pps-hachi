@@ -22,4 +22,5 @@ export const fiveN1KMethod: MethodPlugin<FiveN1KPayload> = {
     nerede: "",
   }),
   renderToA3: renderFiveN1KToA3,
+  aiProposal: { promptVersion: "v1" },
 };

@@ -26,4 +26,5 @@ export const fiveG5N1KMethod: MethodPlugin<FiveG5N1KPayload> = {
     kim: "",
   }),
   renderToA3: renderFiveG5N1KToA3,
+  aiProposal: { promptVersion: "v1" },
 };

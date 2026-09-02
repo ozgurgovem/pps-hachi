@@ -14,4 +14,5 @@ export const vocComplaintMethod: MethodPlugin<VocComplaintPayload> = {
   Editor: VocComplaintEditor,
   createEmptyPayload: () => ({ rows: [] }),
   renderToA3: renderVocComplaintToA3,
+  aiProposal: { promptVersion: "v1" },
 };

@@ -142,7 +142,7 @@ ekleme + bir değişmez testi büyümesi).
 
 | Dilim | Adım | Method sayısı | Durum |
 |---|---|---|---|
-| **J3-1 (bu dosyanın kendi kapsamı)** | 1 | 9 | 📝 sıradaki iş |
+| **J3-1 (bu dosyanın kendi kapsamı)** | 1 | 9 | ✅ BİTTİ (D-206, 2026-09-01) |
 | J3-2 | 2 | 9 | henüz yazılmadı |
 | J3-3 | 3 | 1 | henüz yazılmadı |
 | J3-4 | 4 | 9 | henüz yazılmadı |
