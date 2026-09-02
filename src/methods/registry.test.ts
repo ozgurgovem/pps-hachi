@@ -189,7 +189,7 @@ describe("MethodPlugin.tier (D-169)", () => {
 describe("MethodPlugin.aiProposal across the registry", () => {
   const withAiProposal = METHOD_REGISTRY.filter((plugin) => plugin.aiProposal !== undefined);
 
-  it("has at least the methods J1/J3-1/J3-2 shipped", () => {
+  it("has at least the methods J1/J3-1/J3-2/J3-3 shipped", () => {
     const ids = withAiProposal.map((plugin) => plugin.id);
     expect(ids).toEqual(
       expect.arrayContaining([
@@ -201,6 +201,10 @@ describe("MethodPlugin.aiProposal across the registry", () => {
         "trend",
         "point-of-cause",
         "distribution-chart",
+        "smart-target",
+        "fishbone",
+        "why-why-tree",
+        "five-why",
       ]),
     );
   });

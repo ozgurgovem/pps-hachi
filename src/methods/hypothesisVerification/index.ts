@@ -29,4 +29,5 @@ export const hypothesisVerificationMethod: MethodPlugin<HypothesisVerificationPa
       multiple: false,
     },
   ],
+  aiProposal: { promptVersion: "v1" },
 };

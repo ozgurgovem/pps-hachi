@@ -21,4 +21,5 @@ export const pfmeaLinkageMethod: MethodPlugin<PfmeaLinkagePayload> = {
   Editor: PfmeaLinkageEditor,
   createEmptyPayload: () => emptyFieldFormValues(PFMEA_LINKAGE_FIELDS),
   renderToA3: renderPfmeaLinkageToA3,
+  aiProposal: { promptVersion: "v1" },
 };

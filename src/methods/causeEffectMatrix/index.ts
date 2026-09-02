@@ -14,4 +14,5 @@ export const causeEffectMatrixMethod: MethodPlugin<CauseEffectMatrixPayload> = {
   Editor: CauseEffectMatrixEditor,
   createEmptyPayload: () => ({ outputs: [], inputs: [] }),
   renderToA3: renderCauseEffectMatrixToA3,
+  aiProposal: { promptVersion: "v1" },
 };

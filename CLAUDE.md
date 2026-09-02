@@ -788,16 +788,61 @@ Phase: 9 of 12 — kapsam belirlendi (D-203, 2026-08-31), henüz inşa edilmedi.
   this slice's real prompt-engineering difficulty spike (still zero new architecture — Pareto's
   own "empty list over invented data" principle applies with extra force to an invented cause
   chain).
+**Faz 9 — J3-3 (prompt library generalized to Step 3+4's 10 methods, merged slice): DONE
+  2026-09-02 (D-208).** `J3-3-adim3-4-prompt-kutuphanesi.md`'s own §0 pre-scan re-verified
+  against real code, matched exactly (`grep -rln "aiProposal:"` returned exactly 19 files:
+  `pareto` + J3-1's 9 + J3-2's 9; every named schema file existed). J1/J3-1/J3-2's mechanism
+  repeated **unchanged** across Step 3's one method (`smart-target`) and Step 4's 9 — zero new
+  architectural decision, only the merge J3-1's own §2.2 note had already anticipated.
+  `src/ai/prompts/3/smart-target.v1.md` (SMART framing — Specific/Measurable/Achievable/
+  Relevant/Time-bound — plus a health check against baseline; `baseline`/`target` inherit
+  D-206's `gapValue` sentinel convention: `0` for a genuinely unquantifiable number, never a
+  guess). `src/ai/prompts/4/` (9 new files): `cause-effect-matrix.v1.md`,
+  `comparative-analysis.v1.md`, `fault-tree.v1.md`, `fishbone.v1.md`, `five-why.v1.md`,
+  `hypothesis-verification.v1.md`, `pfmea-linkage.v1.md`, `three-legged-five-why.v1.md`,
+  `why-why-tree.v1.md`. This slice's own real difficulty was the three node/graph-shaped
+  schemas §2.2 of the launch prompt flagged in advance: `fishbone`'s `causes[]` (id/categoryId/
+  parentCauseId consistency against the model's own just-produced list, only a top-level cause
+  may be a parent, an explicit instruction to write a deeper reason than a bare "operator made
+  a mistake" when the source data supports one), `why-why-tree`'s `nodes[]` (a genuinely
+  branching tree — siblings sharing one `parentId` are explicitly encouraged rather than forced
+  into one linear chain when the source supports more than one credible answer; `outcome` set
+  only when the source explicitly states "controlled" or "confirmed root cause"), and
+  `hypothesis-verification`'s `evidence` field (the schema's own code comment — "an unsupported
+  point of cause is the failure mode this step exists to prevent" — carried directly into the
+  prompt text). The "operator made a mistake" trap named in SPEC §8.6's own Step 4 sentence was
+  written with the same discipline into all four causal-chain methods (`fishbone`/`five-why`/
+  `three-legged-five-why`/`why-why-tree`): push one level deeper only when the source genuinely
+  supports it, otherwise leave the chain honestly short. 10 methods' `index.ts` gained
+  `aiProposal: { promptVersion: "v1" }` — the same line `pareto/index.ts` already had. i18n
+  untouched (J1's finding still holds). `registry.test.ts`'s existing generic invariant
+  (written in J3-1) covered the new 10 automatically with zero changes; the `arrayContaining`
+  list gained four of this slice's methods (`smart-target`/`fishbone`/`why-why-tree`/
+  `five-why`), mutation-checked (`why-why-tree`'s `promptVersion` deliberately broken to
+  `"v2-does-not-exist"`, confirmed RED, reverted, confirmed GREEN). `npm test` 1274/1274 (279
+  files, unchanged from J3-2 — 10 new prompt-library files are markdown, not test files), exit
+  code 0 (checked via a separate logfile, not piped through `tail`). `npm run lint` clean (the
+  one pre-existing `ThemeProvider` warning). `npm run build` green (same pre-existing
+  chunk-size warning). `cargo test` 113 lib + 8 xlsx = 121 (unchanged from Phase 7 G3 — this
+  slice touches Rust NOT AT ALL, confirmed via `git status src-tauri/`), `cargo clippy
+  --all-targets -- -D warnings` and `cargo fmt -- --check` both clean. `scripts/gen-a3-
+  fixture.ts` not re-run — this slice touches no `buildA3Layout`/template style/`A3ImageKind`
+  (grep-confirmed across all ten touched `index.ts` files). **J3's plan now has three slices
+  left**: J3-4 (Step 5, 7 methods), J3-5 (Step 6, 5), J3-6 (Step 7, 5), J3-7 (Step 8, 5) — none
+  started. J3-4's own launch prompt written: `docs/oturumlar/J3-4-adim5-prompt-kutuphanesi.md`,
+  flagging that four of its seven methods carry reference roles (`hypothesis-verification`,
+  `countermeasure`, `error-proofing-hierarchy`, `side-effect-risk-assessment`) — orthogonal to
+  `aiProposal` per J1's own finding, prompts should stay silent on the reference field entirely.
 Stack decision (Tauri vs Electron fallback): Tauri v2, revisit only if Phase 4 stalls
 App name: **PPS Hachi** (八 — eight). Repo `pps-hachi`. Set 2026-08-01, see DECISIONS.md D-29.
 AI layer: Faz 8 fully done (keychain + Vorion connection/model-discovery + streaming
   completion/Assistant chat panel/provenance + the D-20 "AI off" WebdriverIO E2E suite).
-  Faz 9 — J1, J2, J3-1 and J3-2 done (structured output + Pareto reference proposal via
+  Faz 9 — J1, J2, J3-1, J3-2 and J3-3 done (structured output + Pareto reference proposal via
   `EntryProposalField`; real xlsx/csv file ingestion + basic redaction; prompt library
-  generalized to Steps 1 and 2's 18 methods). J3's own launch prompt covers the full
-  50-method inventory (`docs/oturumlar/J3-prompt-kutuphanesi-genelleme.md`, 2026-09-01),
-  now seven slices after J3-3/J3-4 merged (D-207); J3-3 (Step 3+4, 10 methods) has its own
-  short launch prompt (`docs/oturumlar/J3-3-adim3-4-prompt-kutuphanesi.md`), not started.
+  generalized to Steps 1, 2, 3 and 4's 28 methods). J3's own launch prompt covers the full
+  50-method inventory (`docs/oturumlar/J3-prompt-kutuphanesi-genelleme.md`, 2026-09-01), now
+  seven slices after J3-3/J3-4 merged (D-207); J3-4 (Step 5, 7 methods) has its own short
+  launch prompt (`docs/oturumlar/J3-4-adim5-prompt-kutuphanesi.md`), not started.
   Faz 10 not started.
 Templates: two company .xls files analysed; see reference/TEMPLATE_ANALYSIS.md
 Template geometry: VERIFIED 2026-08-01 against both .xls files. Five errors found and

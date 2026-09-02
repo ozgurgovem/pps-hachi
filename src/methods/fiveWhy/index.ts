@@ -16,4 +16,5 @@ export const fiveWhyMethod: MethodPlugin<FiveWhyPayload> = {
   Editor: FiveWhyEditor,
   createEmptyPayload: () => ({ problemStatement: "", whys: [] }),
   renderToA3: renderFiveWhyToA3,
+  aiProposal: { promptVersion: "v1" },
 };

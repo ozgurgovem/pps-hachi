@@ -144,8 +144,8 @@ ekleme + bir değişmez testi büyümesi).
 |---|---|---|---|
 | **J3-1 (bu dosyanın kendi kapsamı)** | 1 | 9 | ✅ BİTTİ (D-206, 2026-09-01) |
 | J3-2 | 2 | 9 | ✅ BİTTİ (D-207, 2026-09-02) |
-| J3-3 | 3+4 (birleştirildi) | 10 | henüz yazılmadı — `J3-3-adim3-4-prompt-kutuphanesi.md` |
-| J3-4 | 5 | 7 | henüz yazılmadı |
+| J3-3 | 3+4 (birleştirildi) | 10 | ✅ BİTTİ (D-208, 2026-09-02) |
+| J3-4 | 5 | 7 | henüz yazılmadı — `J3-4-adim5-prompt-kutuphanesi.md` |
 | J3-5 | 6 | 5 | henüz yazılmadı |
 | J3-6 | 7 | 5 | henüz yazılmadı |
 | J3-7 | 8 | 5 | henüz yazılmadı |

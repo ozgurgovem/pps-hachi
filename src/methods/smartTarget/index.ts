@@ -30,4 +30,5 @@ export const smartTargetMethod: MethodPlugin<SmartTargetPayload> = {
   imageKind: "trajectory-chart",
   renderImage: (spec, size) =>
     createElement(TrajectoryChart, { spec: spec as TrajectoryChartSpec, size }),
+  aiProposal: { promptVersion: "v1" },
 };

@@ -14,4 +14,5 @@ export const faultTreeMethod: MethodPlugin<FaultTreePayload> = {
   Editor: FaultTreeEditor,
   createEmptyPayload: () => ({ nodes: [] }),
   renderToA3: renderFaultTreeToA3,
+  aiProposal: { promptVersion: "v1" },
 };

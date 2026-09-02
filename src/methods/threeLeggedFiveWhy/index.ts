@@ -15,4 +15,5 @@ export const threeLeggedFiveWhyMethod: MethodPlugin<ThreeLeggedFiveWhyPayload> =
   Editor: ThreeLeggedFiveWhyEditor,
   createEmptyPayload: () => ({ problemStatement: "", occurrence: [], detection: [], systemic: [] }),
   renderToA3: renderThreeLeggedFiveWhyToA3,
+  aiProposal: { promptVersion: "v1" },
 };

@@ -27,4 +27,5 @@ export const whyWhyTreeMethod: MethodPlugin<WhyWhyTreePayload> = {
     const { payload, rootLabel } = spec as WhyWhyTreeImageSpec;
     return createElement(WhyWhyTreeDiagram, { payload, rootLabel, size });
   },
+  aiProposal: { promptVersion: "v1" },
 };

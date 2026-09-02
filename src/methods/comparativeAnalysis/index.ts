@@ -14,4 +14,5 @@ export const comparativeAnalysisMethod: MethodPlugin<ComparativeAnalysisPayload>
   Editor: ComparativeAnalysisEditor,
   createEmptyPayload: () => ({ subject: "", rows: [] }),
   renderToA3: renderComparativeAnalysisToA3,
+  aiProposal: { promptVersion: "v1" },
 };
