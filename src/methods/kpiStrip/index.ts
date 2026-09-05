@@ -27,4 +27,5 @@ export const kpiStripMethod: MethodPlugin<KpiStripPayload> = {
   renderToA3: renderKpiStripToA3,
   imageKind: "kpi-strip",
   renderImage: (spec, size) => createElement(KpiStripChart, { spec: spec as KpiStripChartSpec, size }),
+  aiProposal: { promptVersion: "v1" },
 };

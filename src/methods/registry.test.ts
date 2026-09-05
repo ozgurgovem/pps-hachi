@@ -189,7 +189,7 @@ describe("MethodPlugin.tier (D-169)", () => {
 describe("MethodPlugin.aiProposal across the registry", () => {
   const withAiProposal = METHOD_REGISTRY.filter((plugin) => plugin.aiProposal !== undefined);
 
-  it("has at least the methods J1/J3-1/J3-2/J3-3/J3-4/J3-5 shipped", () => {
+  it("has at least the methods J1/J3-1/J3-2/J3-3/J3-4/J3-5/J3-6 shipped", () => {
     const ids = withAiProposal.map((plugin) => plugin.id);
     expect(ids).toEqual(
       expect.arrayContaining([
@@ -211,6 +211,9 @@ describe("MethodPlugin.aiProposal across the registry", () => {
         "action-item",
         "ica-pca-transition",
         "implementation-issues-log",
+        "kpi-strip",
+        "result-verdict",
+        "sustainment-audit",
       ]),
     );
   });

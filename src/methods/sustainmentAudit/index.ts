@@ -15,4 +15,5 @@ export const sustainmentAuditMethod: MethodPlugin<SustainmentAuditPayload> = {
   Editor: SustainmentAuditEditor,
   createEmptyPayload: () => ({ rows: [] }),
   renderToA3: renderSustainmentAuditToA3,
+  aiProposal: { promptVersion: "v1" },
 };

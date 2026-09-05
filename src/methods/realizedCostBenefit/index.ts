@@ -16,4 +16,5 @@ export const realizedCostBenefitMethod: MethodPlugin<RealizedCostBenefitPayload>
   Editor: RealizedCostBenefitEditor,
   createEmptyPayload: () => emptyFieldFormValues(REALIZED_COST_BENEFIT_FIELDS),
   renderToA3: renderRealizedCostBenefitToA3,
+  aiProposal: { promptVersion: "v1" },
 };

@@ -925,16 +925,66 @@ Phase: 9 of 12 — kapsam belirlendi (D-203, 2026-08-31), henüz inşa edilmedi.
   own launch prompt written: `docs/oturumlar/J3-6-adim7-prompt-kutuphanesi.md`, flagging that
   `kpi-strip` is this dilim's one chart-producing method (its `items[]` needs Pareto-style
   numeric-list guidance rather than the fieldForm/rowTable pattern the other four use).
+**Faz 9 — J3-6 (prompt library generalized to Step 7's 5 methods): DONE 2026-09-05 (D-211).**
+  `J3-6-adim7-prompt-kutuphanesi.md`'s own §0 pre-scan re-verified against real code, matched
+  exactly (`grep -rln "aiProposal:"` returned exactly 41 files: `pareto` + J3-1's 9 + J3-2's 9
+  + J3-3's 10 + J3-4's 7 + J3-5's 5), all five named schema files existed, and none of this
+  slice's five methods carried `aiProposal` yet. J1/J3-1/J3-2/J3-3/J3-4/J3-5's mechanism
+  repeated **unchanged** across ALL 5 of Step 7's methods (`kpi-strip` included) — zero new
+  architectural decision. New `src/ai/prompts/7/` (5 files): `kpi-strip.v1.md` (this slice's
+  one chart-producing method, D-177/D-182/D-193 — Pareto-style numeric-list guidance per
+  `items[]` field, `status` explicitly never computed from baseline/target/actual per D-193's
+  manual-status principle, `sustain`/`result` left unset per P-36's "most problems haven't
+  reached this phase yet" reasoning), `realized-cost-benefit.v1.md` (explicitly distinguished
+  from Step 5's `cost-approval`/`countermeasure` projections — this is the REALIZED, not
+  projected, outcome; `netBenefit` explicitly NOT computed from `realizedBenefit`/`actualCost`
+  since they may differ in unit/period/currency), `result-verdict.v1.md` (this slice's most
+  attention-heavy file — SPEC §8.6's own "give an honest verdict" instruction applied to a
+  4-valued `verdict` field `pending`/`met`/`partiallyMet`/`notMet` — `schema.ts`'s own comment
+  says plain string not `z.enum`, but the real UI values were read from `fields.ts` and used
+  verbatim; ambiguous or short-window evidence always falls to `"pending"`, never rounded up
+  to an over-optimistic `"met"`), `statistical-confirmation.v1.md` (Cp/Cpk explicitly NOT
+  calculated from raw measurements — only the source's own stated value is reported, since
+  that calculation needs the process mean/spread/spec-limits triad together; `defectRate` is
+  the post-implementation rate only, never the before rate), `sustainment-audit.v1.md`
+  (row-shaped, 12 columns, `compliancePercent` explicitly NOT computed from
+  `conforming`/`nonconforming`, `status` a 3-valued `planned`/`verified`/`rejected` defaulting
+  to `"planned"` under ambiguity). 5 methods' `index.ts` gained `aiProposal: { promptVersion:
+  "v1" }`. i18n untouched (J1's finding still holds). `registry.test.ts`'s existing generic
+  invariant (written in J3-1) covered the new 5 automatically with zero changes to its own
+  logic — the test's own name was updated to "...J3-6", and the `arrayContaining` list gained
+  three of this slice's methods (`kpi-strip`/`result-verdict`/`sustainment-audit`), mutation-
+  checked (`kpi-strip`'s `promptVersion` deliberately broken to `"v2-does-not-exist"`,
+  confirmed RED, reverted, confirmed GREEN). None of the five carry a reference role
+  (`registry.test.ts`'s "reference roles" block names none of them), so J3-4/J3-5's own
+  reference-field-silence discipline wasn't needed this slice. `npm test` 1274/1274 (279
+  files, unchanged from J3-5 — 5 new prompt-library files are markdown, not test files), exit
+  code 0 (checked via a separate logfile, not piped through `tail`). `npm run lint` clean (the
+  one pre-existing `ThemeProvider` warning). `npm run build` green (same pre-existing
+  chunk-size warning). `cargo test` 170 lib + 2 fixture + 8 xlsx = 180 (unchanged from J3-5 —
+  this slice touches Rust NOT AT ALL, confirmed via `git status src-tauri/`), `cargo clippy
+  --all-targets -- -D warnings` and `cargo fmt -- --check` both clean. `scripts/gen-a3-
+  fixture.ts` not re-run — this slice touches no `buildA3Layout`/template style/`A3ImageKind`
+  (`kpi-strip` already carried its own `A3ImageKind`/renderer before this slice; this slice
+  only added its `aiProposal`, grep-confirmed the renderer itself was untouched). **J3's plan
+  now has one slice left**: J3-7 (Step 8, 5 methods — `document-updates-tracker`/
+  `lessons-learned`/`open-items-next-problem`/`sustain-plan`/`yokoten-tracker`) — J3's own
+  LAST slice, not started. J3-7's own launch prompt written:
+  `docs/oturumlar/J3-7-adim8-prompt-kutuphanesi.md`, flagging that `document-updates-tracker`'s
+  seven fixed document types each need their own guidance (fill only the document types the
+  source actually discusses, leave the rest wholly blank).
 Stack decision (Tauri vs Electron fallback): Tauri v2, revisit only if Phase 4 stalls
 App name: **PPS Hachi** (八 — eight). Repo `pps-hachi`. Set 2026-08-01, see DECISIONS.md D-29.
 AI layer: Faz 8 fully done (keychain + Vorion connection/model-discovery + streaming
   completion/Assistant chat panel/provenance + the D-20 "AI off" WebdriverIO E2E suite).
-  Faz 9 — J1, J2, J3-1, J3-2, J3-3, J3-4 and J3-5 done (structured output + Pareto reference
-  proposal via `EntryProposalField`; real xlsx/csv file ingestion + basic redaction; prompt
-  library generalized to Steps 1, 2, 3, 4, 5 and 6's 40 methods). J3's own launch prompt covers
-  the full 50-method inventory (`docs/oturumlar/J3-prompt-kutuphanesi-genelleme.md`,
-  2026-09-01), now seven slices after J3-3/J3-4 merged (D-207); J3-6 (Step 7, 5 methods) has
-  its own short launch prompt (`docs/oturumlar/J3-6-adim7-prompt-kutuphanesi.md`), not started.
+  Faz 9 — J1, J2, J3-1, J3-2, J3-3, J3-4, J3-5 and J3-6 done (structured output + Pareto
+  reference proposal via `EntryProposalField`; real xlsx/csv file ingestion + basic redaction;
+  prompt library generalized to Steps 1, 2, 3, 4, 5, 6 and 7's 45 methods). J3's own launch
+  prompt covers the full 50-method inventory (`docs/oturumlar/J3-prompt-kutuphanesi-genelleme.md`,
+  2026-09-01), now seven slices after J3-3/J3-4 merged (D-207); J3-7 (Step 8, 5 methods —
+  J3's own LAST slice) has its own short launch prompt
+  (`docs/oturumlar/J3-7-adim8-prompt-kutuphanesi.md`), not started. Once J3-7 closes, J3's
+  full seven-slice plan and Faz 9's own three-slice plan (J1/J2/J3) are both fully done.
   Faz 10 not started.
 Templates: two company .xls files analysed; see reference/TEMPLATE_ANALYSIS.md
 Template geometry: VERIFIED 2026-08-01 against both .xls files. Five errors found and

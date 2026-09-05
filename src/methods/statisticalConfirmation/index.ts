@@ -16,4 +16,5 @@ export const statisticalConfirmationMethod: MethodPlugin<StatisticalConfirmation
   Editor: StatisticalConfirmationEditor,
   createEmptyPayload: () => emptyFieldFormValues(STATISTICAL_CONFIRMATION_FIELDS),
   renderToA3: renderStatisticalConfirmationToA3,
+  aiProposal: { promptVersion: "v1" },
 };

@@ -16,4 +16,5 @@ export const resultVerdictMethod: MethodPlugin<ResultVerdictPayload> = {
   Editor: ResultVerdictEditor,
   createEmptyPayload: () => emptyFieldFormValues(RESULT_VERDICT_FIELDS),
   renderToA3: renderResultVerdictToA3,
+  aiProposal: { promptVersion: "v1" },
 };
