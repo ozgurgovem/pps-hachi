@@ -1028,7 +1028,8 @@ Phase: 10 of 12 — Phase 9 (all three slices J1/J2/J3, J3 itself in seven sub-s
   "Assistant rewrites an overflowing A3 into budget without losing meaning, and flags a weak
   root cause on a deliberately-bad project") — it deserves its own scope-definition session
   (matching Faz 8/9's own `faz8-kapsam-belirleme.md`/`faz9-kapsam-belirleme.md` precedent) and
-  was NOT designed in this slice, only its name/location confirmed. Not yet committed to git.
+  was NOT designed in this slice, only its name/location confirmed. Committed and pushed
+  (`60757ab`).
 Stack decision (Tauri vs Electron fallback): Tauri v2, revisit only if Phase 4 stalls
 App name: **PPS Hachi** (八 — eight). Repo `pps-hachi`. Set 2026-08-01, see DECISIONS.md D-29.
 AI layer: Faz 8 fully done (keychain + Vorion connection/model-discovery + streaming
