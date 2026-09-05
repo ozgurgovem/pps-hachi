@@ -146,8 +146,8 @@ ekleme + bir değişmez testi büyümesi).
 | J3-2 | 2 | 9 | ✅ BİTTİ (D-207, 2026-09-02) |
 | J3-3 | 3+4 (birleştirildi) | 10 | ✅ BİTTİ (D-208, 2026-09-02) |
 | J3-4 | 5 | 7 | ✅ BİTTİ (D-209, 2026-09-02) |
-| J3-5 | 6 | 5 | henüz yazılmadı — `J3-5-adim6-prompt-kutuphanesi.md` |
-| J3-6 | 7 | 5 | henüz yazılmadı |
+| J3-5 | 6 | 5 | ✅ BİTTİ (D-210, 2026-09-05) |
+| J3-6 | 7 | 5 | henüz yazılmadı — `J3-6-adim7-prompt-kutuphanesi.md` |
 | J3-7 | 8 | 5 | henüz yazılmadı |
 
 **2026-09-02 güncellemesi (D-207):** J3-3 (Adım 3, tek method — `smart-target`) J3-2'nin

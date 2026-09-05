@@ -885,16 +885,56 @@ Phase: 9 of 12 — kapsam belirlendi (D-203, 2026-08-31), henüz inşa edilmedi.
   `docs/oturumlar/J3-5-adim6-prompt-kutuphanesi.md`, flagging that `ica-pca-transition` is the
   registry's one method carrying two reference roles at once (`containment` + `countermeasure`)
   and that neither belongs in its prompt text.
+**Faz 9 — J3-5 (prompt library generalized to Step 6's 5 methods): DONE 2026-09-05 (D-210).**
+  `J3-5-adim6-prompt-kutuphanesi.md`'s own §0 pre-scan re-verified against real code, matched
+  exactly (`grep -rln "aiProposal:"` returned exactly 36 files: `pareto` + J3-1's 9 + J3-2's 9
+  + J3-3's 10 + J3-4's 7), all five named schema files existed. J1/J3-1/J3-2/J3-3/J3-4's
+  mechanism repeated **unchanged** across Step 6's 5 methods — zero new architectural
+  decision. New `src/ai/prompts/6/` (5 files): `action-item.v1.md` (`percentComplete` is
+  explicitly free text — a percentage number OR a short status phrase, whichever the source
+  actually supports, matching this dilim's own launch-prompt note; `customerApproval` a
+  3-valued enum, defaulting to `"pending"` under ambiguity, repeating D-209's own
+  `cost-approval` precedent), `ica-pca-transition.v1.md` (this dilim's one two-role method,
+  D-149's Oturum B1 record — `status` a 3-valued lifecycle enum `"icaActive"`/`"pcaInPlace"`/
+  `"icaRemoved"`, defaulting to `"icaActive"` under ambiguity since an interim containment is
+  presumed still in effect until the source proves otherwise), `implementation-issues-log.v1.md`
+  (row-shaped, `status` a 2-valued `"open"`/`"resolved"`, defaulting to `"open"` — consistent
+  with P-37's own negative-tone default), `training-communication-record.v1.md`/
+  `trial-result-log.v1.md` (both fully free-text row lists, no enums). This dilim's own
+  attention point — `action-item` (referrer via `countermeasure`) and `ica-pca-transition`
+  (the registry's ONLY two-role method, both `containment` and `countermeasure`) — both
+  prompts stayed focused only on their own payload fields, never touching the reference
+  field; J1's own finding (`referenceRoles`/`aiProposal` orthogonal) confirmed a sixth and
+  seventh time. 5 methods' `index.ts` gained `aiProposal: { promptVersion: "v1" }`. i18n
+  untouched (J1's finding still holds). `registry.test.ts`'s existing generic invariant
+  (written in J3-1) covered the new 5 automatically with zero changes to its own logic — the
+  test's own name was updated to "...J3-5", and the `arrayContaining` list gained three of
+  this dilim's methods (`action-item`/`ica-pca-transition`/`implementation-issues-log`),
+  mutation-checked (`action-item`'s `promptVersion` deliberately broken to
+  `"v2-does-not-exist"`, confirmed RED, reverted, confirmed GREEN). `npm test` 1274/1274 (279
+  files, unchanged from J3-4 — 5 new prompt-library files are markdown, not test files), exit
+  code 0 (checked via a separate logfile, not piped through `tail`). `npm run lint` clean (the
+  one pre-existing `ThemeProvider` warning). `npm run build` green (same pre-existing
+  chunk-size warning). `cargo test` 170 lib + 2 fixture + 8 xlsx = 180 (unchanged from J3-4 —
+  this dilim touches Rust NOT AT ALL, confirmed via `git status src-tauri/`), `cargo clippy
+  --all-targets -- -D warnings` and `cargo fmt -- --check` both clean. `scripts/gen-a3-
+  fixture.ts` not re-run — this dilim touches no `buildA3Layout`/template style/`A3ImageKind`
+  (grep-confirmed across all five touched `index.ts` files). **J3's plan now has two slices
+  left**: J3-6 (Step 7, 5 methods — `kpi-strip`/`realized-cost-benefit`/`result-verdict`/
+  `statistical-confirmation`/`sustainment-audit`), J3-7 (Step 8, 5) — neither started. J3-6's
+  own launch prompt written: `docs/oturumlar/J3-6-adim7-prompt-kutuphanesi.md`, flagging that
+  `kpi-strip` is this dilim's one chart-producing method (its `items[]` needs Pareto-style
+  numeric-list guidance rather than the fieldForm/rowTable pattern the other four use).
 Stack decision (Tauri vs Electron fallback): Tauri v2, revisit only if Phase 4 stalls
 App name: **PPS Hachi** (八 — eight). Repo `pps-hachi`. Set 2026-08-01, see DECISIONS.md D-29.
 AI layer: Faz 8 fully done (keychain + Vorion connection/model-discovery + streaming
   completion/Assistant chat panel/provenance + the D-20 "AI off" WebdriverIO E2E suite).
-  Faz 9 — J1, J2, J3-1, J3-2, J3-3 and J3-4 done (structured output + Pareto reference
+  Faz 9 — J1, J2, J3-1, J3-2, J3-3, J3-4 and J3-5 done (structured output + Pareto reference
   proposal via `EntryProposalField`; real xlsx/csv file ingestion + basic redaction; prompt
-  library generalized to Steps 1, 2, 3, 4 and 5's 35 methods). J3's own launch prompt covers
+  library generalized to Steps 1, 2, 3, 4, 5 and 6's 40 methods). J3's own launch prompt covers
   the full 50-method inventory (`docs/oturumlar/J3-prompt-kutuphanesi-genelleme.md`,
-  2026-09-01), now seven slices after J3-3/J3-4 merged (D-207); J3-5 (Step 6, 5 methods) has
-  its own short launch prompt (`docs/oturumlar/J3-5-adim6-prompt-kutuphanesi.md`), not started.
+  2026-09-01), now seven slices after J3-3/J3-4 merged (D-207); J3-6 (Step 7, 5 methods) has
+  its own short launch prompt (`docs/oturumlar/J3-6-adim7-prompt-kutuphanesi.md`), not started.
   Faz 10 not started.
 Templates: two company .xls files analysed; see reference/TEMPLATE_ANALYSIS.md
 Template geometry: VERIFIED 2026-08-01 against both .xls files. Five errors found and

@@ -14,4 +14,5 @@ export const implementationIssuesLogMethod: MethodPlugin<ImplementationIssuesLog
   Editor: ImplementationIssuesLogEditor,
   createEmptyPayload: () => ({ rows: [] }),
   renderToA3: renderImplementationIssuesLogToA3,
+  aiProposal: { promptVersion: "v1" },
 };

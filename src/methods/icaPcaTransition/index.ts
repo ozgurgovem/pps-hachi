@@ -40,4 +40,5 @@ export const icaPcaTransitionMethod: MethodPlugin<IcaPcaTransitionPayload> = {
       multiple: false,
     },
   ],
+  aiProposal: { promptVersion: "v1" },
 };

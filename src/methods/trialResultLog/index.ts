@@ -14,4 +14,5 @@ export const trialResultLogMethod: MethodPlugin<TrialResultLogPayload> = {
   Editor: TrialResultLogEditor,
   createEmptyPayload: () => ({ rows: [] }),
   renderToA3: renderTrialResultLogToA3,
+  aiProposal: { promptVersion: "v1" },
 };

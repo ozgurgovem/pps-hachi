@@ -14,4 +14,5 @@ export const trainingCommunicationRecordMethod: MethodPlugin<TrainingCommunicati
   Editor: TrainingCommunicationRecordEditor,
   createEmptyPayload: () => ({ rows: [] }),
   renderToA3: renderTrainingCommunicationRecordToA3,
+  aiProposal: { promptVersion: "v1" },
 };

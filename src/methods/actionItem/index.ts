@@ -28,4 +28,5 @@ export const actionItemMethod: MethodPlugin<ActionItemPayload> = {
       multiple: false,
     },
   ],
+  aiProposal: { promptVersion: "v1" },
 };
