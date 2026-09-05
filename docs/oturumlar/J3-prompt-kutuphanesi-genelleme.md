@@ -148,7 +148,15 @@ ekleme + bir değişmez testi büyümesi).
 | J3-4 | 5 | 7 | ✅ BİTTİ (D-209, 2026-09-02) |
 | J3-5 | 6 | 5 | ✅ BİTTİ (D-210, 2026-09-05) |
 | J3-6 | 7 | 5 | ✅ BİTTİ (D-211, 2026-09-05) |
-| J3-7 | 8 | 5 | henüz yazılmadı — `J3-7-adim8-prompt-kutuphanesi.md` |
+| J3-7 | 8 | 5 | ✅ BİTTİ (D-212, 2026-09-05) |
+
+**2026-09-05 güncellemesi (D-212): J3'ün yedi dilimlik planının TAMAMI kapandı.** J3-7 (Adım
+8'in son 5 method'u — `document-updates-tracker`/`lessons-learned`/`open-items-next-problem`/
+`sustain-plan`/`yokoten-tracker`) BİTTİ. J3-1'den J3-7'ye kadar toplam 50 method (+`pareto`
+J1'de) registry-genelinde `aiProposal` taşıyor. **Bununla birlikte Faz 9'un kendi üç dilimlik
+planı (J1/J2/J3) da TAMAMEN kapandı** — `CLAUDE.md`'nin Current state'i bu üst-seviye kapanışı
+ayrıca not ediyor. Sıradaki faz `SPEC.md` §6'ya göre **Faz 10 — "AI review & layout"**; kendi
+kapsam-belirleme oturumunu (Faz 8/9'un emsali gibi) hak ediyor, burada tasarlanmadı.
 
 **2026-09-02 güncellemesi (D-207):** J3-3 (Adım 3, tek method — `smart-target`) J3-2'nin
 kendi kapanışında Adım 4'ün 9 method'uyla birleştirildi (bu bölümün altındaki eski not zaten

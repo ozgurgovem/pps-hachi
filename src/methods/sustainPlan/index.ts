@@ -16,4 +16,5 @@ export const sustainPlanMethod: MethodPlugin<SustainPlanPayload> = {
   Editor: SustainPlanEditor,
   createEmptyPayload: () => emptyFieldFormValues(SUSTAIN_PLAN_FIELDS),
   renderToA3: renderSustainPlanToA3,
+  aiProposal: { promptVersion: "v1" },
 };

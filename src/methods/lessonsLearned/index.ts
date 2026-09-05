@@ -17,4 +17,5 @@ export const lessonsLearnedMethod: MethodPlugin<LessonsLearnedPayload> = {
   Editor: LessonsLearnedEditor,
   createEmptyPayload: () => emptyFieldFormValues(LESSONS_LEARNED_FIELDS),
   renderToA3: renderLessonsLearnedToA3,
+  aiProposal: { promptVersion: "v1" },
 };

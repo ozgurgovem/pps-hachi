@@ -15,4 +15,5 @@ export const yokotenTrackerMethod: MethodPlugin<YokotenTrackerPayload> = {
   Editor: YokotenTrackerEditor,
   createEmptyPayload: () => ({ rows: [] }),
   renderToA3: renderYokotenTrackerToA3,
+  aiProposal: { promptVersion: "v1" },
 };

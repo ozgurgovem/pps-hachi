@@ -21,4 +21,5 @@ export const documentUpdatesTrackerMethod: MethodPlugin<DocumentUpdatesTrackerPa
       DOCUMENT_TYPES.map((documentType) => [documentType, emptyFieldFormValues(DOCUMENT_UPDATE_FIELDS)]),
     ) as DocumentUpdatesTrackerPayload,
   renderToA3: renderDocumentUpdatesTrackerToA3,
+  aiProposal: { promptVersion: "v1" },
 };

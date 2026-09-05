@@ -190,10 +190,12 @@ language is the real threat to this bar, and it is Oturum B's job.
 
 ## Current state
 
-Phase: 9 of 12 — kapsam belirlendi (D-203, 2026-08-31), henüz inşa edilmedi. Phase 8
-  (all three dilims — D-200 2026-08-30, D-201 2026-08-31, D-202 2026-08-31) fully complete.
-  Phase 7 (D-195's three slices G1/G2/G3) FULLY DONE 2026-08-23. Phase 6 (all five slices
-  6a–6e, plus 6e's own 6e-1/6e-2 split) fully closed 2026-08-19.
+Phase: 10 of 12 — Phase 9 (all three slices J1/J2/J3, J3 itself in seven sub-slices
+  J3-1..J3-7) FULLY COMPLETE 2026-09-05 (D-204 through D-212). Phase 10's own scope-definition
+  session not yet written. Phase 8 (all three dilims — D-200 2026-08-30, D-201 2026-08-31,
+  D-202 2026-08-31) fully complete. Phase 7 (D-195's three slices G1/G2/G3) FULLY DONE
+  2026-08-23. Phase 6 (all five slices 6a–6e, plus 6e's own 6e-1/6e-2 split) fully closed
+  2026-08-19.
 **Faz 8 kapsam belirleme (D-199, 2026-08-30): no code.** Confirmed the 2026-08-23 pre-scan
   against real code — Settings route doesn't exist, `src/ai/` is empty, `Cargo.toml` has no
   `keyring`/HTTP client, no Playwright, `RightPanel`'s Assistant tab is literally `{null}`.
@@ -973,19 +975,72 @@ Phase: 9 of 12 — kapsam belirlendi (D-203, 2026-08-31), henüz inşa edilmedi.
   `docs/oturumlar/J3-7-adim8-prompt-kutuphanesi.md`, flagging that `document-updates-tracker`'s
   seven fixed document types each need their own guidance (fill only the document types the
   source actually discusses, leave the rest wholly blank).
+**Faz 9 — J3-7 (prompt library generalized to Step 8's 5 methods): DONE 2026-09-05 (D-212) —
+  J3's own seven-slice plan (J3-1..J3-7) and Faz 9's own three-slice plan (J1/J2/J3) are now
+  BOTH fully closed.** `J3-7-adim8-prompt-kutuphanesi.md`'s own §0 pre-scan re-verified against
+  real code, matched exactly (`grep -rln "aiProposal:"` returned exactly 46 files: `pareto` +
+  J3-1's 9 + J3-2's 9 + J3-3's 10 + J3-4's 7 + J3-5's 5 + J3-6's 5), all five named schema files
+  existed, and none of this slice's five methods carried `aiProposal` yet. J1/J3-1..J3-6's
+  mechanism repeated **unchanged** across all 5 of Step 8's methods — zero new architectural
+  decision. New `src/ai/prompts/8/` (5 files): `document-updates-tracker.v1.md` (this slice's
+  most attention-heavy file — D-122/D-183's seven fixed document types × nine-field record;
+  each document type is treated **completely independently** — if the source never discusses a
+  given type at all, all nine of its fields stay an empty string, deliberately with NO default
+  for `status`/`approval` (no falling back to `"notStarted"`/`"draft"` "to be safe"), since an
+  all-blank record is exactly the signal D-183's own `renderToA3` already uses to drop that
+  whole sub-section from the export; even for a document type the source *does* discuss,
+  `status`/`approval` stay `""` unless the source's own wording states one — the schema is
+  `z.string()`, not `z.enum()`, so blank is a valid and honest value here, unlike a row-based
+  method's required enum), `lessons-learned.v1.md` (eight fixed narrative questions, each left
+  `""` rather than filled with generic-sounding filler when the source gives no real material),
+  `open-items-next-problem.v1.md` (row-shaped, two-valued `status` `"open"`/`"closed"` —
+  defaulting to `"open"` under ambiguity, repeating `implementation-issues-log`/D-210's own
+  negative-default precedent), `sustain-plan.v1.md` (four plain-text fields — explicitly
+  distinguished from Step 7's `sustainment-audit`, D-183: this is the FORWARD-looking plan for
+  future audits, that is the backward-looking log of audits already performed),
+  `yokoten-tracker.v1.md` (row-shaped, 13 columns — `status`/`approval` reuse the exact same
+  shared `documentStatusOptions.ts` vocabulary as `document-updates-tracker`, same
+  leave-blank-unless-stated discipline applied; `riskReviewed`/`actionRequired`/
+  `effectivenessChecked` stay free text rather than an invented Yes/No gate, matching
+  `columns.ts`'s own transcription note that only two of `document-updates-tracker`'s fields are
+  actually marked "(Yes/No)" in the source). 5 methods' `index.ts` gained `aiProposal: {
+  promptVersion: "v1" }`. i18n untouched (J1's finding still holds). `registry.test.ts`'s
+  existing generic invariant (written in J3-1) covered the new 5 automatically with zero
+  changes to its own logic — the test's own name was updated to "...J3-7", and the
+  `arrayContaining` list gained three of this slice's methods (`document-updates-tracker`/
+  `lessons-learned`/`yokoten-tracker`), mutation-checked (`document-updates-tracker`'s
+  `promptVersion` deliberately broken to `"v2-does-not-exist"`, confirmed RED, reverted,
+  confirmed GREEN). None of the five carry a reference role (`registry.test.ts`'s "reference
+  roles" block names none of them), so the reference-field-silence discipline of earlier slices
+  wasn't needed here. `npm test` 1274/1274 (279 files, unchanged from J3-6 — 5 new
+  prompt-library files are markdown, not test files), exit code 0 (checked via a separate
+  logfile, not piped through `tail`). `npm run lint` clean (the one pre-existing `ThemeProvider`
+  warning). `npm run build` green (same pre-existing chunk-size warning). `cargo test` actually
+  re-run (not just inferred from `git status`): 170 lib + 2 fixture + 8 xlsx = 180 (unchanged
+  from J3-6), `cargo clippy --all-targets -- -D warnings` and `cargo fmt -- --check` both clean
+  — Rust genuinely untouched, `git status src-tauri/` also empty. `scripts/gen-a3-fixture.ts`
+  not re-run — this slice touches no `buildA3Layout`/template style/`A3ImageKind`
+  (grep-confirmed across all five touched `index.ts` files). **J3's own seven-slice plan
+  (J3-1..J3-7) is now fully closed** — `J3-prompt-kutuphanesi-genelleme.md`'s §2.2 table updated
+  accordingly. **Faz 9's own three-slice plan (J1/J2/J3) is now fully closed.** Verified against
+  `SPEC.md` §6: the next phase is **Phase 10 — "AI review & layout"** (A3 placement optimizer,
+  condensation to cell budget, mock-auditor review, TR↔EN translation, cost meter; done when
+  "Assistant rewrites an overflowing A3 into budget without losing meaning, and flags a weak
+  root cause on a deliberately-bad project") — it deserves its own scope-definition session
+  (matching Faz 8/9's own `faz8-kapsam-belirleme.md`/`faz9-kapsam-belirleme.md` precedent) and
+  was NOT designed in this slice, only its name/location confirmed. Not yet committed to git.
 Stack decision (Tauri vs Electron fallback): Tauri v2, revisit only if Phase 4 stalls
 App name: **PPS Hachi** (八 — eight). Repo `pps-hachi`. Set 2026-08-01, see DECISIONS.md D-29.
 AI layer: Faz 8 fully done (keychain + Vorion connection/model-discovery + streaming
   completion/Assistant chat panel/provenance + the D-20 "AI off" WebdriverIO E2E suite).
-  Faz 9 — J1, J2, J3-1, J3-2, J3-3, J3-4, J3-5 and J3-6 done (structured output + Pareto
-  reference proposal via `EntryProposalField`; real xlsx/csv file ingestion + basic redaction;
-  prompt library generalized to Steps 1, 2, 3, 4, 5, 6 and 7's 45 methods). J3's own launch
-  prompt covers the full 50-method inventory (`docs/oturumlar/J3-prompt-kutuphanesi-genelleme.md`,
-  2026-09-01), now seven slices after J3-3/J3-4 merged (D-207); J3-7 (Step 8, 5 methods —
-  J3's own LAST slice) has its own short launch prompt
-  (`docs/oturumlar/J3-7-adim8-prompt-kutuphanesi.md`), not started. Once J3-7 closes, J3's
-  full seven-slice plan and Faz 9's own three-slice plan (J1/J2/J3) are both fully done.
-  Faz 10 not started.
+  **Faz 9 is now fully done — all three slices (J1/J2/J3) closed 2026-09-05 (D-212).** J1
+  (structured output + Pareto reference proposal via `EntryProposalField`), J2 (real xlsx/csv
+  file ingestion + basic redaction), J3 (prompt library generalized from Pareto to the entire
+  50-method registry across all 8 steps, in seven slices J3-1..J3-7, D-206 through D-212 — see
+  `docs/oturumlar/J3-prompt-kutuphanesi-genelleme.md` for the full inventory/plan). Faz 10
+  ("AI review & layout" — A3 placement optimizer, cell-budget condensation, mock-auditor
+  review, TR↔EN translation, cost meter, per `SPEC.md` §6) not started; its own scope-
+  definition session has not been written yet.
 Templates: two company .xls files analysed; see reference/TEMPLATE_ANALYSIS.md
 Template geometry: VERIFIED 2026-08-01 against both .xls files. Five errors found and
   corrected in place — the largest was the column widths: the real split is 49.7/50.3, NOT

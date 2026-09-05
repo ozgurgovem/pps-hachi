@@ -14,4 +14,5 @@ export const openItemsNextProblemMethod: MethodPlugin<OpenItemsNextProblemPayloa
   Editor: OpenItemsNextProblemEditor,
   createEmptyPayload: () => ({ rows: [] }),
   renderToA3: renderOpenItemsNextProblemToA3,
+  aiProposal: { promptVersion: "v1" },
 };
