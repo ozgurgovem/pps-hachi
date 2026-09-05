@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parsePromptFile } from "./frontMatter";
+import { parsePromptFile, parseWholeProjectPromptFile } from "./frontMatter";
 
 const VALID = `---
 mode: draft
@@ -62,5 +62,46 @@ describe("parsePromptFile", () => {
     const malformed = VALID.replace("mode: draft", "mode draft");
 
     expect(() => parsePromptFile(malformed)).toThrow(/Malformed front-matter line/);
+  });
+});
+
+const VALID_WHOLE_PROJECT = `---
+mode: draft
+purpose: layout-review
+version: v1
+outputSchema: layout-review
+contextSlices: []
+---
+
+Review the whole project's A3 layout.
+`;
+
+describe("parseWholeProjectPromptFile", () => {
+  it("parses front-matter fields (purpose instead of step/methodId) and trims the body", () => {
+    const file = parseWholeProjectPromptFile(VALID_WHOLE_PROJECT);
+
+    expect(file.frontMatter).toEqual({
+      mode: "draft",
+      purpose: "layout-review",
+      version: "v1",
+      outputSchema: "layout-review",
+      contextSlices: [],
+    });
+    expect(file.body).toBe("Review the whole project's A3 layout.");
+  });
+
+  it("throws when the required purpose field is missing", () => {
+    const missingPurpose = VALID_WHOLE_PROJECT.replace("purpose: layout-review\n", "");
+
+    expect(() => parseWholeProjectPromptFile(missingPurpose)).toThrow(/"purpose"/);
+  });
+
+  it("shares the same delimiter/malformed-line errors as parsePromptFile", () => {
+    expect(() => parseWholeProjectPromptFile("purpose: layout-review\n---\nbody")).toThrow(
+      /front-matter delimiter/,
+    );
+    expect(() => parseWholeProjectPromptFile("---\npurpose: layout-review\nno closing fence")).toThrow(
+      /closing/,
+    );
   });
 });

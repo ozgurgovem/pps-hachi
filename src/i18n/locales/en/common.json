@@ -137,6 +137,7 @@
       "preview": "Preview",
       "traceability": "Traceability",
       "assistant": "Assistant",
+      "review": "Review",
       "previewStub": "The A3 preview renders here once the exporter ships in Phase 4.",
       "screenMode": "Screen",
       "printMode": "Print",
@@ -167,6 +168,22 @@
       "save": "Save",
       "cancel": "Cancel",
       "close": "Close"
+    },
+    "layoutReview": {
+      "intro": "Ask the assistant to review the A3's layout — which entries carry the argument, which belong in an appendix, and where text is too long for its printed budget.",
+      "analyze": "Analyze layout",
+      "analyzing": "Analyzing the A3 layout…",
+      "missingPromptFile": "The layout-review prompt is not configured yet.",
+      "failed": "The AI's response couldn't be turned into a valid layout review. Nothing was changed — here is its raw response:",
+      "retry": "Try again",
+      "visibilityChangesTitle": "Placement changes",
+      "textCondensationsTitle": "Text condensations",
+      "noneProposed": "Nothing proposed here.",
+      "visibilityChangeLine": "Move \"{{title}}\" to {{visibility}}",
+      "applySelected": "Apply selected",
+      "rejectAll": "Reject all",
+      "appliedSummary": "Applied {{visibilityCount}} placement change(s) and {{condensationCount}} text condensation(s).",
+      "analyzeAgain": "Analyze again"
     },
     "entryProposal": {
       "trigger": "Propose with AI",

@@ -137,6 +137,7 @@
       "preview": "Önizleme",
       "traceability": "İzlenebilirlik",
       "assistant": "Asistan",
+      "review": "İnceleme",
       "previewStub": "A3 önizlemesi, dışa aktarıcı Faz 4'te gelince burada görünecek.",
       "screenMode": "Ekran",
       "printMode": "Baskı",
@@ -167,6 +168,22 @@
       "save": "Kaydet",
       "cancel": "Vazgeç",
       "close": "Kapat"
+    },
+    "layoutReview": {
+      "intro": "Asistandan A3'ün yerleşimini incelemesini isteyin — hangi girişlerin argümanı taşıdığını, hangilerinin eke ait olduğunu ve hangi metnin basılı bütçesine göre çok uzun olduğunu.",
+      "analyze": "Yerleşimi incele",
+      "analyzing": "A3 yerleşimi inceleniyor…",
+      "missingPromptFile": "Yerleşim incelemesi istemi henüz yapılandırılmamış.",
+      "failed": "AI'nin yanıtı geçerli bir yerleşim incelemesine dönüştürülemedi. Hiçbir şey değiştirilmedi — ham yanıtı:",
+      "retry": "Tekrar dene",
+      "visibilityChangesTitle": "Yerleşim değişiklikleri",
+      "textCondensationsTitle": "Metin kısaltmaları",
+      "noneProposed": "Burada bir öneri yok.",
+      "visibilityChangeLine": "\"{{title}}\" öğesini {{visibility}} konumuna taşı",
+      "applySelected": "Seçilenleri uygula",
+      "rejectAll": "Tümünü reddet",
+      "appliedSummary": "{{visibilityCount}} yerleşim değişikliği ve {{condensationCount}} metin kısaltması uygulandı.",
+      "analyzeAgain": "Tekrar incele"
     },
     "entryProposal": {
       "trigger": "AI ile öner",

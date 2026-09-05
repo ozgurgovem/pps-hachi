@@ -6,8 +6,14 @@ import { parsePromptFile, type PromptFile } from "./frontMatter";
  * `coachContent.ts` already established for `src/content/coaching/` (Faz 3).
  * `eager: true` bundles every prompt file at build time; there are only a
  * handful today and no runtime fetch to fail.
+ *
+ * Faz 10/K1/§2.1: scoped to single-digit step directories (`1`..`8`) rather
+ * than every directory (`./*\/*.md`) — `src/ai/prompts/whole-project/` holds
+ * a parallel, differently-shaped front-matter (`purpose` instead of
+ * `step`/`methodId`, see `wholeProjectLibrary.ts`) that `parsePromptFile`
+ * cannot read, and this glob must never pick those files up.
  */
-const modules = import.meta.glob<string>("./*/*.md", {
+const modules = import.meta.glob<string>("./[0-9]/*.md", {
   eager: true,
   query: "?raw",
   import: "default",

@@ -190,7 +190,8 @@ language is the real threat to this bar, and it is Oturum B's job.
 
 ## Current state
 
-Phase: 10 of 12 — kapsam belirlendi (D-213, 2026-09-05), henüz inşa edilmedi. Phase 9 (all
+Phase: 10 of 12 — kapsam belirlendi (D-213, 2026-09-05); K1 dilimi BİTTİ (D-214, 2026-09-05),
+  K2/K3/K4 henüz inşa edilmedi. Phase 9 (all
   three slices J1/J2/J3, J3 itself in seven sub-slices J3-1..J3-7) FULLY COMPLETE 2026-09-05
   (D-204 through D-212). Phase 8 (all three dilims — D-200 2026-08-30, D-201 2026-08-31,
   D-202 2026-08-31) fully complete. Phase 7 (D-195's three slices G1/G2/G3) FULLY DONE
@@ -1090,6 +1091,103 @@ Phase: 10 of 12 — kapsam belirlendi (D-213, 2026-09-05), henüz inşa edilmedi
   session: this section, `DECISIONS.md` D-213 (+P-53/P-54), `docs/oturumlar/README.md`'s new
   Faz 10 section, and K1's own launch prompt (`docs/oturumlar/K1-yerlesim-kisaltma.md`). No
   code — `npm test`/`cargo test` were not run this session, no source file was touched.
+**Faz 10 — K1 (A3 placement optimizer + cell-budget condensation + `RightPanel`'s new "Review"
+  tab): DONE 2026-09-05 (D-214).** `K1-yerlesim-kisaltma.md`'s own §0 pre-scan re-verified
+  against real code — 15 of 16 named files matched exactly; the one miss
+  (`src/ai/entryProposal.ts`) was the launch prompt's own typo, the same class of thing
+  D-207/J3-2 already found once (the real file lives at
+  `src/app/routes/workspace/entryProposal.ts`) — noted and continued rather than treated as a
+  missing mechanism.
+  **§2.1 (prompt-library addressing extension) done first, as its own small mechanism**:
+  `frontMatter.ts` split into a shared `parseFrontMatterBlock` (the `---`-delimited block +
+  `key: value` lines + body) plus two thin wrappers — `parsePromptFile` (step/methodId
+  required, unchanged behavior) and a new `parseWholeProjectPromptFile` (no step/methodId,
+  `purpose` required instead). New `src/ai/prompts/wholeProjectLibrary.ts` +
+  `getWholeProjectPromptFile(purpose, version)`, its own `import.meta.glob("./whole-project/*.md")`.
+  **A real collision found and closed**: `library.ts`'s old `./*/*.md` glob would also match
+  the new `whole-project/` directory and hand every file there to `parsePromptFile` (which
+  requires `step`/`methodId`), breaking every prompt file in the library — tightened to
+  `./[0-9]/*.md` (step directories are single digits `1`..`8`), `library.test.ts`'s existing
+  two tests stayed green unchanged. New `src/ai/prompts/whole-project/layout-review.v1.md`
+  covers SPEC §8.10 points 1-3 in one prompt; no separate `chartPreferences` field exists
+  (§2.3's own YAGNI call — preferring one chart over its siblings in a step *is*
+  `visibilityChanges`, expressed with the mechanism that already exists).
+  **New core module `src/app/routes/workspace/layoutReview.ts`** (beside J1's
+  `entryProposal.ts`, same directory — UI layer, not domain): `LayoutReviewDiffSchema` (Zod) —
+  `visibilityChanges[]` + `textCondensations[]`. `buildLayoutReviewContext` (§2.2) consumes
+  `buildA3Layout`'s own `descriptor.overflowWarnings` as-is (never recomputes budget/overflow,
+  the same "read S1-S8, don't recompute" discipline D-196 already established one layer over)
+  and reuses each method's own `renderToA3` (`getA3RendererMap()`) to summarize an entry's
+  content — no separate summarization mechanism was invented. §8.14's LOCKED "never silently
+  truncate, reduce in a defined priority order, tell the user" is implemented as two real
+  tiers: past a 20,000-character context cap, `hidden`-visibility entries' content summaries
+  are dropped to just title/visibility first (cheapest to lose — they drive neither the
+  primary/appendix judgment nor condensation), then a hard truncation as a last resort — both
+  tiers push a note into `droppedNotes`, tested directly with a 100-hidden-entry fixture
+  project.
+  **§2.4's protected-token check** (`extractProtectedTokens`/`findMissingProtectedTokens`):
+  regex-based — numbers (both `,`/`.` decimal separators), numeric dates, TR+EN named dates
+  ("5 Ocak 2026"/"January 5, 2026"), part-number-like alphanumeric tokens, and
+  two-or-more-capitalized-word sequences (a name candidate, Turkish-character-aware).
+  Deliberately over-matches rather than under-matches — a false positive only costs an extra
+  retry or a dropped line, never a wrong write; a real over-match was found and documented
+  while writing the tests ("Confirmed by Ahmet Yilmaz" correctly isolates "Ahmet Yilmaz" only
+  because "by" is lowercase and breaks the run — a sentence-initial capitalized word directly
+  adjacent to a name would merge into one token, an accepted over-protection).
+  **§2.4's combined single retry** (`proposeLayoutReviewDiff`): a schema failure and a lost
+  protected token are treated as the same "attempt failed" class, sharing ONE retry (not two
+  independent ones stacked, which would silently become up to 4 calls for what SPEC calls
+  "retry once"). A line that still loses a token on the second attempt is dropped from the
+  diff alone (never the whole diff), with a note. Built on top of `entryProposal.ts`'s
+  `attemptStructuredProposal`/`Attempt`, now `export`ed rather than re-implemented (G2) —
+  `proposeStructuredEntry` itself is untouched, its own tests still pass unchanged.
+  **A real architectural finding in §2.3's own "field" design**: since the context sent to the
+  model is *rendered text*, not raw payload field names, the model cannot reliably name a
+  structural field it never saw. Resolved by `collectCondensableFields` reading
+  `Entry.payload` generically (string-valued keys ≥ 80 chars, plus always `title`) — the same
+  "duck-type the opaque payload" posture `RowTableEditor.tsx`'s `row[column.key] ?? ""` already
+  established one layer over (C1/D-180) — and sending those real field names to the model, so
+  it only ever echoes back a name it was actually shown; the apply step re-validates the field
+  still exists and is still a string against *live* project state before writing. Targeting a
+  field by *meaning* (always the right "root cause" field, say) would need a new per-plugin
+  `condensableFields` declaration (D-125's pattern) — out of this dilim's budget, filed as
+  **P-55**.
+  **§2.5's Review tab** (`RightPanel.tsx`'s 4th tab, gated on `aiEnabled` exactly like the
+  other three): granular — every diff line gets its own checkbox (checked by default) plus one
+  "Apply selected" button; no `AskUserQuestion` round was needed, SPEC's own "previewed side by
+  side" wording already pointed at a list. **§2.5's undo-batching question, decided
+  directly**: each accepted line dispatches its own command (its own undo step) — no
+  multi-command-into-one-undo-entry mechanism exists in `src/domain/commands/` today, and
+  building one would have competed for budget with three other real new pieces this dilim
+  already needed (schema, context builder, retry orchestration); granular undo is if anything
+  safer for the user besides. **§2.6's Provenance split**: a `visibilityChanges` line never
+  touches `Provenance` (D-100's own framing — a routing decision, not a content-authorship
+  claim, reversible either way); a `textCondensations` line sets the entry's `provenance` to
+  `{origin: "ai-accepted", model, generatedAt, acceptedBy, acceptedAt, editDistance}` (D-201/
+  J1's same pattern, `normalizedEditDistance` over the plain condensed text this time, not a
+  JSON-stringified payload). Apply reads a *fresh* lookup (not the one built at Analyze time),
+  so a change to the project during review never writes against stale state.
+  `npm test` 1311/1311 (282 files, up from 1274/1274 at 279 — 3 new files:
+  `wholeProjectLibrary.test.ts`, `layoutReview.test.ts` [24 tests], `LayoutReviewPanel.test.tsx`
+  [8 tests, against the real store/`dispatch`/`applyCommand` — not mocked, so visibility/
+  condensation/provenance/undo are all verified against real state changes]), exit code 0
+  (checked via a separate logfile + `echo $?`, not piped through `tail`, D-143's own lesson).
+  `npm run lint` clean (the one pre-existing `ThemeProvider` warning). `npm run build` — first
+  pass failed with two real `possibly null`/`not assignable to null` TS errors
+  (`LayoutReviewPanel.tsx`'s `handleAnalyze`/`handleApply` are nested functions closing over
+  the outer `!project` guard, which TypeScript's narrowing doesn't carry into a function
+  declaration — `AssistantPanel.tsx`'s `handleAccept` already established the fix, re-checking
+  `!project` inside each handler, applied the same way here), second pass green (same
+  pre-existing chunk-size warning). `cargo test` 170 lib + 2 fixture + 8 xlsx = 180 (actually
+  re-run, unchanged from J3-7), `cargo clippy --all-targets -- -D warnings` and `cargo fmt --
+  check` both clean — Rust genuinely untouched (this dilim is TS-only end to end, confirmed via
+  `git status src-tauri/`). `scripts/gen-a3-fixture.ts` not re-run — this dilim touches neither
+  `src/a3/` nor `src-tauri/` (grep+`git status`-confirmed), only a new UI layer that *reads* an
+  already-built `A3LayoutDescriptor`. Deliberately not built this dilim: K2/K3/K4 (their own
+  slices), the `condensableFields` generalization (P-55), a multi-command undo-batching
+  mechanism, and a real Vorion round-trip (no display/Tauri runtime in this environment — same
+  class of honestly-unverified gap as D-105/D-113/D-136/D-200/D-201/D-204/D-213, Barış's own
+  `npm run tauri dev` turn still owed). K2's own launch prompt is not yet written.
 Stack decision (Tauri vs Electron fallback): Tauri v2, revisit only if Phase 4 stalls
 App name: **PPS Hachi** (八 — eight). Repo `pps-hachi`. Set 2026-08-01, see DECISIONS.md D-29.
 AI layer: Faz 8 fully done (keychain + Vorion connection/model-discovery + streaming
@@ -1103,7 +1201,10 @@ AI layer: Faz 8 fully done (keychain + Vorion connection/model-discovery + strea
   placement optimizer + condensation, a diff-preview "Review" tab), K2 (mock-auditor review +
   narrative-break detection, merged, additive to `evaluateReadiness`), K3 (TR↔EN translation,
   field-level + whole-report), K4 (cost meter + `ai-log.jsonl` + spend cap, sequenced last).
-  No code yet — K1's own launch prompt is `docs/oturumlar/K1-yerlesim-kisaltma.md`.
+  **K1 is now done (D-214, 2026-09-05)** — the A3 placement optimizer + cell-budget
+  condensation + `RightPanel`'s new "Review" tab, all built against a real `complete_structured`
+  call (the live Vorion round-trip itself stays the usual honestly-unverified gap in this
+  display-less environment). K2's own launch prompt is not yet written.
 Templates: two company .xls files analysed; see reference/TEMPLATE_ANALYSIS.md
 Template geometry: VERIFIED 2026-08-01 against both .xls files. Five errors found and
   corrected in place — the largest was the column widths: the real split is 49.7/50.3, NOT

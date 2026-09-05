@@ -27,6 +27,28 @@ export interface PromptFile {
   readonly body: string;
 }
 
+/**
+ * Faz 10/K1/§2.1: the whole-project counterpart of `PromptFrontMatter` — a
+ * prompt like the A3 layout reviewer looks at the entire `ProjectModel`, not
+ * one method's payload, so it has no `step`/`methodId` to key off. `purpose`
+ * replaces that pair (e.g. `"layout-review"`); everything else is the same
+ * shape, deliberately — K2/K3's own whole-project prompts (mock-auditor
+ * review, TR↔EN translation) are expected to reuse this same front-matter
+ * contract rather than inventing a third variant.
+ */
+export interface WholeProjectPromptFrontMatter {
+  readonly mode: string;
+  readonly purpose: string;
+  readonly version: string;
+  readonly outputSchema: string;
+  readonly contextSlices: readonly string[];
+}
+
+export interface WholeProjectPromptFile {
+  readonly frontMatter: WholeProjectPromptFrontMatter;
+  readonly body: string;
+}
+
 function parseValue(raw: string): string | readonly string[] {
   const trimmed = raw.trim();
   if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
@@ -39,13 +61,21 @@ function parseValue(raw: string): string | readonly string[] {
   return trimmed;
 }
 
+type FrontMatterFields = ReadonlyMap<string, string | readonly string[]>;
+
+interface ParsedFrontMatterBlock {
+  readonly fields: FrontMatterFields;
+  readonly body: string;
+}
+
 /**
- * Throws on malformed front-matter (missing `---` delimiters, a missing
- * required field) — every prompt file is a build-time asset checked into
- * the repo, not user input, so a loud failure beats a silently wrong prompt
- * reaching a real Vorion request.
+ * The shared half of both parsers below: split off the `--- ... ---` block,
+ * parse its `key: value` lines, and trim the body. Throws on malformed
+ * front-matter (missing delimiters) — every prompt file is a build-time
+ * asset checked into the repo, not user input, so a loud failure beats a
+ * silently wrong prompt reaching a real Vorion request.
  */
-export function parsePromptFile(raw: string): PromptFile {
+function parseFrontMatterBlock(raw: string): ParsedFrontMatterBlock {
   const lines = raw.split("\n");
   if (lines[0]?.trim() !== "---") {
     throw new Error("Prompt file must start with a `---` front-matter delimiter");
@@ -68,36 +98,60 @@ export function parsePromptFile(raw: string): PromptFile {
     fields.set(key, parseValue(line.slice(separatorIndex + 1)));
   }
 
-  function requireString(key: string): string {
-    const value = fields.get(key);
-    if (typeof value !== "string" || value.length === 0) {
-      throw new Error(`Prompt file front-matter is missing required field "${key}"`);
-    }
-    return value;
-  }
-
-  const stepRaw = requireString("step");
-  const step = Number(stepRaw);
-  if (!Number.isInteger(step)) {
-    throw new Error(`Prompt file front-matter "step" must be an integer, got "${stepRaw}"`);
-  }
-
-  const contextSlicesRaw = fields.get("contextSlices");
-  const contextSlices = Array.isArray(contextSlicesRaw) ? contextSlicesRaw : [];
-
   const body = lines
     .slice(closingIndex + 1)
     .join("\n")
     .trim();
 
+  return { fields, body };
+}
+
+function requireString(fields: FrontMatterFields, key: string): string {
+  const value = fields.get(key);
+  if (typeof value !== "string" || value.length === 0) {
+    throw new Error(`Prompt file front-matter is missing required field "${key}"`);
+  }
+  return value;
+}
+
+function readContextSlices(fields: FrontMatterFields): readonly string[] {
+  const raw = fields.get("contextSlices");
+  return Array.isArray(raw) ? raw : [];
+}
+
+export function parsePromptFile(raw: string): PromptFile {
+  const { fields, body } = parseFrontMatterBlock(raw);
+
+  const stepRaw = requireString(fields, "step");
+  const step = Number(stepRaw);
+  if (!Number.isInteger(step)) {
+    throw new Error(`Prompt file front-matter "step" must be an integer, got "${stepRaw}"`);
+  }
+
   return {
     frontMatter: {
-      mode: requireString("mode"),
-      methodId: requireString("methodId"),
+      mode: requireString(fields, "mode"),
+      methodId: requireString(fields, "methodId"),
       step,
-      version: requireString("version"),
-      outputSchema: requireString("outputSchema"),
-      contextSlices,
+      version: requireString(fields, "version"),
+      outputSchema: requireString(fields, "outputSchema"),
+      contextSlices: readContextSlices(fields),
+    },
+    body,
+  };
+}
+
+/** Faz 10/K1/§2.1: same shape as `parsePromptFile`, minus `step`/`methodId`, plus `purpose`. */
+export function parseWholeProjectPromptFile(raw: string): WholeProjectPromptFile {
+  const { fields, body } = parseFrontMatterBlock(raw);
+
+  return {
+    frontMatter: {
+      mode: requireString(fields, "mode"),
+      purpose: requireString(fields, "purpose"),
+      version: requireString(fields, "version"),
+      outputSchema: requireString(fields, "outputSchema"),
+      contextSlices: readContextSlices(fields),
     },
     body,
   };

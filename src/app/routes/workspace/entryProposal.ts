@@ -69,11 +69,19 @@ export function formatZodErrors(error: z.ZodError): string {
     .join("\n");
 }
 
-type Attempt =
+export type Attempt =
   | { readonly success: true; readonly value: unknown }
   | { readonly success: false; readonly rawText: string; readonly errorSummary: string };
 
-async function attemptStructuredProposal(
+/**
+ * Exported so `layoutReview.ts` (Faz 10/K1) can build its own retry loop on
+ * top of this one attempt primitive — K1's diff proposal needs a *combined*
+ * single retry (schema failure OR a lost protected token both count as "the
+ * attempt failed"), which doesn't fit `proposeStructuredEntry`'s own
+ * schema-only retry-once below. Reusing this rather than duplicating it is
+ * the whole point (Anayasa Madde 2/G2).
+ */
+export async function attemptStructuredProposal(
   prompt: string,
   jsonSchema: object,
   modelId: string,

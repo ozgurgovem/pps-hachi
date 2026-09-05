@@ -8,6 +8,7 @@ import type { A3LayoutDescriptor } from "../../../a3/descriptor";
 import { openOrFocusA3PreviewWindow, listenForPreviewReady, pushDescriptorToPreviewWindow } from "../a3PreviewWindow/window";
 import { errorMessage } from "../launch/errorMessage";
 import { AssistantPanel } from "./AssistantPanel";
+import { LayoutReviewPanel } from "./LayoutReviewPanel";
 import { buildProjectA3Layout } from "./a3Preview";
 import { TraceabilityView } from "./TraceabilityView";
 import { xlsxExport } from "./xlsxIpc";
@@ -152,6 +153,7 @@ export function RightPanel() {
           <TabsTrigger value="preview">{t("workspace.rightPanel.preview")}</TabsTrigger>
           <TabsTrigger value="traceability">{t("workspace.rightPanel.traceability")}</TabsTrigger>
           {aiEnabled && <TabsTrigger value="assistant">{t("workspace.rightPanel.assistant")}</TabsTrigger>}
+          {aiEnabled && <TabsTrigger value="review">{t("workspace.rightPanel.review")}</TabsTrigger>}
         </TabsList>
         <TabsContent value="preview">
           <div className="flex flex-col gap-2">
@@ -209,6 +211,17 @@ export function RightPanel() {
         {aiEnabled && (
           <TabsContent value="assistant">
             <AssistantPanel />
+          </TabsContent>
+        )}
+        {aiEnabled && (
+          <TabsContent value="review">
+            {descriptorResult.status === "ok" && <LayoutReviewPanel descriptor={descriptorResult.descriptor} />}
+            {descriptorResult.status === "loading" && (
+              <p className="p-3 font-body text-sm text-ink-muted">{t("workspace.rightPanel.previewLoading")}</p>
+            )}
+            {descriptorResult.status === "error" && (
+              <p className="p-3 font-body text-sm text-ink-muted">{t("workspace.rightPanel.previewError")}</p>
+            )}
           </TabsContent>
         )}
       </TabsRoot>

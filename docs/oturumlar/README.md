@@ -167,7 +167,7 @@ Tam kayıt: D-213.
 | Dilim | Kapsam | Durum |
 |---|---|---|
 | Kapsam belirleme — beş alt-teslimatın veri durumu + `evaluateReadiness`/cost-data çakışma taraması + dilim planı | `docs/oturumlar/faz10-kapsam-belirleme.md` | ✅ BİTTİ 2026-09-05 — D-213, dört soru `AskUserQuestion` ile cevaplandı (hepsi önerilen seçenek). |
-| K1 — A3 yerleşim optimize edici + hücre bütçesine kısaltma (§8.10 madde 1-3): diff-preview proposal türü + RightPanel'in yeni "Review" sekmesi | `docs/oturumlar/K1-yerlesim-kisaltma.md` | Yazıldı, henüz başlanmadı. |
+| K1 — A3 yerleşim optimize edici + hücre bütçesine kısaltma (§8.10 madde 1-3): diff-preview proposal türü + RightPanel'in yeni "Review" sekmesi | `docs/oturumlar/K1-yerlesim-kisaltma.md` | ✅ BİTTİ 2026-09-05 — D-214. Prompt kütüphanesi `whole-project/` uzantısı (§2.1), `layoutReview.ts` (Zod diff şeması, korunan-token doğrulaması, `buildA3Layout`'un `overflowWarnings`'ini yeniden kullanan bağlam kurucu, tek-birleşik-retry orkestrasyonu), `LayoutReviewPanel.tsx` (RightPanel'in 4. sekmesi, granüler checkbox'lı diff). P-55 filed. |
 | K2 — Mock-auditor review (§8.6 Review modu) + anlatı kopukluğu tespiti (§8.10 madde 4) BİRLEŞİK — `evaluateReadiness`'in S1-S8'ini okuyup tamamlayan bir AI-bulgu paneli | *(K1'den sonra yazılacak)* | Henüz yazılmadı. |
 | K3 — TR↔EN çeviri (alan-bazlı + proje geneli) | *(K2'den sonra yazılacak)* | Henüz yazılmadı. |
 | K4 — Maliyet sayacı + `ai-log.jsonl` + Settings spend cap — K1-K3'ün ürettiği gerçek `complete_structured` trafiğinden SONRA anlamlı | *(K3'ten sonra yazılacak)* | Henüz yazılmadı. |
@@ -187,7 +187,10 @@ J3-1 BİTTİ (D-206, 2026-09-01, Adım 1'in 9 method'u). J3-2 BİTTİ (D-207, 20
 BİTTİ (D-211, 2026-09-05, Adım 7'nin 5 method'u). J3-7 BİTTİ (D-212, 2026-09-05, Adım 8'in 5
 method'u) — **J3'ün yedi dilimlik planının TAMAMI ve Faz 9'un kendi üç dilimlik planının
 (J1/J2/J3) TAMAMI kapandı.** Faz 10'un kendi kapsam-belirleme oturumu BİTTİ (D-213,
-2026-09-05, dört dilim: K1/K2/K3/K4). Sıradaki iş: **K1** (`K1-yerlesim-kisaltma.md`).
+2026-09-05, dört dilim: K1/K2/K3/K4). K1 BİTTİ (D-214, 2026-09-05, A3 yerleşim optimize
+edici + hücre bütçesine kısaltma + RightPanel'in "Review" sekmesi). Sıradaki iş: **K2**
+(mock-auditor review + anlatı kopukluğu tespiti, `evaluateReadiness`'e ek/tamamlayıcı) —
+kendi launch prompt'u henüz yazılmadı.
 
 ## Prompt yazarken
 
