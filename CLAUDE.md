@@ -190,9 +190,9 @@ language is the real threat to this bar, and it is Oturum B's job.
 
 ## Current state
 
-Phase: 10 of 12 — Phase 9 (all three slices J1/J2/J3, J3 itself in seven sub-slices
-  J3-1..J3-7) FULLY COMPLETE 2026-09-05 (D-204 through D-212). Phase 10's own scope-definition
-  session not yet written. Phase 8 (all three dilims — D-200 2026-08-30, D-201 2026-08-31,
+Phase: 10 of 12 — kapsam belirlendi (D-213, 2026-09-05), henüz inşa edilmedi. Phase 9 (all
+  three slices J1/J2/J3, J3 itself in seven sub-slices J3-1..J3-7) FULLY COMPLETE 2026-09-05
+  (D-204 through D-212). Phase 8 (all three dilims — D-200 2026-08-30, D-201 2026-08-31,
   D-202 2026-08-31) fully complete. Phase 7 (D-195's three slices G1/G2/G3) FULLY DONE
   2026-08-23. Phase 6 (all five slices 6a–6e, plus 6e's own 6e-1/6e-2 split) fully closed
   2026-08-19.
@@ -1030,6 +1030,66 @@ Phase: 10 of 12 — Phase 9 (all three slices J1/J2/J3, J3 itself in seven sub-s
   (matching Faz 8/9's own `faz8-kapsam-belirleme.md`/`faz9-kapsam-belirleme.md` precedent) and
   was NOT designed in this slice, only its name/location confirmed. Committed and pushed
   (`60757ab`).
+**Faz 10 kapsam belirleme (D-213, 2026-09-05): no code.** `faz10-kapsam-belirleme.md`'s own
+  §0 pre-scan re-verified against real code, matched exactly — all nine named files exist, all
+  six `provider.rs` functions (`list_models`/`test_connection`/`complete`/`cancel`/
+  `complete_structured`/`capabilities`) exist, none of placement-optimizer/condensation/
+  translation/mock-auditor/cost-meter exist anywhere in the codebase, all 51 prompt files are
+  `mode: draft`, P-47 genuinely CLOSED. Own scan beyond the prompt's own list found three
+  load-bearing facts the prompt itself only suspected: (1) **mock-auditor review (K2) and
+  `evaluateReadiness` (D-196) genuinely overlap** — §8.10 point 4's own first example ("a
+  countermeasure with no root cause above it") is exactly `evaluateS5`'s existing
+  `s5NoVerifiedRootCause` check; re-asking the AI for this would be a G2 (repetition)
+  violation. (2) **The cost meter's (K4) data-source question is already answered without a
+  new Vorion doc round** — `vorion.rs`'s `PredictionResponse` deliberately ignores Synchronous
+  Prediction's real token-count fields (D-200 already confirmed they exist), and its own
+  `list_llms_response_deserializes_from_the_real_documented_shape` test carries D-200's real,
+  screenshot-verified "List LLMs" response shape — which already includes per-model
+  `cost_per_input_token`/`cost_per_output_token`, also currently ignored by `LlmListItem`. The
+  data Barış already screenshotted in D-200 answers §8.2's "where does cost_per_mtok data come
+  from" question; the one real boundary is that Streaming Prediction (`AssistantPanel`'s free
+  chat, D-201) carries no token counts at all, so K4 can structurally only meter
+  `complete_structured`-based calls (**P-53**). (3) **The prompt library's `{step, methodId}`-
+  keyed lookup (`getPromptFile`) doesn't fit K1/K2/K3's whole-project-scoped prompts at all** —
+  every J1-J3 file is tied to one method; this needs its own small addressing extension,
+  deliberately left as an implementation detail for K1's own launch prompt rather than designed
+  here. Four real open questions went to Barış via one `AskUserQuestion` round, all four
+  recommended options confirmed: (1) K2 relates to `evaluateReadiness` **additively** — reads
+  S1-S8's existing findings as-is (never recomputes them) and adds only genuinely new AI-only
+  findings (e.g. "step 8 standardizes something step 6 never implemented," which no S-rule
+  checks); (2) K1's diff-preview UI lives as a **permanent 4th RightPanel tab ("Review")**,
+  beside Preview/Traceability/Assistant; (3) TR↔EN translation ships **both** a per-field
+  "Translate" action (in `EntryEditorDialog`, beside the existing "AI ile öner" button) and a
+  whole-report mode (Settings/project header) — the whole-report mode never silently rewrites
+  `project.meta.language`, it only drafts a new proposal set that goes through the same
+  Accept flow as everything else; (4) the proposed four-slice plan is the right boundary, with
+  one correction — §8.10 point 4 (narrative breaks) moved from K1 to K2, since it shares K2's
+  "look at everything, return a findings list" shape and interacts directly with
+  `evaluateReadiness`, unlike K1's diff-shaped output. **Four points decided directly (Anayasa
+  Madde 9 — already had the information)**: K1's condensation mechanism will be
+  `complete_structured` (schema-bound, reusing the entry's own Zod schema), not free-text
+  `complete()` — protected-token preservation (numbers/dates/part numbers/owners) needs
+  field-level validation only a schema gives; a pre-Accept check will verify every protected
+  token extracted from the original text still appears in the condensed text, retrying once on
+  failure (D-204's existing pattern). The "deliberately-bad project" acceptance scenario will
+  be a fixture `.ppsx` (D-62's fixture-corpus precedent), proven via a PROBE test against a
+  faked `LlmProvider` response — the real Vorion round-trip stays an honestly-unverified gap
+  owed to Barış's own `npm run tauri dev`, the same class as D-105/D-113/D-136/D-200/D-201/
+  D-204. `RedactionPolicySchema`'s `customers-and-parts`/`custom` modes are explicitly out of
+  this phase's scope (**P-54**) — nothing in Faz 10's own done-criterion needs them. **Confirmed
+  four-slice plan**: **K1** — A3 placement optimizer + cell-budget condensation (§8.10 points
+  1-3), one new mechanism: a diff-preview proposal type taking the whole
+  `A3LayoutDescriptor`/`ProjectModel` as input, plus the new "Review" tab. **K2** — mock-auditor
+  review (§8.6 Review mode) + narrative-break detection (§8.10 point 4) MERGED, one new
+  mechanism: an AI-findings-list panel that reads and supplements (never recomputes)
+  `evaluateReadiness`'s S1-S8. **K3** — TR↔EN translation (field-level + whole-report), one new
+  mechanism: a translation proposal type. **K4** — cost meter + `ai-log.jsonl` + Settings spend
+  cap, one new mechanism: actually reading the token/cost fields `PredictionResponse`/
+  `LlmListItem` already ignore, plus a persistent log + Settings UI; deliberately sequenced
+  after K1-K3 since a cost meter has nothing real to measure before they exist. Updated this
+  session: this section, `DECISIONS.md` D-213 (+P-53/P-54), `docs/oturumlar/README.md`'s new
+  Faz 10 section, and K1's own launch prompt (`docs/oturumlar/K1-yerlesim-kisaltma.md`). No
+  code — `npm test`/`cargo test` were not run this session, no source file was touched.
 Stack decision (Tauri vs Electron fallback): Tauri v2, revisit only if Phase 4 stalls
 App name: **PPS Hachi** (八 — eight). Repo `pps-hachi`. Set 2026-08-01, see DECISIONS.md D-29.
 AI layer: Faz 8 fully done (keychain + Vorion connection/model-discovery + streaming
@@ -1038,10 +1098,12 @@ AI layer: Faz 8 fully done (keychain + Vorion connection/model-discovery + strea
   (structured output + Pareto reference proposal via `EntryProposalField`), J2 (real xlsx/csv
   file ingestion + basic redaction), J3 (prompt library generalized from Pareto to the entire
   50-method registry across all 8 steps, in seven slices J3-1..J3-7, D-206 through D-212 — see
-  `docs/oturumlar/J3-prompt-kutuphanesi-genelleme.md` for the full inventory/plan). Faz 10
-  ("AI review & layout" — A3 placement optimizer, cell-budget condensation, mock-auditor
-  review, TR↔EN translation, cost meter, per `SPEC.md` §6) not started; its own scope-
-  definition session has not been written yet.
+  `docs/oturumlar/J3-prompt-kutuphanesi-genelleme.md` for the full inventory/plan). **Faz 10's
+  own scope-definition session is done (D-213, 2026-09-05)** — four slices confirmed: K1 (A3
+  placement optimizer + condensation, a diff-preview "Review" tab), K2 (mock-auditor review +
+  narrative-break detection, merged, additive to `evaluateReadiness`), K3 (TR↔EN translation,
+  field-level + whole-report), K4 (cost meter + `ai-log.jsonl` + spend cap, sequenced last).
+  No code yet — K1's own launch prompt is `docs/oturumlar/K1-yerlesim-kisaltma.md`.
 Templates: two company .xls files analysed; see reference/TEMPLATE_ANALYSIS.md
 Template geometry: VERIFIED 2026-08-01 against both .xls files. Five errors found and
   corrected in place — the largest was the column widths: the real split is 49.7/50.3, NOT

@@ -138,6 +138,40 @@ birlikte Faz 9'un kendi üç dilimlik planı da (J1/J2/J3) TAMAMEN kapandı.** S
 bütçesine sıkıştırma, mock-denetçi incelemesi, TR↔EN çeviri, maliyet sayacı); kendi kapsam
 belirleme oturumunu (Faz 8/9'un emsali gibi) hak ediyor, henüz yazılmadı.
 
+## Faz 10 — `SPEC.md` §6'nın kendi sıradaki fazı: AI review & layout
+
+`SPEC.md`'nin faz tablosu: "A3 placement optimizer, condensation to cell budget, mock-auditor
+review, TR↔EN translation, cost meter — Done when: Assistant rewrites an overflowing A3 into
+budget without losing meaning, and flags a weak root cause on a deliberately-bad project."
+Faz 8/9'un kendi emsali: ölçüm önce, sonra dilim. Faz 9'un aksine (J3'ün "50 method, sıfır
+yeni mimari karar" deseni) bu fazın beş alt-parçası GERÇEKTEN dört yeni mekanizma gerektiriyor
+— zaten var olan bir mekanizmanın küçük bir uzantısı değil.
+
+**Kapsam belirleme BİTTİ 2026-09-05 (D-213).** §0'ın kendi ön taraması gerçek koda karşı
+doğrulandı, birebir eşleşti. Kendi taramam üç yük taşıyan bulgu ekledi: (1) mock-auditor
+review'ın (K2) §8.10 madde 4'ü ile `evaluateReadiness`'in (D-196) S1-S8 kuralları arasında
+GERÇEK çakışma var — S5 zaten "kök nedensiz karşı önlem"i flagliyor, K2'nin bunu AI'ya bir
+daha sordurması G2'nin (tekrar) ihlali olurdu; (2) cost meter'ın (K4) veri kaynağı sorusu
+yeni bir Vorion doğrulama turu gerektirmeden zaten cevaplı — `vorion.rs` D-200'ün zaten
+doğruladığı token sayaçlarını (Synchronous Prediction) ve model-başına `cost_per_*` alanlarını
+(List LLMs) bilerek okumuyor, veri zaten dokümante edilmiş; (3) prompt kütüphanesinin
+`{step, methodId}`-anahtarlı adresleme şeması K1/K2/K3'ün tüm-projeye-bakan promptlarına hiç
+uymuyor, K1'in kendi işi olacak küçük bir uzantı. Dört gerçek açık soru `AskUserQuestion` ile
+Barış'a soruldu, dördü de önerilen seçenekle onaylandı: K2 evaluateReadiness'e **ek/tamamlayıcı**
+(yeniden hesaplamaz); K1'in diff-preview'ı RightPanel'e kalıcı **4. sekme ("Review")**; TR↔EN
+çeviri **ikisi de** (alan-bazlı + proje geneli, `project.meta.language`'ı sessizce
+değiştirmez); önerilen dört dilimlik plan doğru sınır, tek düzeltmeyle — §8.10 madde 4
+(anlatı kopuklukları) K1'den K2'ye taşındı (mock-auditor'la aynı "bulgu listesi" şekli).
+Tam kayıt: D-213.
+
+| Dilim | Kapsam | Durum |
+|---|---|---|
+| Kapsam belirleme — beş alt-teslimatın veri durumu + `evaluateReadiness`/cost-data çakışma taraması + dilim planı | `docs/oturumlar/faz10-kapsam-belirleme.md` | ✅ BİTTİ 2026-09-05 — D-213, dört soru `AskUserQuestion` ile cevaplandı (hepsi önerilen seçenek). |
+| K1 — A3 yerleşim optimize edici + hücre bütçesine kısaltma (§8.10 madde 1-3): diff-preview proposal türü + RightPanel'in yeni "Review" sekmesi | `docs/oturumlar/K1-yerlesim-kisaltma.md` | Yazıldı, henüz başlanmadı. |
+| K2 — Mock-auditor review (§8.6 Review modu) + anlatı kopukluğu tespiti (§8.10 madde 4) BİRLEŞİK — `evaluateReadiness`'in S1-S8'ini okuyup tamamlayan bir AI-bulgu paneli | *(K1'den sonra yazılacak)* | Henüz yazılmadı. |
+| K3 — TR↔EN çeviri (alan-bazlı + proje geneli) | *(K2'den sonra yazılacak)* | Henüz yazılmadı. |
+| K4 — Maliyet sayacı + `ai-log.jsonl` + Settings spend cap — K1-K3'ün ürettiği gerçek `complete_structured` trafiğinden SONRA anlamlı | *(K3'ten sonra yazılacak)* | Henüz yazılmadı. |
+
 ## Kullanım
 
 Yeni oturumu şu iki satırla başlat (dosya adını sıradaki oturuma göre değiştir):
@@ -152,8 +186,8 @@ J3-1 BİTTİ (D-206, 2026-09-01, Adım 1'in 9 method'u). J3-2 BİTTİ (D-207, 20
 2026-09-02, Adım 5'in 7 method'u). J3-5 BİTTİ (D-210, 2026-09-05, Adım 6'nın 5 method'u). J3-6
 BİTTİ (D-211, 2026-09-05, Adım 7'nin 5 method'u). J3-7 BİTTİ (D-212, 2026-09-05, Adım 8'in 5
 method'u) — **J3'ün yedi dilimlik planının TAMAMI ve Faz 9'un kendi üç dilimlik planının
-(J1/J2/J3) TAMAMI kapandı.** Sıradaki iş: Faz 10'un kendi kapsam-belirleme oturumu (henüz
-yazılmadı).
+(J1/J2/J3) TAMAMI kapandı.** Faz 10'un kendi kapsam-belirleme oturumu BİTTİ (D-213,
+2026-09-05, dört dilim: K1/K2/K3/K4). Sıradaki iş: **K1** (`K1-yerlesim-kisaltma.md`).
 
 ## Prompt yazarken
 
