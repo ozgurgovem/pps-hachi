@@ -184,6 +184,231 @@ fn turkish_text_project(id: &str) -> Value {
     project
 }
 
+/**
+ * Faz 10/K2/D-213: the "deliberately-bad project" half of Faz 10's own
+ * acceptance scenario ("flags a weak root cause on a deliberately-bad
+ * project"). Every mechanical S1-S8 gate reads this project as clean —
+ * that is the point: the three narrative breaks below are exactly the class
+ * `evaluateReadiness` cannot see, which is what `MockAuditPanel`'s AI review
+ * exists to catch instead.
+ *
+ * - Step 4's one hypothesis is marked `verdict: "confirmed"` (satisfies S4's
+ *   mechanical "some root cause is verified" check) but the confirmed cause
+ *   itself blames an individual ("operatör dikkatsizliği") rather than a
+ *   systemic factor — SPEC.md §1.2 S4's own second sentence, P-46.
+ * - Step 6 is left completely empty (an empty step never flags S6 — D-196's
+ *   own "empty = neutral" rule) — nothing was ever actually implemented.
+ * - Step 8's one document-update row is marked `status: "complete"` (satisfies
+ *   S8's mechanical "some document is marked updated" check) even though
+ *   nothing in Step 6 supports it having actually happened.
+ * - Step 3's SMART target and Step 7 (left empty, same "empty = neutral"
+ *   reasoning as Step 6) never connect — nothing in the project reports
+ *   against the stated target's own metric.
+ */
+fn deliberately_bad_project(id: &str) -> Value {
+    let now = "2026-08-02T00:00:00.000Z";
+
+    json!({
+        "id": id,
+        "schemaVersion": 1,
+        "meta": {
+            "title": "Şişli Hattı — Fire Oranı Analizi (kötü örnek)",
+            "projectCode": "PPS-2026-099",
+            "revision": "A",
+            "owner": { "name": "B. Gövem" },
+            "team": [],
+            "status": "active",
+            "openedAt": now,
+            "language": "tr",
+            "ai": { "enabled": true, "providerId": "vorion", "modelId": "vorion/gpt-4o", "redaction": {} }
+        },
+        "templateId": "farplas-7step-tr",
+        "steps": {
+            "1": { "entries": [{
+                "id": "bad-step1-gap",
+                "methodId": "gap-statement",
+                "title": "Fire oranı hedefin üzerinde",
+                "order": 0,
+                "a3Visibility": "primary",
+                "payload": {
+                    "ideal": "Fire oranı %1,0",
+                    "actual": "Fire oranı %4,2",
+                    "gap": "%3,2 fark",
+                    "gapValue": 3.2,
+                    "unit": "%",
+                    "baselinePeriod": "2026 Ç2"
+                },
+                "images": [],
+                "createdAt": now,
+                "updatedAt": now,
+                "provenance": { "origin": "human" }
+            }] },
+            "2": { "entries": [
+                {
+                    "id": "bad-step2-pareto",
+                    "methodId": "pareto",
+                    "title": "Fire nedenleri dağılımı",
+                    "order": 0,
+                    "a3Visibility": "primary",
+                    "payload": { "unit": "count", "categories": [{ "id": "flash", "label": "Çapak", "count": 30 }] },
+                    "images": [],
+                    "createdAt": now,
+                    "updatedAt": now,
+                    "provenance": { "origin": "human" }
+                },
+                {
+                    "id": "bad-step2-poc",
+                    "methodId": "point-of-cause",
+                    "title": "Sebep noktası — kalıp boşluğu 3",
+                    "order": 1,
+                    "a3Visibility": "primary",
+                    "payload": {
+                        "processStep": "Enjeksiyon",
+                        "location": "Kalıp boşluğu 3",
+                        "occursWhen": "Her vardiya başında",
+                        "evidence": "Fire kaydı",
+                        "observedAt": now,
+                        "observedBy": "A. Yılmaz"
+                    },
+                    "images": [],
+                    "createdAt": now,
+                    "updatedAt": now,
+                    "provenance": { "origin": "human" }
+                }
+            ] },
+            "3": { "entries": [{
+                "id": "bad-step3-target",
+                "methodId": "smart-target",
+                "title": "Fire oranını düşür",
+                "order": 0,
+                "a3Visibility": "primary",
+                "payload": {
+                    "metric": "Fire oranı",
+                    "baseline": 4.2,
+                    "target": 1.0,
+                    "unit": "%",
+                    "dueDate": "2026-10-01",
+                    "owner": "B. Gövem",
+                    "prioritizedItems": [],
+                    "stakeholderNote": ""
+                },
+                "images": [],
+                "createdAt": now,
+                "updatedAt": now,
+                "provenance": { "origin": "human" }
+            }] },
+            "4": { "entries": [{
+                "id": "bad-step4-hypothesis",
+                "methodId": "hypothesis-verification",
+                "title": "Kök neden doğrulama",
+                "order": 0,
+                "a3Visibility": "primary",
+                "payload": { "rows": [{
+                    "id": "row-1",
+                    "candidateCause": "Operatör dikkatsizliği",
+                    "verificationMethod": "Gözlem",
+                    "evidence": "Vardiya raporu",
+                    "verdict": "confirmed",
+                    "confidencePercent": "80",
+                    "residualUncertainty": "",
+                    "customerRelevance": ""
+                }] },
+                "images": [],
+                "createdAt": now,
+                "updatedAt": now,
+                "provenance": { "origin": "human" },
+                "references": [{ "role": "pointOfCause", "targetEntryId": "bad-step2-poc" }]
+            }] },
+            "5": { "entries": [{
+                "id": "bad-step5-countermeasure",
+                "methodId": "countermeasure",
+                "title": "Operatör eğitimi tazelensin",
+                "order": 0,
+                "a3Visibility": "primary",
+                "payload": {
+                    "description": "Operatörlere tekrar eğitim verilecek",
+                    "expectedEffect": "Dikkatsizlik azalır",
+                    "owner": "A. Yılmaz",
+                    "targetDate": "2026-09-15",
+                    "status": "approved",
+                    "impactScore": "",
+                    "costScore": "",
+                    "durationScore": "",
+                    "priorityDecision": "pending"
+                },
+                "images": [],
+                "createdAt": now,
+                "updatedAt": now,
+                "provenance": { "origin": "human" },
+                "references": [{ "role": "rootCause", "targetEntryId": "bad-step4-hypothesis" }]
+            }] },
+            "6": { "entries": [] },
+            "7": { "entries": [] },
+            "8": { "entries": [
+                {
+                    "id": "bad-step8-documents",
+                    "methodId": "document-updates-tracker",
+                    "title": "Doküman güncellemeleri",
+                    "order": 0,
+                    "a3Visibility": "primary",
+                    "payload": {
+                        "pfmea": { "updateRequired": "", "docId": "", "revision": "", "owner": "", "dueDate": "", "status": "notStarted", "approval": "draft", "evidence": "", "customerSubmission": "no" },
+                        "controlPlan": {
+                            "updateRequired": "yes",
+                            "docId": "CP-32-4471",
+                            "revision": "C",
+                            "owner": "A. Yılmaz",
+                            "dueDate": "2026-09-20",
+                            "status": "complete",
+                            "approval": "approved",
+                            "evidence": "Güncellenmiş kontrol planı",
+                            "customerSubmission": "no"
+                        },
+                        "workInstruction": { "updateRequired": "", "docId": "", "revision": "", "owner": "", "dueDate": "", "status": "notStarted", "approval": "draft", "evidence": "", "customerSubmission": "no" },
+                        "inspectionStandard": { "updateRequired": "", "docId": "", "revision": "", "owner": "", "dueDate": "", "status": "notStarted", "approval": "draft", "evidence": "", "customerSubmission": "no" },
+                        "trainingCompetence": { "updateRequired": "", "docId": "", "revision": "", "owner": "", "dueDate": "", "status": "notStarted", "approval": "draft", "evidence": "", "customerSubmission": "no" },
+                        "layeredProcessAudit": { "updateRequired": "", "docId": "", "revision": "", "owner": "", "dueDate": "", "status": "notStarted", "approval": "draft", "evidence": "", "customerSubmission": "no" },
+                        "apqpPpapRecord": { "updateRequired": "", "docId": "", "revision": "", "owner": "", "dueDate": "", "status": "notStarted", "approval": "draft", "evidence": "", "customerSubmission": "no" }
+                    },
+                    "images": [],
+                    "createdAt": now,
+                    "updatedAt": now,
+                    "provenance": { "origin": "human" }
+                },
+                {
+                    "id": "bad-step8-yokoten",
+                    "methodId": "yokoten-tracker",
+                    "title": "Yatay yayılım",
+                    "order": 1,
+                    "a3Visibility": "primary",
+                    "payload": { "rows": [{
+                        "id": "row-1",
+                        "siteLine": "L4",
+                        "applicability": "Aynı kalıp tipi kullanan diğer hatlar",
+                        "riskReviewed": "yes",
+                        "actionRequired": "Kontrol planı yayılacak",
+                        "owner": "A. Yılmaz",
+                        "dueDate": "2026-10-15",
+                        "status": "inProgress",
+                        "completionEvidence": "",
+                        "effectivenessChecked": "no",
+                        "checkDate": "",
+                        "result": "",
+                        "approval": "underReview",
+                        "notes": ""
+                    }] },
+                    "images": [],
+                    "createdAt": now,
+                    "updatedAt": now,
+                    "provenance": { "origin": "human" }
+                }
+            ] }
+        },
+        "signOff": {},
+        "rounds": []
+    })
+}
+
 fn unknown_method_project(id: &str) -> Value {
     let now = "2026-08-02T00:00:00.000Z";
     let mut project = minimal_project(id);
@@ -224,5 +449,10 @@ fn main() {
         "unknown-method.ppsx",
         "fixture-unknown-method",
         unknown_method_project("fixture-unknown-method"),
+    );
+    write_fixture(
+        "deliberately-bad.ppsx",
+        "fixture-deliberately-bad",
+        deliberately_bad_project("fixture-deliberately-bad"),
     );
 }

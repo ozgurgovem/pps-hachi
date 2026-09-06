@@ -138,6 +138,8 @@
       "traceability": "Traceability",
       "assistant": "Assistant",
       "review": "Review",
+      "audit": "Audit",
+      "translate": "Translate",
       "previewStub": "The A3 preview renders here once the exporter ships in Phase 4.",
       "screenMode": "Screen",
       "printMode": "Print",
@@ -185,6 +187,21 @@
       "appliedSummary": "Applied {{visibilityCount}} placement change(s) and {{condensationCount}} text condensation(s).",
       "analyzeAgain": "Analyze again"
     },
+    "mockAudit": {
+      "intro": "Ask the assistant to review the finished report in the voice of a customer quality auditor — narrative breaks the automatic step checks don't catch.",
+      "analyze": "Run audit",
+      "analyzing": "Reviewing the report…",
+      "missingPromptFile": "The mock-audit prompt is not configured yet.",
+      "failed": "The AI's response couldn't be turned into a valid findings list. Here is its raw response:",
+      "retry": "Try again",
+      "noFindings": "No findings — the AI found no narrative breaks in this report.",
+      "stepLabel": "Step {{step}}",
+      "severity": {
+        "minor": "Minor",
+        "major": "Major"
+      },
+      "analyzeAgain": "Run audit again"
+    },
     "entryProposal": {
       "trigger": "Propose with AI",
       "title": "Propose with AI",
@@ -209,6 +226,37 @@
         "confirm": "Add to prompt",
         "discard": "Discard"
       }
+    },
+    "entryTranslate": {
+      "title": "Translate",
+      "triggerFor": {
+        "tr": "Translate to Turkish",
+        "en": "Translate to English"
+      },
+      "translating": "Translating…",
+      "reviewHint": "Review and edit the translation below, then accept it.",
+      "draftTitleLabel": "Translated title",
+      "accept": "Accept",
+      "reject": "Reject",
+      "retry": "Try again",
+      "failed": "The AI's response couldn't be turned into a valid translation. Nothing was written — here is its raw response:",
+      "missingPromptFile": "The translation prompt is not configured yet."
+    },
+    "translateReport": {
+      "intro": "Translate this report's entries into the other language. Every accepted line is reviewed before anything is written — the project's own language setting never changes.",
+      "analyzeFor": {
+        "tr": "Translate whole report to Turkish",
+        "en": "Translate whole report to English"
+      },
+      "analyzing": "Translating the report…",
+      "missingPromptFile": "The whole-report translation prompt is not configured yet.",
+      "failed": "The AI's response couldn't be turned into a valid translation. Here is its raw response:",
+      "retry": "Try again",
+      "noneProposed": "Nothing to translate.",
+      "applySelected": "Apply selected",
+      "rejectAll": "Reject all",
+      "appliedSummary": "Applied {{count}} translated field(s).",
+      "analyzeAgain": "Translate again"
     },
     "references": {
       "searchLabel": "Find an entry",

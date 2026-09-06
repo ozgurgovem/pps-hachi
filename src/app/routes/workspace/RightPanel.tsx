@@ -9,6 +9,8 @@ import { openOrFocusA3PreviewWindow, listenForPreviewReady, pushDescriptorToPrev
 import { errorMessage } from "../launch/errorMessage";
 import { AssistantPanel } from "./AssistantPanel";
 import { LayoutReviewPanel } from "./LayoutReviewPanel";
+import { MockAuditPanel } from "./MockAuditPanel";
+import { TranslateReportPanel } from "./TranslateReportPanel";
 import { buildProjectA3Layout } from "./a3Preview";
 import { TraceabilityView } from "./TraceabilityView";
 import { xlsxExport } from "./xlsxIpc";
@@ -154,6 +156,8 @@ export function RightPanel() {
           <TabsTrigger value="traceability">{t("workspace.rightPanel.traceability")}</TabsTrigger>
           {aiEnabled && <TabsTrigger value="assistant">{t("workspace.rightPanel.assistant")}</TabsTrigger>}
           {aiEnabled && <TabsTrigger value="review">{t("workspace.rightPanel.review")}</TabsTrigger>}
+          {aiEnabled && <TabsTrigger value="audit">{t("workspace.rightPanel.audit")}</TabsTrigger>}
+          {aiEnabled && <TabsTrigger value="translate">{t("workspace.rightPanel.translate")}</TabsTrigger>}
         </TabsList>
         <TabsContent value="preview">
           <div className="flex flex-col gap-2">
@@ -222,6 +226,16 @@ export function RightPanel() {
             {descriptorResult.status === "error" && (
               <p className="p-3 font-body text-sm text-ink-muted">{t("workspace.rightPanel.previewError")}</p>
             )}
+          </TabsContent>
+        )}
+        {aiEnabled && (
+          <TabsContent value="audit">
+            <MockAuditPanel />
+          </TabsContent>
+        )}
+        {aiEnabled && (
+          <TabsContent value="translate">
+            <TranslateReportPanel />
           </TabsContent>
         )}
       </TabsRoot>

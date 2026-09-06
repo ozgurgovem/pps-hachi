@@ -10,6 +10,7 @@ import { EntryImagesField } from "./EntryImagesField";
 import { EntryProposalField } from "./EntryProposalField";
 import { EntryReferenceField } from "./EntryReferenceField";
 import { EntryRoundField } from "./EntryRoundField";
+import { EntryTranslateField } from "./EntryTranslateField";
 
 export type EntryEditorMode =
   | { kind: "create" }
@@ -177,6 +178,32 @@ export function EntryEditorDialog({ stepId, plugin, mode, open, onOpenChange }: 
     setCreateProvenance(provenance);
   }
 
+  /**
+   * Faz 10/K3/§2.1: same split as `handleAcceptProposal` one field over — a
+   * translation touches BOTH title and payload at once (unlike a reference/
+   * round/image change, and unlike a proposal's payload-only accept), so
+   * this is its own handler rather than composing `handleTitleChange` +
+   * `handlePayloadChange` (which would each dispatch/coalesce separately,
+   * splitting one translation accept into two undo steps).
+   */
+  function handleAcceptTranslation(nextTitle: string, nextPayload: unknown, provenance: Provenance) {
+    if (mode.kind === "edit" && step) {
+      sealTextEditCoalescing();
+      dispatch(
+        buildUpdateEntryCommand(step, stepId, mode.entryId, {
+          title: nextTitle,
+          payload: nextPayload,
+          now: new Date().toISOString(),
+          provenance,
+        }),
+      );
+      return;
+    }
+    setCreateTitle(nextTitle);
+    setCreatePayload(nextPayload);
+    setCreateProvenance(provenance);
+  }
+
   function handleSave() {
     if (mode.kind === "create" && step) {
       const command = buildAddEntryCommand(step, stepId, {
@@ -235,6 +262,22 @@ export function EntryEditorDialog({ stepId, plugin, mode, open, onOpenChange }: 
               acceptedBy={project.meta.owner.name}
               redaction={resolveRedactionPolicy(project.meta.ai.redaction)}
               onAccept={handleAcceptProposal}
+            />
+          )}
+
+          {/* Faz 10/K3/§2.1: unconditional — unlike `EntryProposalField`,
+              translating an entry needs no method-specific prompt file, so
+              this renders for every method whenever AI is configured. */}
+          {project && project.meta.ai.modelId && (
+            <EntryTranslateField
+              plugin={plugin}
+              title={title}
+              payload={payload}
+              sourceLanguage={project.meta.language}
+              modelId={project.meta.ai.modelId}
+              acceptedBy={project.meta.owner.name}
+              redaction={resolveRedactionPolicy(project.meta.ai.redaction)}
+              onAccept={handleAcceptTranslation}
             />
           )}
 

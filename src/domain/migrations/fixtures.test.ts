@@ -25,11 +25,12 @@ function loadFixtureProject(fileName: string): unknown {
 }
 
 describe("ppsx fixture corpus (D-62)", () => {
-  test("the fixture directory contains exactly the 4 D-62 kinds", () => {
+  test("the fixture directory contains exactly the 5 kinds (D-62's original 4 plus Faz 10/K2's deliberately-bad)", () => {
     const files = readdirSync(FIXTURES_DIR)
       .filter((name) => name.endsWith(".ppsx"))
       .sort();
     expect(files).toEqual([
+      "deliberately-bad.ppsx",
       "fully-populated.ppsx",
       "minimal.ppsx",
       "turkish-text.ppsx",
@@ -108,6 +109,40 @@ describe("ppsx fixture corpus (D-62)", () => {
     expect(project.meta.title).toBe("Kaynak Hatası — İğneli Şişli Çözümü");
     expect(project.meta.customer).toBe("Öztürk Otomotiv A.Ş.");
     expect(project.meta.owner.name).toBe("Gökçe Çağlıyan");
+  });
+
+  /**
+   * Faz 10/K2/D-213: the "deliberately-bad project" half of Faz 10's own
+   * acceptance scenario. Every S1-S8 mechanical gate reads this project as
+   * clean (S4 and S8 are satisfied on their own narrow terms) — the point
+   * is that it still carries three narrative breaks only a mock-auditor AI
+   * review would catch, none of which `evaluateReadiness` can see.
+   */
+  test("deliberately-bad.ppsx parses as a valid ProjectModel and passes every mechanical S1-S8 gate", () => {
+    const project = ProjectModelSchema.parse(loadFixtureProject("deliberately-bad.ppsx"));
+    for (const stepId of [1, 2, 3, 4, 5] as const) {
+      expect(project.steps[stepId].entries.length).toBeGreaterThan(0);
+    }
+    expect(project.steps[6].entries).toHaveLength(0);
+    expect(project.steps[7].entries).toHaveLength(0);
+  });
+
+  test("deliberately-bad.ppsx's one confirmed root cause blames a person, not a system (P-46)", () => {
+    const project = ProjectModelSchema.parse(loadFixtureProject("deliberately-bad.ppsx"));
+    const hypothesis = project.steps[4].entries[0];
+    expect(hypothesis?.methodId).toBe("hypothesis-verification");
+    const rows = (hypothesis?.payload as { rows: { verdict: string; candidateCause: string }[] }).rows;
+    expect(rows[0]?.verdict).toBe("confirmed");
+    expect(rows[0]?.candidateCause).toContain("Operatör");
+  });
+
+  test("deliberately-bad.ppsx's Step 8 marks a document complete even though Step 6 implemented nothing", () => {
+    const project = ProjectModelSchema.parse(loadFixtureProject("deliberately-bad.ppsx"));
+    expect(project.steps[6].entries).toHaveLength(0);
+    const documents = project.steps[8].entries[0];
+    expect(documents?.methodId).toBe("document-updates-tracker");
+    const payload = documents?.payload as { controlPlan: { status: string } };
+    expect(payload.controlPlan.status).toBe("complete");
   });
 
   // D-52: an entry whose methodId this build has never heard of must still

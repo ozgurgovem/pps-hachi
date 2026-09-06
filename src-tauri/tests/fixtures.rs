@@ -21,6 +21,7 @@ fn fixture_names() -> Vec<&'static str> {
         "fully-populated.ppsx",
         "turkish-text.ppsx",
         "unknown-method.ppsx",
+        "deliberately-bad.ppsx",
     ]
 }
 
@@ -44,8 +45,10 @@ fn every_checked_in_fixture_opens_through_the_real_reader() {
 #[test]
 fn fixture_corpus_has_not_shrunk() {
     // A minimal guard against someone quietly deleting a fixture instead of
-    // regenerating the corpus: the exact set of 4 kinds D-62 asks for
-    // (minimal, fully-populated, Turkish text, unknown methodId).
+    // regenerating the corpus: the exact set of 5 kinds (D-62's original 4 —
+    // minimal, fully-populated, Turkish text, unknown methodId — plus
+    // Faz 10/K2/D-213's "deliberately-bad" fixture for the mock-auditor
+    // acceptance scenario).
     let dir = fixtures_dir();
     let count = std::fs::read_dir(&dir)
         .unwrap_or_else(|e| panic!("fixtures/ppsx unreadable: {e}"))
@@ -55,6 +58,6 @@ fn fixture_corpus_has_not_shrunk() {
     assert_eq!(
         count,
         fixture_names().len(),
-        "expected exactly the 4 D-62 fixture kinds"
+        "expected exactly the 5 fixture kinds"
     );
 }

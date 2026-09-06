@@ -168,8 +168,8 @@ Tam kayıt: D-213.
 |---|---|---|
 | Kapsam belirleme — beş alt-teslimatın veri durumu + `evaluateReadiness`/cost-data çakışma taraması + dilim planı | `docs/oturumlar/faz10-kapsam-belirleme.md` | ✅ BİTTİ 2026-09-05 — D-213, dört soru `AskUserQuestion` ile cevaplandı (hepsi önerilen seçenek). |
 | K1 — A3 yerleşim optimize edici + hücre bütçesine kısaltma (§8.10 madde 1-3): diff-preview proposal türü + RightPanel'in yeni "Review" sekmesi | `docs/oturumlar/K1-yerlesim-kisaltma.md` | ✅ BİTTİ 2026-09-05 — D-214. Prompt kütüphanesi `whole-project/` uzantısı (§2.1), `layoutReview.ts` (Zod diff şeması, korunan-token doğrulaması, `buildA3Layout`'un `overflowWarnings`'ini yeniden kullanan bağlam kurucu, tek-birleşik-retry orkestrasyonu), `LayoutReviewPanel.tsx` (RightPanel'in 4. sekmesi, granüler checkbox'lı diff). P-55 filed. |
-| K2 — Mock-auditor review (§8.6 Review modu) + anlatı kopukluğu tespiti (§8.10 madde 4) BİRLEŞİK — `evaluateReadiness`'in S1-S8'ini okuyup tamamlayan bir AI-bulgu paneli | `docs/oturumlar/K2-mock-auditor-anlati-kopuklugu.md` | Yazıldı, henüz başlanmadı. İki açık soru kendi dosyasında: panelin yeri (yeni 5. sekme mi, K1'in "Review" sekmesinin içi mi) ve P-46'nın (5-Why bir kişide mi bitiyor) bu dilimde kapatılıp kapatılmayacağı. |
-| K3 — TR↔EN çeviri (alan-bazlı + proje geneli) | *(K2'den sonra yazılacak)* | Henüz yazılmadı. |
+| K2 — Mock-auditor review (§8.6 Review modu) + anlatı kopukluğu tespiti (§8.10 madde 4) BİRLEŞİK — `evaluateReadiness`'in S1-S8'ini okuyup tamamlayan bir AI-bulgu paneli | `docs/oturumlar/K2-mock-auditor-anlati-kopuklugu.md` | ✅ BİTTİ 2026-09-05 — D-215. Panel yeri **yeni 5. sekme ("Denetim")**, P-46 **CLOSED** (dördüncü kategori olarak eklendi), bulgu durumu **taze/kalıcısız** — üçü de Barış'ın önerilen seçenekle onayı. `entrySummary.ts` (K1'den paylaşılan per-entry özetleme), `mockAudit.ts` (kendi bağlam kurucusu + `proposeStructuredEntry`'nin doğrudan yeniden kullanımı, K1'in birleşik-retry'ına gerek yok), `mock-audit.v1.md`, `MockAuditPanel.tsx`. D-62'nin fixture corpus'u beşinci bir kind kazandı (`deliberately-bad.ppsx`) — Faz 10'un "flags a weak root cause" acceptance senaryosu gerçek bir fixture + sahte `LlmProvider` yanıtına karşı bir PROBE testiyle kanıtlandı. |
+| K3 — TR↔EN çeviri (alan-bazlı + proje geneli) | `docs/oturumlar/K3-tr-en-ceviri.md` | ✅ BİTTİ 2026-09-06 — D-216. İki `AskUserQuestion` turu: korunan-token doğrulaması K1'in birebir kontrolünü DEĞİŞTİRMEDEN yeniden kullanıyor, rapor-geneli mod tamamen `RightPanel`'in kendi kendine yeten yeni 6. sekmesinde ("Çeviri") yaşıyor — D-213'ün önerdiği "Settings tetikler" ayrımı DEĞİL. `EntryTranslateField.tsx` (koşulsuz, her method'da görünür — `EntryProposalField`'ın aksine `plugin.aiProposal`'a bağlı değil), `entryTranslation.ts` (alan-bazlı + rapor-geneli her ikisi için de K1'in primitiflerini yeniden kullanan birleşik-retry), `TranslateReportPanel.tsx`, iki yeni prompt dosyası (`translate-entry.v1.md`/`translate-report.v1.md`). `project.meta.language` hiçbir Accept ile değişmiyor (D-213 LOCKED, test edildi). P-56 (kısa alan/meta-başlık kapsamı dışı) ve P-57 (gerçek bir `meta.language.set` komutu yok) filed. |
 | K4 — Maliyet sayacı + `ai-log.jsonl` + Settings spend cap — K1-K3'ün ürettiği gerçek `complete_structured` trafiğinden SONRA anlamlı | *(K3'ten sonra yazılacak)* | Henüz yazılmadı. |
 
 ## Kullanım
@@ -188,9 +188,12 @@ BİTTİ (D-211, 2026-09-05, Adım 7'nin 5 method'u). J3-7 BİTTİ (D-212, 2026-0
 method'u) — **J3'ün yedi dilimlik planının TAMAMI ve Faz 9'un kendi üç dilimlik planının
 (J1/J2/J3) TAMAMI kapandı.** Faz 10'un kendi kapsam-belirleme oturumu BİTTİ (D-213,
 2026-09-05, dört dilim: K1/K2/K3/K4). K1 BİTTİ (D-214, 2026-09-05, A3 yerleşim optimize
-edici + hücre bütçesine kısaltma + RightPanel'in "Review" sekmesi). Sıradaki iş: **K2**
-(`K2-mock-auditor-anlati-kopuklugu.md`, mock-auditor review + anlatı kopukluğu tespiti,
-`evaluateReadiness`'e ek/tamamlayıcı).
+edici + hücre bütçesine kısaltma + RightPanel'in "Review" sekmesi). K2 BİTTİ (D-215,
+2026-09-05, mock-auditor review + anlatı kopukluğu tespiti, `evaluateReadiness`'e
+ek/tamamlayıcı, RightPanel'in "Denetim" sekmesi). K3 BİTTİ (D-216, 2026-09-06, TR↔EN
+çeviri — alan-bazlı `EntryTranslateField` + RightPanel'in kendi kendine yeten "Çeviri"
+sekmesi). Sıradaki iş: **K4** (maliyet sayacı + `ai-log.jsonl` + Settings spend cap —
+kendi launch prompt'u henüz yazılmadı, K1-K3'ün ürettiği gerçek trafiğe ihtiyaç duyuyor).
 
 ## Prompt yazarken
 

@@ -11,6 +11,7 @@ import {
 } from "../../../domain/model";
 import type { ResolvedRedactionPolicy } from "../../../ai/redaction";
 import { attemptStructuredProposal, buildProposalPrompt } from "./entryProposal";
+import { summarizeEntryForAi } from "./entrySummary";
 
 /**
  * Faz 10/K1/§8.10: the A3 placement optimizer's diff shape. Points 1-3 of
@@ -257,13 +258,7 @@ export function buildLayoutReviewContext(
       continue;
     }
     for (const entry of step.entries) {
-      const content = rendererMap[entry.methodId]?.(entry.payload, {
-        id: entry.id,
-        title: entry.title,
-        language: project.meta.language,
-      });
-      const hasChart = Boolean(content?.image) || Boolean(content?.zones?.some((zone) => zone.image));
-      const summaryText = content ? content.lines.map((line) => line.text).join(" / ") : entry.title;
+      const { summary: summaryText, hasChart } = summarizeEntryForAi(entry, project.meta.language, rendererMap);
       rows.push({ stepId, entry, summary: summaryText, hasChart });
 
       if (overflowingStepIds.has(stepId) && entry.a3Visibility === "primary") {

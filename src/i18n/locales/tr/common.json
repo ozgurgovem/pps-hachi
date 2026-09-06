@@ -138,6 +138,8 @@
       "traceability": "İzlenebilirlik",
       "assistant": "Asistan",
       "review": "İnceleme",
+      "audit": "Denetim",
+      "translate": "Çeviri",
       "previewStub": "A3 önizlemesi, dışa aktarıcı Faz 4'te gelince burada görünecek.",
       "screenMode": "Ekran",
       "printMode": "Baskı",
@@ -185,6 +187,21 @@
       "appliedSummary": "{{visibilityCount}} yerleşim değişikliği ve {{condensationCount}} metin kısaltması uygulandı.",
       "analyzeAgain": "Tekrar incele"
     },
+    "mockAudit": {
+      "intro": "Asistandan, bitmiş raporu bir müşteri kalite denetçisi gözüyle incelemesini isteyin — otomatik adım kontrollerinin yakalamadığı anlatı kopukluklarını.",
+      "analyze": "Denetimi çalıştır",
+      "analyzing": "Rapor inceleniyor…",
+      "missingPromptFile": "Mock-audit istemi henüz yapılandırılmamış.",
+      "failed": "AI'nin yanıtı geçerli bir bulgu listesine dönüştürülemedi. Ham yanıtı:",
+      "retry": "Tekrar dene",
+      "noFindings": "Bulgu yok — AI bu raporda bir anlatı kopukluğu bulamadı.",
+      "stepLabel": "Adım {{step}}",
+      "severity": {
+        "minor": "Küçük",
+        "major": "Önemli"
+      },
+      "analyzeAgain": "Denetimi tekrar çalıştır"
+    },
     "entryProposal": {
       "trigger": "AI ile öner",
       "title": "AI ile öner",
@@ -209,6 +226,37 @@
         "confirm": "İsteme ekle",
         "discard": "Vazgeç"
       }
+    },
+    "entryTranslate": {
+      "title": "Çevir",
+      "triggerFor": {
+        "tr": "Türkçeye çevir",
+        "en": "İngilizceye çevir"
+      },
+      "translating": "Çevriliyor…",
+      "reviewHint": "Aşağıdaki çeviriyi gözden geçirin, gerekirse düzenleyin, sonra kabul edin.",
+      "draftTitleLabel": "Çevrilmiş başlık",
+      "accept": "Kabul et",
+      "reject": "Reddet",
+      "retry": "Tekrar dene",
+      "failed": "AI'nin yanıtı geçerli bir çeviriye dönüştürülemedi. Hiçbir şey yazılmadı — ham yanıtı:",
+      "missingPromptFile": "Çeviri istemi henüz yapılandırılmamış."
+    },
+    "translateReport": {
+      "intro": "Bu raporun girişlerini diğer dile çevirin. Kabul edilen her satır yazılmadan önce gözden geçirilir — projenin kendi dil ayarı asla değişmez.",
+      "analyzeFor": {
+        "tr": "Tüm raporu Türkçeye çevir",
+        "en": "Tüm raporu İngilizceye çevir"
+      },
+      "analyzing": "Rapor çevriliyor…",
+      "missingPromptFile": "Rapor geneli çeviri istemi henüz yapılandırılmamış.",
+      "failed": "AI'nin yanıtı geçerli bir çeviriye dönüştürülemedi. Ham yanıtı:",
+      "retry": "Tekrar dene",
+      "noneProposed": "Çevrilecek bir şey yok.",
+      "applySelected": "Seçilenleri uygula",
+      "rejectAll": "Tümünü reddet",
+      "appliedSummary": "{{count}} çevrilmiş alan uygulandı.",
+      "analyzeAgain": "Tekrar çevir"
     },
     "references": {
       "searchLabel": "Kayıt bul",
