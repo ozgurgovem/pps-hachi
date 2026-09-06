@@ -1331,8 +1331,36 @@ Phase: 10 of 12 — kapsam belirlendi (D-213, 2026-09-05); K1 dilimi BİTTİ (D-
   meta-header coverage (P-56), the `customers-and-parts`/`custom` redaction modes (P-54,
   untouched), a real Vorion round-trip (no display/Tauri runtime in this environment — the usual
   D-105/D-113/D-136/D-200/D-201/D-204/D-213/D-214/D-215 class of gap, Barış's own
-  `npm run tauri dev` turn still owed). K4's own launch prompt is not yet written — it needs
-  real usage data from K1-K3 to be meaningful.
+  `npm run tauri dev` turn still owed). K4's own launch prompt is now written
+  (`docs/oturumlar/K4-maliyet-sayaci.md`) — it needed no new Vorion doc round (D-213 already
+  found the token/cost data source), and flags its own real open questions (plumbing, where
+  `ai-log.jsonl` actually lives, spend-cap enforcement point) for whichever session builds it.
+**Workspace Yüzey Yenilemesi (D-217, 2026-09-06): scope defined, nothing built yet — a UX
+  initiative entirely independent of Faz 10's AI layer, outside `SPEC.md`'s 0-12 phase table
+  (tracked the way D-149's own "Oturum A-D2" was — its own letter, no phase number).**
+  Barış's own request: a clean, modern landing view of eight step cards (short description/
+  purpose/how-to-enter guidance each), clicking one opens a dedicated page with method
+  selection + data entry + a large, live-updating preview of that step's own A3 block + AI
+  support in the same place. Three real architectural questions went to Barış via
+  `AskUserQuestion` before any code, all three his recommended choice: (1) navigation —
+  `StepStepper`'s persistent rail is REMOVED entirely, replaced by the landing cards plus a
+  quick-jump strip on the step page itself (the rail's function survives, not its literal
+  form); (2) inline AI — no new mechanism, `EntryProposalField`/`EntryTranslateField` (today
+  inside `EntryEditorDialog`'s modal) get RELOCATED onto an always-visible, inline editing
+  area on the step page; (3) the live preview — no new renderer, the real `HtmlA3Renderer`/
+  `A3LayoutDescriptor` stay unchanged, cropped via a CSS viewport onto the active step's own
+  block (`TemplateBlock.appSteps`/`headerRange`/`contentColumns`/`contentRows`, already static
+  per template) — what you see is guaranteed identical to the real export since it IS the
+  real renderer, just windowed (D-94's dumb-renderer contract untouched). `RightPanel`'s six
+  tabs (Preview/Traceability/Assistant/Review/Audit/Translate) are untouched — all six are
+  inherently whole-project, this initiative only touches the center `StepPage` column.
+  `docs/oturumlar/W-kapsam-belirleme.md` is the scope record; a three-slice plan (W1 landing
+  view + navigation, W2 the step page itself, W3 the live cropped preview) was proposed. W1's
+  own launch prompt is written (`docs/oturumlar/W1-adim-genel-bakis.md`) — it flags its own
+  real open points (state shape for "no step selected," where card copy text comes from, and
+  a mandatory Block Visual Verification Loop pass on the card design before any component
+  code, per this file's own established process). W2/W3's launch prompts are not yet written.
+  Sequencing relative to Faz 10/K4 is Barış's own call — the two are fully independent.
 Stack decision (Tauri vs Electron fallback): Tauri v2, revisit only if Phase 4 stalls
 App name: **PPS Hachi** (八 — eight). Repo `pps-hachi`. Set 2026-08-01, see DECISIONS.md D-29.
 AI layer: Faz 8 fully done (keychain + Vorion connection/model-discovery + streaming
@@ -1358,7 +1386,7 @@ AI layer: Faz 8 fully done (keychain + Vorion connection/model-discovery + strea
   `RightPanel`'s new sixth "Translate" tab; `project.meta.language` itself is never touched by
   an Accept (P-57 tracks the still-missing command to change it deliberately). Only K4 (cost
   meter + `ai-log.jsonl` + spend cap) remains of Faz 10's four-slice plan — its own launch
-  prompt is not yet written, since it needs real usage data from K1-K3 to be meaningful.
+  prompt is now written (`docs/oturumlar/K4-maliyet-sayaci.md`), not yet started.
 Templates: two company .xls files analysed; see reference/TEMPLATE_ANALYSIS.md
 Template geometry: VERIFIED 2026-08-01 against both .xls files. Five errors found and
   corrected in place — the largest was the column widths: the real split is 49.7/50.3, NOT

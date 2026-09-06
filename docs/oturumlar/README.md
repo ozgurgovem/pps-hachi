@@ -170,7 +170,27 @@ Tam kayıt: D-213.
 | K1 — A3 yerleşim optimize edici + hücre bütçesine kısaltma (§8.10 madde 1-3): diff-preview proposal türü + RightPanel'in yeni "Review" sekmesi | `docs/oturumlar/K1-yerlesim-kisaltma.md` | ✅ BİTTİ 2026-09-05 — D-214. Prompt kütüphanesi `whole-project/` uzantısı (§2.1), `layoutReview.ts` (Zod diff şeması, korunan-token doğrulaması, `buildA3Layout`'un `overflowWarnings`'ini yeniden kullanan bağlam kurucu, tek-birleşik-retry orkestrasyonu), `LayoutReviewPanel.tsx` (RightPanel'in 4. sekmesi, granüler checkbox'lı diff). P-55 filed. |
 | K2 — Mock-auditor review (§8.6 Review modu) + anlatı kopukluğu tespiti (§8.10 madde 4) BİRLEŞİK — `evaluateReadiness`'in S1-S8'ini okuyup tamamlayan bir AI-bulgu paneli | `docs/oturumlar/K2-mock-auditor-anlati-kopuklugu.md` | ✅ BİTTİ 2026-09-05 — D-215. Panel yeri **yeni 5. sekme ("Denetim")**, P-46 **CLOSED** (dördüncü kategori olarak eklendi), bulgu durumu **taze/kalıcısız** — üçü de Barış'ın önerilen seçenekle onayı. `entrySummary.ts` (K1'den paylaşılan per-entry özetleme), `mockAudit.ts` (kendi bağlam kurucusu + `proposeStructuredEntry`'nin doğrudan yeniden kullanımı, K1'in birleşik-retry'ına gerek yok), `mock-audit.v1.md`, `MockAuditPanel.tsx`. D-62'nin fixture corpus'u beşinci bir kind kazandı (`deliberately-bad.ppsx`) — Faz 10'un "flags a weak root cause" acceptance senaryosu gerçek bir fixture + sahte `LlmProvider` yanıtına karşı bir PROBE testiyle kanıtlandı. |
 | K3 — TR↔EN çeviri (alan-bazlı + proje geneli) | `docs/oturumlar/K3-tr-en-ceviri.md` | ✅ BİTTİ 2026-09-06 — D-216. İki `AskUserQuestion` turu: korunan-token doğrulaması K1'in birebir kontrolünü DEĞİŞTİRMEDEN yeniden kullanıyor, rapor-geneli mod tamamen `RightPanel`'in kendi kendine yeten yeni 6. sekmesinde ("Çeviri") yaşıyor — D-213'ün önerdiği "Settings tetikler" ayrımı DEĞİL. `EntryTranslateField.tsx` (koşulsuz, her method'da görünür — `EntryProposalField`'ın aksine `plugin.aiProposal`'a bağlı değil), `entryTranslation.ts` (alan-bazlı + rapor-geneli her ikisi için de K1'in primitiflerini yeniden kullanan birleşik-retry), `TranslateReportPanel.tsx`, iki yeni prompt dosyası (`translate-entry.v1.md`/`translate-report.v1.md`). `project.meta.language` hiçbir Accept ile değişmiyor (D-213 LOCKED, test edildi). P-56 (kısa alan/meta-başlık kapsamı dışı) ve P-57 (gerçek bir `meta.language.set` komutu yok) filed. |
-| K4 — Maliyet sayacı + `ai-log.jsonl` + Settings spend cap — K1-K3'ün ürettiği gerçek `complete_structured` trafiğinden SONRA anlamlı | *(K3'ten sonra yazılacak)* | Henüz yazılmadı. |
+| K4 — Maliyet sayacı + `ai-log.jsonl` + Settings spend cap — K1-K3'ün ürettiği gerçek `complete_structured` trafiğinden SONRA anlamlı | `docs/oturumlar/K4-maliyet-sayaci.md` | Yazıldı, henüz başlanmadı. Kendi açık soruları: plumbing (Rust'tan TS'e token/cost verisinin akışı, §2.1), `ai-log.jsonl`'ın gerçek yeri (`.ppsx` içi mi sidecar mı, §2.2), running total'ların proje-bazlı/global kapsamı (§2.3), spend cap enforcement noktası (§2.4). |
+
+## Workspace Yüzey Yenilemesi — `SPEC.md`'nin Faz tablosu DIŞINDA, D-149'un "Oturum" emsaliyle
+
+Faz 10'un AI-katmanı işinden bağımsız, Barış'ın kendi isteğiyle açılan bir UX girişimi: adım
+kartlı bir iniş görünümü, adıma-özel bir sayfada method seçimi + giriş + o adımın kendi A3
+bloğunun canlı-kırpılmış önizlemesi + aynı yerde AI desteği. **Kapsam belirleme BİTTİ
+2026-09-06 (D-217).** Üç mimari soru `AskUserQuestion` ile soruldu, üçü de önerilen seçenekle:
+(1) `StepStepper`'ın rail'i kaldırılıyor, yerine kartlı iniş görünümü + adım sayfasının kendi
+hızlı-atlama şeridi; (2) AI desteği yeni bir mekanizma değil — `EntryProposalField`/
+`EntryTranslateField` modal'dan sayfa-içine TAŞINIYOR; (3) canlı önizleme yeni bir renderer
+değil — gerçek `HtmlA3Renderer`/`A3LayoutDescriptor`'ın `TemplateBlock`'tan türetilen bir CSS
+viewport'una KIRPILMASI. `RightPanel`'in altı sekmesi DEĞİŞMİYOR (hepsi proje-geneli). Tam
+kayıt: D-217.
+
+| Dilim | Kapsam | Durum |
+|---|---|---|
+| Kapsam belirleme — üç mimari sorunun `AskUserQuestion` ile cevaplanması + üç dilimlik plan | `docs/oturumlar/W-kapsam-belirleme.md` | ✅ BİTTİ 2026-09-06 — D-217. |
+| W1 — İniş görünümü + navigasyon değişimi (rail kaldırılıyor, sekiz adım kartı, hızlı-atlama şeridi) | `docs/oturumlar/W1-adim-genel-bakis.md` | Yazıldı, henüz başlanmadı. Kendi Block Visual Verification Loop turu gerektiriyor — kart tasarımı kodlanmadan önce Barış'a mockup olarak gösterilmeli. |
+| W2 — Adım sayfasının kendisi: `EntryEditorDialog`'un modal'dan sayfa-içi bir düzenleme alanına dönüşümü | *(W1'den sonra yazılacak)* | Henüz yazılmadı. |
+| W3 — Canlı, adıma-kırpılmış A3 önizlemesi (`buildProjectA3Layout`'un yeniden kullanımı, performans ölçümü) | *(W1/W2'den sonra yazılacak)* | Henüz yazılmadı. |
 
 ## Kullanım
 
@@ -192,8 +212,11 @@ edici + hücre bütçesine kısaltma + RightPanel'in "Review" sekmesi). K2 BİTT
 2026-09-05, mock-auditor review + anlatı kopukluğu tespiti, `evaluateReadiness`'e
 ek/tamamlayıcı, RightPanel'in "Denetim" sekmesi). K3 BİTTİ (D-216, 2026-09-06, TR↔EN
 çeviri — alan-bazlı `EntryTranslateField` + RightPanel'in kendi kendine yeten "Çeviri"
-sekmesi). Sıradaki iş: **K4** (maliyet sayacı + `ai-log.jsonl` + Settings spend cap —
-kendi launch prompt'u henüz yazılmadı, K1-K3'ün ürettiği gerçek trafiğe ihtiyaç duyuyor).
+sekmesi). K4'ün kendi launch prompt'u yazıldı (`K4-maliyet-sayaci.md`), henüz başlanmadı.
+Ayrıca, Faz 10'dan TAMAMEN bağımsız yeni bir girişim açıldı: **Workspace Yüzey Yenilemesi**
+(kendi Faz numarası yok, D-149'un "Oturum" emsali) — kapsam belirleme BİTTİ (D-217,
+2026-09-06), W1'in kendi launch prompt'u yazıldı (`W1-adim-genel-bakis.md`). Sıradaki iş
+Barış'ın kendi tercihine göre **K4** ya da **W1** — ikisi birbirinden bağımsız.
 
 ## Prompt yazarken
 
