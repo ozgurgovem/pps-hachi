@@ -51,8 +51,16 @@ export function createNewProject({ title, language, appVersion }: CreateProjectP
       language,
       ai: { enabled: false, redaction: {} },
     },
-    // D-10: farplas-7step-tr is the default template until the Phase 4 fidelity test passes.
-    templateId: "farplas-7step-tr",
+    // D-157/Faz 11 L1 (D-223): pps-8step-auto is now the default template —
+    // farplas-7step-tr is legacy-compatibility only (D-10's own adoption
+    // argument now points at Rev00 since P-29 confirmed it's the form
+    // Farplas approves). No template-picker UI exists in the new-project
+    // flow (Barış's own call) — every new project simply gets this one.
+    // A literal, not an import from `src/a3/templates/registry.ts`'s
+    // `DEFAULT_TEMPLATE_ID` — `src/domain` must not depend on `src/a3`
+    // (the dependency already runs the other way, `A3Template` imports
+    // domain types); kept in sync by `createProject.test.ts`'s own assertion.
+    templateId: "pps-8step-auto",
     steps: {
       1: emptyStepState(),
       2: emptyStepState(),

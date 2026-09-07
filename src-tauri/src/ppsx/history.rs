@@ -3,6 +3,7 @@ use std::path::{Path, PathBuf};
 
 use super::atomic::atomic_write;
 use super::error::PpsxError;
+use crate::path_safety::is_safe_path_component;
 
 /// D-74/D-75: rolling autosave snapshots, kept as a sidecar under
 /// app-local-data-dir (never inside the `.ppsx` itself — see D-74's reasoning:
@@ -13,74 +14,12 @@ use super::error::PpsxError;
 const HISTORY_DIR_NAME: &str = "history";
 const SNAPSHOT_EXTENSION: &str = ".json";
 
-/// D-91: a single-path-segment safety check shared by `project_id` and
-/// `timestamp` — both ultimately become one component of a filesystem path
-/// that this module builds. `project_id` in particular is NOT trusted input:
-/// it is `manifest.id`, read straight out of a `.ppsx` that can arrive by
-/// email (D-06) and is never format-checked anywhere upstream (D-54 only
-/// checks that manifest/project agree with each other, not that either value
-/// is safe to use as a path component). Without this check, `history_dir`
-/// joining an attacker-chosen `project_id` like `"../../../../Library/
-/// LaunchAgents/evil"` onto `app_local_data_dir` would escape it entirely —
-/// `PathBuf::join` with an absolute path silently discards the base
-/// altogether. Same failure shape D-64/D-67 already fixed for zip entry
-/// names, one layer over: a string from untrusted file content trusted as a
-/// path component instead of being validated as one first.
-///
-/// D-92: an *allowlist*, not a blocklist. The original D-91 fix blocked
-/// `/`, `\`, NUL and `:` and the exact strings `.`/`..`, which holds on
-/// macOS but leaves the same class of gap D-67 found in the zip-entry-name
-/// checker — host-OS-dependent path semantics. Windows (a shipping target,
-/// D-32/`tauri.conf.json` `nsis`) strips trailing spaces and periods from a
-/// path component during Win32→NT path normalization, so `".. "` and
-/// `"..."` both pass a literal `!= ".."` test and then resolve to the parent
-/// directory anyway, and `"foo."` silently aliases `"foo"`. Reserved DOS
-/// device names (`CON`, `NUL`, `COM1`, …) resolve to devices rather than
-/// files there too. Enumerating those tricks is a losing game; the values
-/// that legitimately reach here are a `crypto.randomUUID()` and
-/// `formatSnapshotTimestamp`'s `2026-08-02T090000Z`, so an allowlist of
-/// `[A-Za-z0-9._-]` costs nothing and closes the whole class — including
-/// every Unicode homoglyph (U+FF0F FULLWIDTH SOLIDUS, U+2044 FRACTION
-/// SLASH), zero-width and bidi-override trick at the same time.
-fn is_safe_path_component(value: &str) -> bool {
-    const MAX_LEN: usize = 128;
-    if value.is_empty() || value.len() > MAX_LEN {
-        return false;
-    }
-    if !value
-        .bytes()
-        .all(|b| b.is_ascii_alphanumeric() || b == b'.' || b == b'_' || b == b'-')
-    {
-        return false;
-    }
-    // `.`, `..`, `...` and every longer run: all-dots names are either a
-    // relative component or (3+ dots) trimmed to one by Windows.
-    if value.bytes().all(|b| b == b'.') {
-        return false;
-    }
-    // A leading dot hides the directory on Unix; a trailing dot is stripped
-    // on Windows, aliasing two different ids onto one directory.
-    if value.starts_with('.') || value.ends_with('.') {
-        return false;
-    }
-    !is_windows_reserved_device_name(value)
-}
-
-/// Win32 resolves these names to devices in *any* directory, with or without
-/// an extension (`CON`, `con.json`, `LPT1.txt`) — creating a directory so
-/// named fails, and opening a file so named talks to the device instead.
-fn is_windows_reserved_device_name(value: &str) -> bool {
-    const RESERVED: [&str; 24] = [
-        "CON", "PRN", "AUX", "NUL", "COM0", "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7",
-        "COM8", "COM9", "LPT0", "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8",
-        "LPT9",
-    ];
-    let stem = value.split('.').next().unwrap_or(value);
-    RESERVED
-        .iter()
-        .any(|reserved| stem.eq_ignore_ascii_case(reserved))
-}
-
+/// D-91/D-92: `project_id` (`manifest.id`, untrusted — read straight out of a
+/// `.ppsx` that can arrive by email, D-06) and `timestamp` both become one
+/// path component this module builds; `is_safe_path_component` (Faz 10/K4:
+/// moved to `crate::path_safety` on its second real use, `ai::usage`'s log
+/// sidecar) is the shared, hardened allowlist check. See that module's own
+/// doc comment for the full history-of-fixes record.
 fn history_dir(app_local_data_dir: &Path, project_id: &str) -> Result<PathBuf, PpsxError> {
     if !is_safe_path_component(project_id) {
         return Err(PpsxError::UnsafeEntryName(project_id.to_string()));
@@ -355,56 +294,10 @@ mod tests {
         assert_eq!(std::fs::read(&victim).unwrap(), b"ORIGINAL");
     }
 
-    #[test]
-    fn is_safe_path_component_rejects_host_os_dependent_and_reserved_names() {
-        for rejected in [
-            "",
-            ".",
-            "..",
-            "...",
-            ".. ",
-            "..  ",
-            "foo.",
-            "foo ",
-            ".hidden",
-            "a b",
-            "a/b",
-            "a\\b",
-            "a:b",
-            "a\0b",
-            "CON",
-            "con",
-            "NUL",
-            "nul.json",
-            "COM1",
-            "LPT9",
-            "aux",
-            "café",
-            "ı",
-            "\u{FF0F}",
-            "\u{200B}",
-            &"a".repeat(129),
-        ] {
-            assert!(
-                !is_safe_path_component(rejected),
-                "should have been rejected: {rejected:?}"
-            );
-        }
-        for accepted in [
-            "b3f1c2a0-1234-4a3b-9c9d-0123456789ab",
-            "2026-08-02T090000Z",
-            "proj-1",
-            "a",
-            "console",
-            "com10",
-            "v1.2.3",
-        ] {
-            assert!(
-                is_safe_path_component(accepted),
-                "should have been accepted: {accepted:?}"
-            );
-        }
-    }
+    // `is_safe_path_component`'ın kendi doğrulama matrisi artık
+    // `crate::path_safety`'nin kendi test modülünde yaşıyor (Faz 10/K4) —
+    // burada yalnızca bu modülün onu gerçekten kullandığını doğrulayan
+    // entegrasyon testleri kalıyor.
 
     /// `prune` reconstructs paths from `list_snapshots`' output. Plant files
     /// (and a symlink) in the snapshot directory whose names strip to

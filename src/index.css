@@ -10,6 +10,10 @@
 @import "@fontsource/public-sans/600.css";
 @import "@fontsource/martian-mono/400.css";
 @import "@fontsource/martian-mono/500.css";
+@import "@fontsource/source-sans-3/300.css";
+@import "@fontsource/source-sans-3/400.css";
+@import "@fontsource/source-sans-3/600.css";
+@import "@fontsource/source-sans-3/700.css";
 
 /* Manual dark mode: driven by [data-theme] on <html>, set by ThemeProvider
  * (system preference by default, user override persisted). Not the media-query
@@ -62,6 +66,22 @@
   /* Deliberately NOT --color-plan (FF0000): a UI "flagged/error" state must not
    * borrow the sheet's own Plan-red, or the two meanings collide (D-47). */
   --danger: #a6303f;
+
+  /* Farplas kurumsal kimliği (D-218/W1) — primitives, aynı iki-katmanlı desen
+   * yukarıdaki --surface/--ink gibi: burada tanımlanır, [data-theme="dark"]'ta
+   * override edilir, @theme yalnızca bunlara var() ile işaret eder. İlk sürüm
+   * bunları doğrudan @theme içine yazmıştı — Tailwind v4 @theme'i bir cascade
+   * layer'a (@layer theme) sardığı için ayrı, unlayered bir [data-theme="dark"]
+   * override'ı üretim build'inde teorik olarak kazanır ama gerçek bir dev-server
+   * ortamında (farklı CSS enjeksiyon sırası) kazanmadı — Barış'ın ekran
+   * görüntüsü bunu kanıtladı (D-219 sonrası bulgu). */
+  --fp-teal: #2e9aae;
+  --fp-teal-deep: #22808f;
+  --fp-red: #da2032;
+  --fp-charcoal: #3b3d42;
+  --fp-gray-dark: #808080;
+  --fp-gray-mid: #b0b0b0;
+  --fp-gray-light: #d9d9d9;
 }
 
 [data-theme="dark"] {
@@ -75,6 +95,16 @@
   --accent-ink: #241a2b;
   --muted: #c9be9e;
   --danger: #e08a93;
+
+  /* Yine görsel olarak DOĞRULANMADI (D-218'in kendi notu) — yalnızca
+   * okunabilirlik için, koyu arkaplan üzerinde açık tonlar. */
+  --fp-teal: #59c2d6;
+  --fp-teal-deep: #3fa8bd;
+  --fp-red: #ef6b78;
+  --fp-charcoal: #e4e5e9;
+  --fp-gray-dark: #9a9a9e;
+  --fp-gray-mid: #808084;
+  --fp-gray-light: #4a4b4f;
 }
 
 @theme {
@@ -120,6 +150,24 @@
    * echo the sheet itself, "control" is for buttons, inputs, cards. */
   --radius-instrument: 2px;
   --radius-control: 6px;
+
+  /* Farplas kurumsal kimliği — YALNIZCA StepOverview/StepQuickJump/StepPage
+   * başlığı kullanır (D-218/W1). Uygulamanın geri kalanı hâlâ yukarıdaki
+   * --color-accent/vb.'yi kullanır — bu kasıtlı, geçici bir ikili durum
+   * (P-58 kapanana kadar). `var()` ile yukarıdaki --fp-* primitive'lerine
+   * işaret eder — DOĞRUDAN hex değer YAZMAYIN, dark-mode override'ı yukarıdaki
+   * [data-theme="dark"] bloğunda yaşıyor (bir önceki sürüm bunları doğrudan
+   * @theme içine yazmıştı, ki @theme kendi cascade layer'ına sarıldığı için
+   * dark-mode override'ı gerçek bir dev-server'da sessizce kaybediyordu). */
+  --color-fp-teal: var(--fp-teal);
+  --color-fp-teal-deep: var(--fp-teal-deep);
+  --color-fp-red: var(--fp-red);
+  --color-fp-charcoal: var(--fp-charcoal);
+  --color-fp-gray-dark: var(--fp-gray-dark);
+  --color-fp-gray-mid: var(--fp-gray-mid);
+  --color-fp-gray-light: var(--fp-gray-light);
+
+  --font-fp-display: "Source Sans 3", sans-serif;
 }
 
 body {

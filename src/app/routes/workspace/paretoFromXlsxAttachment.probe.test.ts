@@ -94,6 +94,8 @@ describe("Faz 9 done-criterion: propose a valid Pareto entry from an uploaded xl
       modelId: "vorion/gpt-4o",
       zodSchema: paretoPlugin.schema,
       redaction: OFF,
+      projectId: "proj-1",
+      promptVersion: "pareto.v1",
     });
 
     expect(result.outcome).toBe("success");
@@ -135,6 +137,8 @@ describe("Faz 9 done-criterion: propose a valid Pareto entry from an uploaded xl
       modelId: "vorion/gpt-4o",
       zodSchema: paretoPlugin.schema,
       redaction: OFF,
+      projectId: "proj-1",
+      promptVersion: "pareto.v1",
     });
 
     expect(result.outcome).toBe("success");

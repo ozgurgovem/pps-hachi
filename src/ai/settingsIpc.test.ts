@@ -2,6 +2,7 @@ import { describe, expect, test, vi } from "vitest";
 import { invoke } from "@tauri-apps/api/core";
 import {
   getAiSettings,
+  getCostSummary,
   getKeyStatus,
   listModels,
   removeApiKey,
@@ -74,10 +75,25 @@ describe("settingsIpc", () => {
 
   test("setAiSettings invokes ai_set_settings with the settings object", async () => {
     mockInvoke.mockResolvedValueOnce(undefined);
-    const settings = { enabled: true, defaultModelId: "openai/gpt-4o", fastModelId: null };
+    const settings = { enabled: true, defaultModelId: "openai/gpt-4o", fastModelId: null, spendCapUsd: 25 };
 
     await setAiSettings(settings);
 
     expect(mockInvoke).toHaveBeenCalledWith("ai_set_settings", { settings });
+  });
+
+  test("getCostSummary invokes ai_get_cost_summary with the project id", async () => {
+    const summary = {
+      project: { inputTokens: 100, outputTokens: 40, costUsd: 0.002, requestCount: 1 },
+      currentMonth: { inputTokens: 500, outputTokens: 200, costUsd: 0.01, requestCount: 5 },
+      spendCapUsd: 25,
+      capExceeded: false,
+    };
+    mockInvoke.mockResolvedValueOnce(summary);
+
+    const result = await getCostSummary("proj-1");
+
+    expect(mockInvoke).toHaveBeenCalledWith("ai_get_cost_summary", { projectId: "proj-1" });
+    expect(result).toEqual(summary);
   });
 });

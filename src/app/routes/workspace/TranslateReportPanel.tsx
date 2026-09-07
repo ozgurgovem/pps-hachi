@@ -82,6 +82,8 @@ export function TranslateReportPanel() {
         modelId,
         redaction: resolveRedactionPolicy(project.meta.ai.redaction),
         lookup,
+        projectId: project.id,
+        promptVersion: `translate-report.${WHOLE_REPORT_TRANSLATION_PROMPT_VERSION}`,
       });
       if (result.outcome === "failed") {
         setState({ phase: "failed", rawText: result.rawText });

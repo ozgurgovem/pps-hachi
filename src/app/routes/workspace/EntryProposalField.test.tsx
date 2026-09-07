@@ -52,6 +52,7 @@ function renderField(onAccept = vi.fn(), redaction: ResolvedRedactionPolicy = OF
       promptVersion="v1"
       modelId="vorion/gpt-4o"
       acceptedBy="Ada"
+      projectId="proj-1"
       redaction={redaction}
       onAccept={onAccept}
     />,

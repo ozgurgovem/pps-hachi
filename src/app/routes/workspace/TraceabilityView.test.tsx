@@ -100,7 +100,10 @@ describe("TraceabilityView", () => {
     });
     // Step 4's S4 gate rule flags when no hypothesis-verification row is
     // confirmed and no why-why node is a confirmed root cause — true here.
+    // The badge's underlying status is still "flagged" (same danger-colored
+    // variant); only its display text reads "In progress" now, per Barış's
+    // own call that "flagged" read as an alarm for a step simply not done yet.
     const node = screen.getByText("Step 4: Entry h1").closest("button");
-    expect(node?.textContent).toMatch(/flagged/i);
+    expect(node?.textContent).toMatch(/in progress/i);
   });
 });

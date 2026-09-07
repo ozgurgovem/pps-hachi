@@ -76,6 +76,8 @@ describe("proposeEntryTranslation", () => {
       modelId: "vorion/gpt-4o",
       zodSchema: z.object({ title: z.string(), payload: EntrySchema }),
       redaction: OFF,
+      projectId: "proj-1",
+      promptVersion: "translate-entry.v1",
     });
 
     expect(result).toEqual({
@@ -102,6 +104,8 @@ describe("proposeEntryTranslation", () => {
       modelId: "vorion/gpt-4o",
       zodSchema: z.object({ title: z.string(), payload: EntrySchema }),
       redaction: OFF,
+      projectId: "proj-1",
+      promptVersion: "translate-entry.v1",
     });
 
     expect(result).toEqual({
@@ -133,6 +137,8 @@ describe("proposeEntryTranslation", () => {
       modelId: "vorion/gpt-4o",
       zodSchema: z.object({ title: z.string(), payload: EntrySchema }),
       redaction: OFF,
+      projectId: "proj-1",
+      promptVersion: "translate-entry.v1",
     });
 
     expect(result).toEqual({
@@ -164,6 +170,8 @@ describe("proposeEntryTranslation", () => {
       modelId: "vorion/gpt-4o",
       zodSchema: z.object({ title: z.string(), payload: EntrySchema }),
       redaction: OFF,
+      projectId: "proj-1",
+      promptVersion: "translate-entry.v1",
     });
 
     expect(result.outcome).toBe("failed");
@@ -183,6 +191,8 @@ describe("proposeEntryTranslation", () => {
       modelId: "vorion/gpt-4o",
       zodSchema: z.object({ title: z.string(), payload: EntrySchema }),
       redaction: OFF,
+      projectId: "proj-1",
+      promptVersion: "translate-entry.v1",
     });
 
     expect(result).toEqual({ outcome: "failed", rawText: "bad json 2" });
@@ -247,6 +257,8 @@ describe("proposeWholeReportTranslation", () => {
       modelId: "vorion/gpt-4o",
       redaction: OFF,
       lookup,
+      projectId: "proj-1",
+      promptVersion: "translate-report.v1",
     });
 
     expect(result.outcome).toBe("success");
@@ -273,6 +285,8 @@ describe("proposeWholeReportTranslation", () => {
       modelId: "vorion/gpt-4o",
       redaction: OFF,
       lookup,
+      projectId: "proj-1",
+      promptVersion: "translate-report.v1",
     });
 
     expect(result.outcome).toBe("success");
@@ -310,6 +324,8 @@ describe("proposeWholeReportTranslation", () => {
       modelId: "vorion/gpt-4o",
       redaction: OFF,
       lookup,
+      projectId: "proj-1",
+      promptVersion: "translate-report.v1",
     });
 
     expect(result.outcome).toBe("success");

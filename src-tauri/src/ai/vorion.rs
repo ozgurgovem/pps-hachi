@@ -5,8 +5,9 @@ use tauri::ipc::Channel;
 
 use super::error::AiError;
 use super::provider::{
-    CancelResult, Capabilities, CompletionMeta, CompletionRequest, ConnectionStatus, LlmProvider,
-    ModelInfo, StreamEvent, StructuredRequest,
+    CancelResult, Capabilities, CompletionMeta, CompletionRequest, CompletionUsage,
+    ConnectionStatus, LlmProvider, ModelInfo, StreamEvent, StructuredCompletionResult,
+    StructuredRequest,
 };
 use super::redaction::{redact_text, unredact_json_value, RedactionMode, RedactionPolicy};
 
@@ -61,6 +62,13 @@ struct PredictionRequest {
 /// session, 2026-08-30). `group_name` is exactly the value the Synchronous
 /// Prediction request calls `llm_group_name` — the docs' own worked example
 /// requests `group_name: "gpt-4o"` as `"llm_group_name": "gpt-4o"`.
+///
+/// Faz 10/K4/§2.4: `cost_per_input_token`/`cost_per_output_token` were
+/// already confirmed present in this same response by D-213 but never read
+/// until now — the real Synchronous Prediction response (`PredictionResponse`
+/// below) has no cost field of its own, so this is the only place per-token
+/// pricing actually comes from. `Option` because not every model necessarily
+/// carries a price (a self-hosted or free model, say).
 #[derive(Debug, Deserialize)]
 struct LlmListItem {
     provider_name: String,
@@ -68,6 +76,10 @@ struct LlmListItem {
     group_name: String,
     #[serde(default)]
     display_name: Option<String>,
+    #[serde(default)]
+    cost_per_input_token: Option<f64>,
+    #[serde(default)]
+    cost_per_output_token: Option<f64>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -164,14 +176,71 @@ struct CancelPredictionResponse {
     partial_response_saved: bool,
 }
 
-/// Only the field this adapter reads from Synchronous Prediction's real
+/// Only the fields this adapter reads from Synchronous Prediction's real
 /// response (the same endpoint `test_connection` already calls, D-200) —
-/// `message_id`/token counts/`rag_sources`/etc. are all real documented
-/// fields this dilim has no use for, ignored the same way `LlmListItem`
-/// already ignores fields it doesn't read.
+/// confirmed against the real Response Schema table (Barış's authenticated
+/// `vorionai.com/docs` session, 2026-09-06): `input_tokens`/`output_tokens`
+/// are both `integer | null, OPTIONAL`. The real schema has **no** `cost`/
+/// `total_cost` field anywhere — a separate screenshot Barış also captured
+/// (Vorion's own docs *chatbot*, not the reference table) speculated one
+/// might exist, hedged throughout ("muhtemelen", "büyük ihtimalle") and even
+/// told Barış to go verify with support — the exact unreliable-self-report
+/// pattern D-199 already caught this same chatbot in once before, so that
+/// guess is deliberately NOT trusted here. Every other documented field
+/// (`message_id`, `reasoning`/`reasoning_tokens`, `cache_*_tokens`,
+/// `rag_sources`, `persisted_file_ids`, `pending_async_tasks`, …) is ignored
+/// the same way `LlmListItem` already ignores fields it doesn't read — this
+/// app never enables thinking mode or RAG (D-15/D-16).
 #[derive(Debug, Deserialize)]
 struct PredictionResponse {
     response: String,
+    #[serde(default)]
+    input_tokens: Option<u64>,
+    #[serde(default)]
+    output_tokens: Option<u64>,
+}
+
+/// `cost_usd` stays `None` here — the real response carries no direct cost
+/// field (see `PredictionResponse`'s own doc comment). `ai::commands::
+/// ai_complete_structured` fills it in afterwards, but only when a spend cap
+/// is actually configured, via `VorionProvider::estimate_cost_usd` reading
+/// the real per-token pricing `LlmListItem` already carries.
+fn completion_usage_from_response(response: &PredictionResponse) -> CompletionUsage {
+    CompletionUsage {
+        input_tokens: response.input_tokens,
+        output_tokens: response.output_tokens,
+        cost_usd: None,
+    }
+}
+
+/// Pure match: finds the first `LlmListItem` whose id (`VorionProvider`'s own
+/// `"{provider_name}/{group_name}"` shape, or a bare `provider_name` when the
+/// caller's `model_id` has no group) equals `model_id`, and returns its
+/// per-token rates — `None` if nothing matches, or the match has no price
+/// data for one or both directions.
+fn find_pricing_in_items(items: &[LlmListItem], model_id: &str) -> Option<(f64, f64)> {
+    items.iter().find_map(|item| {
+        let full_id = format!("{}/{}", item.provider_name, item.group_name);
+        if full_id != model_id && item.provider_name != model_id {
+            return None;
+        }
+        match (item.cost_per_input_token, item.cost_per_output_token) {
+            (Some(input), Some(output)) => Some((input, output)),
+            _ => None,
+        }
+    })
+}
+
+/// Pure: `None` whenever either token count is missing, so a partial usage
+/// (possible per `PredictionResponse`'s own `Option` fields) never produces
+/// a silently-wrong half-computed cost.
+fn compute_cost_usd(
+    input_tokens: Option<u64>,
+    output_tokens: Option<u64>,
+    rates: (f64, f64),
+) -> Option<f64> {
+    let (cost_per_input, cost_per_output) = rates;
+    Some(input_tokens? as f64 * cost_per_input + output_tokens? as f64 * cost_per_output)
 }
 
 /// J1/§2.2: Vorion has no native structured-output parameter (confirmed
@@ -254,6 +323,55 @@ impl VorionProvider {
             http: reqwest::Client::new(),
         }
     }
+
+    /// The one real HTTP call behind both `list_models` and
+    /// `find_model_cost_rates` — extracted so the request/pagination/query
+    /// string exists in exactly one place (D-127's own "extract before the
+    /// second repetition" discipline).
+    async fn fetch_llm_list(&self) -> Result<ListLlmsResponse, AiError> {
+        Ok(self
+            .http
+            .get(format!("{BASE_URL}/llms?available_only=true&page_size=100"))
+            .header("x-api-key", &self.api_key)
+            .send()
+            .await?
+            .json()
+            .await?)
+    }
+
+    /// Faz 10/K4/§2.4: looks up a model's real per-token pricing —
+    /// deliberately its own network call rather than a persisted cache next
+    /// to `AiSettings` (Barış, delegated to this session's own judgment,
+    /// 2026-09-06): the common case has no spend cap configured at all, so
+    /// `ai::commands::ai_complete_structured` only ever calls this when
+    /// `AiSettings::spend_cap_usd` is `Some` — the one feature that actually
+    /// needs a dollar figure pays the extra round trip, everything else
+    /// (D-21's "no cache yet" posture) stays exactly as fast as before.
+    async fn find_model_cost_rates(&self, model_id: &str) -> Result<Option<(f64, f64)>, AiError> {
+        let response = self.fetch_llm_list().await?;
+        Ok(find_pricing_in_items(&response.items, model_id))
+    }
+
+    /// Turns a completed call's raw token counts into a dollar figure, or
+    /// `None` if pricing isn't available for this model — `ai::commands::
+    /// ai_complete_structured` is the only caller, and only when a spend cap
+    /// is configured. A pricing-lookup failure (network error, unexpected
+    /// shape) propagates as `Err` so the caller can log it and fall back to
+    /// leaving `cost_usd` unset, rather than this function silently guessing.
+    pub async fn estimate_cost_usd(
+        &self,
+        model_id: &str,
+        usage: &CompletionUsage,
+    ) -> Result<Option<f64>, AiError> {
+        let Some(rates) = self.find_model_cost_rates(model_id).await? else {
+            return Ok(None);
+        };
+        Ok(compute_cost_usd(
+            usage.input_tokens,
+            usage.output_tokens,
+            rates,
+        ))
+    }
 }
 
 impl LlmProvider for VorionProvider {
@@ -266,14 +384,7 @@ impl LlmProvider for VorionProvider {
     /// future server-side default change; pagination beyond the first page
     /// is a known, documented simplification for this dilim.
     async fn list_models(&self) -> Result<Vec<ModelInfo>, AiError> {
-        let response: ListLlmsResponse = self
-            .http
-            .get(format!("{BASE_URL}/llms?available_only=true&page_size=100"))
-            .header("x-api-key", &self.api_key)
-            .send()
-            .await?
-            .json()
-            .await?;
+        let response = self.fetch_llm_list().await?;
 
         Ok(response
             .items
@@ -455,7 +566,7 @@ impl LlmProvider for VorionProvider {
     async fn complete_structured(
         &self,
         req: StructuredRequest,
-    ) -> Result<serde_json::Value, AiError> {
+    ) -> Result<StructuredCompletionResult, AiError> {
         let default_policy = RedactionPolicy {
             mode: RedactionMode::Off,
             terms: Vec::new(),
@@ -487,7 +598,8 @@ impl LlmProvider for VorionProvider {
 
         let mut value = parse_structured_response(&response.response)?;
         unredact_json_value(&mut value, &tokens);
-        Ok(value)
+        let usage = completion_usage_from_response(&response);
+        Ok(StructuredCompletionResult { value, usage })
     }
 
     /// §2.1's own finding: neither Synchronous nor Streaming Prediction has
@@ -558,12 +670,9 @@ mod tests {
 
     #[test]
     fn model_info_from_item_joins_provider_and_group_into_a_slash_separated_id() {
-        let item = LlmListItem {
-            provider_name: "openai".to_string(),
-            model_name: "gpt-4o-2024-08-06".to_string(),
-            group_name: "gpt-4o".to_string(),
-            display_name: Some("GPT-4o".to_string()),
-        };
+        let mut item = sample_pricing_item("openai", "gpt-4o", None, None);
+        item.model_name = "gpt-4o-2024-08-06".to_string();
+        item.display_name = Some("GPT-4o".to_string());
 
         let info = model_info_from_item(item);
 
@@ -574,12 +683,8 @@ mod tests {
 
     #[test]
     fn model_info_from_item_falls_back_to_model_name_when_display_name_is_absent() {
-        let item = LlmListItem {
-            provider_name: "groq".to_string(),
-            model_name: "llama-3.1-8b-instant".to_string(),
-            group_name: "llama-3.1-8b".to_string(),
-            display_name: None,
-        };
+        let mut item = sample_pricing_item("groq", "llama-3.1-8b", None, None);
+        item.model_name = "llama-3.1-8b-instant".to_string();
 
         let info = model_info_from_item(item);
 
@@ -907,6 +1012,159 @@ mod tests {
             AiError::StructuredOutputNotJson(text) => assert_eq!(text, raw),
             other => panic!("expected StructuredOutputNotJson, got {other:?}"),
         }
+    }
+
+    /// Deserializes a response shaped exactly like the real Synchronous
+    /// Prediction Response Schema table (Barış's authenticated session,
+    /// 2026-09-06), including every field this adapter never reads
+    /// (`message_id`, `user_id`, `app_id`, `reasoning*`, `cache_*_tokens`,
+    /// `model_name`/`model_provider`, `persisted_file_ids`, `rag_sources`,
+    /// `pending_async_tasks`) — proving they're safely ignored rather than
+    /// only asserting it in a comment, the same discipline
+    /// `list_llms_response_deserializes_from_the_real_documented_shape`
+    /// already established one type over. Deliberately does NOT include a
+    /// `cost`/`total_cost` field: the real Response Schema table has none —
+    /// see `PredictionResponse`'s own doc comment for why a chatbot-supplied
+    /// guess suggesting one is not trusted here.
+    #[test]
+    fn prediction_response_deserializes_from_the_real_documented_shape() {
+        let body = serde_json::json!({
+            "conversation_id": "550e8400-e29b-41d4-a716-446655440000",
+            "response": "Quantum computing uses qubits...",
+            "message_id": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
+            "user_id": null,
+            "app_id": null,
+            "reasoning": null,
+            "reasoning_tokens": null,
+            "input_tokens": 1000,
+            "output_tokens": 500,
+            "total_tokens": 1500,
+            "cache_read_tokens": null,
+            "cache_creation_tokens": null,
+            "model_name": "gpt-4o-2024-08-06",
+            "model_provider": "openai",
+            "persisted_file_ids": null,
+            "rag_sources": null,
+            "pending_async_tasks": null
+        })
+        .to_string();
+
+        let response: PredictionResponse = serde_json::from_str(&body).unwrap();
+
+        assert_eq!(response.response, "Quantum computing uses qubits...");
+        assert_eq!(response.input_tokens, Some(1000));
+        assert_eq!(response.output_tokens, Some(500));
+    }
+
+    #[test]
+    fn completion_usage_from_response_extracts_input_and_output_tokens_with_cost_left_unset() {
+        let response = PredictionResponse {
+            response: "hi".to_string(),
+            input_tokens: Some(120),
+            output_tokens: Some(45),
+        };
+
+        let usage = completion_usage_from_response(&response);
+
+        assert_eq!(usage.input_tokens, Some(120));
+        assert_eq!(usage.output_tokens, Some(45));
+        assert_eq!(usage.cost_usd, None);
+    }
+
+    #[test]
+    fn completion_usage_from_response_defaults_to_none_when_token_fields_are_absent() {
+        let response = PredictionResponse {
+            response: "{}".to_string(),
+            input_tokens: None,
+            output_tokens: None,
+        };
+
+        assert_eq!(
+            completion_usage_from_response(&response),
+            CompletionUsage::default()
+        );
+    }
+
+    fn sample_pricing_item(
+        provider_name: &str,
+        group_name: &str,
+        cost_per_input_token: Option<f64>,
+        cost_per_output_token: Option<f64>,
+    ) -> LlmListItem {
+        LlmListItem {
+            provider_name: provider_name.to_string(),
+            model_name: format!("{provider_name}-{group_name}-model"),
+            group_name: group_name.to_string(),
+            display_name: None,
+            cost_per_input_token,
+            cost_per_output_token,
+        }
+    }
+
+    #[test]
+    fn find_pricing_in_items_finds_a_match_by_provider_and_group() {
+        let items = vec![sample_pricing_item(
+            "openai",
+            "gpt-4o",
+            Some(0.0000025),
+            Some(0.00001),
+        )];
+
+        let rates = find_pricing_in_items(&items, "openai/gpt-4o");
+
+        assert_eq!(rates, Some((0.0000025, 0.00001)));
+    }
+
+    #[test]
+    fn find_pricing_in_items_matches_a_bare_provider_id_with_no_group() {
+        let items = vec![sample_pricing_item(
+            "vorion",
+            "default",
+            Some(0.001),
+            Some(0.002),
+        )];
+
+        let rates = find_pricing_in_items(&items, "vorion");
+
+        assert_eq!(rates, Some((0.001, 0.002)));
+    }
+
+    #[test]
+    fn find_pricing_in_items_returns_none_when_no_item_matches() {
+        let items = vec![sample_pricing_item(
+            "openai",
+            "gpt-4o",
+            Some(0.0000025),
+            Some(0.00001),
+        )];
+
+        assert_eq!(find_pricing_in_items(&items, "anthropic/claude"), None);
+    }
+
+    #[test]
+    fn find_pricing_in_items_returns_none_when_the_matching_item_has_no_price_data() {
+        let items = vec![sample_pricing_item("openai", "gpt-4o", None, None)];
+
+        assert_eq!(find_pricing_in_items(&items, "openai/gpt-4o"), None);
+    }
+
+    #[test]
+    fn compute_cost_usd_multiplies_tokens_by_their_respective_rates() {
+        let cost = compute_cost_usd(Some(1000), Some(500), (0.0000025, 0.00001));
+
+        assert!((cost.unwrap() - 0.0075).abs() < 1e-9);
+    }
+
+    #[test]
+    fn compute_cost_usd_returns_none_when_either_token_count_is_missing() {
+        assert_eq!(
+            compute_cost_usd(None, Some(500), (0.0000025, 0.00001)),
+            None
+        );
+        assert_eq!(
+            compute_cost_usd(Some(1000), None, (0.0000025, 0.00001)),
+            None
+        );
     }
 
     #[test]

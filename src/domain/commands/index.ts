@@ -9,6 +9,7 @@ export {
   buildReorderCommand,
   buildSetA3VisibilityCommand,
   buildSetAiMetaCommand,
+  buildSetProjectInfoCommand,
   buildSetSignOffCommand,
   buildUpdateEntryCommand,
   type AddEntryInput,
@@ -24,6 +25,7 @@ export {
   type EntrySetA3VisibilityCommand,
   type EntryUpdateCommand,
   type MetaAiSetCommand,
+  type MetaProjectInfoSetCommand,
   type RoundsSetCommand,
   type SignOffSetCommand,
 } from "./types";

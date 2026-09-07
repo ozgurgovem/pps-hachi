@@ -101,6 +101,8 @@ describe("Faz 10 acceptance scenario: flags a weak root cause on a deliberately-
       contextText,
       modelId: "vorion/gpt-4o",
       redaction: OFF,
+      projectId: "proj-1",
+      promptVersion: "mock-audit.v1",
     });
 
     expect(result.outcome).toBe("success");

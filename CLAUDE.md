@@ -190,8 +190,16 @@ language is the real threat to this bar, and it is Oturum B's job.
 
 ## Current state
 
-Phase: 10 of 12 — kapsam belirlendi (D-213, 2026-09-05); K1 dilimi BİTTİ (D-214, 2026-09-05),
-  K2/K3/K4 henüz inşa edilmedi. Phase 9 (all
+Phase: 11 of 12 — kapsam belirlendi (D-223, 2026-09-06), henüz inşa edilmedi. Faz 11'in kendi
+  üç dilimlik planı: **L1** (`pps-8step-auto`'nun statik geometrisi + template registry + blok
+  görsel dili, kendi Block Visual Verification Loop onay turuyla kapanır, henüz başlanmadı —
+  launch prompt `docs/oturumlar/L1-pps-8step-auto.md`), **L2** (template switching mekanizması,
+  L1'den sonra), **L3** (esnek tahsis solver D-158/159/160 + drag-handle D-170, ertelendi).
+  Kapsam SPEC'in orijinal üç-şablon+`BenefitCase` lafzından yalnızca `pps-8step-auto` +
+  switching'e daraltıldı — `farplas-7step-plus`/`farplas-7step-en` **P-62**'ye, `BenefitCase`
+  P-18'e filed, ikisi de kendi gelecekteki scope oturumunu bekliyor. Faz 10 (kapsam D-213,
+  dört dilimin K1/K2/K3/K4 DÖRDÜ de BİTTİ — K1 D-214, K2 D-215, K3 D-216, K4 D-221,
+  2026-09-06) TAMAMEN kapandı. Phase 9 (all
   three slices J1/J2/J3, J3 itself in seven sub-slices J3-1..J3-7) FULLY COMPLETE 2026-09-05
   (D-204 through D-212). Phase 8 (all three dilims — D-200 2026-08-30, D-201 2026-08-31,
   D-202 2026-08-31) fully complete. Phase 7 (D-195's three slices G1/G2/G3) FULLY DONE
@@ -1335,6 +1343,67 @@ Phase: 10 of 12 — kapsam belirlendi (D-213, 2026-09-05); K1 dilimi BİTTİ (D-
   (`docs/oturumlar/K4-maliyet-sayaci.md`) — it needed no new Vorion doc round (D-213 already
   found the token/cost data source), and flags its own real open questions (plumbing, where
   `ai-log.jsonl` actually lives, spend-cap enforcement point) for whichever session builds it.
+**Faz 10 — K4 (cost meter + `ai-log.jsonl` + Settings spend cap): DONE 2026-09-06 (D-221) —
+  Faz 10's own four-slice plan (K1/K2/K3/K4) is now FULLY CLOSED.** Split across two sessions.
+  The first built the architecture (four `AskUserQuestion` rounds, all option (b)/recommended):
+  §2.1 plumbing — `complete_structured`'s Rust-internal signature widened to
+  `StructuredCompletionResult { value, usage: CompletionUsage }`, but `ai_complete_structured`'s
+  TS-facing return type stayed exactly `Result<serde_json::Value, String>` — none of K1/K2/K3's
+  `attemptStructuredProposal`-based chains changed type; Rust logs on its own, TS reads the
+  accumulated total via a new `ai_get_cost_summary` command. §2.2 log location — a sidecar
+  (`ai-log/{project_id}.jsonl` under `app_local_data_dir`, D-74's history-snapshot precedent:
+  triggering a full `write_ppsx` archive rewrite on every single AI request would fight D-72's
+  autosave-coalescing discipline for no real benefit to an audit trail that isn't project
+  content) — a deliberate departure from SPEC.md §8.13's literal "inside the `.ppsx`" wording,
+  corrected in SPEC.md this session. §2.3 running totals — both per-project (summed fresh from
+  the log) and global per-month (`ai-usage.json`). §2.4 spend cap — `AiSettings.spend_cap_usd:
+  Option<f64>`, checked before sending; hitting it rejects only that one call with
+  `AiError::SpendCapExceeded`, never touching `meta.ai.enabled`. §2.5 a permanent (not
+  temporary-debug) "AI cost" Settings section.
+  The second session (`K4-maliyet-sayaci-devam.md`) closed the one real blocker left: the real
+  Vorion Synchronous Prediction Response Schema field names, needed to fill in a deliberate
+  stub (`completion_usage_from_response` returning `CompletionUsage::default()`). Barış shared
+  two distinct screenshot sets, and this session drew a hard line between them: the **real
+  Response Schema table** (`vorionai.com/docs`'s own reference page) confirmed `input_tokens`/
+  `output_tokens` (`integer | null, OPTIONAL`) and confirmed **no** direct `cost`/`total_cost`
+  field anywhere. A second screenshot — **Vorion's own documentation chatbot** guessing a
+  `cost`/`total_cost` shape, hedged throughout ("muhtemelen", "büyük ihtimalle") and itself
+  telling Barış to go verify with support — was deliberately **not trusted**, the exact same
+  unreliable-self-report pattern D-199 already caught this same chatbot in once before.
+  `PredictionResponse` now reads `input_tokens`/`output_tokens` (`#[serde(default)]`,
+  defensive); the old stub test was deleted and replaced with a real "deserializes from the
+  documented shape" test (mirroring `list_llms_response_deserializes_from_the_real_documented_
+  shape`'s own pattern) plus two behavior tests.
+  With no direct cost field, the spend-cap-vs-cost-computation question (SPEC's own "per-call
+  cost after" wording) needed a real design call — `AskUserQuestion` presented three options,
+  and Barış explicitly delegated the decision back ("En doğru bulduğunla devam et. Ben konuya
+  hakim olmadığım için bir cevap veremiyorum"). The chosen, hybrid design: cost is estimated
+  **only when a spend cap is actually configured** — `VorionProvider` gained
+  `find_model_cost_rates`/`compute_cost_usd`/`estimate_cost_usd`, reading `List LLMs`'s real
+  `cost_per_input_token`/`cost_per_output_token` (D-213's own finding — already confirmed
+  present, simply unread until now; `LlmListItem` now deserializes them). The common case (no
+  cap set) pays zero extra network round trips, consistent with D-21's "no cache yet" posture;
+  when a cap *is* set, it now genuinely enforces in dollars, without inventing a persistent
+  price-cache mechanism. `find_pricing_in_items` (the pure matching logic) was mutation-checked
+  by hand: broken to always return `None`, confirmed RED, reverted, confirmed GREEN.
+  Two new gaps filed at closing: **P-60** (`AiLogEntry.accepted` stays `None` forever — no
+  correlation mechanism yet ties a log entry back to its later Accept/Reject decision) and
+  **P-61** (the full-body prompt/response logging setting SPEC.md §8.13 describes was not built
+  this dilim — deserves its own security review, deliberately deferred rather than built
+  half-way).
+  `cargo test` 193 lib + 2 fixture + 8 xlsx = 203 (up from 185 lib at this session's start),
+  `cargo clippy --all-targets -- -D warnings` and `cargo fmt -- --check` both clean. `npm test`
+  1385/1385 (291 files) — unchanged from this session's own baseline, since this dilim's own
+  closing session touched Rust only, confirmed via `git status`. `npx tsc --noEmit` and
+  `npm run build` both clean (same pre-existing chunk-size warning). `scripts/gen-a3-fixture.ts`
+  not re-run — this dilim touches no `src/a3/` file. **Faz 10's own four-slice plan (K1/K2/K3/
+  K4) is now fully closed.** SPEC.md §6's next real phase, Faz 11 (D-157's Rev00-based 8-step
+  template), still awaits its own scope-definition session — sequencing against W2/W3 is
+  Barış's own call, the two efforts are independent. Honestly unverified, the usual class of
+  gap (D-105/D-113/D-136/D-200/D-201/D-204/D-213/D-214/D-215/D-216/D-219): no display/Tauri
+  runtime in this environment — a real spend cap actually tripping, and a real `ai-log.jsonl`
+  line actually landing on disk against real Vorion traffic, are still owed from Barış's own
+  `npm run tauri dev`.
 **Workspace Yüzey Yenilemesi (D-217, 2026-09-06): scope defined, nothing built yet — a UX
   initiative entirely independent of Faz 10's AI layer, outside `SPEC.md`'s 0-12 phase table
   (tracked the way D-149's own "Oturum A-D2" was — its own letter, no phase number).**
@@ -1361,6 +1430,166 @@ Phase: 10 of 12 — kapsam belirlendi (D-213, 2026-09-05); K1 dilimi BİTTİ (D-
   a mandatory Block Visual Verification Loop pass on the card design before any component
   code, per this file's own established process). W2/W3's launch prompts are not yet written.
   Sequencing relative to Faz 10/K4 is Barış's own call — the two are fully independent.
+**W1's own Block Visual Verification Loop (D-218, 2026-09-06): DONE, mockup approved —
+  code not yet written.** Four rounds against a Claude Artifact mockup (layout → typography/
+  visual language → corporate branding → text/interactivity polish), each with Barış's real
+  feedback, closed with "yaptığın değişiklikler gayet yeterli." **A real, unplanned finding
+  mid-loop**: Barış's own "make it more modern/chic, web-app-like" request, when asked to
+  scope it (`AskUserQuestion`), chose the **non-recommended** option — reopen D-48's whole
+  design system, not just polish two pages — then, a round later, supplied Farplas's own real
+  corporate brand guide (slide screenshots: teal/red/charcoal palette, Segoe UI). **Segoe UI
+  is Microsoft's proprietary font — unavailable on macOS, undistributable, and in direct
+  conflict with both D-48's "self-hosted, license-clean (OFL)" rule and this app's
+  macOS+Windows cross-platform requirement.** Source Sans 3 (Adobe, OFL) adopted as the
+  closest open-licensed visual equivalent (weights 300/400/600/700 ↔ Segoe UI's
+  Light/Normal/Semilight/Bold); Martian Mono (data/mono captions) untouched. Approved tokens
+  (colors, font, radius/shadow language) recorded in DECISIONS.md D-218 — **deliberately
+  scoped to only the two new W1 surfaces** (landing view + step-page chrome); rolling this
+  direction out to the rest of the already-shipped app (Button/Badge/Input/Select/Dialog/
+  StepTick/ThemeToggle, all of Phases 1-10) is explicitly out of W1's build scope, filed as
+  **P-58** — the app will carry a deliberate, temporary visual inconsistency (new pages vs.
+  D-48-styled old pages) once W1 ships. **A second real feature request surfaced and was
+  deliberately deferred**: a step-scoped AI coaching/support chat (auto-published entry
+  guide, Q&A, reactive error-checking, real reference examples — never AI-generated images,
+  CLAUDE.md's own locked rule). Confirmed via `AskUserQuestion`, all recommended: no new AI
+  mechanism (extends the existing Assistant chat, D-201, with step context), reactive only
+  (never a continuous background watcher), guide content sourced from existing coaching
+  content + method schema (not a freely-generated text, same G2 discipline as the card-copy
+  decision), built in its own future session (most naturally an expansion of W2's own
+  "relocated AI actions" scope) — not today. Filed as **P-59**. The real build session's own
+  launch prompt is written: `docs/oturumlar/W1-insa.md`.
+**W1-insa (the real code for D-218's approved mockup): DONE 2026-09-06 (D-219) — W1 is now
+  fully complete, design and code both.** `W1-insa.md`'s own §0 pre-scan found two small path
+  typos (matching D-207/D-214's own class of finding, not a wrong repo state, so noted and
+  continued): `StepStepper.test.tsx` never existed (no test file was ever written for
+  `StepStepper`), and `a3PreviewWindow/window.ts` lives at `src/app/routes/a3PreviewWindow/`,
+  not under `workspace/`. `src/state/projectStore.ts`: `activeStepId: StepId | null`, default
+  now `null` (D-100's "never an implicit default" — opening a project now lands on the
+  overview, not Step 1), `setActiveStep`'s signature widened; every existing caller
+  (`TraceabilityView`, `MockAuditPanel`, `WorkspaceShell`) already passed a real `StepId`, so
+  none needed a change. `StepStepper.tsx` deleted (it had no test to delete). New
+  `StepOverview.tsx` (eight cards — number/status/name/`cardPurpose`/`cardHowTo`/entry count,
+  D-218's approved TR+EN copy verbatim) and `StepQuickJump.tsx` (an "Overview" control plus
+  eight step chips, its own small local map from `StepStatus` to D-41's ■/▲/● glyphs —
+  deliberately NOT `statusGlyph.ts`, whose `A3TextTone` is a different enum that only looks
+  similar). **A real, unplanned-for design choice that avoided real test churn**: the card's
+  and the chip's `aria-label` deliberately share the exact same pre-existing
+  `workspace.stepAriaLabel` key ("Step {{step}}: {{name}}") the old rail button already used —
+  a third application of D-114's "two representations, one source" discipline. Because cards
+  only render on the landing view and chips only render on a step page, the two never coexist,
+  so `WorkspaceScreen.test.tsx`/`entryReferences.integration.test.tsx`'s existing "Step N:"/
+  step-name regex queries kept working with zero changes. `StepPage.tsx`'s title now reads
+  "STEP-4. ROOT CAUSE ANALYSIS" / "ADIM-4. KÖK NEDEN ANALİZİ" via
+  `.toLocaleUpperCase(i18n.language === "tr" ? "tr" : undefined)` — plain `.toUpperCase()`
+  would have produced "ANALIZI" (no dot on the Turkish İ), a direct hit on this file's own
+  Turkish-character warning, locked down with a new regression test
+  (`StepPage.test.tsx`). `AssistantPanel.tsx`'s `handleAccept` gained the
+  `activeStepId === null` guard §2.8 called for, the Accept button is disabled accordingly, a
+  new hint string (`workspace.assistant.noActiveStep`) explains why — its own test file's
+  `seedProject` helper needed one line (`activeStepId: 1`) since Accept now genuinely needs a
+  real active step, a real, if small, test fix this change forced. `src/index.css` gained
+  D-218's seven approved `--color-fp-*` tokens + `--font-fp-display` verbatim inside `@theme`
+  (no existing token touched), plus `@fontsource/source-sans-3` (300/400/600/700, self-hosted).
+  **A second `[data-theme="dark"]` block was added for the same seven tokens** — legibility-
+  only placeholder values, explicitly commented as visually UNCONFIRMED (D-218's own note that
+  Barış never saw a dark-mode version of the mockup) — a real, still-open item, not silently
+  claimed as approved. `SPEC.md` §2.2's "Left rail" paragraph rewritten to describe the
+  landing view + quick-jump model. `npm test` 1385/1385 (291 files), exit code checked via a
+  separate `echo $?` (D-143's own lesson) — this session's own contribution is 3 new test
+  files/11 new tests (`StepOverview.test.tsx`'s 4, `StepQuickJump.test.tsx`'s 5,
+  `StepPage.test.tsx`'s 2); the total also carries Faz 10/K4's own pre-existing, uncommitted,
+  entirely-unrelated work-in-progress already sitting in the tree before this session started
+  (untouched by this session — confirmed via `git stash -u`, whose true `HEAD` baseline came
+  back at exactly 1373/1373, 288 files, matching this file's own last-recorded K3 number).
+  `npm run lint` clean (the one pre-existing `ThemeProvider` warning), `npm run build` green
+  (same pre-existing chunk-size warning). `cargo test` 185 lib + 2 fixture + 8 xlsx = 195,
+  `cargo clippy --all-targets -- -D warnings` and `cargo fmt -- --check` both clean — Rust
+  genuinely untouched by this session (this dilim is TS/React-only, confirmed by inspecting
+  `git status src-tauri/` before and after). `scripts/gen-a3-fixture.ts` not re-run — this
+  session touches no `src/a3/` file or the method registry. Deliberately not built this
+  session: W2 (the step page itself + P-59's step-scoped AI chatbox) and W3 (live cropped
+  preview) — both still ahead; P-58 (rolling the Farplas visual direction out past these two
+  new surfaces) and the dark-mode visual confirmation stay open too. **Honestly unverified,
+  the usual class of gap**: no display/Tauri runtime in this environment — the landing view
+  and quick-jump strip were never opened or clicked in a real WKWebView window, Barış's own
+  `npm run tauri dev` walkthrough is still owed. W2's own launch prompt is written:
+  `docs/oturumlar/W2-adim-sayfasi.md` — unlike W1's, it opens with two real, unresolved design
+  questions (the modal→inline layout, and the AI chatbox's own surface) that need their own
+  `AskUserQuestion` round and a fresh Block Visual Verification Loop before any component code.
+**Dark-mode fix (D-220, 2026-09-06, same day): a real regression, not just an unverified
+  polish gap.** Barış's own real `npm run tauri dev` screenshot showed the landing cards'
+  titles nearly unreadable — near-black on a dark card. Root-caused with a temporary
+  Playwright install against the real compiled CSS (D-113/D-136's own "use, then delete"
+  practice): Tailwind v4's `@theme` wraps its output in `@layer theme`, so W1-insa's separate,
+  unlayered `[data-theme="dark"]` override block for the seven `--color-fp-*` tokens *should*
+  win by cascade-layer rules — and did, in an isolated production-build probe — but did not in
+  the real `vite` dev server Barış actually runs (a different CSS injection order breaks that
+  assumption). Fixed by applying this file's own already-proven-correct two-layer pattern
+  (`--surface`/`--ink`'s primitive-in-`:root`-plus-`[data-theme]`, `@theme` only ever
+  referencing via `var()`) to the seven Farplas tokens too — verified against both the
+  production build and the live dev server. No test/build/lint change (a pure CSS fix); no
+  Rust touched. The color *values* themselves are still exactly D-218's own unconfirmed
+  placeholder guesses — only the mechanism that was supposed to apply them in dark mode was
+  broken, now fixed.
+**Step-status label change (D-222, same day): "Flagged" → "In progress", TR+EN, a pure i18n
+  copy change.** Barış's own UX feedback on the real `StepOverview` cards: a step with entries
+  that hasn't yet satisfied its S1-S8 readiness rule reading as "Flagged"/"İşaretlendi" sounds
+  like an alarm ("something is wrong") when it usually just means "not finished yet." The
+  underlying binary logic (D-196/G1 — a non-empty step's readiness is always `"ok"` or
+  `"flagged"`, `"inProgress"` structurally never produced) was deliberately left untouched —
+  splitting it into a genuine third state would need a new signal (e.g. an explicit "mark this
+  step done" action), disproportionate for a wording concern. Only `workspace.stepStatus.
+  flagged`'s displayed text changed (TR "İşaretlendi"→"Devam ediyor", EN "Flagged"→"In
+  progress") — `Badge`'s own `status="flagged"` prop, its danger-colored styling, `StepStatus`,
+  and `evaluateReadiness` are all unchanged. Since this key is also read by
+  `TraceabilityView.tsx`'s own node badge (same key, same D-114 "one source" reasoning), one
+  existing test there needed updating to match the new text (its own name stayed the same,
+  since the badge's underlying status is still genuinely "flagged"). The step page's own
+  `ReadinessAdvisory` (the specific, actionable warning) is untouched — only the at-a-glance
+  tone softened, no detail was lost. `npm test` 1385/1385 (unchanged count — one test fixed,
+  none added/removed), lint/build clean, Rust untouched.
+**Faz 11 kapsam belirleme (D-223, 2026-09-06): no code.** `docs/oturumlar/
+  faz11-kapsam-belirleme.md`'s own §0 pre-scan re-verified against real code, matched every
+  claim exactly: `src/a3/templates/` holds only `farplas-7step-tr.ts`+`types.ts`;
+  `ProjectModel.templateId` exists in the schema but `src/app/routes/workspace/a3Preview.ts`
+  never reads it (hardcodes `farplas7StepTr`) — template selection is dead code today;
+  `src/a3/layout/budget.ts` is fully static; `ProjectMetaSchema` has none of
+  `priority`/`targetClosureDate`/`generalRag`; `TEMPLATE_ANALYSIS.md` §15.8 (D2b's fix) still
+  stands; zero `BenefitCase` references anywhere. Four `AskUserQuestion` rounds, all Barış's
+  own choice (three of them the OPPOSITE of this session's own recommended option — a
+  narrower, more consolidated path than proposed): (1) **scope narrowed to `pps-8step-auto` +
+  template switching only** — `farplas-7step-plus`/`farplas-7step-en` filed as **P-62** (new;
+  none of D-149's four sessions ever touched them, D-95's "trivial" assumption stays
+  untested), `BenefitCase`/`Onay formu` filed via an update to P-18 — both explicitly outside
+  Faz 11 now, awaiting their own future scope session (D-95 itself not marked SUPERSEDED —
+  its claim about Phase 4 stays true, only "Phase 11"'s concrete content is now narrower than
+  it assumed); (2) the template registry mechanism is **not** its own early/independent
+  slice — bundled into L1 with the new template's static build; (3) the elastic-allocation
+  solver (D-158/159/160) + drag-handle (D-170) ship **static-first** — L1's first version
+  uses D-158's default row counts as a plain static constant (matching today's `budget.ts`
+  mechanism), the real solver deferred to its own later slice (L3), P-40 updated accordingly;
+  (4) P-43's still-owed visual sign-off (D2b's `placeZones.ts` fix, D-190) is **folded into
+  the new template's own first Block Visual Verification Loop round**, not resolved
+  separately beforehand — since `pps-8step-auto` will be the first template to actually
+  exercise `five-n1k`/`smart-target`'s zones in real production geometry, and its clean
+  12-column grid structurally cannot trigger D-189's gutter-column defect at all. Two points
+  decided directly (Anayasa Madde 9 — information already in hand): ADIM 1's problem-statement
+  panel needs **no new plugin** — D-162 (LOCKED) already settled it as an extension of
+  `gapStatement`'s `renderToA3` using D-102's already-existing zones/image mechanism (the
+  third application after `smartTarget`/`fiveN1K`); the header identity band's `Genel RAG`
+  field becomes a manual `red|amber|green` select on `ProjectMetaSchema` (D-153/D-165 already
+  reserved the amber, alongside Layer A's already-approved red/green), closing §13.4 item 7.
+  **Confirmed three-slice plan**: **L1** — `pps-8step-auto`'s full static build (page geometry
+  transcription, template registry, D-47/D-165 palette baked into the style table, header
+  identity band fields, `gapStatement`'s zone/image extension), closing with a BVVL
+  confirmation round against B2/B3's already-approved mockups (which, per D-190/§15.8, were
+  always drawn against this exact template's idealized canvas — making this primarily an
+  implementation-fidelity check, not a new design round) — this also closes P-43. Flagged as
+  the plan's largest slice, expected to possibly self-split (6a-6e/J3 precedent). **L2** —
+  template switching (`farplas-7step-tr` ↔ `pps-8step-auto`, preserve-every-entry +
+  appendix-overflow warning, SPEC's own literal done-condition), needs L1 done. **L3** — the
+  elastic solver + drag-handle, deferred, sequencing vs. L2 left to Barış. Full record: D-223.
+  L1's own launch prompt written: `docs/oturumlar/L1-pps-8step-auto.md`.
 Stack decision (Tauri vs Electron fallback): Tauri v2, revisit only if Phase 4 stalls
 App name: **PPS Hachi** (八 — eight). Repo `pps-hachi`. Set 2026-08-01, see DECISIONS.md D-29.
 AI layer: Faz 8 fully done (keychain + Vorion connection/model-discovery + streaming
@@ -1384,9 +1613,71 @@ AI layer: Faz 8 fully done (keychain + Vorion connection/model-discovery + strea
   2026-09-06)** — TR↔EN translation, both an unconditional field-level `EntryTranslateField`
   (in `EntryEditorDialog`, every method) and a whole-report mode fully self-contained in
   `RightPanel`'s new sixth "Translate" tab; `project.meta.language` itself is never touched by
-  an Accept (P-57 tracks the still-missing command to change it deliberately). Only K4 (cost
-  meter + `ai-log.jsonl` + spend cap) remains of Faz 10's four-slice plan — its own launch
-  prompt is now written (`docs/oturumlar/K4-maliyet-sayaci.md`), not yet started.
+  an Accept (P-57 tracks the still-missing command to change it deliberately). **K4 is now done
+  too (D-221, 2026-09-06) — Faz 10's own four-slice plan (K1/K2/K3/K4) is FULLY CLOSED.** Cost
+  meter + `ai-log.jsonl` sidecar + Settings spend cap, closed across two sessions: the first
+  built the plumbing/log-location/spend-cap architecture, the second confirmed the real Vorion
+  Response Schema field names (`input_tokens`/`output_tokens`, no direct `cost` field — a
+  chatbot-supplied `cost`/`total_cost` guess was deliberately rejected, the same
+  unreliable-self-report pattern D-199 already caught once) and, with Barış explicitly
+  delegating the design call, wired a hybrid cost-on-demand path: `List LLMs`'s real
+  `cost_per_*` fields are only ever read when a spend cap is actually configured, so the common
+  case pays zero extra network round trips. P-60/P-61 filed. SPEC.md §8.13 corrected (the log
+  is a sidecar, not literally inside the `.ppsx`). See D-221 for the full record.
+**Faz 11 kapsam belirleme DONE (D-223, 2026-09-06)** — three-slice plan confirmed: L1
+  (`pps-8step-auto`'s static geometry + template registry + block visual language, closes with
+  its own BVVL round), L2 (template switching), L3 (elastic solver + drag-handle, deferred).
+  `-plus`/`-en` filed as P-62, `BenefitCase` folded into P-18 — both out of Faz 11's scope.
+**Faz 11 — L1: CODE DONE (D-224, 2026-09-07), Barış's visual sign-off still owed.** Two
+  `AskUserQuestion` rounds, both resolved outside D-223's own proposal: no template-picker UI
+  at all (only Rev00/`pps-8step-auto`, per Barış's own direction) — instead a new language
+  (TR/EN) choice dialog in the new-project flow, replacing the old silent
+  derive-from-UI-language behavior; the header identity band's three new fields
+  (`priority`/`targetClosureDate`/`generalRag`) live in a new **permanent** "Project Info"
+  section in `SettingsScreen` (not a temporary debug one). A third question surfaced mid-build:
+  `gapStatement`'s `ideal`/`actual` are free text, not numbers, so §14.2's assumed "Current vs
+  Ideal" bar chart couldn't be built without violating D-162's schema freeze — Barış chose a
+  plain-language summary over fabricating numbers or loosening D-162.
+  **A real, previously-undocumented production defect was found and fixed while building
+  this**: D-159's ADIM 1 design needs `fiveN1K` (4 rows) and `gapStatement` (8 rows) to coexist
+  as two independent zoned entries in one block, but `place.ts`'s zones mechanism (D-102, since
+  Phase 5) had always assumed a zoned entry consumes the *whole* rest of its block — this
+  silently dropped whichever entry came second, in either order, and **already affected shipped
+  `farplas-7step-tr`** (any Step 1 project mixing `five-n1k` with another entry has been hitting
+  this since 2026-08-16, D-181). Fixed with a new `A3BlockContent.zonesRowSpan?: number` field
+  (omitted preserves the original full-block-consumption behavior exactly — `smartTarget`
+  untouched, byte-identical golden-file/`xlsxSurvival` proof); `fiveN1K`/`gapStatement` both set
+  it explicitly. Mutation-verified with a new permanent PROBE test
+  (`l1FiveN1kGapStatementCoexist.probe.test.ts`, both entry orders). A second small addition,
+  `A3TextLine.fillStyleId?: string`, lets `gapStatement`'s three Layer A bands and `fiveN1K`'s
+  six Layer B category chips use named template fill styles (D-165's own §14.1 note) — added to
+  *both* templates' style tables so `farplas-7step-tr` doesn't render these two methods
+  colorlessly.
+  `pps-8step-auto.ts` is fully built (§12.1–12.3/§12.8's static geometry, D-158's default row
+  counts, D-47 PDCA + D-165 Layer A/B colors, 8 blocks 1:1 to app-steps, Calibri, 8pt body text
+  at the template's real ~100% fit scale). Template registry (`getTemplateById`/
+  `DEFAULT_TEMPLATE_ID`) is this dilim's one real new mechanism — `a3Preview.ts` now actually
+  reads `project.templateId` (previously dead code, D-223's own finding); an unknown
+  `templateId` falls back to `farplas-7step-tr`. New projects default to `pps-8step-auto`
+  (D-157).
+  **Verified against a real, produced `.xlsx`, not just tests**: a representative project was
+  run through the real `buildA3Layout`/`write_a3_workbook` pipeline (temporary script + Rust
+  bin, both deleted after use, D-136's practice), the resulting file unzipped and its XML read
+  directly (D-97's method) — page size/margins/columns/rows/colors/images/provisional markers
+  all matched §12's contract exactly. Full evidence plus a real pt→px-scale ADIM 1 mockup
+  published as a Claude Artifact for Barış's review:
+  `https://claude.ai/code/artifact/5eb75eb2-2e0c-45ca-94f2-eee0d3e21a03`.
+  **New gap found and deliberately left unfixed this dilim — P-63**: `kpiStrip` always requests
+  1 title row + `CHART_ROW_SPAN=6` = 7 rows, but `pps-8step-auto`'s ADIM 7 canvas is exactly 6
+  rows — every `kpi-strip` entry unconditionally overflows to an appendix regardless of content,
+  defeating ADIM 7's own dedicated KPI visual. Left alone per D-223's own "don't touch already-
+  shipped plugins" boundary (`kpiStrip` is literally named in that list).
+  `npm test` 1433/1433 (295 files, exit code checked separately), `npm run lint`/`tsc --noEmit`/
+  `npm run build` all clean. `cargo test`/`clippy`/`fmt` all clean — Rust untouched this dilim
+  (TS-only end to end). `scripts/gen-a3-fixture.ts` regenerated, purely additive diff (108
+  lines, the nine new shared styles landing in `farplas-7step-tr`'s own style table).
+  Deliberately not built: L2 (template switching), L3 (elastic solver/drag-handle — this dilim
+  uses D-158's static row defaults), P-62/P-18 (untouched). Full record: D-224/P-63.
 Templates: two company .xls files analysed; see reference/TEMPLATE_ANALYSIS.md
 Template geometry: VERIFIED 2026-08-01 against both .xls files. Five errors found and
   corrected in place — the largest was the column widths: the real split is 49.7/50.3, NOT

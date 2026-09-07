@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 import { getVersion } from "@tauri-apps/api/app";
 import { open, save } from "@tauri-apps/plugin-dialog";
-import { Button } from "../../../ui";
+import { Button, DialogContent, DialogRoot } from "../../../ui";
 import { createProjectAtPath } from "./createProjectFlow";
 import { errorMessage } from "./errorMessage";
 import { openProjectAtPath } from "./openProjectFlow";
@@ -24,6 +24,14 @@ export function LaunchScreen() {
   const { entries, isLoading, error: recentError, refresh } = useRecentProjects();
   const [isBusy, setIsBusy] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
+  /**
+   * Faz 11/L1 (D-223, Barış's own answer — no template picker, only a
+   * language choice): before this dilim, `language` was silently derived
+   * from the active UI language (`i18n.language`) with no real user
+   * choice — this dialog is the first genuine "new project settings"
+   * surface. Holds the already-picked save path while the user chooses.
+   */
+  const [pendingProjectPath, setPendingProjectPath] = useState<string | null>(null);
 
   useEffect(() => {
     document.title = t("app.title");
@@ -57,11 +65,18 @@ export function LaunchScreen() {
     if (!path) {
       return;
     }
+    setPendingProjectPath(path);
+  }
 
+  async function handleConfirmLanguage(language: "tr" | "en") {
+    const path = pendingProjectPath;
+    if (!path) {
+      return;
+    }
+    setPendingProjectPath(null);
     setIsBusy(true);
     try {
       const appVersion = await getVersion();
-      const language = i18n.language === "tr" ? "tr" : "en";
       const outcome = await createProjectAtPath(path, { title: titleFromPath(path), language, appVersion });
       navigate("/project", { state: { kind: "opened", ...outcome, readOnly: false } });
     } catch (error) {
@@ -129,6 +144,34 @@ export function LaunchScreen() {
           </div>
         )}
       </section>
+
+      <DialogRoot
+        open={pendingProjectPath !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setPendingProjectPath(null);
+          }
+        }}
+      >
+        <DialogContent title={t("launch.chooseLanguage.title")} description={t("launch.chooseLanguage.description")}>
+          <div className="flex gap-3">
+            <Button
+              className="flex-1"
+              variant={i18n.language === "tr" ? "primary" : "secondary"}
+              onClick={() => void handleConfirmLanguage("tr")}
+            >
+              {t("launch.chooseLanguage.turkish")}
+            </Button>
+            <Button
+              className="flex-1"
+              variant={i18n.language === "tr" ? "secondary" : "primary"}
+              onClick={() => void handleConfirmLanguage("en")}
+            >
+              {t("launch.chooseLanguage.english")}
+            </Button>
+          </div>
+        </DialogContent>
+      </DialogRoot>
     </main>
   );
 }

@@ -80,6 +80,8 @@ export interface ProposeEntryTranslationParams {
   /** `z.object({ title: z.string(), payload: plugin.schema })`, built by the caller — this file never imports the method registry. */
   readonly zodSchema: ZodType<unknown>;
   readonly redaction: ResolvedRedactionPolicy;
+  readonly projectId: string;
+  readonly promptVersion: string | null;
 }
 
 /**
@@ -119,6 +121,8 @@ export async function proposeEntryTranslation(
     params.modelId,
     params.zodSchema,
     params.redaction,
+    params.projectId,
+    params.promptVersion,
   );
 
   if (!first.success) {
@@ -189,6 +193,8 @@ async function retryEntryTranslation(
     params.modelId,
     params.zodSchema,
     params.redaction,
+    params.projectId,
+    params.promptVersion,
   );
   if (!second.success) {
     return { outcome: "failed", rawText: second.rawText };
@@ -338,6 +344,8 @@ export interface ProposeWholeReportTranslationParams {
   readonly modelId: string;
   readonly redaction: ResolvedRedactionPolicy;
   readonly lookup: ReadonlyMap<string, EntryLookupEntry>;
+  readonly projectId: string;
+  readonly promptVersion: string | null;
 }
 
 /**
@@ -359,6 +367,8 @@ export async function proposeWholeReportTranslation(
     params.modelId,
     WholeReportTranslationDiffSchema,
     params.redaction,
+    params.projectId,
+    params.promptVersion,
   );
 
   if (!first.success) {
@@ -421,6 +431,8 @@ async function retryWholeReportTranslation(
     params.modelId,
     WholeReportTranslationDiffSchema,
     params.redaction,
+    params.projectId,
+    params.promptVersion,
   );
 
   if (!second.success) {

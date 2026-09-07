@@ -214,6 +214,114 @@
       "wrapText": true
     },
     {
+      "id": "bandPositive",
+      "font": {
+        "name": "Tahoma",
+        "sizePt": 14,
+        "color": "FF000000"
+      },
+      "fillColor": "FF8FBF4F",
+      "horizontalAlign": "left",
+      "verticalAlign": "center",
+      "wrapText": true
+    },
+    {
+      "id": "bandCaution",
+      "font": {
+        "name": "Tahoma",
+        "sizePt": 14,
+        "color": "FF000000"
+      },
+      "fillColor": "FF4A90D9",
+      "horizontalAlign": "left",
+      "verticalAlign": "center",
+      "wrapText": true
+    },
+    {
+      "id": "bandNegative",
+      "font": {
+        "name": "Tahoma",
+        "sizePt": 14,
+        "color": "FF000000"
+      },
+      "fillColor": "FFE0342A",
+      "horizontalAlign": "left",
+      "verticalAlign": "center",
+      "wrapText": true
+    },
+    {
+      "id": "fiveN1kNe",
+      "font": {
+        "name": "Tahoma",
+        "sizePt": 14,
+        "color": "FFFFFFFF"
+      },
+      "fillColor": "FFC68A2E",
+      "horizontalAlign": "left",
+      "verticalAlign": "center",
+      "wrapText": true
+    },
+    {
+      "id": "fiveN1kNeden",
+      "font": {
+        "name": "Tahoma",
+        "sizePt": 14,
+        "color": "FFFFFFFF"
+      },
+      "fillColor": "FF5F4470",
+      "horizontalAlign": "left",
+      "verticalAlign": "center",
+      "wrapText": true
+    },
+    {
+      "id": "fiveN1kNasil",
+      "font": {
+        "name": "Tahoma",
+        "sizePt": 14,
+        "color": "FFFFFFFF"
+      },
+      "fillColor": "FF2F7A6E",
+      "horizontalAlign": "left",
+      "verticalAlign": "center",
+      "wrapText": true
+    },
+    {
+      "id": "fiveN1kKim",
+      "font": {
+        "name": "Tahoma",
+        "sizePt": 14,
+        "color": "FFFFFFFF"
+      },
+      "fillColor": "FF8B3A5C",
+      "horizontalAlign": "left",
+      "verticalAlign": "center",
+      "wrapText": true
+    },
+    {
+      "id": "fiveN1kNeZaman",
+      "font": {
+        "name": "Tahoma",
+        "sizePt": 14,
+        "color": "FFFFFFFF"
+      },
+      "fillColor": "FF8A5A3B",
+      "horizontalAlign": "left",
+      "verticalAlign": "center",
+      "wrapText": true
+    },
+    {
+      "id": "fiveN1kNerede",
+      "font": {
+        "name": "Tahoma",
+        "sizePt": 14,
+        "color": "FFFFFFFF"
+      },
+      "fillColor": "FF556677",
+      "horizontalAlign": "left",
+      "verticalAlign": "center",
+      "wrapText": true
+    },
+    {
       "id": "footerLabel",
       "font": {
         "name": "Tahoma",

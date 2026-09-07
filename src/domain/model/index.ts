@@ -31,7 +31,10 @@ export {
   type SignOffEntry,
   type SignOffState,
   type AiMeta,
+  type ProjectInfoFields,
+  type GeneralRag,
   type RedactionMode,
   type RedactionPolicy,
 } from "./projectModel";
 export { createNewProject, type CreateProjectParams, type NewProject } from "./createProject";
+export { PROJECT_PRIORITY_OPTIONS, type ProjectPriorityOption } from "./projectPriority";

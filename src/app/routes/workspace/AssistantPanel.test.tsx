@@ -26,7 +26,10 @@ function seedProject(aiOverrides: Partial<AiMeta> = {}): ProjectModel {
       ai: { enabled: true, providerId: "vorion", modelId: "openai/gpt-4o", redaction: {}, ...aiOverrides },
     },
   };
-  useProjectStore.setState({ ...initialStoreState, project: withAi });
+  // W1/D-218: `activeStepId` now starts `null` (the landing view) — these
+  // tests exercise Accept, which needs a real active step, so seed one
+  // explicitly rather than relying on a default that no longer holds.
+  useProjectStore.setState({ ...initialStoreState, project: withAi, activeStepId: 1 });
   return withAi;
 }
 

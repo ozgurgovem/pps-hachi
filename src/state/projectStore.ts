@@ -48,7 +48,8 @@ export interface ProjectStoreState {
   otherEntries: ArchiveEntryPayload[];
   diskModifiedMs: number | null;
   readOnly: boolean;
-  activeStepId: StepId;
+  /** D-100/W1: `null` = the landing/overview view — no step auto-selected on open. */
+  activeStepId: StepId | null;
 
   revision: number;
   lastSavedRevision: number;
@@ -65,7 +66,7 @@ export interface ProjectStoreState {
   historySnapshots: string[];
 
   loadProject: (outcome: LoadableProjectOutcome) => void;
-  setActiveStep: (stepId: StepId) => void;
+  setActiveStep: (stepId: StepId | null) => void;
   dispatch: (command: Command) => void;
   dispatchCoalescedUpdate: (command: EntryUpdateCommand, coalesceKey: string) => void;
   sealTextEditCoalescing: () => void;
@@ -92,7 +93,7 @@ export const useProjectStore = create<ProjectStoreState>()((set, get) => ({
   otherEntries: [],
   diskModifiedMs: null,
   readOnly: false,
-  activeStepId: 1,
+  activeStepId: null,
 
   revision: 0,
   lastSavedRevision: 0,
@@ -116,7 +117,7 @@ export const useProjectStore = create<ProjectStoreState>()((set, get) => ({
       otherEntries: outcome.otherEntries,
       diskModifiedMs: outcome.modifiedMs,
       readOnly: outcome.readOnly,
-      activeStepId: 1,
+      activeStepId: null,
       revision: 0,
       lastSavedRevision: 0,
       isSaveInFlight: false,

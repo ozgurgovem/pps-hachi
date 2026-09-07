@@ -246,6 +246,75 @@ describe("placeBlockContent — zones content (D-102)", () => {
     expect(result.placedEntryIds).toEqual(["entry-1"]);
     expect(result.droppedEntryIds).toEqual(["entry-2"]);
   });
+
+  it("D-224: places a second zoned entry after the first when the first declares an explicit zonesRowSpan", () => {
+    // Faz 11/L1: pps-8step-auto's ADIM 1 hosts `fiveN1K` (zonesRowSpan 4)
+    // then `gapStatement` (zonesRowSpan 8) as two independent entries in one
+    // 12-row block — before this fix, any zoned entry silently consumed the
+    // whole rest of the block (`row = lastRow + 1` unconditionally), which
+    // would have dropped whichever of the two came second, in either order.
+    const rendererMap: A3EntryRendererMap = {
+      "five-n1k": () => ({
+        lines: [],
+        zonesRowSpan: 4,
+        zones: [{ widthFraction: 1, lines: [{ text: "NE?" }] }],
+      }),
+      "gap-statement": () => ({
+        lines: [],
+        zonesRowSpan: 8,
+        zones: [{ widthFraction: 1, lines: [{ text: "1.2 Gap Analizi" }] }],
+      }),
+    };
+    const block = fixtureBlock({ contentRows: { start: 8, end: 19 } }); // 12 rows
+    const result = placeBlockContent(
+      [
+        fixtureEntry({ id: "entry-1", methodId: "five-n1k" }),
+        fixtureEntry({ id: "entry-2", methodId: "gap-statement" }),
+      ],
+      block,
+      contentRows(8, 19, 13),
+      columnWidths,
+      rendererMap,
+      "en",
+    );
+
+    expect(result.droppedEntryIds).toEqual([]);
+    expect(result.placedEntryIds).toEqual(["entry-1", "entry-2"]);
+    expect(result.cells).toEqual([
+      { ref: "B8", value: "NE?", styleId: "entryContent" },
+      { ref: "B12", value: "1.2 Gap Analizi", styleId: "entryContent" },
+    ]);
+  });
+
+  it("D-224: still drops a second zoned entry that doesn't fit after an explicit zonesRowSpan leaves too little room", () => {
+    const rendererMap: A3EntryRendererMap = {
+      "five-n1k": () => ({
+        lines: [],
+        zonesRowSpan: 12,
+        zones: [{ widthFraction: 1, lines: [{ text: "NE?" }] }],
+      }),
+      "gap-statement": () => ({
+        lines: [],
+        zonesRowSpan: 8,
+        zones: [{ widthFraction: 1, lines: [{ text: "1.2 Gap Analizi" }] }],
+      }),
+    };
+    const block = fixtureBlock({ contentRows: { start: 8, end: 19 } }); // 12 rows total, only 2 left after the first
+    const result = placeBlockContent(
+      [
+        fixtureEntry({ id: "entry-1", methodId: "five-n1k" }),
+        fixtureEntry({ id: "entry-2", methodId: "gap-statement" }),
+      ],
+      block,
+      contentRows(8, 19, 13),
+      columnWidths,
+      rendererMap,
+      "en",
+    );
+
+    expect(result.placedEntryIds).toEqual(["entry-1"]);
+    expect(result.droppedEntryIds).toEqual(["entry-2"]);
+  });
 });
 
 describe("placeBlockContent — tone-reinforced status lines (P-37)", () => {

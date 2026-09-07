@@ -264,6 +264,92 @@ const TR_STYLES: readonly CellStyle[] = [
     verticalAlign: "top",
     wrapText: true,
   },
+  /**
+   * D-224 (Faz 11/L1): Layer A goal-state *fill* styles (§14.1) — light
+   * green/blue/red fills with black text (the same D-165 v2 hex values
+   * `entryContentPositive`/etc already use for font-only reinforcement),
+   * used by `gapStatement`'s Problem Statement bands via `fillStyleId`.
+   * Added here too (not just `pps-8step-auto.ts`) so a project still on this
+   * legacy-compatibility template renders the same bands, not a colourless
+   * fallback.
+   */
+  {
+    id: "bandPositive",
+    font: { name: FONT_FAMILY, sizePt: 14, color: BLACK },
+    fillColor: "FF8FBF4F",
+    horizontalAlign: "left",
+    verticalAlign: "center",
+    wrapText: true,
+  },
+  {
+    id: "bandCaution",
+    font: { name: FONT_FAMILY, sizePt: 14, color: BLACK },
+    fillColor: "FF4A90D9",
+    horizontalAlign: "left",
+    verticalAlign: "center",
+    wrapText: true,
+  },
+  {
+    id: "bandNegative",
+    font: { name: FONT_FAMILY, sizePt: 14, color: BLACK },
+    fillColor: "FFE0342A",
+    horizontalAlign: "left",
+    verticalAlign: "center",
+    wrapText: true,
+  },
+  /**
+   * D-224: Layer B 5N1K category chip fills (§14.1), six colours, white text
+   * (kept dark enough to carry contrast per §14.1's own note). Used by
+   * `fiveN1K`'s six question labels via `fillStyleId`.
+   */
+  {
+    id: "fiveN1kNe",
+    font: { name: FONT_FAMILY, sizePt: 14, color: WHITE },
+    fillColor: "FFC68A2E",
+    horizontalAlign: "left",
+    verticalAlign: "center",
+    wrapText: true,
+  },
+  {
+    id: "fiveN1kNeden",
+    font: { name: FONT_FAMILY, sizePt: 14, color: WHITE },
+    fillColor: "FF5F4470",
+    horizontalAlign: "left",
+    verticalAlign: "center",
+    wrapText: true,
+  },
+  {
+    id: "fiveN1kNasil",
+    font: { name: FONT_FAMILY, sizePt: 14, color: WHITE },
+    fillColor: "FF2F7A6E",
+    horizontalAlign: "left",
+    verticalAlign: "center",
+    wrapText: true,
+  },
+  {
+    id: "fiveN1kKim",
+    font: { name: FONT_FAMILY, sizePt: 14, color: WHITE },
+    fillColor: "FF8B3A5C",
+    horizontalAlign: "left",
+    verticalAlign: "center",
+    wrapText: true,
+  },
+  {
+    id: "fiveN1kNeZaman",
+    font: { name: FONT_FAMILY, sizePt: 14, color: WHITE },
+    fillColor: "FF8A5A3B",
+    horizontalAlign: "left",
+    verticalAlign: "center",
+    wrapText: true,
+  },
+  {
+    id: "fiveN1kNerede",
+    font: { name: FONT_FAMILY, sizePt: 14, color: WHITE },
+    fillColor: "FF556677",
+    horizontalAlign: "left",
+    verticalAlign: "center",
+    wrapText: true,
+  },
   {
     id: "footerLabel",
     font: { name: FONT_FAMILY, sizePt: 14, bold: true },

@@ -121,6 +121,8 @@ describe("proposeStructuredEntry", () => {
       modelId: "vorion/gpt-4o",
       zodSchema: TestSchema,
       redaction: OFF,
+      projectId: "proj-1",
+      promptVersion: null,
     });
 
     expect(result).toEqual({ outcome: "success", value: { unit: "count", count: 5 } });
@@ -138,6 +140,8 @@ describe("proposeStructuredEntry", () => {
       modelId: "vorion/gpt-4o",
       zodSchema: TestSchema,
       redaction,
+      projectId: "proj-1",
+      promptVersion: null,
     });
 
     expect(mockCompleteStructured.mock.calls[0]?.[3]).toEqual(redaction);
@@ -154,6 +158,8 @@ describe("proposeStructuredEntry", () => {
       modelId: "vorion/gpt-4o",
       zodSchema: TestSchema,
       redaction: OFF,
+      projectId: "proj-1",
+      promptVersion: null,
     });
 
     expect(result).toEqual({ outcome: "success", value: { unit: "count", count: 5 } });
@@ -172,6 +178,8 @@ describe("proposeStructuredEntry", () => {
       modelId: "vorion/gpt-4o",
       zodSchema: TestSchema,
       redaction: OFF,
+      projectId: "proj-1",
+      promptVersion: null,
     });
 
     expect(result.outcome).toBe("failed");
@@ -191,6 +199,8 @@ describe("proposeStructuredEntry", () => {
       modelId: "vorion/gpt-4o",
       zodSchema: TestSchema,
       redaction: OFF,
+      projectId: "proj-1",
+      promptVersion: null,
     });
 
     expect(result).toEqual({ outcome: "success", value: { unit: "count", count: 5 } });
@@ -207,6 +217,8 @@ describe("proposeStructuredEntry", () => {
       modelId: "vorion/gpt-4o",
       zodSchema: TestSchema,
       redaction: OFF,
+      projectId: "proj-1",
+      promptVersion: null,
     });
 
     expect(result).toEqual({ outcome: "failed", rawText: "still not json" });
@@ -221,6 +233,8 @@ describe("proposeStructuredEntry", () => {
       modelId: "vorion/gpt-4o",
       zodSchema: TestSchema,
       redaction: OFF,
+      projectId: "proj-1",
+      promptVersion: null,
     });
 
     const schemaArg = mockCompleteStructured.mock.calls[0]?.[1] as Record<string, unknown>;

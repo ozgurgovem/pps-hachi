@@ -26,6 +26,15 @@ pub enum AiError {
     #[error("request error: {0}")]
     Http(#[from] reqwest::Error),
 
+    /// Faz 10/K4: `ai::usage`'s log sidecar and monthly-usage accumulator are
+    /// plain filesystem I/O (no `.ppsx`-grade hardening needed — this is an
+    /// audit trail, not project data; D-74's own "sidecar" posture). Only
+    /// `append_log_entry`'s write path ever constructs this — every *read*
+    /// degrades to an empty/default value on any I/O failure, the same
+    /// posture `ai::settings::read_settings` already established.
+    #[error("io error: {0}")]
+    Io(#[from] std::io::Error),
+
     /// D-201: a Vorion-reported failure mid-stream (its own documented
     /// `error` field on a chunk, e.g. `context_length_exceeded`) or a
     /// non-success HTTP status opening the stream — distinct from `Http`,
@@ -54,4 +63,20 @@ pub enum AiError {
     /// belongs in the TS layer, not baked into the error message itself.
     #[error("{0}")]
     StructuredOutputNotJson(String),
+
+    /// Faz 10/K4: `ai::usage`'s per-project log sidecar addresses itself by
+    /// the same untrusted `project_id` `ppsx::history` already guards against
+    /// (D-91/D-92) — this is the one variant `ai::usage` constructs when that
+    /// check fails, mirroring `PpsxError::UnsafeEntryName` one crate module
+    /// over rather than reaching across module boundaries for it.
+    #[error("unsafe project id '{0}' — rejected as a log path component")]
+    UnsafeEntryName(String),
+
+    /// Faz 10/K4/§2.4: `ai_complete_structured` checks this *before* ever
+    /// calling Vorion — SPEC.md §8.12's "hitting it degrades to offline mode
+    /// rather than erroring" is honoured by rejecting only *this* call with a
+    /// plain, actionable error (never touching `meta.ai.enabled`); the user
+    /// raises the cap in Settings or waits for the next month to continue.
+    #[error("monthly AI spend cap of ${limit_usd:.2} reached (${spent_usd:.2} spent this month)")]
+    SpendCapExceeded { limit_usd: f64, spent_usd: f64 },
 }

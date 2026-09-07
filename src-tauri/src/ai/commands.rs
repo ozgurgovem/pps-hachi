@@ -4,11 +4,12 @@ use tauri::{AppHandle, Manager};
 use super::error::AiError;
 use super::keychain::{masked_preview, KeyringSecretStore, SecretStore};
 use super::provider::{
-    CancelResult, Capabilities, CompletionMeta, CompletionRequest, ConnectionStatus, LlmProvider,
-    ModelInfo, StreamEvent, StructuredRequest,
+    CancelResult, Capabilities, CompletionMeta, CompletionRequest, CompletionUsage,
+    ConnectionStatus, LlmProvider, ModelInfo, StreamEvent, StructuredRequest,
 };
 use super::redaction::RedactionPolicy;
 use super::settings::{self, AiSettings};
+use super::usage::{self, AiLogEntry, CostSummary};
 use super::vorion::VorionProvider;
 
 const AI_SETTINGS_FILE_NAME: &str = "ai-settings.json";
@@ -130,26 +131,140 @@ pub async fn ai_cancel(
 /// `prompt`/`model_id`) — no channel, since there is nothing to stream. Like
 /// every command in this file, never touches `ProjectModel` itself; only the
 /// frontend's explicit Accept can do that (D-15).
+///
+/// Faz 10/K4/§2.1/§2.4: `project_id`/`prompt_version` are new — Rust has no
+/// ambient notion of "the currently open project," so per-project log
+/// attribution can only cross the IPC boundary as an explicit argument (the
+/// one real, unavoidable consequence of Barış's chosen plumbing, §2.1 of
+/// `K4-maliyet-sayaci.md`). The *return* type stays exactly
+/// `Result<serde_json::Value, String>` — every one of K1/K2/K3's
+/// `attemptStructuredProposal`-based call chains is untouched by this.
+/// Before calling Vorion at all, checks the global per-month spend cap
+/// (`ai::settings::AiSettings::spend_cap_usd`) against the accumulated total
+/// (`ai::usage`) and rejects with `AiError::SpendCapExceeded` if it is
+/// already met — SPEC.md §8.12's "degrades to offline mode rather than
+/// erroring" means *this one call* is refused, `meta.ai.enabled` is never
+/// touched. The real Synchronous Prediction response has no cost field of
+/// its own (`vorion::completion_usage_from_response`'s own doc comment,
+/// confirmed against the real Response Schema table, 2026-09-06) — a dollar
+/// figure is only ever computed, via `VorionProvider::estimate_cost_usd`
+/// reading `List LLMs`' real per-token pricing, when a spend cap is actually
+/// configured; the common case (no cap set) pays no extra round trip. After
+/// a successful call, appends one `AiLogEntry` to this project's own log
+/// sidecar and updates the global monthly accumulator, both best-effort (a
+/// logging failure is reported to stderr, never turned into a lost,
+/// otherwise-successful AI response — SPEC.md §8.14's "none of these may
+/// lose user data" applies to the log's own reliability too).
 #[tauri::command]
 pub async fn ai_complete_structured(
+    app: AppHandle,
     prompt: String,
     schema: serde_json::Value,
     model_id: String,
     redaction: Option<RedactionPolicy>,
+    project_id: String,
+    prompt_version: Option<String>,
 ) -> Result<serde_json::Value, String> {
     let api_key = KeyringSecretStore
         .get()
         .map_err(|e| e.to_string())?
         .ok_or_else(|| AiError::NoKeyConfigured.to_string())?;
-    VorionProvider::new(api_key)
+
+    let app_local_data_dir = app.path().app_local_data_dir().map_err(|e| e.to_string())?;
+    let settings = settings::read_settings(&ai_settings_path(&app)?);
+    let usage_before = usage::read_usage(&app_local_data_dir);
+    let month_key = usage::current_month_key(chrono::Utc::now());
+    let spent_this_month = usage::month_total(&usage_before, &month_key).cost_usd;
+
+    if let Some(cap) = settings.spend_cap_usd {
+        if spent_this_month >= cap {
+            return Err(AiError::SpendCapExceeded {
+                limit_usd: cap,
+                spent_usd: spent_this_month,
+            }
+            .to_string());
+        }
+    }
+
+    let provider = VorionProvider::new(api_key);
+    let result = provider
         .complete_structured(StructuredRequest {
             prompt,
             schema,
-            model_id,
+            model_id: model_id.clone(),
             redaction,
         })
         .await
-        .map_err(|e| e.to_string())
+        .map_err(|e| e.to_string())?;
+
+    // §2.4: the real Synchronous Prediction response carries no cost field
+    // (`result.usage.cost_usd` is always `None` here, see `vorion::
+    // completion_usage_from_response`'s own doc comment) — a dollar figure
+    // only gets computed when a spend cap is actually configured, so the
+    // common case (no cap set) never pays the extra `List LLMs` round trip
+    // `estimate_cost_usd` would otherwise cost on every single completion.
+    let usage = if settings.spend_cap_usd.is_some() {
+        match provider.estimate_cost_usd(&model_id, &result.usage).await {
+            Ok(Some(cost_usd)) => CompletionUsage {
+                cost_usd: Some(cost_usd),
+                ..result.usage
+            },
+            Ok(None) => result.usage,
+            Err(err) => {
+                eprintln!(
+                    "ai-log: failed to estimate cost from model pricing for project {project_id}: {err}"
+                );
+                result.usage
+            }
+        }
+    } else {
+        result.usage
+    };
+
+    let entry = AiLogEntry::new(
+        "vorion",
+        model_id,
+        prompt_version,
+        usage,
+        chrono::Utc::now(),
+    );
+    if let Err(err) = usage::append_log_entry(&app_local_data_dir, &project_id, &entry) {
+        eprintln!("ai-log: failed to append log entry for project {project_id}: {err}");
+    }
+    let updated_usage = usage::record_usage(&usage_before, &month_key, usage);
+    if let Err(err) = usage::write_usage(&app_local_data_dir, &updated_usage) {
+        eprintln!("ai-log: failed to persist monthly usage totals: {err}");
+    }
+
+    Ok(result.value)
+}
+
+/// Faz 10/K4/§2.5: what Settings' permanent cost-summary display reads —
+/// this project's own running total (from its `ai-log.jsonl` sidecar) and
+/// the global current-calendar-month total (spanning every project), plus
+/// the configured spend cap and whether it is already met. Both totals cover
+/// `complete_structured` traffic only (P-53) — `ai_complete`'s free-form
+/// streaming chat carries no token counts at all (D-201) and is structurally
+/// outside either total; the frontend is responsible for saying so visibly
+/// rather than leaving the omission silent.
+#[tauri::command]
+pub fn ai_get_cost_summary(app: AppHandle, project_id: String) -> Result<CostSummary, String> {
+    let app_local_data_dir = app.path().app_local_data_dir().map_err(|e| e.to_string())?;
+    let settings = settings::read_settings(&ai_settings_path(&app)?);
+    let project = usage::read_project_totals(&app_local_data_dir, &project_id);
+    let global_usage = usage::read_usage(&app_local_data_dir);
+    let month_key = usage::current_month_key(chrono::Utc::now());
+    let current_month = usage::month_total(&global_usage, &month_key);
+    let cap_exceeded = settings
+        .spend_cap_usd
+        .is_some_and(|cap| current_month.cost_usd >= cap);
+
+    Ok(CostSummary {
+        project,
+        current_month,
+        spend_cap_usd: settings.spend_cap_usd,
+        cap_exceeded,
+    })
 }
 
 /// J1/SPEC.md §8.2: exposes `LlmProvider::capabilities` the same way
@@ -266,6 +381,7 @@ mod tests {
             enabled: true,
             default_model_id: Some("openai/gpt-4o".to_string()),
             fast_model_id: None,
+            spend_cap_usd: None,
         };
 
         settings::write_settings(&path, &settings).unwrap();

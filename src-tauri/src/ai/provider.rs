@@ -119,6 +119,39 @@ pub struct StructuredRequest {
     pub redaction: Option<RedactionPolicy>,
 }
 
+/// Faz 10/K4/§2.1: what `complete_structured` learns about a completed
+/// Synchronous Prediction call beyond the parsed JSON value itself — read
+/// inside `VorionProvider::complete_structured` (the one place that still
+/// holds the raw Vorion response) and used *only* by `ai::commands::
+/// ai_complete_structured` to write `ai::usage`'s log/spend-cap bookkeeping.
+/// Deliberately never crosses the Tauri IPC boundary — the chosen plumbing
+/// (Barış, §2.1 of `K4-maliyet-sayaci.md`) keeps every one of K1/K2/K3's
+/// `attemptStructuredProposal`-based call chains completely untouched; only
+/// this trait's *Rust-internal* signature changes, not what TS ever sees.
+/// All three fields are `Option` rather than a hard requirement: a
+/// documented-but-occasionally-absent field degrades to "not recorded" in
+/// the log rather than failing the whole completion.
+#[derive(Debug, Clone, Copy, PartialEq, Default)]
+pub struct CompletionUsage {
+    pub input_tokens: Option<u64>,
+    pub output_tokens: Option<u64>,
+    /// A directly Vorion-reported cost for this one call, when the response
+    /// carries one — preferred over computing `tokens × per-token price`
+    /// from a separately-fetched model list, which would need its own
+    /// network round trip and staleness handling this dilim's budget didn't
+    /// call for.
+    pub cost_usd: Option<f64>,
+}
+
+/// `complete_structured`'s real return value — `value` is exactly what every
+/// existing caller already gets today; `usage` is new and Rust-only (see
+/// `CompletionUsage`'s own doc comment).
+#[derive(Debug, Clone, PartialEq)]
+pub struct StructuredCompletionResult {
+    pub value: serde_json::Value,
+    pub usage: CompletionUsage,
+}
+
 /// SPEC.md §8.2's own draft field list (`vision`, `pdf_native`, `caching`,
 /// `max_context`, `cost_per_mtok`) is kept out until something actually
 /// reads it — this crate's own `AiError` doc comment already states the
@@ -165,15 +198,17 @@ pub trait LlmProvider {
     ) -> Result<CancelResult, AiError>;
 
     /// J1/SPEC.md §8.7: a schema-bound draft, not a stream. Returns the raw
-    /// `serde_json::Value` the model produced — validating it against the
-    /// method's real Zod schema (and retrying once on failure) is the
-    /// caller's job, not this trait's; this layer's only failure mode is
-    /// "the model's response wasn't even parseable as JSON" (`AiError::
-    /// StructuredOutputNotJson`).
+    /// `serde_json::Value` the model produced (`result.value`) — validating
+    /// it against the method's real Zod schema (and retrying once on
+    /// failure) is the caller's job, not this trait's; this layer's only
+    /// failure mode is "the model's response wasn't even parseable as JSON"
+    /// (`AiError::StructuredOutputNotJson`). Faz 10/K4: also carries
+    /// `result.usage` (`CompletionUsage`) — see that type's own doc comment
+    /// for why this is a Rust-internal addition, not a TS-facing one.
     async fn complete_structured(
         &self,
         req: StructuredRequest,
-    ) -> Result<serde_json::Value, AiError>;
+    ) -> Result<StructuredCompletionResult, AiError>;
 
     /// See `Capabilities`'s own doc comment for why this is one field, not
     /// SPEC.md §8.2's full draft list.

@@ -260,6 +260,7 @@ export function EntryEditorDialog({ stepId, plugin, mode, open, onOpenChange }: 
               promptVersion={plugin.aiProposal.promptVersion}
               modelId={project.meta.ai.modelId}
               acceptedBy={project.meta.owner.name}
+              projectId={project.id}
               redaction={resolveRedactionPolicy(project.meta.ai.redaction)}
               onAccept={handleAcceptProposal}
             />
@@ -276,6 +277,7 @@ export function EntryEditorDialog({ stepId, plugin, mode, open, onOpenChange }: 
               sourceLanguage={project.meta.language}
               modelId={project.meta.ai.modelId}
               acceptedBy={project.meta.owner.name}
+              projectId={project.id}
               redaction={resolveRedactionPolicy(project.meta.ai.redaction)}
               onAccept={handleAcceptTranslation}
             />

@@ -3,14 +3,18 @@ import {
   CommandPreconditionError,
   type Command,
   type MetaAiSetCommand,
+  type MetaProjectInfoSetCommand,
   type RoundsSetCommand,
   type SignOffSetCommand,
 } from "./types";
 
 /** Every command this function handles carries a `stepId` — the project-scoped ones are routed to `applyToProject` instead. */
-type StepScopedCommand = Exclude<Command, RoundsSetCommand | SignOffSetCommand | MetaAiSetCommand>;
+type StepScopedCommand = Exclude<
+  Command,
+  RoundsSetCommand | SignOffSetCommand | MetaAiSetCommand | MetaProjectInfoSetCommand
+>;
 
-type ProjectScopedCommand = RoundsSetCommand | SignOffSetCommand | MetaAiSetCommand;
+type ProjectScopedCommand = RoundsSetCommand | SignOffSetCommand | MetaAiSetCommand | MetaProjectInfoSetCommand;
 
 /** D-71: array position is authoritative; every mutation ends by re-sequencing `order` to match it. */
 function resequence(entries: Entry[]): Entry[] {
@@ -100,6 +104,8 @@ function applyToProject(project: ProjectModel, command: ProjectScopedCommand): P
       return { ...project, signOff: command.after };
     case "meta.ai.set":
       return { ...project, meta: { ...project.meta, ai: command.after } };
+    case "meta.projectInfo.set":
+      return { ...project, meta: { ...project.meta, ...command.after } };
   }
 }
 
@@ -110,7 +116,12 @@ function applyToProject(project: ProjectModel, command: ProjectScopedCommand): P
  * a mutation the dispatcher never saw.
  */
 export function applyCommand(project: ProjectModel, command: Command): ProjectModel {
-  if (command.type === "rounds.set" || command.type === "signOff.set" || command.type === "meta.ai.set") {
+  if (
+    command.type === "rounds.set" ||
+    command.type === "signOff.set" ||
+    command.type === "meta.ai.set" ||
+    command.type === "meta.projectInfo.set"
+  ) {
     return applyToProject(project, command);
   }
   const step = project.steps[command.stepId];

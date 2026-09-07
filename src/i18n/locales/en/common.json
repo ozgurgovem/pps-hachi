@@ -7,6 +7,12 @@
     "openProject": "Open Existing Project",
     "newProjectDialogTitle": "Save new project as",
     "openProjectDialogTitle": "Open PPS Hachi project",
+    "chooseLanguage": {
+      "title": "Project language",
+      "description": "Which language should this project be kept in? This can't be changed later.",
+      "turkish": "Turkish",
+      "english": "English"
+    },
     "recent": {
       "title": "Recent projects",
       "loading": "Loading recent projects…",
@@ -37,37 +43,54 @@
     "redo": "Redo",
     "stepNavLabel": "Step navigation",
     "stepAriaLabel": "Step {{step}}: {{name}}",
+    "stepNumberLabel": "Step-{{step}}",
     "steps": {
       "1": {
-        "name": "Clarify the Problem"
+        "name": "Clarify the Problem",
+        "cardPurpose": "State the gap between the standard and what's actually happening, in a number, a unit and a baseline period — not an opinion.",
+        "cardHowTo": "Start with a gap statement: what should be happening, what actually is, and by how much."
       },
       "2": {
-        "name": "Break Down the Problem"
+        "name": "Break Down the Problem",
+        "cardPurpose": "Narrow the problem to one specific slice — one machine, one shift, one failure mode — before asking why.",
+        "cardHowTo": "Add a Pareto, trend, check sheet or stratification entry backed by real data."
       },
       "3": {
-        "name": "Set a Target"
+        "name": "Set a Target",
+        "cardPurpose": "Commit to a measurable target before searching for causes — the step most often skipped in practice.",
+        "cardHowTo": "Add a SMART target: metric, baseline, target value, unit and due date."
       },
       "4": {
-        "name": "Root Cause Analysis"
+        "name": "Root Cause Analysis",
+        "cardPurpose": "Ask why, repeatedly, until you reach a systemic, changeable factor — never a person to blame.",
+        "cardHowTo": "Build a Fishbone or 5-Why chain from the point of cause Step 2 found, and verify the result."
       },
       "5": {
-        "name": "Develop Countermeasures"
+        "name": "Develop Countermeasures",
+        "cardPurpose": "Choose what to change and defend why it beats the alternatives — every countermeasure traces back to a verified root cause.",
+        "cardHowTo": "Add a countermeasure linked to a Step 4 root cause, ranked in the error-proofing hierarchy."
       },
       "6": {
-        "name": "Implement"
+        "name": "Implement",
+        "cardPurpose": "Turn countermeasures into concrete actions with a named owner and a due date, and follow through.",
+        "cardHowTo": "Log each action item and mark it done only when it's actually done."
       },
       "7": {
-        "name": "Monitor Process and Results"
+        "name": "Monitor Process and Results",
+        "cardPurpose": "Check whether the Step 3 target was met and the countermeasure ran as designed — not just whether the number moved.",
+        "cardHowTo": "Record the result against the target and confirm the process on the floor, not just on paper."
       },
       "8": {
-        "name": "Standardize and Share"
+        "name": "Standardize and Share",
+        "cardPurpose": "Lock the fix into how work is actually done, and spread it to every place the same failure could happen.",
+        "cardHowTo": "Mark the relevant standard documents updated and list where else this applies (yokoten)."
       }
     },
     "stepStatus": {
       "empty": "Empty",
       "inProgress": "In progress",
       "complete": "Complete",
-      "flagged": "Flagged"
+      "flagged": "In progress"
     },
     "entriesBand": {
       "title": "Entries",
@@ -107,6 +130,15 @@
     "coachBand": {
       "show": "Show coaching",
       "hide": "Hide coaching"
+    },
+    "stepOverview": {
+      "heading": "Steps",
+      "summary": "{{complete}} / 8 complete, {{flagged}} in progress",
+      "openA3Preview": "A3 Preview"
+    },
+    "quickJump": {
+      "backToOverview": "Overview",
+      "backToOverviewAriaLabel": "Back to step overview"
     },
     "jumpAdvisory": "Step {{step}} has no entries yet — you can still work on it out of order.",
     "readiness": {
@@ -152,6 +184,7 @@
     "assistant": {
       "noModelConfigured": "No model is chosen for this project yet.",
       "goToSettings": "Go to Settings",
+      "noActiveStep": "Select a step from the overview first to add this response.",
       "promptLabel": "Ask the assistant",
       "promptPlaceholder": "Ask a question…",
       "send": "Send",
@@ -1232,6 +1265,26 @@
   "settings": {
     "backToLaunch": "Back to workspace",
     "title": "Settings",
+    "projectInfo": {
+      "heading": "Project Info",
+      "noProject": "Open a project to edit these fields.",
+      "priorityLabel": "Priority",
+      "priorityPlaceholder": "Select priority",
+      "priorityUnset": "Not set",
+      "priorityOptions": {
+        "critical": "Critical",
+        "high": "High",
+        "medium": "Medium",
+        "low": "Low"
+      },
+      "targetClosureDateLabel": "Target Closure",
+      "generalRagLabel": "General RAG",
+      "generalRagPlaceholder": "Select status",
+      "generalRagUnset": "Not set",
+      "generalRagRed": "Red",
+      "generalRagAmber": "Amber",
+      "generalRagGreen": "Green"
+    },
     "ai": {
       "providerName": "Vorion",
       "statusLoading": "Loading…",
@@ -1254,6 +1307,15 @@
       "enableAssistance": "Enable AI assistance",
       "noModelSelected": "Not selected",
       "replaceKeyPlaceholder": "Paste a new key to replace it",
+      "spendCapLabel": "Monthly spend cap (USD)",
+      "spendCapPlaceholder": "No limit",
+      "spendCapHelp": "Once this month's spend reaches the cap, new AI drafts, translations, layout review, and audit requests are refused until next month or until you raise it. Leave blank for no limit.",
+      "spendCapExceededWarning": "This month's spend cap has been reached. Raise it above, or wait until next month, to keep using AI features.",
+      "costHeading": "AI cost",
+      "costProjectTotal": "This project: ${{amount}} ({{requests}} requests)",
+      "costCurrentMonth": "This month, all projects: ${{amount}} ({{requests}} requests)",
+      "costNoProject": "Open a project to see its running total.",
+      "costScopeNote": "Covers AI drafts, translations, layout review, and the mock audit. The free-form Assistant chat has no token counts to measure and is not included.",
       "debugProjectAiHeading": "Enable AI for this project (debug)",
       "debugProjectAiHint": "Temporary, until the New Project dialog's own AI step ships (SPEC.md §8.5) — this is what makes the workspace's Assistant tab appear on the currently open project.",
       "debugProjectAiLabel": "Enable AI for the open project",

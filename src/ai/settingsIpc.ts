@@ -21,6 +21,30 @@ export interface AiSettings {
   enabled: boolean;
   defaultModelId: string | null;
   fastModelId: string | null;
+  /** Faz 10/K4/§2.4: `null` = unlimited, matching `defaultModelId`/`fastModelId`'s own convention. */
+  spendCapUsd: number | null;
+}
+
+/** Mirrors `src-tauri/src/ai/usage.rs::CostTotals`. */
+export interface CostTotals {
+  inputTokens: number;
+  outputTokens: number;
+  costUsd: number;
+  requestCount: number;
+}
+
+/**
+ * Mirrors `src-tauri/src/ai/usage.rs::CostSummary` — what Settings' permanent
+ * cost display reads. Both `project` and `currentMonth` cover
+ * `complete_structured` traffic only (P-53): `AssistantPanel`'s free-form
+ * streaming chat carries no token counts at all (D-201) and is structurally
+ * outside either total, a limit the UI must state, never leave silent.
+ */
+export interface CostSummary {
+  project: CostTotals;
+  currentMonth: CostTotals;
+  spendCapUsd: number | null;
+  capExceeded: boolean;
 }
 
 /**
@@ -58,4 +82,9 @@ export function getAiSettings(): Promise<AiSettings> {
 
 export function setAiSettings(settings: AiSettings): Promise<void> {
   return invoke<void>("ai_set_settings", { settings });
+}
+
+/** Faz 10/K4/§2.5: read fresh every time (never cached in the store) — this project's own running total plus the global current-calendar-month total. */
+export function getCostSummary(projectId: string): Promise<CostSummary> {
+  return invoke<CostSummary>("ai_get_cost_summary", { projectId });
 }

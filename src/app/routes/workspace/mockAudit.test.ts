@@ -149,6 +149,8 @@ describe("proposeMockAuditFindings", () => {
       contextText: "Step 4 — ...",
       modelId: "vorion/gpt-4o",
       redaction: OFF,
+      projectId: "proj-1",
+      promptVersion: "mock-audit.v1",
     });
 
     expect(result.outcome).toBe("success");
@@ -168,6 +170,8 @@ describe("proposeMockAuditFindings", () => {
       contextText: "Step 4 — ...",
       modelId: "vorion/gpt-4o",
       redaction: OFF,
+      projectId: "proj-1",
+      promptVersion: "mock-audit.v1",
     });
 
     expect(result.outcome).toBe("success");
@@ -183,6 +187,8 @@ describe("proposeMockAuditFindings", () => {
       contextText: "Step 4 — ...",
       modelId: "vorion/gpt-4o",
       redaction: OFF,
+      projectId: "proj-1",
+      promptVersion: "mock-audit.v1",
     });
 
     expect(result.outcome).toBe("failed");

@@ -170,7 +170,7 @@ Tam kayıt: D-213.
 | K1 — A3 yerleşim optimize edici + hücre bütçesine kısaltma (§8.10 madde 1-3): diff-preview proposal türü + RightPanel'in yeni "Review" sekmesi | `docs/oturumlar/K1-yerlesim-kisaltma.md` | ✅ BİTTİ 2026-09-05 — D-214. Prompt kütüphanesi `whole-project/` uzantısı (§2.1), `layoutReview.ts` (Zod diff şeması, korunan-token doğrulaması, `buildA3Layout`'un `overflowWarnings`'ini yeniden kullanan bağlam kurucu, tek-birleşik-retry orkestrasyonu), `LayoutReviewPanel.tsx` (RightPanel'in 4. sekmesi, granüler checkbox'lı diff). P-55 filed. |
 | K2 — Mock-auditor review (§8.6 Review modu) + anlatı kopukluğu tespiti (§8.10 madde 4) BİRLEŞİK — `evaluateReadiness`'in S1-S8'ini okuyup tamamlayan bir AI-bulgu paneli | `docs/oturumlar/K2-mock-auditor-anlati-kopuklugu.md` | ✅ BİTTİ 2026-09-05 — D-215. Panel yeri **yeni 5. sekme ("Denetim")**, P-46 **CLOSED** (dördüncü kategori olarak eklendi), bulgu durumu **taze/kalıcısız** — üçü de Barış'ın önerilen seçenekle onayı. `entrySummary.ts` (K1'den paylaşılan per-entry özetleme), `mockAudit.ts` (kendi bağlam kurucusu + `proposeStructuredEntry`'nin doğrudan yeniden kullanımı, K1'in birleşik-retry'ına gerek yok), `mock-audit.v1.md`, `MockAuditPanel.tsx`. D-62'nin fixture corpus'u beşinci bir kind kazandı (`deliberately-bad.ppsx`) — Faz 10'un "flags a weak root cause" acceptance senaryosu gerçek bir fixture + sahte `LlmProvider` yanıtına karşı bir PROBE testiyle kanıtlandı. |
 | K3 — TR↔EN çeviri (alan-bazlı + proje geneli) | `docs/oturumlar/K3-tr-en-ceviri.md` | ✅ BİTTİ 2026-09-06 — D-216. İki `AskUserQuestion` turu: korunan-token doğrulaması K1'in birebir kontrolünü DEĞİŞTİRMEDEN yeniden kullanıyor, rapor-geneli mod tamamen `RightPanel`'in kendi kendine yeten yeni 6. sekmesinde ("Çeviri") yaşıyor — D-213'ün önerdiği "Settings tetikler" ayrımı DEĞİL. `EntryTranslateField.tsx` (koşulsuz, her method'da görünür — `EntryProposalField`'ın aksine `plugin.aiProposal`'a bağlı değil), `entryTranslation.ts` (alan-bazlı + rapor-geneli her ikisi için de K1'in primitiflerini yeniden kullanan birleşik-retry), `TranslateReportPanel.tsx`, iki yeni prompt dosyası (`translate-entry.v1.md`/`translate-report.v1.md`). `project.meta.language` hiçbir Accept ile değişmiyor (D-213 LOCKED, test edildi). P-56 (kısa alan/meta-başlık kapsamı dışı) ve P-57 (gerçek bir `meta.language.set` komutu yok) filed. |
-| K4 — Maliyet sayacı + `ai-log.jsonl` + Settings spend cap — K1-K3'ün ürettiği gerçek `complete_structured` trafiğinden SONRA anlamlı | `docs/oturumlar/K4-maliyet-sayaci.md` | Yazıldı, henüz başlanmadı. Kendi açık soruları: plumbing (Rust'tan TS'e token/cost verisinin akışı, §2.1), `ai-log.jsonl`'ın gerçek yeri (`.ppsx` içi mi sidecar mı, §2.2), running total'ların proje-bazlı/global kapsamı (§2.3), spend cap enforcement noktası (§2.4). |
+| K4 — Maliyet sayacı + `ai-log.jsonl` + Settings spend cap — K1-K3'ün ürettiği gerçek `complete_structured` trafiğinden SONRA anlamlı | `docs/oturumlar/K4-maliyet-sayaci.md`, devamı `docs/oturumlar/K4-maliyet-sayaci-devam.md` | ✅ BİTTİ 2026-09-06 — D-221, **Faz 10'un dört dilimlik planı (K1-K4) TAMAMEN kapandı**. İki oturum: ilki mimariyi kurdu (plumbing (b) — Rust kendi başına loglar; sidecar `ai-log/{project_id}.jsonl`; hem per-project hem global per-month running total; spend cap `AiSettings.spend_cap_usd`), ikincisi tek blokajı kapattı — gerçek Vorion Response Schema alan adları (`input_tokens`/`output_tokens`, doğrudan `cost` alanı YOK; Vorion'un kendi chatbot'unun önerdiği `cost`/`total_cost` tahmini D-199'un "chatbot'a güvenme" dersiyle bilerek reddedildi). Barış'a maliyet/cap yaklaşımı soruldu, kararı oturuma bıraktı — seçilen hibrit yol: spend cap yalnızca YAPILANDIRILDIĞINDA `List LLMs`'in `cost_per_input_token`/`cost_per_output_token`'ını okuyup hesaplıyor (cap yokken sıfır ek ağ çağrısı). `find_pricing_in_items` mutasyon-doğrulandı. P-60 (accepted-korelasyonu yok) ve P-61 (tam-gövde loglama ayarı inşa edilmedi) filed. SPEC.md §8.13'ün "inside the `.ppsx`" lafzı sidecar'a göre düzeltildi. |
 
 ## Workspace Yüzey Yenilemesi — `SPEC.md`'nin Faz tablosu DIŞINDA, D-149'un "Oturum" emsaliyle
 
@@ -188,9 +188,53 @@ kayıt: D-217.
 | Dilim | Kapsam | Durum |
 |---|---|---|
 | Kapsam belirleme — üç mimari sorunun `AskUserQuestion` ile cevaplanması + üç dilimlik plan | `docs/oturumlar/W-kapsam-belirleme.md` | ✅ BİTTİ 2026-09-06 — D-217. |
-| W1 — İniş görünümü + navigasyon değişimi (rail kaldırılıyor, sekiz adım kartı, hızlı-atlama şeridi) | `docs/oturumlar/W1-adim-genel-bakis.md` | Yazıldı, henüz başlanmadı. Kendi Block Visual Verification Loop turu gerektiriyor — kart tasarımı kodlanmadan önce Barış'a mockup olarak gösterilmeli. |
-| W2 — Adım sayfasının kendisi: `EntryEditorDialog`'un modal'dan sayfa-içi bir düzenleme alanına dönüşümü | *(W1'den sonra yazılacak)* | Henüz yazılmadı. |
+| W1 — İniş görünümü + navigasyon değişimi (rail kaldırılıyor, sekiz adım kartı, hızlı-atlama şeridi) | Tasarım: `docs/oturumlar/W1-adim-genel-bakis.md`. İnşa: `docs/oturumlar/W1-insa.md`. | ✅ TAM BİTTİ — tasarım (D-218, 4 tur) + kod (D-219, 2026-09-06). `activeStepId: StepId \| null`, `StepStepper` silindi, `StepOverview.tsx`/`StepQuickJump.tsx` yeni, `StepPage`'in başlığı locale-aware upper-case. |
+| W2 — Adım sayfasının kendisi: `EntryEditorDialog`'un modal'dan sayfa-içi bir düzenleme alanına dönüşümü + adım-özel AI destek chatbox'ı (P-59, D-218'de Barış'tan gelen yeni bir istek — mevcut Assistant sohbetinin adım-bağlamlı uzantısı) | `docs/oturumlar/W2-adim-sayfasi.md` | Launch prompt'u bu oturumun kapanışında yazıldı (D-219), henüz başlanmadı. |
 | W3 — Canlı, adıma-kırpılmış A3 önizlemesi (`buildProjectA3Layout`'un yeniden kullanımı, performans ölçümü) | *(W1/W2'den sonra yazılacak)* | Henüz yazılmadı. |
+
+## Faz 11 — `SPEC.md` §6'nın kendi sıradaki fazı: kalan şablonlar + template switching + `BenefitCase`
+
+`SPEC.md`'nin faz tablosu: "Remaining templates (`farplas-7step-plus`, `farplas-7step-en`,
+`pps-8step-auto`), template switching, `BenefitCase` and the `Onay formu` calculator — Done
+when: Switching a project between all four templates preserves every entry and warns before
+anything moves to an appendix." Bu lafız 2026-08-02'de (D-95) yazıldığında `pps-8step-auto`
+yalnızca bir isimdi. O tarihten bu yana D-149'un dört oturumluk kolu (Oturum A, B1-B3, C1-C6,
+D1-D2b) Rev00-tabanlı 8-step template'i çok somut bir noktaya getirdi — gerçek pt-cinsinden
+geometri (§12), sekiz bloğun HEPSİNİN onaylı görsel dili (§14), esnek tahsis modeli (D-158/159/
+160, LOCKED), `placeZones.ts`'te gerçek bir kusur bulup düzeltme (D-189/190) — ama bu çalışma
+yalnızca `pps-8step-auto`'ya odaklandı, SPEC'in lafzındaki diğer üç kalemi (`-plus`/`-en`/
+`BenefitCase`) hiç ölçmedi.
+
+**Kapsam belirleme BİTTİ 2026-09-06 (D-223).** §0'ın kendi ön taraması gerçek koda karşı
+doğrulandı, birebir eşleşti — `templateId` şemada var ama `a3Preview.ts` hiç okumuyor (template
+seçimi bugün tamamen ölü kod), `budget.ts` tamamen statik, header identity band alanları
+(`priority`/`targetClosureDate`/`generalRag`) `ProjectMetaSchema`'da yok, `BenefitCase` hiçbir
+yerde yok. Dört `AskUserQuestion`, dördü de Barış'ın kendi seçimiyle (üçü bu oturumun önerisinin
+DIŞINDA, daha dar bir yol seçildi): (1) kapsam **yalnızca `pps-8step-auto` + template-switching**
+— `-plus`/`-en` **P-62**'ye, `BenefitCase` P-18'e eklenen bir notla filed, ikisi de Faz 11'in
+dışında, kendi gelecekteki scope oturumunu bekliyor; (2) template registry kendi erken/bağımsız
+dilim DEĞİL, yeni şablonun statik geometrisiyle (L1) birlikte; (3) esnek tahsis solver'ı (D-158/
+159/160) ilk sürümde DEĞİL — statik önce, solver ayrı bir sonraki dilim (L3), P-40 güncellendi;
+(4) P-43'ün görsel onayı ayrı/hemen DEĞİL, yeni şablonun kendi ilk Block Visual Verification
+Loop turuna bağlı — o tur zaten B3'ün TÜM maketlerinin çizildiği idealize `pps-8step-auto`
+tuvaline (§15.8) karşı gerçek kodu doğrulayacağı için doğal bir uygulama-sadakati kontrolü
+olacak, ve `pps-8step-auto`'nun temiz 12-kolonlu ızgarasında D-189'un gutter-kolonu kusuru
+yapısal olarak hiç oluşamıyor. İki nokta doğrudan karara bağlandı (Anayasa Madde 9, bilgi zaten
+elde): ADIM 1'in problem-statement paneli yeni bir plugin DEĞİL — D-162 (LOCKED) zaten
+`gapStatement`'ın `renderToA3`'üne D-102'nin zaten var olan zones/image mekanizmasını uygulamayı
+çözmüştü; Genel RAG alanı D-153/D-165'in zaten rezerve ettiği amber + Layer A'nın kırmızı/yeşili
+ile manuel bir `red|amber|green` select olarak eklenir (§13.4 madde 7 kapanıyor). Tam kayıt:
+D-223.
+
+| Dilim | Kapsam | Durum |
+|---|---|---|
+| Kapsam belirleme — §0 taraması + dört `AskUserQuestion` + üç dilimlik plan | `docs/oturumlar/faz11-kapsam-belirleme.md` | ✅ BİTTİ 2026-09-06 — D-223, dört soru `AskUserQuestion` ile cevaplandı (üçü bu oturumun önerdiği seçeneğin DIŞINDA — Barış daha dar bir kapsam seçti). |
+| L1 — `pps-8step-auto`: statik sayfa geometrisi (§12.1-12.3) + template registry (`a3Preview.ts`'in `project.templateId`'yi gerçekten okuması + proje-oluşturma seçici UI) + blok görsel dili (D-47/D-165 paleti + header identity band + `gapStatement`'ın ADIM 1 zones/image genişlemesi), kendi ilk Block Visual Verification Loop onay turuyla kapanır (P-43'ü de kapatır) | `docs/oturumlar/L1-pps-8step-auto.md` | **KOD BİTTİ (D-224, 2026-09-07), Barış'ın görsel onayı bekleniyor.** Template seçici UI Barış'ın kararıyla YAPILMADI — yalnızca Rev00 kullanılıyor, bunun yerine yeni bir dil (TR/EN) seçici dialog. `place.ts`'te gerçek, önceden belgelenmemiş bir üretim kusuru bulunup düzeltildi (D-224 — zoned bir entry artık `zonesRowSpan` ile bloktan yalnızca kendi payını istiyor, `farplas-7step-tr`'yi de düzeltiyor). Gerçek bir `.xlsx` üretilip XML'i doğrudan okunarak doğrulandı, artifact: `https://claude.ai/code/artifact/5eb75eb2-2e0c-45ca-94f2-eee0d3e21a03`. Yeni bulgu **P-63** (kpiStrip ADIM 7'de her zaman appendix'e düşüyor) bilerek bu dilimde çözülmedi. `npm test` 1433/1433, `cargo test` yeşil. |
+| L2 — Template switching mekanizması: `farplas-7step-tr` ↔ `pps-8step-auto` arası geçiş, preserve-every-entry + appendix-öncesi uyarı (SPEC'in kendi lafzî done-koşulu) | *(L1'den sonra yazılacak)* | Henüz yazılmadı — L1'in ikinci gerçek şablonu bitmeden anlamsız. |
+| L3 — Esnek tahsis solver (D-158/159/160) + drag-handle arayüzü (D-170), L1'in statik varsayılanlarını gerçek elastik modele yükseltir | *(L1'den sonra yazılacak)* | Henüz yazılmadı — Barış'ın kendi kararıyla ertelendi, L2'ye göre sırası kesin değil. |
+
+Filed, planlanmamış (Faz 11'in dışında): **P-62** (yeni — `farplas-7step-plus`/`farplas-7step-en`,
+D-149'un hiçbir oturumu hiç dokunmadı), **P-18** (güncellendi — `BenefitCase`/`Onay formu`).
 
 ## Kullanım
 
@@ -215,8 +259,74 @@ ek/tamamlayıcı, RightPanel'in "Denetim" sekmesi). K3 BİTTİ (D-216, 2026-09-0
 sekmesi). K4'ün kendi launch prompt'u yazıldı (`K4-maliyet-sayaci.md`), henüz başlanmadı.
 Ayrıca, Faz 10'dan TAMAMEN bağımsız yeni bir girişim açıldı: **Workspace Yüzey Yenilemesi**
 (kendi Faz numarası yok, D-149'un "Oturum" emsali) — kapsam belirleme BİTTİ (D-217,
-2026-09-06), W1'in kendi launch prompt'u yazıldı (`W1-adim-genel-bakis.md`). Sıradaki iş
-Barış'ın kendi tercihine göre **K4** ya da **W1** — ikisi birbirinden bağımsız.
+2026-09-06). W1'in kendi Block Visual Verification Loop turu da BİTTİ, maket onaylandı
+(D-218, 2026-09-06) — dört turda palet/tipografi Barış'ın kendi isteğiyle Farplas'ın gerçek
+kurumsal marka kimliğine taşındı (D-48'in eski token'ları yalnızca bu iki yeni yüzeyde
+değişti, P-58 uygulama-geneli yayılımı için açık bırakıyor); ayrıca bir adım-özel AI destek
+chatbox'ı isteği W2'nin kapsamına eklendi (P-59). **W1-insa BİTTİ (D-219, 2026-09-06)** —
+D-218'in onaylı maketi gerçek koda döküldü: `activeStepId: StepId | null` (varsayılan artık
+`null`, iniş görünümü), `StepStepper` silindi, yeni `StepOverview.tsx`/`StepQuickJump.tsx`,
+`StepPage`'in başlığı locale-aware upper-case (`.toLocaleUpperCase("tr")`, Türkçe "İ" hatası
+regresyon testiyle kilitlendi), `AssistantPanel`'in null-safety düzeltmesi, D-218'in yedi
+Farplas token'ı + self-hosted Source Sans 3 additive olarak eklendi. `npm test` 1385/1385
+(291 dosya), `npm run lint`/`npm run build` temiz, `cargo test`/`clippy`/`fmt` temiz (Rust
+dokunulmadı). **W1 artık tasarım+kod ikisiyle de TAM BİTTİ.** W2'nin kendi launch prompt'u
+yazıldı: `W2-adim-sayfasi.md`.
+
+Aynı gün, ayrı bir oturumda, Barış'ın gerçek `npm run tauri dev` ekran görüntüsü D-219'un
+kendi ikinci `[data-theme="dark"]` bloğunun fiilen ÇALIŞMADIĞINI ortaya çıkardı — **D-220**
+(dark-mode regresyonu, kök nedeni Tailwind v4'ün `@theme` çıktısını bir CSS cascade
+layer'a sarması, dev-server/prod-build arasında farklı davranıyor) gerçek bir Chromium'da
+(geçici Playwright probe'u, kullan-sonra-sil) doğrulanıp `--surface`/`--ink`'in zaten
+kanıtlanmış iki-katmanlı primitif deseniyle düzeltildi. P-58 ile karıştırılmamalı — ayrı,
+gerçek bir kusurdu.
+
+**Faz 10 — K4 (maliyet sayacı + `ai-log.jsonl` + Settings spend cap) BİTTİ (D-221,
+2026-09-06) — Faz 10'un dört dilimlik planı (K1-K4) TAMAMEN kapandı.** İki oturumda: ilki
+mimariyi kurdu (kendi bütçe kesintisiyle yarım kaldı, devamı `K4-maliyet-sayaci-devam.md`),
+ikincisi Barış'ın paylaştığı gerçek Response Schema ekran görüntüsüyle tek blokajı kapattı —
+`input_tokens`/`output_tokens` confirmed, doğrudan bir `cost` alanı YOK (Vorion'un kendi
+chatbot'unun tahmini bilerek reddedildi, D-199'un aynı dersi). Maliyet/cap yaklaşımı
+`AskUserQuestion` ile soruldu, Barış kararı oturuma bıraktı — seçilen hibrit yol: spend cap
+yalnızca yapılandırıldığında `List LLMs`'in gerçek `cost_per_*` alanlarını okuyup hesaplıyor,
+yapılandırılmamışken sıfır ek ağ çağrısı. P-60/P-61 filed. Tam kayıt: D-221.
+
+**Faz 11'in kendi kapsam belirlemesi BİTTİ (D-223, 2026-09-06)** — `docs/oturumlar/
+faz11-kapsam-belirleme.md`'nin işi tamamlandı, kod yazılmadı. Dört `AskUserQuestion`, dördü de
+Barış'ın kendi seçimi (üçü bu oturumun önerisinin DIŞINDA): kapsam yalnızca `pps-8step-auto` +
+template-switching'e daraltıldı (`-plus`/`-en` **P-62**'ye, `BenefitCase` P-18'e filed, ikisi de
+Faz 11'in dışında); template registry kendi erken dilim değil, yeni şablonun statik geometrisiyle
+(L1) birlikte; esnek tahsis solver'ı (D-158/159/160) ilk sürümde değil, statik önce, solver ayrı
+bir sonraki dilim (L3); P-43'ün görsel onayı yeni şablonun kendi ilk Block Visual Verification
+Loop turuna bağlı. ADIM 1'in problem-statement paneli (yeni plugin değil, `gapStatement`'ın
+zones/image genişlemesi, D-162) ve Genel RAG alanı (manuel `red|amber|green`, D-153/D-165) bu
+oturumda doğrudan karara bağlandı (Anayasa Madde 9). Üç dilimlik plan: **L1** (statik geometri +
+registry + blok görsel dili + BVVL onayı), **L2** (template switching), **L3** (esnek solver +
+drag-handle). Tam kayıt ve tablo: yukarıdaki "Faz 11" bölümü, `DECISIONS.md` D-223. L1'in kendi
+launch prompt'u yazıldı: `docs/oturumlar/L1-pps-8step-auto.md`.
+
+**Faz 11 — L1'in kendi kodu BİTTİ (D-224, 2026-09-07), Barış'ın görsel onayı bekleniyor.**
+İki `AskUserQuestion` turu Barış'ın kendi kararıyla D-223'ün önerisinin DIŞINDA sonuçlandı:
+template seçici UI hiç yapılmadı (yalnızca Rev00 kullanılıyor), onun yerine yeni-proje akışına
+bir dil (Türkçe/İngilizce) seçici dialog eklendi; header identity band'ın üç yeni alanı
+(`priority`/`targetClosureDate`/`generalRag`) SettingsScreen'in kalıcı yeni "Proje Bilgileri"
+bölümünde. İnşa sırasında iki gerçek bulgu çıktı: (1) D-159'un ADIM 1 tasarımı (`fiveN1K` +
+`gapStatement` aynı blokta iki ayrı zoned entry) `place.ts`'in D-102'den beri var olan, önceden
+belgelenmemiş bir kusuruna çarptı — herhangi bir zoned entry bloğun kalan TÜM satırlarını
+tüketiyordu, bu da bugün ŞİPPİNG EDİLMİŞ `farplas-7step-tr`'yi de etkiliyordu; yeni bir
+`zonesRowSpan` alanıyla düzeltildi, mutasyon-doğrulandı; (2) gap-analizi grafiği sayısal veri
+gerektiriyordu ama `gapStatement`'ın alanları serbest metin — Barış AskUserQuestion ile "uydurma
+sayı yok, dürüst özet paneli" seçti. Temsili bir proje gerçek `buildA3Layout`+`write_a3_workbook`
+zincirinden geçirilip üretilen GERÇEK `.xlsx` unzip edilip XML'i doğrudan okunarak doğrulandı
+(sayfa/kolon/satır/renk/görsel — hepsi §12'yle birebir eşleşti); kanıt ve gerçek pt→px ölçekli
+ADIM 1 mockup'ı bir Claude Artifact'te: `https://claude.ai/code/artifact/5eb75eb2-2e0c-45ca-94f2-eee0d3e21a03`.
+Bu turda bulunan ayrı bir kusur (**P-63** — `kpiStrip` ADIM 7'nin 6 satırlık tuvaline asla
+sığmıyor) bilerek bu dilimde çözülmedi. `npm test` 1433/1433, `npm run lint`/`tsc`/`build` temiz,
+`cargo test`/`clippy`/`fmt` temiz (Rust dokunulmadı). Tam kayıt: `DECISIONS.md` D-224/P-63.
+
+Sıradaki iş: Barış'ın yukarıdaki artifact'i incelemesi (P-43'ü kapatır, L1'i tamamen biter) —
+onun ardından, Barış'ın kendi tercihine göre **L2** (template switching), **L3** (esnek solver)
+ya da **W2-adim-sayfasi.md** — hepsi birbirinden bağımsız.
 
 ## Prompt yazarken
 

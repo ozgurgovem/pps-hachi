@@ -74,7 +74,20 @@ describe("LaunchScreen", () => {
     expect(screen.getByRole("heading", { name: /PPS Hachi/ })).toBeTruthy();
   });
 
-  test("New PPS Project: creates the project and navigates to the confirmation screen", async () => {
+  test("New PPS Project: opens a language dialog before creating, and does nothing until a language is chosen", async () => {
+    mockInvoke.mockResolvedValueOnce([]); // recent_list on mount
+    mockSaveDialog.mockResolvedValueOnce("/tmp/Şişli Arıza.ppsx");
+    const user = userEvent.setup();
+
+    renderLaunchScreen();
+    await waitFor(() => expect(screen.getByText(/No projects yet/)).toBeTruthy());
+    await user.click(screen.getByRole("button", { name: "New PPS Project" }));
+
+    expect(await screen.findByRole("heading", { name: "Project language" })).toBeTruthy();
+    expect(mockGetVersion).not.toHaveBeenCalled();
+  });
+
+  test("New PPS Project: choosing English creates the project with that language and navigates to the confirmation screen", async () => {
     mockInvoke.mockResolvedValueOnce([]); // recent_list on mount
     mockSaveDialog.mockResolvedValueOnce("/tmp/Şişli Arıza.ppsx");
     mockGetVersion.mockResolvedValueOnce("0.1.0");
@@ -86,12 +99,36 @@ describe("LaunchScreen", () => {
     renderLaunchScreen();
     await waitFor(() => expect(screen.getByText(/No projects yet/)).toBeTruthy());
     await user.click(screen.getByRole("button", { name: "New PPS Project" }));
+    await user.click(await screen.findByRole("button", { name: "English" }));
 
     expect(await screen.findByRole("heading", { name: "Şişli Arıza" })).toBeTruthy();
     expect(mockInvoke).toHaveBeenCalledWith(
       "ppsx_write",
       expect.objectContaining({ path: "/tmp/Şişli Arıza.ppsx" }),
     );
+  });
+
+  test("New PPS Project: choosing Turkish creates the project with meta.language tr", async () => {
+    mockInvoke.mockResolvedValueOnce([]); // recent_list on mount
+    mockSaveDialog.mockResolvedValueOnce("/tmp/proje.ppsx");
+    mockGetVersion.mockResolvedValueOnce("0.1.0");
+    let writtenPayload: unknown;
+    mockInvoke.mockImplementationOnce((_cmd, payload) => {
+      writtenPayload = payload;
+      return Promise.resolve({ modifiedMs: 1000 });
+    }); // ppsx_write
+    mockInvoke.mockResolvedValueOnce([]); // recent_upsert
+    mockInvoke.mockResolvedValueOnce([]); // recent_list refresh after the action
+    const user = userEvent.setup();
+
+    renderLaunchScreen();
+    await waitFor(() => expect(screen.getByText(/No projects yet/)).toBeTruthy());
+    await user.click(screen.getByRole("button", { name: "New PPS Project" }));
+    await user.click(await screen.findByRole("button", { name: "Turkish" }));
+
+    await screen.findByRole("heading", { name: "proje" });
+    const payload = writtenPayload as { project: { meta: { language: string } } };
+    expect(payload.project.meta.language).toBe("tr");
   });
 
   test("Open Existing Project: reads the picked file and navigates to the confirmation screen", async () => {

@@ -27,9 +27,14 @@ describe("createNewProject", () => {
     expect(first.manifest.id).not.toBe(second.manifest.id);
   });
 
-  test("defaults to the D-10 default template", () => {
+  // Faz 11/L1 (D-157/D-223): the default moved from farplas-7step-tr to
+  // pps-8step-auto once the Rev00-based template existed. Kept in sync with
+  // `src/a3/templates/registry.ts`'s own `DEFAULT_TEMPLATE_ID` by a
+  // dedicated cross-check test in `src/a3/templates/registry.test.ts`
+  // (this file can't import `src/a3` — see `createProject.ts`'s own note).
+  test("defaults to the D-157 default template", () => {
     const { project } = createNewProject({ title: "Test", language: "tr", appVersion: "0.1.0" });
-    expect(project.templateId).toBe("farplas-7step-tr");
+    expect(project.templateId).toBe("pps-8step-auto");
   });
 
   test("all 8 steps start with an empty entries array", () => {

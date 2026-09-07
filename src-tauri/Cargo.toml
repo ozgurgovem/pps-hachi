@@ -70,6 +70,14 @@ calamine = "0.36.1"
 # Verified current version against the real crates.io API (1.4.0), not
 # assumed.
 csv = "1.4.0"
+# Faz 10/K4/§2.2: `ai::usage`'s log entries need a real, human-readable UTC
+# timestamp (SPEC.md §8.13's audit trail is meant to be opened and read, not
+# just machine-parsed) — RFC3339 via `chrono::Utc::now()` rather than
+# hand-rolled calendar math (leap years, month lengths) or a bare epoch
+# integer. Verified current version against the real crates.io API (0.4.45),
+# not assumed; `default-features = false` + explicit `clock`/`std` drops
+# `wasm-bindgen`/`js-sys` (irrelevant to a native Tauri desktop target).
+chrono = { version = "0.4.45", default-features = false, features = ["clock", "std"] }
 
 [dev-dependencies]
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }

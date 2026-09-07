@@ -12,16 +12,18 @@ const mockInvoke = vi.mocked(invoke);
 const OFF: ResolvedRedactionPolicy = { mode: "off", terms: [], preserveNumbers: true };
 
 describe("completeStructured", () => {
-  test("invokes ai_complete_structured with prompt/schema/modelId/redaction", async () => {
+  test("invokes ai_complete_structured with prompt/schema/modelId/redaction/projectId/promptVersion", async () => {
     mockInvoke.mockResolvedValueOnce({ unit: "count", categories: [] });
 
-    await completeStructured("draft a pareto payload", { type: "object" }, "vorion/gpt-4o", OFF);
+    await completeStructured("draft a pareto payload", { type: "object" }, "vorion/gpt-4o", OFF, "proj-1", "pareto.v1");
 
     expect(mockInvoke).toHaveBeenCalledWith("ai_complete_structured", {
       prompt: "draft a pareto payload",
       schema: { type: "object" },
       modelId: "vorion/gpt-4o",
       redaction: OFF,
+      projectId: "proj-1",
+      promptVersion: "pareto.v1",
     });
   });
 
@@ -29,13 +31,15 @@ describe("completeStructured", () => {
     mockInvoke.mockResolvedValueOnce({});
     const redaction: ResolvedRedactionPolicy = { mode: "customers", terms: ["Acme Corp"], preserveNumbers: true };
 
-    await completeStructured("p", {}, "vorion", redaction);
+    await completeStructured("p", {}, "vorion", redaction, "proj-1", null);
 
     expect(mockInvoke).toHaveBeenCalledWith("ai_complete_structured", {
       prompt: "p",
       schema: {},
       modelId: "vorion",
       redaction,
+      projectId: "proj-1",
+      promptVersion: null,
     });
   });
 
@@ -43,7 +47,7 @@ describe("completeStructured", () => {
     const raw = { unrelated: "shape" };
     mockInvoke.mockResolvedValueOnce(raw);
 
-    const result = await completeStructured("p", {}, "vorion", OFF);
+    const result = await completeStructured("p", {}, "vorion", OFF, "proj-1", null);
 
     expect(result).toEqual(raw);
   });
@@ -51,6 +55,6 @@ describe("completeStructured", () => {
   test("rejects when the backend rejects (e.g. the model's response wasn't valid JSON)", async () => {
     mockInvoke.mockRejectedValueOnce(new Error("not json at all"));
 
-    await expect(completeStructured("p", {}, "vorion", OFF)).rejects.toThrow("not json at all");
+    await expect(completeStructured("p", {}, "vorion", OFF, "proj-1", null)).rejects.toThrow("not json at all");
   });
 });

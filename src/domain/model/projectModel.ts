@@ -43,6 +43,20 @@ const AiMetaSchema = z.looseObject({
   redaction: RedactionPolicySchema,
 });
 
+/**
+ * Faz 11/L1 (D-223's own direct decision, §13.2/D-153/D-165): the header
+ * identity band's three fields with no home in `ProjectMetaSchema` before
+ * this dilim. Additive/optional throughout, D-51's loose-schema posture —
+ * no migration, every pre-L1 project (with none of these set) still parses.
+ * `priority` stays a plain string (not `z.enum`) matching this codebase's
+ * own established posture for status-like fields (`countermeasure.status`,
+ * `kpiStrip`'s `status`, etc.) — the UI constrains it to §13.2's own
+ * Critical/High/Medium/Low dictionary (`src/domain/model/projectPriority.ts`),
+ * the schema itself stays permissive. `generalRag` is the one true enum
+ * here — it is always manually set (never computed, the same discipline
+ * `costApproval`/`kpiStrip.status` already established), and D-165 already
+ * named its three values (Red/Amber/Green) exactly.
+ */
 const ProjectMetaSchema = z.looseObject({
   title: z.string(),
   projectCode: z.string(),
@@ -53,6 +67,9 @@ const ProjectMetaSchema = z.looseObject({
   plant: z.string().optional(),
   department: z.string().optional(),
   line: z.string().optional(),
+  priority: z.string().optional(),
+  targetClosureDate: z.string().optional(),
+  generalRag: z.enum(["red", "amber", "green"]).optional(),
   owner: PersonSchema,
   team: z.array(PersonSchema),
   status: z.enum(["draft", "active", "on-hold", "closed"]),
@@ -103,6 +120,9 @@ export type ProjectModel = z.infer<typeof ProjectModelSchema>;
 export type Person = z.infer<typeof PersonSchema>;
 /** D-201: `meta.ai` in isolation — `MetaAiSetCommand`'s `before`/`after` shape. */
 export type AiMeta = ProjectModel["meta"]["ai"];
+/** D-224 (Faz 11/L1): the header identity band's three new fields, in isolation — `MetaProjectInfoSetCommand`'s `before`/`after` shape, same posture as `AiMeta`. */
+export type ProjectInfoFields = Pick<ProjectModel["meta"], "priority" | "targetClosureDate" | "generalRag">;
+export type GeneralRag = NonNullable<ProjectModel["meta"]["generalRag"]>;
 export type RedactionMode = z.infer<typeof RedactionModeSchema>;
 export type RedactionPolicy = z.infer<typeof RedactionPolicySchema>;
 export type SignOffState = ProjectModel["signOff"];

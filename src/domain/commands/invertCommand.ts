@@ -23,5 +23,7 @@ export function invertCommand(command: Command): Command {
       return { ...command, before: command.after, after: command.before };
     case "meta.ai.set":
       return { ...command, before: command.after, after: command.before };
+    case "meta.projectInfo.set":
+      return { ...command, before: command.after, after: command.before };
   }
 }

@@ -210,9 +210,13 @@ describe("WorkspaceScreen — Phase 3 done-condition", () => {
   });
 
   test("a read-only project never shows the add-entry action and shows the read-only banner", async () => {
+    const user = userEvent.setup();
     renderWorkspace({ readOnly: true });
 
     expect(await screen.findByText(/newer version of PPS Hachi/)).toBeTruthy();
+    // W1/D-218: the landing view has no method band at all — navigate into
+    // a step first (read-only never blocks navigation, only editing).
+    await user.click(await screen.findByRole("button", { name: /^Step 1:/ }));
     // Step 1 now offers more than one method card (Phase 5) — every "Add
     // entry" button on the page must be disabled, not just the first one.
     const addEntryButtons = screen.getAllByRole("button", { name: "Add entry" }) as HTMLButtonElement[];

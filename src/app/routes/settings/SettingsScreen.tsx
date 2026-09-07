@@ -13,13 +13,14 @@ import {
   SelectValue,
   Textarea,
 } from "../../../ui";
-import { buildSetAiMetaCommand } from "../../../domain/commands";
-import type { RedactionMode } from "../../../domain/model";
+import { buildSetAiMetaCommand, buildSetProjectInfoCommand } from "../../../domain/commands";
+import { PROJECT_PRIORITY_OPTIONS, type GeneralRag, type RedactionMode } from "../../../domain/model";
 import { resolveRedactionPolicy } from "../../../ai/redaction";
 import { useProjectStore } from "../../../state";
 import { errorMessage } from "../launch/errorMessage";
 import {
   getAiSettings,
+  getCostSummary,
   getKeyStatus,
   listModels,
   removeApiKey,
@@ -28,6 +29,7 @@ import {
   testConnection,
   type AiSettings,
   type ConnectionStatus,
+  type CostSummary,
   type ModelInfo,
 } from "../../../ai/settingsIpc";
 
@@ -38,6 +40,9 @@ import {
  * `EntryRoundField`'s `UNTAGGED`/`whyWhyTree`'s `UNSET_OUTCOME`. Translated
  * back to `null` before `AiSettings` is persisted. */
 const NO_MODEL_SELECTED = "__none__";
+/** Faz 11/L1: same sentinel pattern as `NO_MODEL_SELECTED` — "priority unset"/"RAG unset" both need a real string value Radix `Select` will accept. */
+const NO_PRIORITY_SELECTED = "__none__";
+const NO_RAG_SELECTED = "__none__";
 
 type KeyState = { status: "loading" } | { status: "unset" } | { status: "set"; masked: string };
 
@@ -66,6 +71,44 @@ export function SettingsScreen() {
 
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus | null>(null);
   const [isTestingConnection, setIsTestingConnection] = useState(false);
+
+  /** Faz 10/K4/§2.5: `null` until a project is open and the first read
+   * completes — the display below treats `null` as "nothing to show yet,"
+   * never as a zero total. */
+  const [costSummary, setCostSummary] = useState<CostSummary | null>(null);
+
+  /** Same "local input, commit on blur" posture as `termsInput` below —
+   * `spendCapUsd` is a number a user types digit by digit, not a value that
+   * should dispatch an IPC write per keystroke. Synced from `settings.
+   * spendCapUsd` (the one external write source besides this field's own
+   * blur commit, which round-trips back to the same value). */
+  const [spendCapInput, setSpendCapInput] = useState("");
+  useEffect(() => {
+    setSpendCapInput(settings?.spendCapUsd != null ? String(settings.spendCapUsd) : "");
+  }, [settings?.spendCapUsd]);
+
+  /** Faz 10/K4/§2.5: re-read whenever the open project changes or the spend
+   * cap itself changes (the cap's value decides `capExceeded`, computed
+   * server-side in `ai::commands::ai_get_cost_summary`) — never cached
+   * across either. */
+  useEffect(() => {
+    if (!project) {
+      setCostSummary(null);
+      return;
+    }
+    let cancelled = false;
+    async function load(openProjectId: string) {
+      const summary = await getCostSummary(openProjectId);
+      if (!cancelled) {
+        setCostSummary(summary ?? null);
+      }
+    }
+    void load(project.id);
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally keyed on project?.id, not the whole project object (same posture as termsInput's effect above): re-running on every unrelated project change (e.g. an autosave tick) would refetch for no reason.
+  }, [project?.id, settings?.spendCapUsd]);
 
   /** J2/D-205: local so a keystroke doesn't dispatch (and add an undo step)
    * on every character — committed on blur via `handleRedactionTermsChange`.
@@ -153,6 +196,22 @@ export function SettingsScreen() {
     }
   }
 
+  /** SPEC.md §8.12: `null` = no limit, matching `AiSettings.spendCapUsd`'s
+   * own convention. A blank field, a negative number, or anything that
+   * doesn't parse as a finite number all resolve to "no limit" rather than
+   * silently keeping a stale cap — the same "don't guess, fall back to the
+   * safe default" posture the rest of this screen's number-adjacent fields
+   * already take. */
+  function handleSpendCapChange(value: string) {
+    if (!settings) {
+      return;
+    }
+    const trimmed = value.trim();
+    const parsed = trimmed === "" ? null : Number(trimmed);
+    const nextCap = parsed !== null && Number.isFinite(parsed) && parsed >= 0 ? parsed : null;
+    void persistSettings({ ...settings, spendCapUsd: nextCap });
+  }
+
   async function handleTestConnection() {
     if (!settings?.defaultModelId) {
       return;
@@ -164,6 +223,33 @@ export function SettingsScreen() {
     } finally {
       setIsTestingConnection(false);
     }
+  }
+
+  /**
+   * Faz 11/L1 (D-223/D-224): the header identity band's three new fields
+   * (D-153/§13.2) — a permanent section, not a temporary debug one like the
+   * two below, since there is no future "real" surface this stands in for
+   * (unlike `handleToggleProjectAi`'s own §8.5 New Project AI step). Always
+   * sends the *complete* `ProjectInfoFields` slice (`buildSetProjectInfoCommand`'s
+   * own "whole-slice-replace" contract), pre-filling the two fields not
+   * being changed from the project's current values.
+   */
+  function handleProjectInfoChange(patch: {
+    priority?: string | undefined;
+    targetClosureDate?: string | undefined;
+    generalRag?: GeneralRag | undefined;
+  }) {
+    if (!project) {
+      return;
+    }
+    dispatch(
+      buildSetProjectInfoCommand(project, {
+        priority: project.meta.priority,
+        targetClosureDate: project.meta.targetClosureDate,
+        generalRag: project.meta.generalRag,
+        ...patch,
+      }),
+    );
   }
 
   /**
@@ -232,6 +318,75 @@ export function SettingsScreen() {
           {t("settings.title")}
         </h1>
       </div>
+
+      {/* Faz 11/L1 (D-223): permanent — the header identity band's three new
+          `ProjectMetaSchema` fields (D-153/§13.2), exported into
+          `pps-8step-auto`'s own identity band (`buildA3Layout.ts`'s
+          `resolveHeaderFieldValue`). */}
+      <section className="flex flex-col gap-3 rounded-control border border-border bg-surface-raised p-6">
+        <h2 className="font-display text-lg text-ink">{t("settings.projectInfo.heading")}</h2>
+        {project ? (
+          <>
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="project-priority">{t("settings.projectInfo.priorityLabel")}</Label>
+              <SelectRoot
+                value={project.meta.priority ?? NO_PRIORITY_SELECTED}
+                onValueChange={(value) =>
+                  handleProjectInfoChange({ priority: value === NO_PRIORITY_SELECTED ? undefined : value })
+                }
+              >
+                <SelectTrigger id="project-priority">
+                  <SelectValue placeholder={t("settings.projectInfo.priorityPlaceholder")} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={NO_PRIORITY_SELECTED}>{t("settings.projectInfo.priorityUnset")}</SelectItem>
+                  {PROJECT_PRIORITY_OPTIONS.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {t(option.labelKey)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </SelectRoot>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="project-target-closure-date">{t("settings.projectInfo.targetClosureDateLabel")}</Label>
+              <Input
+                id="project-target-closure-date"
+                type="date"
+                value={project.meta.targetClosureDate ?? ""}
+                onChange={(event) =>
+                  handleProjectInfoChange({ targetClosureDate: event.target.value || undefined })
+                }
+              />
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="project-general-rag">{t("settings.projectInfo.generalRagLabel")}</Label>
+              <SelectRoot
+                value={project.meta.generalRag ?? NO_RAG_SELECTED}
+                onValueChange={(value) =>
+                  handleProjectInfoChange({
+                    generalRag: value === NO_RAG_SELECTED ? undefined : (value as GeneralRag),
+                  })
+                }
+              >
+                <SelectTrigger id="project-general-rag">
+                  <SelectValue placeholder={t("settings.projectInfo.generalRagPlaceholder")} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={NO_RAG_SELECTED}>{t("settings.projectInfo.generalRagUnset")}</SelectItem>
+                  <SelectItem value="red">{t("settings.projectInfo.generalRagRed")}</SelectItem>
+                  <SelectItem value="amber">{t("settings.projectInfo.generalRagAmber")}</SelectItem>
+                  <SelectItem value="green">{t("settings.projectInfo.generalRagGreen")}</SelectItem>
+                </SelectContent>
+              </SelectRoot>
+            </div>
+          </>
+        ) : (
+          <p className="font-body text-sm text-ink-muted">{t("settings.projectInfo.noProject")}</p>
+        )}
+      </section>
 
       <section className="flex flex-col gap-4 rounded-control border border-border bg-surface-raised p-6">
         <div className="flex items-center justify-between gap-4">
@@ -392,6 +547,61 @@ export function SettingsScreen() {
               onCheckedChange={(checked) => void persistSettings({ ...settings, enabled: checked === true })}
             />
             <Label htmlFor="ai-enabled">{t("settings.ai.enableAssistance")}</Label>
+          </div>
+        )}
+
+        {/* Faz 10/K4/§2.5: permanent, not a temporary debug section like the
+            two below — SPEC.md §8.12's "visible without hunting for them"
+            applies directly, and a spend cap is a real, ongoing setting once
+            a key is configured, the same durability class as the model
+            selects above. */}
+        {settings && (
+          <div className="flex flex-col gap-3 border-t border-border pt-4">
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="ai-spend-cap">{t("settings.ai.spendCapLabel")}</Label>
+              <Input
+                id="ai-spend-cap"
+                type="number"
+                min="0"
+                step="0.01"
+                inputMode="decimal"
+                placeholder={t("settings.ai.spendCapPlaceholder")}
+                value={spendCapInput}
+                onChange={(event) => setSpendCapInput(event.target.value)}
+                onBlur={() => handleSpendCapChange(spendCapInput)}
+              />
+              <p className="font-body text-2xs text-ink-muted">{t("settings.ai.spendCapHelp")}</p>
+            </div>
+
+            <div className="flex flex-col gap-1 rounded-control border border-border bg-surface p-3">
+              <p className="font-display text-xs font-semibold uppercase tracking-wide text-ink-muted">
+                {t("settings.ai.costHeading")}
+              </p>
+              {costSummary ? (
+                <>
+                  <p className="font-body text-sm text-ink">
+                    {t("settings.ai.costProjectTotal", {
+                      amount: costSummary.project.costUsd.toFixed(4),
+                      requests: costSummary.project.requestCount,
+                    })}
+                  </p>
+                  <p className="font-body text-sm text-ink">
+                    {t("settings.ai.costCurrentMonth", {
+                      amount: costSummary.currentMonth.costUsd.toFixed(4),
+                      requests: costSummary.currentMonth.requestCount,
+                    })}
+                  </p>
+                  {costSummary.capExceeded && (
+                    <p role="alert" className="font-body text-sm text-danger">
+                      {t("settings.ai.spendCapExceededWarning")}
+                    </p>
+                  )}
+                </>
+              ) : (
+                <p className="font-body text-sm text-ink-muted">{t("settings.ai.costNoProject")}</p>
+              )}
+              <p className="font-body text-2xs text-ink-muted">{t("settings.ai.costScopeNote")}</p>
+            </div>
           </div>
         )}
       </section>

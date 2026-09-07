@@ -9,6 +9,7 @@ import {
   buildReorderCommand,
   buildSetA3VisibilityCommand,
   buildSetAiMetaCommand,
+  buildSetProjectInfoCommand,
   buildSetSignOffCommand,
   buildUpdateEntryCommand,
 } from "./builders";
@@ -404,6 +405,29 @@ describe("buildSetAiMetaCommand", () => {
       type: "meta.ai.set",
       before: project.meta.ai,
       after: { enabled: true, providerId: "vorion", modelId: "openai/gpt-4o", redaction: {} },
+      undoable: true,
+    });
+  });
+});
+
+describe("buildSetProjectInfoCommand (Faz 11/L1, D-224)", () => {
+  it("captures the project's current priority/targetClosureDate/generalRag as before and the given value as after", () => {
+    const project = makeProject();
+
+    const command = buildSetProjectInfoCommand(project, {
+      priority: "high",
+      targetClosureDate: "2026-12-01",
+      generalRag: "amber",
+    });
+
+    expect(command).toEqual({
+      type: "meta.projectInfo.set",
+      before: {
+        priority: project.meta.priority,
+        targetClosureDate: project.meta.targetClosureDate,
+        generalRag: project.meta.generalRag,
+      },
+      after: { priority: "high", targetClosureDate: "2026-12-01", generalRag: "amber" },
       undoable: true,
     });
   });

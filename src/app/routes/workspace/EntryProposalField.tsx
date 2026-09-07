@@ -40,6 +40,8 @@ interface EntryProposalFieldProps {
   promptVersion: string;
   modelId: string;
   acceptedBy: string;
+  /** Faz 10/K4: `ai::usage`'s per-project log sidecar needs this — the open project's own id, passed down from `EntryEditorDialog`. */
+  projectId: string;
   /** J2/D-205: already resolved by the caller (`EntryEditorDialog`) via `resolveRedactionPolicy` — this component never reads `project.meta.ai.redaction` directly. */
   redaction: ResolvedRedactionPolicy;
   /**
@@ -79,6 +81,7 @@ export function EntryProposalField({
   promptVersion,
   modelId,
   acceptedBy,
+  projectId,
   redaction,
   onAccept,
 }: EntryProposalFieldProps) {
@@ -159,6 +162,8 @@ export function EntryProposalField({
         modelId,
         zodSchema: plugin.schema,
         redaction,
+        projectId,
+        promptVersion: `${plugin.id}.${promptVersion}`,
       });
       if (result.outcome === "success") {
         setState({ phase: "review", original: result.value, draft: result.value });

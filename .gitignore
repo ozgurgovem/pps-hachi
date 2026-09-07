@@ -34,6 +34,7 @@ coverage/
 playwright-report/
 test-results/
 *.log
+*.profraw
 
 # Office gecici kilit dosyalari (dosya Excel/Word ile acikken olusur)
 ~$*

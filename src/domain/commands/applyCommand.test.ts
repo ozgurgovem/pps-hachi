@@ -306,6 +306,13 @@ describe("invertCommand", () => {
     const command: Command = { type: "meta.ai.set", before, after, undoable: true };
     expect(invertCommand(command)).toEqual({ ...command, before: after, after: before });
   });
+
+  it("meta.projectInfo.set inverts by swapping before/after (Faz 11/L1, D-224)", () => {
+    const before = { priority: undefined, targetClosureDate: undefined, generalRag: undefined };
+    const after = { priority: "high", targetClosureDate: "2026-12-01", generalRag: "amber" as const };
+    const command: Command = { type: "meta.projectInfo.set", before, after, undoable: true };
+    expect(invertCommand(command)).toEqual({ ...command, before: after, after: before });
+  });
 });
 
 describe("applyCommand — rounds.set", () => {
@@ -366,6 +373,41 @@ describe("applyCommand — meta.ai.set (D-201)", () => {
       type: "meta.ai.set",
       before: project.meta.ai,
       after: { enabled: true, redaction: {} },
+      undoable: true,
+    };
+
+    applyCommand(project, command);
+
+    expect(project).toEqual(before);
+  });
+});
+
+describe("applyCommand — meta.projectInfo.set (Faz 11/L1, D-224)", () => {
+  it("merges the command's after value into project.meta, leaving the rest of meta untouched", () => {
+    const project = makeProject([]);
+    const after = { priority: "high", targetClosureDate: "2026-12-01", generalRag: "amber" as const };
+    const command: Command = {
+      type: "meta.projectInfo.set",
+      before: { priority: undefined, targetClosureDate: undefined, generalRag: undefined },
+      after,
+      undoable: true,
+    };
+
+    const next = applyCommand(project, command);
+
+    expect(next.meta.priority).toBe("high");
+    expect(next.meta.targetClosureDate).toBe("2026-12-01");
+    expect(next.meta.generalRag).toBe("amber");
+    expect(next.meta.title).toBe(project.meta.title);
+  });
+
+  it("does not mutate the original project", () => {
+    const project = makeProject([]);
+    const before = JSON.parse(JSON.stringify(project));
+    const command: Command = {
+      type: "meta.projectInfo.set",
+      before: { priority: undefined, targetClosureDate: undefined, generalRag: undefined },
+      after: { priority: "critical", targetClosureDate: undefined, generalRag: undefined },
       undoable: true,
     };
 

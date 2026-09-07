@@ -19,6 +19,8 @@ interface EntryTranslateFieldProps {
   sourceLanguage: ReportLanguage;
   modelId: string;
   acceptedBy: string;
+  /** Faz 10/K4: `ai::usage`'s per-project log sidecar needs this — the open project's own id, passed down from `EntryEditorDialog`. */
+  projectId: string;
   redaction: ResolvedRedactionPolicy;
   /** Same split as `EntryProposalField.onAccept` (D-125/D-116) — this component never dispatches a command itself, `EntryEditorDialog` decides what accepting a translation means for the mode it's in. */
   onAccept: (nextTitle: string, nextPayload: unknown, provenance: Provenance) => void;
@@ -50,6 +52,7 @@ export function EntryTranslateField({
   sourceLanguage,
   modelId,
   acceptedBy,
+  projectId,
   redaction,
   onAccept,
 }: EntryTranslateFieldProps) {
@@ -74,6 +77,8 @@ export function EntryTranslateField({
         modelId,
         zodSchema: z.object({ title: z.string(), payload: plugin.schema }),
         redaction,
+        projectId,
+        promptVersion: `translate-entry.${ENTRY_TRANSLATION_PROMPT_VERSION}`,
       });
       if (result.outcome === "success") {
         setState({

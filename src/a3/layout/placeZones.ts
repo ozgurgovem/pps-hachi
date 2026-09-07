@@ -1,7 +1,7 @@
 import type { CellData, MergedRange, RowDef } from "../descriptor";
 import type { A3ContentZone, A3TextLine } from "../methodContract";
 import type { PendingImageSlot } from "./place";
-import { ENTRY_BODY_STYLE_ID, entryLineStyleId, type ColumnWidth } from "./contentStyle";
+import { ENTRY_BODY_STYLE_ID, resolveLineStyleId, type ColumnWidth } from "./contentStyle";
 
 export interface PlacedZones {
   readonly cells: readonly CellData[];
@@ -207,7 +207,7 @@ function placeZoneLines(
 
     const row = startRow + rowOffset;
     const ref = `${range.firstCol}${row}`;
-    const styleId = chunk.length === 1 ? entryLineStyleId(chunk[0]!.bold, chunk[0]!.tone) : ENTRY_BODY_STYLE_ID;
+    const styleId = chunk.length === 1 ? resolveLineStyleId(chunk[0]!) : ENTRY_BODY_STYLE_ID;
     cells.push({ ref, value: chunk.map((line) => line.text).join("\n"), styleId });
     if (range.firstCol !== range.lastCol) {
       merges.push({ range: `${ref}:${range.lastCol}${row}` });

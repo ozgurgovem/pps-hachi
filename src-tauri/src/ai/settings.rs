@@ -15,6 +15,12 @@ pub struct AiSettings {
     pub enabled: bool,
     pub default_model_id: Option<String>,
     pub fast_model_id: Option<String>,
+    /// Faz 10/K4/§2.4: `None` = unlimited, the same `Option`-as-"unset"
+    /// convention `default_model_id`/`fast_model_id` already use. A global,
+    /// per-calendar-month USD ceiling on `complete_structured` traffic only
+    /// (P-53 — `ai_complete`'s free-form streaming chat has no token counts
+    /// to meter at all, D-201, so it is structurally outside this cap).
+    pub spend_cap_usd: Option<f64>,
 }
 
 impl Default for AiSettings {
@@ -24,6 +30,7 @@ impl Default for AiSettings {
             enabled: false,
             default_model_id: None,
             fast_model_id: None,
+            spend_cap_usd: None,
         }
     }
 }
@@ -74,6 +81,7 @@ mod tests {
             enabled: true,
             default_model_id: Some("openai/gpt-4o".to_string()),
             fast_model_id: Some("groq/llama-3.1-8b".to_string()),
+            spend_cap_usd: Some(25.5),
         };
 
         write_settings(&path, &settings).unwrap();

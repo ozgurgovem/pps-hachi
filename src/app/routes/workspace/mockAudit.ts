@@ -126,6 +126,8 @@ export interface ProposeMockAuditParams {
   readonly contextText: string;
   readonly modelId: string;
   readonly redaction: ResolvedRedactionPolicy;
+  readonly projectId: string;
+  readonly promptVersion: string | null;
 }
 
 /**
@@ -141,6 +143,8 @@ export async function proposeMockAuditFindings(params: ProposeMockAuditParams): 
     modelId: params.modelId,
     zodSchema: MockAuditResultSchema,
     redaction: params.redaction,
+    projectId: params.projectId,
+    promptVersion: params.promptVersion,
   });
   if (result.outcome === "failed") {
     return { outcome: "failed", rawText: result.rawText };

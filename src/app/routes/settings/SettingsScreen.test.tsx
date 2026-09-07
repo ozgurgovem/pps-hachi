@@ -17,6 +17,7 @@ const EMPTY_SETTINGS: settingsIpc.AiSettings = {
   enabled: false,
   defaultModelId: null,
   fastModelId: null,
+  spendCapUsd: null,
 };
 
 function renderSettingsScreen() {
@@ -334,6 +335,97 @@ describe("SettingsScreen", () => {
 
       expect(await screen.findByText("Mask customer names")).toBeTruthy();
       expect(screen.getByLabelText("Terms to mask (one per line)")).toHaveProperty("value", "Acme Corp");
+    });
+  });
+
+  describe("Project Info (Faz 11/L1, D-223/D-224) — permanent, not a debug section", () => {
+    test("shows a message instead of the fields when no project is open", async () => {
+      mocked.getKeyStatus.mockResolvedValueOnce(null);
+      mocked.getAiSettings.mockResolvedValueOnce(EMPTY_SETTINGS);
+
+      renderSettingsScreen();
+
+      expect(await screen.findByText("Open a project to edit these fields.")).toBeTruthy();
+      expect(screen.queryByLabelText("Priority")).toBeNull();
+    });
+
+    test("shows all three fields unset for a fresh project", async () => {
+      const { project } = createNewProject({ title: "T", language: "en", appVersion: "0.1.0" });
+      useProjectStore.setState({ ...initialProjectStoreState, project });
+      mocked.getKeyStatus.mockResolvedValueOnce(null);
+      mocked.getAiSettings.mockResolvedValueOnce(EMPTY_SETTINGS);
+
+      renderSettingsScreen();
+
+      expect(await screen.findByLabelText("Target Closure")).toHaveProperty("value", "");
+      expect(screen.getAllByText("Not set")).toHaveLength(2); // priority + generalRag selects
+    });
+
+    test("choosing a priority persists it onto project.meta.priority", async () => {
+      const user = userEvent.setup();
+      const { project } = createNewProject({ title: "T", language: "en", appVersion: "0.1.0" });
+      useProjectStore.setState({ ...initialProjectStoreState, project });
+      mocked.getKeyStatus.mockResolvedValueOnce(null);
+      mocked.getAiSettings.mockResolvedValueOnce(EMPTY_SETTINGS);
+
+      renderSettingsScreen();
+      await screen.findByLabelText("Priority");
+
+      await user.click(screen.getByLabelText("Priority"));
+      await user.click(await screen.findByRole("option", { name: "High" }));
+
+      expect(useProjectStore.getState().project?.meta.priority).toBe("high");
+    });
+
+    test("choosing a General RAG status persists it, leaving priority/targetClosureDate untouched", async () => {
+      const user = userEvent.setup();
+      const { project } = createNewProject({ title: "T", language: "en", appVersion: "0.1.0" });
+      const withPriority = { ...project, meta: { ...project.meta, priority: "medium" } };
+      useProjectStore.setState({ ...initialProjectStoreState, project: withPriority });
+      mocked.getKeyStatus.mockResolvedValueOnce(null);
+      mocked.getAiSettings.mockResolvedValueOnce(EMPTY_SETTINGS);
+
+      renderSettingsScreen();
+      await screen.findByLabelText("General RAG");
+
+      await user.click(screen.getByLabelText("General RAG"));
+      await user.click(await screen.findByRole("option", { name: "Amber" }));
+
+      const updated = useProjectStore.getState().project;
+      expect(updated?.meta.generalRag).toBe("amber");
+      expect(updated?.meta.priority).toBe("medium");
+    });
+
+    test("typing a target closure date persists it onto project.meta.targetClosureDate", async () => {
+      const user = userEvent.setup();
+      const { project } = createNewProject({ title: "T", language: "en", appVersion: "0.1.0" });
+      useProjectStore.setState({ ...initialProjectStoreState, project });
+      mocked.getKeyStatus.mockResolvedValueOnce(null);
+      mocked.getAiSettings.mockResolvedValueOnce(EMPTY_SETTINGS);
+
+      renderSettingsScreen();
+      const dateField = await screen.findByLabelText("Target Closure");
+
+      await user.type(dateField, "2026-12-01");
+
+      expect(useProjectStore.getState().project?.meta.targetClosureDate).toBe("2026-12-01");
+    });
+
+    test("shows the project's already-set values on load", async () => {
+      const { project } = createNewProject({ title: "T", language: "en", appVersion: "0.1.0" });
+      const withInfo = {
+        ...project,
+        meta: { ...project.meta, priority: "critical", targetClosureDate: "2026-12-01", generalRag: "red" as const },
+      };
+      useProjectStore.setState({ ...initialProjectStoreState, project: withInfo });
+      mocked.getKeyStatus.mockResolvedValueOnce(null);
+      mocked.getAiSettings.mockResolvedValueOnce(EMPTY_SETTINGS);
+
+      renderSettingsScreen();
+
+      expect(await screen.findByText("Critical")).toBeTruthy();
+      expect(screen.getByText("Red")).toBeTruthy();
+      expect(screen.getByLabelText("Target Closure")).toHaveProperty("value", "2026-12-01");
     });
   });
 });

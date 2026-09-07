@@ -333,14 +333,64 @@ function rowsInBlockRange(template: A3Template, block: TemplateBlock): readonly 
   );
 }
 
+/**
+ * Faz 11/L1 (D-223, §13.2's own dictionaries): `priority`/`generalRag`
+ * store a plain internal code (`"high"`, `"amber"`, …) so the schema stays
+ * permissive (D-51) — the export needs a human-readable label in the
+ * project's own export language, and `src/a3` cannot import i18next (D-43),
+ * so this is a small local bilingual dictionary, the same pattern
+ * `gapStatement`/`smartTarget`/etc.'s own `renderToA3.ts` files already use.
+ */
+const PRIORITY_LABELS: Readonly<Record<string, Readonly<Record<"tr" | "en", string>>>> = {
+  critical: { tr: "Kritik", en: "Critical" },
+  high: { tr: "Yüksek", en: "High" },
+  medium: { tr: "Orta", en: "Medium" },
+  low: { tr: "Düşük", en: "Low" },
+};
+
+const GENERAL_RAG_LABELS: Readonly<Record<string, Readonly<Record<"tr" | "en", string>>>> = {
+  red: { tr: "Kırmızı", en: "Red" },
+  amber: { tr: "Sarı", en: "Amber" },
+  green: { tr: "Yeşil", en: "Green" },
+};
+
 function resolveHeaderFieldValue(fieldId: string, project: ProjectModel): string {
+  const language = project.meta.language;
   switch (fieldId) {
+    // farplas-7step-tr's own field ids (unchanged since Phase 4).
     case "champion":
       return project.meta.owner.name;
     case "kaizenNo":
       return project.meta.projectCode;
     case "department":
       return project.meta.department ?? "";
+    // pps-8step-auto's own field ids (Faz 11/L1, D-153).
+    case "ppsId":
+      return project.meta.projectCode;
+    case "problemTitle":
+      return project.meta.title;
+    case "problemOwner":
+      return project.meta.owner.name;
+    case "customer":
+      return project.meta.customer ?? "";
+    case "line":
+      return project.meta.line ?? "";
+    case "priority": {
+      const priority = project.meta.priority;
+      return priority ? (PRIORITY_LABELS[priority]?.[language] ?? priority) : "";
+    }
+    case "partNumber":
+      return project.meta.partNumber ?? "";
+    case "openedAt":
+      return project.meta.openedAt.slice(0, 10);
+    case "revision":
+      return project.meta.revision;
+    case "targetClosureDate":
+      return project.meta.targetClosureDate ?? "";
+    case "generalRag": {
+      const rag = project.meta.generalRag;
+      return rag ? (GENERAL_RAG_LABELS[rag]?.[language] ?? rag) : "";
+    }
     default:
       return "";
   }

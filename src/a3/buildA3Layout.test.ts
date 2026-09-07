@@ -3,6 +3,7 @@ import type { ProjectModel, StepState } from "../domain/model";
 import { buildA3Layout } from "./buildA3Layout";
 import type { A3EntryRendererMap } from "./methodContract";
 import { farplas7StepTr } from "./templates/farplas-7step-tr";
+import { pps8StepAuto } from "./templates/pps-8step-auto";
 
 const rendererMap: A3EntryRendererMap = {
   "generic-text": (payload, entry) => {
@@ -252,5 +253,76 @@ describe("buildA3Layout", () => {
     const { descriptor } = buildA3Layout(fixtureProject(), farplas7StepTr, { rendererMap });
 
     expect(descriptor.provisionalBlocks).toEqual([]);
+  });
+});
+
+/**
+ * Faz 11/L1 (D-223/D-224): the same `resolveHeaderFieldValue` switch now
+ * also serves `pps-8step-auto`'s twelve identity-band fields — a real,
+ * template-driven exercise of the new field ids/bilingual dictionaries,
+ * not just farplas-7step-tr's original three.
+ */
+describe("buildA3Layout — pps-8step-auto header identity band (Faz 11/L1)", () => {
+  function cellByRef(cells: readonly { ref: string; value: string | number | null }[], ref: string) {
+    return cells.find((cell) => cell.ref === ref)?.value;
+  }
+
+  it("writes all twelve identity-band field values from project.meta, in Turkish, including the two translated dictionaries", () => {
+    const project = fixtureProject({
+      templateId: "pps-8step-auto",
+      meta: {
+        ...fixtureProject().meta,
+        projectCode: "PPS-2026-014",
+        customer: "Farplas Otomotiv",
+        line: "Hat 3",
+        priority: "high",
+        partNumber: "12345-A",
+        targetClosureDate: "2026-12-01",
+        generalRag: "amber",
+      },
+    });
+
+    const { descriptor } = buildA3Layout(project, pps8StepAuto, { rendererMap });
+    const cells = descriptor.sheets.a3.cells;
+
+    expect(cellByRef(cells, "C2")).toBe("PPS-2026-014"); // ppsId
+    expect(cellByRef(cells, "G2")).toBe("Kapı Panel Gürültü Problemi"); // problemTitle
+    expect(cellByRef(cells, "K2")).toBe("Ayşe Yılmaz"); // problemOwner
+    expect(cellByRef(cells, "P2")).toBe("Farplas Otomotiv"); // customer
+    expect(cellByRef(cells, "T2")).toBe("Hat 3"); // line
+    expect(cellByRef(cells, "X2")).toBe("Yüksek"); // priority, Turkish dictionary
+    expect(cellByRef(cells, "C3")).toBe("Kalite"); // department
+    expect(cellByRef(cells, "G3")).toBe("12345-A"); // partNumber
+    expect(cellByRef(cells, "K3")).toBe("2026-01-01"); // openedAt, ISO date only
+    expect(cellByRef(cells, "P3")).toBe("A"); // revision
+    expect(cellByRef(cells, "T3")).toBe("2026-12-01"); // targetClosureDate
+    expect(cellByRef(cells, "X3")).toBe("Sarı"); // generalRag, Turkish dictionary
+  });
+
+  it("shows the English dictionary labels for priority/generalRag on an English-language project", () => {
+    const project = fixtureProject({
+      templateId: "pps-8step-auto",
+      meta: { ...fixtureProject().meta, language: "en", priority: "critical", generalRag: "red" },
+    });
+
+    const { descriptor } = buildA3Layout(project, pps8StepAuto, { rendererMap });
+    const cells = descriptor.sheets.a3.cells;
+
+    expect(cellByRef(cells, "X2")).toBe("Critical");
+    expect(cellByRef(cells, "X3")).toBe("Red");
+  });
+
+  it("leaves optional identity-band fields blank rather than writing a value cell when unset", () => {
+    const { descriptor } = buildA3Layout(fixtureProject({ templateId: "pps-8step-auto" }), pps8StepAuto, {
+      rendererMap,
+    });
+    const cells = descriptor.sheets.a3.cells;
+
+    // priority/customer/line/partNumber/targetClosureDate/generalRag are all
+    // unset in the base fixture — buildA3Layout.ts only pushes a value cell
+    // when resolveHeaderFieldValue returns non-empty (see its own `if (value)`).
+    expect(cellByRef(cells, "X2")).toBeUndefined(); // priority
+    expect(cellByRef(cells, "P2")).toBeUndefined(); // customer
+    expect(cellByRef(cells, "X3")).toBeUndefined(); // generalRag
   });
 });

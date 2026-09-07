@@ -38,6 +38,7 @@ function renderField(onAccept = vi.fn()) {
       sourceLanguage="en"
       modelId="vorion/gpt-4o"
       acceptedBy="Ada"
+      projectId="proj-1"
       redaction={OFF}
       onAccept={onAccept}
     />,

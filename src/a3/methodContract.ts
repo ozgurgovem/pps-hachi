@@ -24,6 +24,20 @@ export interface A3TextLine {
   readonly text: string;
   readonly bold?: boolean;
   readonly tone?: A3TextTone;
+  /**
+   * Faz 11/L1: an explicit template style id, used instead of `tone`'s
+   * bold/tone→styleId lookup (`entryLineStyleId`) when a line needs a
+   * *fill* (background colour), not just a coloured glyph/font — `tone`
+   * stays P-37's own font-colour-only reinforcement, untouched. Reserved
+   * for the small, fixed set of cases where a template pre-authors a named
+   * fill style for a semantically-fixed slot (`gapStatement`'s three Layer A
+   * goal-state bands, `fiveN1K`'s six Layer B category chips,
+   * `reference/TEMPLATE_ANALYSIS.md` §14.1) — the id is looked up in
+   * whichever template happens to be active, and silently falls back to no
+   * special styling if that template doesn't define it (same graceful
+   * degradation an unknown `styleId` already gets elsewhere).
+   */
+  readonly fillStyleId?: string;
 }
 
 /**
@@ -116,6 +130,17 @@ export interface A3BlockContent {
   readonly lines: readonly A3TextLine[];
   readonly image?: A3ImageRequest;
   readonly zones?: readonly A3ContentZone[];
+  /**
+   * Faz 11/L1: how many of the block's remaining content rows a `zones`
+   * band should claim — omitted means "everything remaining" (Phase 5/D-38's
+   * original assumption: one zoned entry per block, `smartTarget`'s own
+   * behaviour, preserved byte-for-byte when this is absent). Set this when a
+   * block hosts more than one zoned entry side by side top-to-bottom
+   * (`pps-8step-auto`'s ADIM 1: `fiveN1K` then `gapStatement`, or the
+   * reverse order) so the first one placed doesn't silently swallow the
+   * rows the second one needs — see `place.ts`'s own fix note (D-224).
+   */
+  readonly zonesRowSpan?: number;
 }
 
 /**

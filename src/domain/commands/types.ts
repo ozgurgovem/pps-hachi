@@ -1,4 +1,4 @@
-import type { A3Visibility, AiMeta, Entry, Round, SignOffState, StepId } from "../model";
+import type { A3Visibility, AiMeta, Entry, ProjectInfoFields, Round, SignOffState, StepId } from "../model";
 
 /**
  * D-70: every mutation to `ProjectModel` is one of these, dispatched through
@@ -92,6 +92,23 @@ export interface MetaAiSetCommand extends BaseCommand {
   readonly after: AiMeta;
 }
 
+/**
+ * Faz 11/L1 (D-223): project-level, same reasoning and shape as
+ * `MetaAiSetCommand` — the header identity band's three new fields
+ * (`priority`/`targetClosureDate`/`generalRag`, D-153/§13.2) live on
+ * `ProjectModel.meta` directly, not inside any step, and `before`/`after`
+ * each carry the complete `ProjectInfoFields` slice (all three fields
+ * together), not a partial patch — `buildSetProjectInfoCommand`'s own
+ * caller (the Settings screen's "Proje Bilgileri" form) always has the
+ * other two fields' current values in hand already, the same way
+ * `buildSetAiMetaCommand`'s one caller does for `AiMeta`.
+ */
+export interface MetaProjectInfoSetCommand extends BaseCommand {
+  readonly type: "meta.projectInfo.set";
+  readonly before: ProjectInfoFields;
+  readonly after: ProjectInfoFields;
+}
+
 export type Command =
   | EntryInsertCommand
   | EntryRemoveCommand
@@ -100,7 +117,8 @@ export type Command =
   | EntriesReorderCommand
   | RoundsSetCommand
   | SignOffSetCommand
-  | MetaAiSetCommand;
+  | MetaAiSetCommand
+  | MetaProjectInfoSetCommand;
 
 /**
  * D-70: thrown by `applyCommand` when a command's precondition doesn't hold

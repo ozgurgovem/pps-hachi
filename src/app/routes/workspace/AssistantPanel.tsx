@@ -125,7 +125,7 @@ export function AssistantPanel() {
   }
 
   function handleAccept() {
-    if (state.phase !== "done" || !project) {
+    if (state.phase !== "done" || !project || activeStepId === null) {
       return;
     }
     const step = project.steps[activeStepId];
@@ -217,8 +217,11 @@ export function AssistantPanel() {
             onChange={(event) => setEditedText(event.target.value)}
             aria-label={t("workspace.assistant.responseLabel")}
           />
+          {activeStepId === null && (
+            <p className="font-body text-xs text-ink-muted">{t("workspace.assistant.noActiveStep")}</p>
+          )}
           <div className="flex gap-2">
-            <Button onClick={handleAccept} disabled={!editedText.trim()}>
+            <Button onClick={handleAccept} disabled={!editedText.trim() || activeStepId === null}>
               {t("workspace.assistant.accept")}
             </Button>
             <Button variant="ghost" onClick={handleReject}>

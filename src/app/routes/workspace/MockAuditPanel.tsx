@@ -59,6 +59,8 @@ export function MockAuditPanel() {
         contextText,
         modelId,
         redaction: resolveRedactionPolicy(project.meta.ai.redaction),
+        projectId: project.id,
+        promptVersion: `mock-audit.${MOCK_AUDIT_PROMPT_VERSION}`,
       });
       if (result.outcome === "failed") {
         setState({ phase: "failed", rawText: result.rawText });

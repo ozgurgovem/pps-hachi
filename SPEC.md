@@ -210,12 +210,19 @@ contrast, reduced-motion respected, light and dark themes.
 
 ### 2.2 Project workspace
 
-Three-region layout:
+Three-region layout — the left rail described in earlier drafts of this section was replaced
+by a landing view + quick-jump strip (Workspace Yüzey Yenilemesi, W1, D-217/D-218, 2026-09-06):
 
-- **Left rail** — the 8 steps as a vertical stepper. Each shows: number, name,
-  completion state (empty / in progress / complete / flagged), and entry count. Click to
-  jump; the method does not force linear navigation, but jumping ahead from an empty
-  step shows a gentle advisory.
+- **Landing view** (center column, shown when no step is selected — the default on opening a
+  project): eight step cards, one per step. Each shows: number label, name, completion state
+  (empty / complete / flagged — see D-196's readiness selector), a short purpose sentence, a
+  short "how to enter" sentence, and entry count. Click a card to open that step's page;
+  jumping to an empty step shows the same gentle advisory as before, not a warning.
+- **Step page's quick-jump strip** (center column, shown only while a step page is open, above
+  the step page itself): an "Overview" control back to the landing view, plus one chip per
+  step (number label + a shape glyph for its status) for jumping directly to any other step
+  without returning to the landing view first — the rail's one function it preserves, not its
+  persistent-column form.
 - **Center** — the active step page.
 - **Right panel** — collapsible, with two tabs:
   - **A3 Preview** — live thumbnail with "expand to full preview", and a badge when the
@@ -864,10 +871,16 @@ Exports:
 - Settings offer "Include AI provenance appendix" for organizations whose customers or
   auditors want the disclosure. Off by default; the decision belongs to the user, not us.
 
-An `ai-log.jsonl` inside the `.ppsx` records every request: timestamp, provider, model,
-prompt version, token counts, cost, accepted or rejected. Prompt and response bodies are
-**not** stored by default — they contain the same confidential data the redaction layer
-exists to protect. A setting enables full-body logging for debugging, with a clear warning.
+An `ai-log.jsonl` records every request: timestamp, provider, model, prompt version, token
+counts, cost, accepted or rejected. It lives as a sidecar under the app's local data
+directory, keyed by project id — **not inside the `.ppsx` itself** (Faz 10/K4, D-221):
+`write_ppsx` rewrites the whole archive on every save, and triggering that on every single
+AI request would fight the autosave-coalescing discipline (D-72) for no real benefit to an
+audit trail that isn't project content in the first place — the same "manual rollback aid,
+not project data" reasoning D-74 already established for history snapshots. Prompt and
+response bodies are **not** stored by default — they contain the same confidential data the
+redaction layer exists to protect. A setting enables full-body logging for debugging, with a
+clear warning.
 
 ### 8.14 Failure modes
 

@@ -15,7 +15,17 @@ interface StepPageProps {
 
 /** SPEC.md §2.2: every step page has the same three bands, in the same order. */
 export function StepPage({ stepId, advisory, onDismissAdvisory }: StepPageProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const stepLabel = t("workspace.stepNumberLabel", { step: stepId });
+  const stepName = t(`workspace.steps.${stepId}.name`);
+  // W1/D-218 §2.6: `i18n.language`, not `project.meta.language` — this is
+  // interface chrome (`workspace.steps.{N}.name` is already read via the
+  // active UI language), a separate concept from the exported A3's own
+  // content language (D-188). `.toLocaleUpperCase("tr")` rather than plain
+  // `.toUpperCase()`, which upper-cases Turkish "i" the English way
+  // ("ANALIZI", missing the dot) instead of "İ" — CLAUDE.md's own Turkish-
+  // character warning, hit directly here.
+  const title = `${stepLabel}. ${stepName}`.toLocaleUpperCase(i18n.language === "tr" ? "tr" : undefined);
 
   return (
     <main className="flex flex-1 flex-col gap-4 overflow-y-auto p-6">
@@ -36,9 +46,7 @@ export function StepPage({ stepId, advisory, onDismissAdvisory }: StepPageProps)
         </p>
       )}
 
-      <h1 className="font-display text-2xl font-semibold text-ink">
-        {stepId}. {t(`workspace.steps.${stepId}.name`)}
-      </h1>
+      <h1 className="font-display text-2xl font-semibold text-ink">{title}</h1>
       <ReadinessAdvisory stepId={stepId} />
 
       <CoachBand stepId={stepId} />

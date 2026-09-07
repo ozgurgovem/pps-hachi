@@ -407,6 +407,8 @@ export interface ProposeLayoutReviewParams {
   readonly modelId: string;
   readonly redaction: ResolvedRedactionPolicy;
   readonly lookup: ReadonlyMap<string, EntryLookupEntry>;
+  readonly projectId: string;
+  readonly promptVersion: string | null;
 }
 
 /**
@@ -430,6 +432,8 @@ export async function proposeLayoutReviewDiff(params: ProposeLayoutReviewParams)
     params.modelId,
     LayoutReviewDiffSchema,
     params.redaction,
+    params.projectId,
+    params.promptVersion,
   );
 
   if (!first.success) {
@@ -465,6 +469,8 @@ async function retryOnce(
     params.modelId,
     LayoutReviewDiffSchema,
     params.redaction,
+    params.projectId,
+    params.promptVersion,
   );
 
   if (!second.success) {

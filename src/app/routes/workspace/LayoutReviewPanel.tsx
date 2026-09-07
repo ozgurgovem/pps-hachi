@@ -87,6 +87,8 @@ export function LayoutReviewPanel({ descriptor }: LayoutReviewPanelProps) {
         modelId,
         redaction: resolveRedactionPolicy(project.meta.ai.redaction),
         lookup,
+        projectId: project.id,
+        promptVersion: `layout-review.${LAYOUT_REVIEW_PROMPT_VERSION}`,
       });
       if (result.outcome === "failed") {
         setState({ phase: "failed", rawText: result.rawText });

@@ -4,6 +4,7 @@ import type {
   Entry,
   EntryReference,
   ImageRef,
+  ProjectInfoFields,
   ProjectModel,
   Provenance,
   Round,
@@ -18,6 +19,7 @@ import {
   type EntryUpdateCommand,
   type EntriesReorderCommand,
   type MetaAiSetCommand,
+  type MetaProjectInfoSetCommand,
   type RoundsSetCommand,
   type SignOffSetCommand,
 } from "./types";
@@ -288,4 +290,20 @@ export function buildSetSignOffCommand(
  */
 export function buildSetAiMetaCommand(project: ProjectModel, ai: AiMeta): MetaAiSetCommand {
   return { type: "meta.ai.set", before: project.meta.ai, after: ai, undoable: true };
+}
+
+/**
+ * Faz 11/L1 (D-223): sets the whole `priority`/`targetClosureDate`/
+ * `generalRag` slice at once, same posture as `buildSetAiMetaCommand` —
+ * the Settings screen's "Proje Bilgileri" form always has the current
+ * values of all three fields in hand (it renders them), so there is no
+ * partial-update case to preserve.
+ */
+export function buildSetProjectInfoCommand(project: ProjectModel, info: ProjectInfoFields): MetaProjectInfoSetCommand {
+  const before: ProjectInfoFields = {
+    priority: project.meta.priority,
+    targetClosureDate: project.meta.targetClosureDate,
+    generalRag: project.meta.generalRag,
+  };
+  return { type: "meta.projectInfo.set", before, after: info, undoable: true };
 }

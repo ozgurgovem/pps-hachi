@@ -247,6 +247,8 @@ describe("proposeLayoutReviewDiff", () => {
     contextText: "entry data here",
     modelId: "vorion/gpt-4o",
     redaction: OFF,
+    projectId: "proj-1",
+    promptVersion: "layout-review.v1",
   };
 
   it("returns success on the first attempt when the schema is valid and no protected token is lost", async () => {

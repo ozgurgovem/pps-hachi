@@ -22,12 +22,30 @@ import type { ResolvedRedactionPolicy } from "./redaction";
  * (`VorionProvider::complete_structured`), so TS never sees either the
  * masked prompt or a raw token map; it only ever sees the final,
  * already-unredacted response.
+ *
+ * Faz 10/K4/§2.1: `projectId`/`promptVersion` are new — Rust has no ambient
+ * notion of "the currently open project," so `ai::usage`'s per-project log
+ * sidecar needs the id passed explicitly. This is the one, unavoidable
+ * consequence of keeping token/cost metadata entirely inside Rust (Barış's
+ * chosen plumbing, §2.1 of `K4-maliyet-sayaci.md`): the return type here is
+ * unchanged (`Promise<unknown>`), so every caller built on this function
+ * (K1/K2/K3's `attemptStructuredProposal` chain) needs only thread these two
+ * new inputs through, never adapt to a new output shape.
  */
 export function completeStructured(
   prompt: string,
   schema: object,
   modelId: string,
   redaction: ResolvedRedactionPolicy,
+  projectId: string,
+  promptVersion: string | null,
 ): Promise<unknown> {
-  return invoke<unknown>("ai_complete_structured", { prompt, schema, modelId, redaction });
+  return invoke<unknown>("ai_complete_structured", {
+    prompt,
+    schema,
+    modelId,
+    redaction,
+    projectId,
+    promptVersion,
+  });
 }

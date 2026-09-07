@@ -2,7 +2,7 @@ import type { Entry, ProjectModel } from "../../domain/model";
 import type { CellData, MergedRange, RowDef } from "../descriptor";
 import type { A3EntryRendererMap, A3ImageKind, A3TextTone } from "../methodContract";
 import type { TemplateBlock } from "../templates/types";
-import { ENTRY_CONTENT_FONT_PT, entryLineStyleId, type ColumnWidth } from "./contentStyle";
+import { ENTRY_CONTENT_FONT_PT, resolveLineStyleId, type ColumnWidth } from "./contentStyle";
 import { estimateCharsPerLine, wrapText } from "./measure";
 import { placeZonesContent } from "./placeZones";
 
@@ -38,6 +38,7 @@ interface WrappedLine {
   readonly text: string;
   readonly bold: boolean | undefined;
   readonly tone: A3TextTone | undefined;
+  readonly fillStyleId: string | undefined;
 }
 
 function heightOfRows(contentRows: readonly RowDef[], startRow: number, rowSpan: number): number {
@@ -52,10 +53,14 @@ function heightOfRows(contentRows: readonly RowDef[], startRow: number, rowSpan:
  * into a block's content rows. Three shapes of content, per D-102: `lines`
  * stack one wrapped text line per row (Phase 4 default); `image` reserves
  * `rowSpan` rows for a chart/diagram instead of text; `zones` (mutually
- * exclusive with the other two) hands the entry's entire remaining
- * row-span to `placeZonesContent`'s horizontal partition. An entry is
- * placed only if everything it needs fits the remaining budget — never
- * split across primary/appendix.
+ * exclusive with the other two) hands `placeZonesContent`'s horizontal
+ * partition either the entry's *entire* remaining row-span (no
+ * `zonesRowSpan`, Phase 5/D-38's original one-zoned-entry-per-block
+ * assumption) or an explicit slice of it (D-224) — the latter is what lets
+ * `pps-8step-auto`'s ADIM 1 host two independent zoned entries (`fiveN1K`,
+ * `gapStatement`) top-to-bottom in one block. An entry is placed only if
+ * everything it needs fits the remaining budget — never split across
+ * primary/appendix.
  */
 export function placeBlockContent(
   entries: readonly Entry[],
@@ -83,11 +88,19 @@ export function placeBlockContent(
       : { lines: [{ text: entry.title, bold: true }] };
 
     if (content.zones) {
+      // D-224: a `zonesRowSpan`-less zoned entry claims the whole remaining
+      // band (Phase 5/D-38's original one-zoned-entry-per-block assumption,
+      // preserved exactly for `smartTarget`). An explicit `zonesRowSpan`
+      // lets a *second* zoned entry follow in the same block — see
+      // `placeZonesContent`'s own doc comment for why this couldn't be
+      // inferred from zone content alone.
+      const requestedSpan = content.zonesRowSpan ?? lastRow - row + 1;
+      const zoneLastRow = Math.min(row + requestedSpan - 1, lastRow);
       const placed = placeZonesContent(
         entry.id,
         content.zones,
         row,
-        lastRow,
+        zoneLastRow,
         contentRows,
         contentColumnWidths,
       );
@@ -99,14 +112,14 @@ export function placeBlockContent(
       merges.push(...placed.merges);
       pendingImages.push(...placed.pendingImages);
       placedEntryIds.push(entry.id);
-      row = lastRow + 1;
+      row = zoneLastRow + 1;
       continue;
     }
 
     const wrappedLines: WrappedLine[] = [];
     for (const line of content.lines) {
       for (const text of wrapText(line.text, maxCharsPerLine)) {
-        wrappedLines.push({ text, bold: line.bold, tone: line.tone });
+        wrappedLines.push({ text, bold: line.bold, tone: line.tone, fillStyleId: line.fillStyleId });
       }
     }
 
@@ -133,7 +146,7 @@ export function placeBlockContent(
       cells.push({
         ref,
         value: line.text,
-        styleId: entryLineStyleId(line.bold, line.tone),
+        styleId: resolveLineStyleId({ bold: line.bold, tone: line.tone, fillStyleId: line.fillStyleId }),
       });
       if (block.contentColumns.first !== block.contentColumns.last) {
         merges.push({ range: `${ref}:${block.contentColumns.last}${row}` });

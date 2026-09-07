@@ -7,6 +7,12 @@
     "openProject": "Mevcut Projeyi Aç",
     "newProjectDialogTitle": "Yeni projeyi kaydet",
     "openProjectDialogTitle": "PPS Hachi projesi aç",
+    "chooseLanguage": {
+      "title": "Proje dili",
+      "description": "Bu proje hangi dilde tutulsun? Daha sonra değiştirilemez.",
+      "turkish": "Türkçe",
+      "english": "İngilizce"
+    },
     "recent": {
       "title": "Son projeler",
       "loading": "Son projeler yükleniyor…",
@@ -37,37 +43,54 @@
     "redo": "Yinele",
     "stepNavLabel": "Adım gezinmesi",
     "stepAriaLabel": "Adım {{step}}: {{name}}",
+    "stepNumberLabel": "Adım-{{step}}",
     "steps": {
       "1": {
-        "name": "Problemi Netleştir"
+        "name": "Problemi Netleştir",
+        "cardPurpose": "Standart ile fiilen olan arasındaki farkı bir sayı, birim ve referans dönemle ifade edin — yorum değil.",
+        "cardHowTo": "Bir boşluk ifadesiyle başlayın: olması gereken, olan ve aradaki fark ne kadar."
       },
       "2": {
-        "name": "Problemi Parçalara Ayır"
+        "name": "Problemi Parçalara Ayır",
+        "cardPurpose": "Problemi tek bir makine, vardiya veya hata tipi gibi somut bir dilime daraltın — neden diye sormadan önce.",
+        "cardHowTo": "Gerçek veriye dayanan bir Pareto, trend, kontrol formu veya tabakalama girişi ekleyin."
       },
       "3": {
-        "name": "Hedef Belirle"
+        "name": "Hedef Belirle",
+        "cardPurpose": "Sebep aramaya başlamadan önce ölçülebilir bir hedefe bağlanın — pratikte en sık atlanan adım.",
+        "cardHowTo": "Metrik, referans değer, hedef değer, birim ve tarihi olan bir SMART hedef ekleyin."
       },
       "4": {
-        "name": "Kök Neden Analizi"
+        "name": "Kök Neden Analizi",
+        "cardPurpose": "Sistemik, değiştirilebilir bir faktöre ulaşana kadar tekrar tekrar \"neden\" diye sorun — bir kişiyi suçlamadan.",
+        "cardHowTo": "Adım 2'nin bulduğu sebep noktasından bir balık kılçığı veya 5 Neden zinciri kurun ve sonucu doğrulayın."
       },
       "5": {
-        "name": "Karşı Önlem Geliştir"
+        "name": "Karşı Önlem Geliştir",
+        "cardPurpose": "Neyin değişeceğini seçin ve alternatiflere karşı neden daha iyi olduğunu savunun — her önlem doğrulanmış bir kök nedene bağlanır.",
+        "cardHowTo": "Adım 4'teki bir kök nedene bağlı, hata önleme hiyerarşisinde derecelendirilmiş bir karşı önlem ekleyin."
       },
       "6": {
-        "name": "Uygulama"
+        "name": "Uygulama",
+        "cardPurpose": "Karşı önlemleri sahibi ve tarihi belli somut aksiyonlara dönüştürün ve sonuna kadar takip edin.",
+        "cardHowTo": "Her aksiyonu kaydedin ve yalnızca gerçekten tamamlandığında tamamlandı olarak işaretleyin."
       },
       "7": {
-        "name": "Sonuçları Kontrol Et"
+        "name": "Sonuçları Kontrol Et",
+        "cardPurpose": "Adım 3'teki hedefe ulaşılıp ulaşılmadığını ve önlemin tasarlandığı gibi yürütülüp yürütülmediğini kontrol edin.",
+        "cardHowTo": "Hedefe karşı sonucu kaydedin ve süreci sahada doğrulayın — yalnızca kağıt üzerinde değil."
       },
       "8": {
-        "name": "Standardizasyon ve Yaygınlaştırma"
+        "name": "Standardizasyon ve Yaygınlaştırma",
+        "cardPurpose": "Düzeltmeyi işin gerçekten yapılma biçimine kilitleyin ve aynı hatanın olabileceği her yere yaygınlaştırın.",
+        "cardHowTo": "İlgili standart dokümanları güncellendi olarak işaretleyin ve yokoten tablosunda nereye uygulanacağını belirtin."
       }
     },
     "stepStatus": {
       "empty": "Boş",
       "inProgress": "Devam ediyor",
       "complete": "Tamamlandı",
-      "flagged": "İşaretlendi"
+      "flagged": "Devam ediyor"
     },
     "entriesBand": {
       "title": "Girişler",
@@ -107,6 +130,15 @@
     "coachBand": {
       "show": "Rehberliği göster",
       "hide": "Rehberliği gizle"
+    },
+    "stepOverview": {
+      "heading": "Adımlar",
+      "summary": "{{complete}} / 8 tamamlandı, {{flagged}} devam ediyor",
+      "openA3Preview": "A3 Önizleme"
+    },
+    "quickJump": {
+      "backToOverview": "İniş",
+      "backToOverviewAriaLabel": "İniş görünümüne dön"
     },
     "jumpAdvisory": "{{step}}. adımda henüz giriş yok — yine de sırayla ilerlemeden çalışabilirsiniz.",
     "readiness": {
@@ -152,6 +184,7 @@
     "assistant": {
       "noModelConfigured": "Bu proje için henüz bir model seçilmedi.",
       "goToSettings": "Ayarlara git",
+      "noActiveStep": "Bu yanıtı bir adıma eklemek için önce iniş görünümünden bir adım seçin.",
       "promptLabel": "Asistana sor",
       "promptPlaceholder": "Bir soru sor…",
       "send": "Gönder",
@@ -1232,6 +1265,26 @@
   "settings": {
     "backToLaunch": "Çalışma alanına dön",
     "title": "Ayarlar",
+    "projectInfo": {
+      "heading": "Proje Bilgileri",
+      "noProject": "Bu alanları düzenlemek için önce bir proje açın.",
+      "priorityLabel": "Öncelik",
+      "priorityPlaceholder": "Öncelik seçin",
+      "priorityUnset": "Belirtilmedi",
+      "priorityOptions": {
+        "critical": "Kritik",
+        "high": "Yüksek",
+        "medium": "Orta",
+        "low": "Düşük"
+      },
+      "targetClosureDateLabel": "Hedef Kapanış",
+      "generalRagLabel": "Genel RAG",
+      "generalRagPlaceholder": "Durum seçin",
+      "generalRagUnset": "Belirtilmedi",
+      "generalRagRed": "Kırmızı",
+      "generalRagAmber": "Sarı",
+      "generalRagGreen": "Yeşil"
+    },
     "ai": {
       "providerName": "Vorion",
       "statusLoading": "Yükleniyor…",
@@ -1254,6 +1307,15 @@
       "enableAssistance": "Yapay zeka desteğini etkinleştir",
       "noModelSelected": "Seçilmedi",
       "replaceKeyPlaceholder": "Değiştirmek için yeni bir anahtar yapıştırın",
+      "spendCapLabel": "Aylık harcama sınırı (USD)",
+      "spendCapPlaceholder": "Sınırsız",
+      "spendCapHelp": "Bu ayki harcama sınıra ulaştığında, yeni AI taslakları, çeviriler, yerleşim incelemesi ve denetim istekleri bir sonraki aya kadar ya da siz sınırı yükseltene kadar reddedilir. Sınırsız için boş bırakın.",
+      "spendCapExceededWarning": "Bu ayki harcama sınırına ulaşıldı. AI özelliklerini kullanmaya devam etmek için yukarıdan sınırı yükseltin ya da bir sonraki ayı bekleyin.",
+      "costHeading": "AI maliyeti",
+      "costProjectTotal": "Bu proje: ${{amount}} ({{requests}} istek)",
+      "costCurrentMonth": "Bu ay, tüm projeler: ${{amount}} ({{requests}} istek)",
+      "costNoProject": "Kendi çalışan toplamını görmek için bir proje aç.",
+      "costScopeNote": "Yalnızca AI taslaklarını, çevirileri, yerleşim incelemesini ve mock-auditor denetimini kapsar. Serbest metin Assistant sohbetinin ölçülecek bir token sayacı yok, bu yüzden dahil değildir.",
       "debugProjectAiHeading": "Bu proje için AI'yi etkinleştir (debug)",
       "debugProjectAiHint": "Geçici — New Project diyaloğunun kendi AI adımı (SPEC.md §8.5) gelene kadar; çalışma alanının Assistant sekmesinin açık proje üzerinde görünmesini sağlayan şey bu.",
       "debugProjectAiLabel": "Açık proje için AI'yi etkinleştir",

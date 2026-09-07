@@ -80,6 +80,11 @@ export type Attempt =
  * attempt failed"), which doesn't fit `proposeStructuredEntry`'s own
  * schema-only retry-once below. Reusing this rather than duplicating it is
  * the whole point (Anayasa Madde 2/G2).
+ *
+ * Faz 10/K4: `projectId`/`promptVersion` pass straight through to
+ * `completeStructured` for `ai::usage`'s per-project log — every caller of
+ * this function already has both readily available (the open project's own
+ * id, and the same prompt-version string it already builds for `Provenance`).
  */
 export async function attemptStructuredProposal(
   prompt: string,
@@ -87,10 +92,12 @@ export async function attemptStructuredProposal(
   modelId: string,
   zodSchema: ZodType<unknown>,
   redaction: ResolvedRedactionPolicy,
+  projectId: string,
+  promptVersion: string | null,
 ): Promise<Attempt> {
   let raw: unknown;
   try {
-    raw = await completeStructured(prompt, jsonSchema, modelId, redaction);
+    raw = await completeStructured(prompt, jsonSchema, modelId, redaction, projectId, promptVersion);
   } catch (error) {
     const message = errorMessage(error);
     return { success: false, rawText: message, errorSummary: message };
@@ -116,6 +123,9 @@ export interface ProposeStructuredEntryParams {
   readonly modelId: string;
   readonly zodSchema: ZodType<unknown>;
   readonly redaction: ResolvedRedactionPolicy;
+  readonly projectId: string;
+  /** e.g. `"pareto.v1"` — the same string already written into `Provenance.model.promptVersion`. */
+  readonly promptVersion: string | null;
 }
 
 /**
@@ -137,6 +147,8 @@ export async function proposeStructuredEntry(params: ProposeStructuredEntryParam
     params.modelId,
     params.zodSchema,
     params.redaction,
+    params.projectId,
+    params.promptVersion,
   );
   if (first.success) {
     return { outcome: "success", value: first.value };
@@ -149,6 +161,8 @@ export async function proposeStructuredEntry(params: ProposeStructuredEntryParam
     params.modelId,
     params.zodSchema,
     params.redaction,
+    params.projectId,
+    params.promptVersion,
   );
   if (second.success) {
     return { outcome: "success", value: second.value };

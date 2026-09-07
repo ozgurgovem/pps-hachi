@@ -2,6 +2,11 @@ pub mod ai;
 pub mod commands;
 pub mod images;
 pub mod ingest;
+/// Faz 10/K4: a shared, hardened path-component validator (`ppsx::history`'s
+/// D-91/D-92 checker, extracted on its second real caller — `ai::usage`'s
+/// per-project log sidecar addresses itself by the same untrusted
+/// `project_id`).
+pub(crate) mod path_safety;
 pub mod ppsx;
 pub mod xlsx;
 
@@ -52,6 +57,7 @@ pub fn run() {
             ai::commands::ai_cancel,
             ai::commands::ai_complete_structured,
             ai::commands::ai_capabilities,
+            ai::commands::ai_get_cost_summary,
             ingest::commands::ingest_table_preview,
         ])
         .run(tauri::generate_context!())
