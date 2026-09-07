@@ -218,4 +218,21 @@ export function resolveA3Images(entry: A3EntrySummary): readonly A3EntryImageRef
 
 export type A3EntryRenderer = (payload: unknown, entry: A3EntrySummary) => A3BlockContent;
 
+/**
+ * Faz 11/L3a: the "look up this entry's renderer, fall back to a bare title
+ * line" logic that `place.ts`'s actual placement, `buildA3Layout.ts`'s
+ * appendix sheets, and `elasticAllocation.ts`'s row-demand estimate all need
+ * identically — extracted here (G2) once a third call site needed it, rather
+ * than a third copy of the same four lines.
+ */
+export function resolveEntryContent(
+  methodId: string,
+  payload: unknown,
+  entry: A3EntrySummary,
+  rendererMap: A3EntryRendererMap,
+): A3BlockContent {
+  const renderer = rendererMap[methodId];
+  return renderer ? renderer(payload, entry) : { lines: [{ text: entry.title, bold: true }] };
+}
+
 export type A3EntryRendererMap = Readonly<Record<string, A3EntryRenderer>>;

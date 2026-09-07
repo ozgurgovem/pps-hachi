@@ -1750,6 +1750,72 @@ AI layer: Faz 8 fully done (keychain + Vorion connection/model-discovery + strea
   exceeding D-114's one-mechanism budget (solver core + a new `pinned` domain field/command +
   drag-handle UI are three real new mechanisms) and names five real open design questions for
   its own first `AskUserQuestion` round before any code.
+**Faz 11 — L3a: FULLY DONE (D-226, 2026-09-07) — the launch prompt's own D-114 budget warning
+  held: this session split L3 into L3a (solver core, done here) and L3b (`pinned` domain field/
+  command + drag-handle UI, its own launch prompt, `docs/oturumlar/L3b-pinned-drag-handle.md`)
+  rather than attempting all three new mechanisms at once — the launch prompt itself said this
+  splitting decision was this session's own call (Anayasa Madde 9), not Barış's. Four real open
+  questions went to Barış via one `AskUserQuestion` round, all four his recommended option:
+  (1) scope is `pps-8step-auto` only — `farplas-7step-tr` untouched; (2) `pinned` will be
+  persistent (`.ppsx`, keyed by appStep) once L3b builds it; (3) demand estimation is a new,
+  independent pure function, never a mode bolted onto `placeBlockContent`; (4) the future
+  drag-handle lives outside `HtmlA3Renderer` entirely, an overlay layer, so D-94's "dumb
+  renderer" contract stays untouched.
+  `TemplateBlock` (`src/a3/templates/types.ts`) gained an optional `elastic?: {
+  minimumCanvasRows: number }` — omitted (every `farplas-7step-tr` block) means the template's
+  static `contentRows`/`headerRange` are used exactly as before; a block opts in per-template,
+  the mechanism itself is template-agnostic, not hardcoded to `pps-8step-auto`. New
+  `src/a3/layout/elasticAllocation.ts`: `estimateBlockRowDemand` (a block's real row need at
+  unlimited budget — mirrors `placeBlockContent`'s own line-wrapping via the newly-shared
+  `resolveEntryContent`, D-102's two-call pattern untouched; a `zones`/`image` entry with no
+  `zonesRowSpan`/`rowSpan` — D-224/Phase 5's "fills whatever remains" fallback, `fishbone`/
+  `smartTarget`'s own case — reports `Number.POSITIVE_INFINITY`, since it has no finite natural
+  size) and `resolveElasticBlocks` (the column-level deterministic solver — `distributeElasticColumn`
+  rests each block at `clamp(demand, minimum, default)`, then hands whatever a below-default
+  block frees up to whichever above-default block(s) want it, in column order, an `Infinity`-demand
+  block absorbing all remaining surplus once reached). **Verified against D-160's own LOCKED
+  worked example, not just reasoned about**: with ADIM 1 and ADIM 3 both empty and ADIM 2
+  demanding more, ADIM 2 grows to exactly 33 total rows (31 canvas + 2 header) — the literal
+  number D-160's own text names — reproduced in an independent test
+  (`elasticAllocation.test.ts`). `pps-8step-auto.ts`'s eight blocks each declare
+  `minimumCanvasRows` (10/18/3 left, 12/4/4/4/3 right — D-158/D-160's own published *total*-block
+  minimums minus the 2-row header every block keeps); its static block-header merges were removed
+  from the template's `MERGES` array (an elastic block's header can move, so its merge is now
+  emitted dynamically from the resolved range instead).
+  **G2 applied twice, before a third repetition, not after**: `resolveEntryContent`
+  (`methodContract.ts`, new) — the "look up this entry's renderer, fall back to a bare title
+  line" logic `place.ts` and `buildA3Layout.ts`'s appendix sheets each had their own copy of —
+  now lives in exactly one place, since `elasticAllocation.ts` needed it as a third call site.
+  `entriesForBlock`/`flattenEntries`/`columnWidthsInRange`/`rowsInBlockRange` (previously private
+  to `buildA3Layout.ts`) moved to new `src/a3/layout/entriesByBlock.ts`, imported by both
+  `buildA3Layout.ts` and `elasticAllocation.ts` — this makes it structurally impossible for the
+  solver's idea of "which entries land in this block, in what order" to silently drift from what
+  real placement actually does with them.
+  `buildA3Layout.ts`'s main loop now iterates `resolveElasticBlocks`'s resolved block list instead
+  of `template.blocks` directly; every other function in the pipeline
+  (`computeBlockBudget`/`computeOverflowWarning`/`computeProvisionalBlockMarker`) needed zero
+  changes since they already only read whatever `TemplateBlock` they're handed.
+  **Verified end to end, not just at the unit level**: a new `buildA3Layout.test.ts` describe
+  block builds a real `pps8StepAuto` project with 20 entries stuffed into ADIM 2 (40 rows of
+  demand) and empty ADIM 1/3, runs it through the real `buildA3Layout`, and confirms ADIM 2's
+  header cell and its merge genuinely land at the shifted `A16:L17` (not the static default
+  `A18:L19`, which is confirmed absent), ADIM 2's content genuinely starts at the shifted row 18,
+  ADIM 3 is pushed down to `A49:L50`, and the demand this ceiling still can't satisfy safely
+  overflows to an appendix (D-100) rather than being silently dropped. A second test confirms
+  `farplas-7step-tr`'s own static header merge is completely untouched regardless of how much
+  content Step 2 carries, since none of its blocks declare `elastic`.
+  `npm test` 1464/1464 (297 files, up from 1448/1448 — 16 new: `elasticAllocation.test.ts`'s 14
+  plus `buildA3Layout.test.ts`'s +2), exit code 0 (checked via a separate logfile, not piped
+  through `tail`). `npm run lint` clean (the one pre-existing `ThemeProvider` warning). `npm run
+  build` green (same pre-existing chunk-size warning). `cargo test`/`clippy`/`fmt` all clean —
+  Rust genuinely untouched this dilim (confirmed via `git status src-tauri/` before touching
+  anything, TS-only end to end). `scripts/gen-a3-fixture.ts` re-run — **zero diff**, confirmed
+  rather than assumed: the fixture only ever exercises `farplas-7step-tr`, none of whose blocks
+  declare `elastic`, so this mechanism structurally cannot touch it. Deliberately not built this
+  dilim: `pinned`'s domain field/command, the drag-handle UI, adding elasticity to
+  `farplas-7step-tr`, P-63/P-62/P-18 (all untouched). L3b's own launch prompt is written:
+  `docs/oturumlar/L3b-pinned-drag-handle.md` — **Faz 11's own three-slice plan (D-223) now has
+  L1+L2+L3a done, only L3b remains.**
 Templates: two company .xls files analysed; see reference/TEMPLATE_ANALYSIS.md
 Template geometry: VERIFIED 2026-08-01 against both .xls files. Five errors found and
   corrected in place — the largest was the column widths: the real split is 49.7/50.3, NOT

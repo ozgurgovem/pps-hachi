@@ -41,7 +41,25 @@ export interface TemplateBlock {
   readonly headerStyleId: string;
   readonly bodyStyleId: string;
   readonly contentColumns: { readonly first: string; readonly last: string };
+  /**
+   * For an `elastic` block, this is its DEFAULT canvas-row span (D-158) —
+   * the actual per-project span is computed by
+   * `layout/elasticAllocation.ts`'s `resolveElasticBlocks`, never read
+   * directly off the template. For a non-elastic block this is the literal,
+   * unchanging span, exactly as before Faz 11/L3a.
+   */
   readonly contentRows: { readonly start: number; readonly end: number };
+  /**
+   * Faz 11/L3a (D-158/D-160/D-223 madde 1, all LOCKED or as-recorded):
+   * declares this block a member of an elastic column group — its column-
+   * mates (blocks sharing `contentColumns`) share a fixed row total, and the
+   * boundary between them moves per project based on each block's real
+   * content demand, never below `minimumCanvasRows`. Omitted (the default,
+   * every `farplas-7step-tr` block) means `contentRows`/`headerRange` are
+   * used exactly as declared — nothing about that template's static
+   * geometry changes.
+   */
+  readonly elastic?: { readonly minimumCanvasRows: number };
 }
 
 export interface A3Template {

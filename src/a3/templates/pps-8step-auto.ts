@@ -4,10 +4,12 @@ import type { A3Template, TemplateBlock, TemplateField } from "./types";
 /**
  * Faz 11/L1 (D-223, D-157 LOCKED): geometry transcribed from
  * `reference/TEMPLATE_ANALYSIS.md` §12 (the page contract, Oturum A) and
- * §12.8 (the elastic model's own DEFAULT row counts, used here as fixed
- * `contentRows.start/end` — the real elastic solver is L3, deliberately not
- * built this dilim, D-223 madde 3). Source: `reference/
- * PPS_A3_Problem_Solving_Template_Rev00.xlsx`, D-150 LOCKED.
+ * §12.8 (the elastic model's own DEFAULT row counts). `contentRows.start/end`
+ * below are these defaults — Faz 11/L3a's `elastic` field (added to every
+ * block below) tells `layout/elasticAllocation.ts`'s `resolveElasticBlocks`
+ * to recompute the real per-project row split; `pinned`/drag-handle
+ * overrides are L3b, still not built (D-223 madde 3, P-40). Source:
+ * `reference/PPS_A3_Problem_Solving_Template_Rev00.xlsx`, D-150 LOCKED.
  *
  * D-224 (this dilim's own finding while building it): §12.4's own text
  * ("her blok bir kartuş satırı artı bir etiket satırı taşır") means each
@@ -297,6 +299,19 @@ const FOOTER_FIELDS: readonly TemplateField[] = [
  * Every block maps to exactly one app-step (unlike `farplas-7step-tr`'s
  * merged Step 5+6 block) — §12.6's own note that this simplification is
  * this template's whole point.
+ *
+ * Faz 11/L3a (D-158/D-160 LOCKED, D-223 madde 1's own scope narrowing): every
+ * block here declares `elastic`, so `headerRange`/`contentRows` below are
+ * DEFAULTS — `resolveElasticBlocks` (`layout/elasticAllocation.ts`)
+ * recomputes the real per-project geometry from these plus each block's own
+ * `minimumCanvasRows` floor. `minimumCanvasRows` values are D-158/D-160's own
+ * canvas minimums (their published *total*-block minimum — 12/20/5 left,
+ * 14/6/6/6/5 right — minus the 2-row header each block always keeps):
+ * left 10/18/3, right 12/4/4/4/3. Because every block here is elastic, its
+ * `headerRange` merge is emitted dynamically by `buildA3Layout` instead of
+ * being declared in the static `MERGES` list below (see that function's own
+ * comment) — unlike `farplas-7step-tr`, whose blocks never declare
+ * `elastic` and whose header merges stay fully static.
  */
 const BLOCKS: readonly TemplateBlock[] = [
   {
@@ -308,6 +323,7 @@ const BLOCKS: readonly TemplateBlock[] = [
     bodyStyleId: "entryContent",
     contentColumns: { first: "A", last: "L" },
     contentRows: { start: 6, end: 17 },
+    elastic: { minimumCanvasRows: 10 },
   },
   {
     appSteps: [2],
@@ -318,6 +334,7 @@ const BLOCKS: readonly TemplateBlock[] = [
     bodyStyleId: "entryContent",
     contentColumns: { first: "A", last: "L" },
     contentRows: { start: 20, end: 45 },
+    elastic: { minimumCanvasRows: 18 },
   },
   {
     appSteps: [3],
@@ -328,6 +345,7 @@ const BLOCKS: readonly TemplateBlock[] = [
     bodyStyleId: "entryContent",
     contentColumns: { first: "A", last: "L" },
     contentRows: { start: 48, end: 53 },
+    elastic: { minimumCanvasRows: 3 },
   },
   {
     appSteps: [4],
@@ -338,6 +356,7 @@ const BLOCKS: readonly TemplateBlock[] = [
     bodyStyleId: "entryContent",
     contentColumns: { first: "N", last: "Y" },
     contentRows: { start: 6, end: 23 },
+    elastic: { minimumCanvasRows: 12 },
   },
   {
     appSteps: [5],
@@ -348,6 +367,7 @@ const BLOCKS: readonly TemplateBlock[] = [
     bodyStyleId: "entryContent",
     contentColumns: { first: "N", last: "Y" },
     contentRows: { start: 26, end: 31 },
+    elastic: { minimumCanvasRows: 4 },
   },
   {
     appSteps: [6],
@@ -358,6 +378,7 @@ const BLOCKS: readonly TemplateBlock[] = [
     bodyStyleId: "entryContent",
     contentColumns: { first: "N", last: "Y" },
     contentRows: { start: 34, end: 39 },
+    elastic: { minimumCanvasRows: 4 },
   },
   {
     appSteps: [7],
@@ -368,6 +389,7 @@ const BLOCKS: readonly TemplateBlock[] = [
     bodyStyleId: "entryContent",
     contentColumns: { first: "N", last: "Y" },
     contentRows: { start: 42, end: 47 },
+    elastic: { minimumCanvasRows: 4 },
   },
   {
     appSteps: [8],
@@ -378,6 +400,7 @@ const BLOCKS: readonly TemplateBlock[] = [
     bodyStyleId: "entryContent",
     contentColumns: { first: "N", last: "Y" },
     contentRows: { start: 50, end: 53 },
+    elastic: { minimumCanvasRows: 3 },
   },
 ];
 
@@ -385,7 +408,9 @@ const MERGES: readonly MergedRange[] = [
   { range: "A1:Y1" },
   ...HEADER_FIELDS.flatMap((field) => [{ range: field.labelRange }, { range: field.valueRange }]),
   ...FOOTER_FIELDS.map((field) => ({ range: field.labelRange })),
-  ...BLOCKS.map((block) => ({ range: block.headerRange })),
+  // No block-header merges here (unlike `farplas-7step-tr`) — every block
+  // above is `elastic`, so its `headerRange` moves per project and
+  // `buildA3Layout` emits the merge dynamically from the resolved range.
 ];
 
 export const pps8StepAuto: A3Template = {

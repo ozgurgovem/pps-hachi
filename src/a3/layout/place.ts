@@ -1,6 +1,6 @@
 import type { Entry, ProjectModel } from "../../domain/model";
 import type { CellData, MergedRange, RowDef } from "../descriptor";
-import type { A3EntryRendererMap, A3ImageKind, A3TextTone } from "../methodContract";
+import { resolveEntryContent, type A3EntryRendererMap, type A3ImageKind, type A3TextTone } from "../methodContract";
 import type { TemplateBlock } from "../templates/types";
 import { ENTRY_CONTENT_FONT_PT, resolveLineStyleId, type ColumnWidth } from "./contentStyle";
 import { estimateCharsPerLine, wrapText } from "./measure";
@@ -82,10 +82,12 @@ export function placeBlockContent(
   let row = block.contentRows.start;
 
   for (const entry of entries) {
-    const renderer = rendererMap[entry.methodId];
-    const content = renderer
-      ? renderer(entry.payload, { id: entry.id, title: entry.title, language, images: entry.images })
-      : { lines: [{ text: entry.title, bold: true }] };
+    const content = resolveEntryContent(
+      entry.methodId,
+      entry.payload,
+      { id: entry.id, title: entry.title, language, images: entry.images },
+      rendererMap,
+    );
 
     if (content.zones) {
       // D-224: a `zonesRowSpan`-less zoned entry claims the whole remaining

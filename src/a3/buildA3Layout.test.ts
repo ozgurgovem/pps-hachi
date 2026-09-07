@@ -326,3 +326,74 @@ describe("buildA3Layout — pps-8step-auto header identity band (Faz 11/L1)", ()
     expect(cellByRef(cells, "X3")).toBeUndefined(); // generalRag
   });
 });
+
+/**
+ * Faz 11/L3a (D-158/D-160, both LOCKED): end-to-end proof that the elastic
+ * solver (`layout/elasticAllocation.ts`) actually reaches the real
+ * `buildA3Layout` pipeline — cells land at the *shifted* rows, not the
+ * template's static defaults, and the shifted header gets a real merge.
+ * `elasticAllocation.test.ts` already proves the arithmetic in isolation;
+ * this is the "does the wiring actually happen" check.
+ */
+describe("buildA3Layout — pps-8step-auto elastic block allocation (Faz 11/L3a)", () => {
+  function manyGenericTextEntries(count: number) {
+    return Array.from({ length: count }, (_, index) =>
+      fixtureEntry({ id: `bulk-${index}`, order: index, payload: { text: `Bulk entry ${index}.` } }),
+    );
+  }
+
+  it("grows ADIM 2 into ADIM 1 and ADIM 3's floor-shrunk slack — the exact D-160 worked example, through the real pipeline", () => {
+    const project = fixtureProject({
+      templateId: "pps-8step-auto",
+      steps: {
+        ...fixtureProject().steps,
+        // Empty ADIM 1/3 give up their full slack (2 + 3 canvas rows) down
+        // to their own floor; ADIM 2's 20 entries (2 lines each = 40 rows of
+        // demand) want far more than its 26-row default.
+        2: { entries: manyGenericTextEntries(20) },
+      },
+    });
+
+    const { descriptor } = buildA3Layout(project, pps8StepAuto, { rendererMap });
+    const { cells, merges } = descriptor.sheets.a3;
+
+    // ADIM 1 shrinks to its 10-canvas-row floor; its header never moves
+    // (it's the top of the column) but its own block now ends at row 15.
+    expect(cells.find((cell) => cell.ref === "A4")?.value).toBe("ADIM 1. PROBLEMİ NETLEŞTİRİN");
+
+    // ADIM 2's header shifts up from its default A18:L19 to A16:L17 — a real
+    // merge for the new range must exist (dynamically emitted, since this
+    // block's header merge was deliberately removed from the static
+    // template.merges list).
+    expect(cells.find((cell) => cell.ref === "A16")?.value).toBe("ADIM 2. PROBLEMİ PARÇALARA AYIRIN");
+    expect(merges).toContainEqual({ range: "A16:L17" });
+    expect(merges).not.toContainEqual({ range: "A18:L19" });
+
+    // ADIM 2's content now starts at row 18 (right after its own shifted
+    // header), not the old default of row 20.
+    expect(cells.find((cell) => cell.ref === "A18")?.value).toBe("Problem Tanımı");
+
+    // ADIM 3 (still empty) is pushed down to header A49:L50, holding its
+    // own 3-canvas-row floor (contentRows 51-53).
+    expect(cells.find((cell) => cell.ref === "A49")?.value).toBe("ADIM 3. HEDEF BELİRLEYİN");
+    expect(merges).toContainEqual({ range: "A49:L50" });
+
+    // 40 rows of demand cannot all fit into the 31-row ceiling ADIM 2 was
+    // actually granted (26 default + 5 borrowed) — the surplus safely
+    // overflows to an appendix (D-100), it is never silently truncated.
+    expect(descriptor.overflowWarnings.some((warning) => warning.stepIds.includes(2))).toBe(true);
+    expect(descriptor.sheets.appendices.length).toBeGreaterThan(0);
+  });
+
+  it("leaves farplas-7step-tr's own header merges exactly as they were — no elastic block declared, no dynamic push", () => {
+    const project = fixtureProject({
+      steps: { ...fixtureProject().steps, 2: { entries: manyGenericTextEntries(20) } },
+    });
+    const { descriptor } = buildA3Layout(project, farplas7StepTr, { rendererMap });
+    // farplas-7step-tr's own Step 2 header cell/merge never moves regardless
+    // of how much content Step 2 carries — this template has no `.elastic`
+    // blocks at all (D-223 madde 1's own scope narrowing).
+    const step2Block = farplas7StepTr.blocks.find((block) => block.appSteps.includes(2))!;
+    expect(descriptor.sheets.a3.merges).toContainEqual({ range: step2Block.headerRange });
+  });
+});

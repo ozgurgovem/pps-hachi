@@ -231,7 +231,8 @@ D-223.
 | Kapsam belirleme — §0 taraması + dört `AskUserQuestion` + üç dilimlik plan | `docs/oturumlar/faz11-kapsam-belirleme.md` | ✅ BİTTİ 2026-09-06 — D-223, dört soru `AskUserQuestion` ile cevaplandı (üçü bu oturumun önerdiği seçeneğin DIŞINDA — Barış daha dar bir kapsam seçti). |
 | L1 — `pps-8step-auto`: statik sayfa geometrisi (§12.1-12.3) + template registry (`a3Preview.ts`'in `project.templateId`'yi gerçekten okuması + proje-oluşturma seçici UI) + blok görsel dili (D-47/D-165 paleti + header identity band + `gapStatement`'ın ADIM 1 zones/image genişlemesi), kendi ilk Block Visual Verification Loop onay turuyla kapanır (P-43'ü de kapatır) | `docs/oturumlar/L1-pps-8step-auto.md` | **TAMAMEN BİTTİ (D-224, 2026-09-07) — Barış artifact'i onayladı, P-43 KAPANDI.** Template seçici UI Barış'ın kararıyla YAPILMADI — yalnızca Rev00 kullanılıyor, bunun yerine yeni bir dil (TR/EN) seçici dialog. `place.ts`'te gerçek, önceden belgelenmemiş bir üretim kusuru bulunup düzeltildi (D-224 — zoned bir entry artık `zonesRowSpan` ile bloktan yalnızca kendi payını istiyor, `farplas-7step-tr`'yi de düzeltiyor). Gerçek bir `.xlsx` üretilip XML'i doğrudan okunarak doğrulandı, artifact: `https://claude.ai/code/artifact/5eb75eb2-2e0c-45ca-94f2-eee0d3e21a03`. Onay sırasında Barış'ın kendi sorusu L3'ün (D-158/159/160) kolon-içi elastik tahsis tasarımını bağımsız doğruladı; yazı-küçültme önerisi D-40'ın basılı okunabilirlik tabanıyla çeliştiği için reddedildi. Yeni bulgu **P-63** (kpiStrip ADIM 7'de her zaman appendix'e düşüyor) bilerek bu dilimde çözülmedi, L2'nin kendi §0'ı bekliyor. `npm test` 1433/1433, `cargo test` yeşil. |
 | L2 — Template switching mekanizması: `farplas-7step-tr` ↔ `pps-8step-auto` arası geçiş, preserve-every-entry + appendix-öncesi uyarı (SPEC'in kendi lafzî done-koşulu) | `docs/oturumlar/L2-template-switching.md` | **TAMAMEN BİTTİ (D-225, 2026-09-07).** `templateId.set` komutu + `SettingsScreen`'in kalıcı "Template" bölümü + `previewTemplateSwitch` dry-run mekanizması (D-100'ün zaten var olan `droppedEntryIds`'ini okuyor, yeniden icat etmiyor). Gerçek koda karşı uçtan uca doğrulandı (geçici probe script, D-136 disipliniyle silindi) — 61 entry'li bir proje iki kez switch'ten geçti, hiçbiri kaybolmadı. `npm test` 1448/1448, `cargo test` yeşil (Rust dokunulmadı). |
-| L3 — Esnek tahsis solver (D-158/159/160) + drag-handle arayüzü (D-170), L1'in statik varsayılanlarını gerçek elastik modele yükseltir | `docs/oturumlar/L3-esnek-tahsis-solver.md` | Launch prompt L2'nin kapanışında yazıldı (2026-09-07), henüz başlanmadı. Kendi §2.1'i beş gerçek açık tasarım sorusu taşıyor (kapsam yalnızca `pps-8step-auto` mı, `pinned`'in kalıcılık şekli, solver'ın talep-hesaplama mimarisi, drag-handle'ın D-94'ü bozmadan nereye oturacağı, AI'nin layout'a asla karışmaması) ve muhtemelen kendi alt-dilimlerine (L3a/L3b) bölünmeyi öneriyor — D-114'ün bir-dilim-bir-mekanizma bütçesini aşabilir. |
+| L3a — Esnek tahsis solver çekirdeği (D-158/159/160): `TemplateBlock.elastic` + `resolveElasticBlocks`, L1'in statik varsayılanlarını gerçek per-proje elastik modele yükseltir. `pinned`/drag-handle YOK | `docs/oturumlar/L3-esnek-tahsis-solver.md` | **TAMAMEN BİTTİ (D-226, 2026-09-07).** Dört `AskUserQuestion`, dördü de önerilen seçenek: kapsam yalnızca `pps-8step-auto`, `pinned` kalıcı olacak (L3b'nin işi), talep bağımsız yeni bir saf fonksiyon (`estimateBlockRowDemand`), drag-handle (L3b) renderer'ın DIŞINDaki bir overlay katmanında. D-160'ın kendi sayısal örneği (ADIM 2'nin 33 toplam satıra büyümesi) bağımsız bir testte birebir yeniden üretildi. G2: üçüncü tekrardan önce `resolveEntryContent`/`entriesByBlock.ts` çıkarıldı. `farplas-7step-tr` hiç dokunulmadı (hiçbir bloğu `elastic` değil). `npm test` 1464/1464, `cargo test`/`clippy`/`fmt` temiz (Rust dokunulmadı), fixture sıfır fark. |
+| L3b — `pinned` domain alanı/komutu + drag-handle arayüzü (D-170), L3a'nın gerçek solver'ı üzerine manuel override | `docs/oturumlar/L3b-pinned-drag-handle.md` | Launch prompt L3a'nın kapanışında yazıldı (2026-09-07), henüz başlanmadı. |
 
 Filed, planlanmamış (Faz 11'in dışında): **P-62** (yeni — `farplas-7step-plus`/`farplas-7step-en`,
 D-149'un hiçbir oturumu hiç dokunmadı), **P-18** (güncellendi — `BenefitCase`/`Onay formu`).
@@ -354,10 +355,39 @@ yeniden çalıştırılmadı (bu dilim `src/a3/`'e hiç dokunmuyor). Kapsam dı�
 Tam kayıt: `DECISIONS.md` D-225. L3'ün kendi launch prompt'u aynı gün, Barış'ın isteğiyle yazıldı:
 `docs/oturumlar/L3-esnek-tahsis-solver.md`.
 
-Sıradaki iş: Barış'ın kendi tercihine göre **L2** (template switching — kendi launch prompt'u
-`L2-template-switching.md`'de yazılı, kendi §0'ı P-63 kararını bekliyor), **L3** (esnek solver —
-D-224'ün onaylanmış tasarımı, henüz kendi launch prompt'u yazılmadı) ya da **W2-adim-sayfasi.md**
-— hepsi birbirinden bağımsız.
+**Faz 11 — L3a TAMAMEN BİTTİ (D-226, 2026-09-07).** `L3-esnek-tahsis-solver.md`'nin kendi §0'ı
+gerçek koda karşı doğrulandı, dört gerçek açık tasarım sorusu bir `AskUserQuestion` turuyla
+soruldu — dördü de Barış'ın önerilen seçeneği: kapsam yalnızca `pps-8step-auto` (D-158/159/160/170
+zaten bu şablona göre tasarlandı); `pinned` kalıcı olacak (`.ppsx`'e, appStep anahtarıyla — ama
+alanın/komutun kendisi L3b'nin işi); solver'ın talep-hesaplama mekanizması `placeBlockContent`'i
+hiç değiştirmeyen bağımsız yeni bir saf fonksiyon; drag-handle (L3b) `HtmlA3Renderer`'ın DIŞINDA
+ayrı bir overlay katmanında yaşayacak. D-114'ün kendi bütçe uyarısı doğru çıktı — üç gerçek
+mekanizma (solver + `pinned` + drag UI) bir dilime sığmadı, oturum kendi kararını verdi (Anayasa
+Madde 9) ve L3a (solver, bu oturumda BİTTİ) / L3b (`pinned` + drag-handle, ayrı launch prompt) diye
+böldü. Yeni `TemplateBlock.elastic?: {minimumCanvasRows}` (opsiyonel, template-agnostik — bir blok
+kendi isteğiyle katılır, `farplas-7step-tr` hiçbirini bildirmiyor); yeni
+`src/a3/layout/elasticAllocation.ts` (`estimateBlockRowDemand` + `resolveElasticBlocks`, kolon
+içinde deterministik dağıtım — bir bloğun varsayılanın altında dinlenmesi serbest kalan satırları
+varsayılanın üstünde talep eden komşusuna, sırayla, kata kadar veriyor). **D-160'ın kendi sayısal
+örneği** (ADIM 2'nin 33 toplam satıra büyümesi, ADIM 1/3 ikisi de floor'a inince) bağımsız bir
+testte birebir yeniden üretildi. G2: üçüncü tekrardan önce iki paylaşılan modül çıkarıldı —
+`resolveEntryContent` (`methodContract.ts`) ve `entriesByBlock.ts` (`buildA3Layout.ts`'in özel
+fonksiyonlarıydı, artık `elasticAllocation.ts` da aynı "hangi entry hangi bloğa gider" mantığını
+kullanıyor, ayrışma riski yapısal olarak kapatıldı). `buildA3Layout.ts`'in ana döngüsü artık
+`resolveElasticBlocks`'un döndürdüğü listeyi geziyor; elastik bir bloğun başlık birleşmesi artık
+dinamik ekleniyor (statik `MERGES`'ten çıkarıldı, yalnızca `pps-8step-auto.ts`'te). Uçtan uca
+doğrulandı: gerçek `pps8StepAuto` + gerçek `buildA3Layout` ile 20 girişli dolu bir ADIM 2, boş
+ADIM 1/3 — başlık hücresi gerçekten A16:L17'ye kayıyor, o birleşme gerçekten var, eski A18:L19
+birleşmesi artık YOK, fazla talep D-100'ün appendix mekanizmasıyla güvenle taşıyor. `npm test`
+1464/1464 (297 dosya), `npm run lint`/`tsc`/`build` temiz, `cargo test`/`clippy`/`fmt` temiz (Rust
+dokunulmadı), `scripts/gen-a3-fixture.ts` yeniden çalıştırıldı — **sıfır fark** (fixture yalnızca
+`farplas-7step-tr`'yi kullanıyor). Kapsam dışı: `pinned`, drag-handle, `farplas-7step-tr`'ye
+esneklik, P-63, P-62, P-18. Tam kayıt: `DECISIONS.md` D-226. L3b'nin kendi launch prompt'u yazıldı:
+`docs/oturumlar/L3b-pinned-drag-handle.md`.
+
+Sıradaki iş: Barış'ın kendi tercihine göre **L3b** (`pinned` + drag-handle — kendi launch prompt'u
+`L3b-pinned-drag-handle.md`'de yazılı) ya da **W2-adim-sayfasi.md** — ikisi birbirinden bağımsız.
+**Faz 11'in üç dilimlik planı (D-223) artık L1+L2+L3a kapanmış, yalnızca L3b kalıyor.**
 
 ## Prompt yazarken
 

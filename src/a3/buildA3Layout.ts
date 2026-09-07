@@ -1,6 +1,5 @@
-import { columnLetterToIndex, parseRange } from "./cellRef";
 import { evaluateReadiness } from "../domain/readiness";
-import { STEP_IDS, type Entry, type ProjectModel, type StepId } from "../domain/model";
+import type { ProjectModel } from "../domain/model";
 import type {
   A3LayoutDescriptor,
   CellData,
@@ -8,17 +7,24 @@ import type {
   MergedRange,
   OverflowWarning,
   ProvisionalBlockMarker,
-  RowDef,
   SheetDescriptor,
 } from "./descriptor";
 import { computeBlockBudget } from "./layout/budget";
-import { entryLineStyleId, type ColumnWidth } from "./layout/contentStyle";
-import { excelColumnWidthToPt } from "./layout/measure";
+import { entryLineStyleId } from "./layout/contentStyle";
+import { resolveElasticBlocks } from "./layout/elasticAllocation";
+import {
+  columnWidthsInRange,
+  entriesForBlock,
+  flattenEntries,
+  rowsInBlockRange,
+  type EntryWithStep,
+} from "./layout/entriesByBlock";
 import { computeOverflowWarning } from "./layout/overflow";
 import { computeProvisionalBlockMarker } from "./layout/provisional";
 import { placeBlockContent, type PendingImageSlot } from "./layout/place";
-import type { A3BlockContent, A3EntryRendererMap, A3TextLine } from "./methodContract";
-import type { A3Template, TemplateBlock } from "./templates/types";
+import { resolveEntryContent, type A3BlockContent, type A3EntryRendererMap, type A3TextLine } from "./methodContract";
+import { columnLetterToIndex, parseRange } from "./cellRef";
+import type { A3Template } from "./templates/types";
 
 export interface BuildA3LayoutOptions {
   readonly rendererMap: A3EntryRendererMap;
@@ -99,12 +105,24 @@ export function buildA3Layout(
     cells.push({ ref: staticCell.ref, value: staticCell.value, styleId: staticCell.styleId });
   }
 
-  for (const block of template.blocks) {
+  // Faz 11/L3a: `.elastic`-declared blocks (`pps-8step-auto` only, D-223
+  // madde 1) get their `headerRange`/`contentRows` recomputed for this
+  // specific project here — every other block (every `farplas-7step-tr`
+  // block) passes through `resolveElasticBlocks` unchanged.
+  const resolvedBlocks = resolveElasticBlocks(template, allEntries, options.rendererMap, project.meta.language);
+
+  for (const block of resolvedBlocks) {
     cells.push({
       ref: topLeft(block.headerRange),
       value: block.label,
       styleId: block.headerStyleId,
     });
+    if (block.elastic) {
+      // Non-elastic blocks keep their header merge in the template's own
+      // static `merges` list; an elastic block's header moves per project,
+      // so its merge can only be declared here, from the resolved range.
+      dynamicMerges.push({ range: block.headerRange });
+    }
 
     const blockEntries = entriesForBlock(allEntries, block);
     const contentColumnWidths = columnWidthsInRange(
@@ -191,35 +209,6 @@ export function buildA3Layout(
   };
 }
 
-interface EntryWithStep {
-  readonly entry: Entry;
-  readonly stepId: StepId;
-}
-
-function flattenEntries(project: ProjectModel): readonly EntryWithStep[] {
-  const result: EntryWithStep[] = [];
-  for (const stepId of STEP_IDS) {
-    const step = project.steps[stepId];
-    if (!step) {
-      continue;
-    }
-    for (const entry of step.entries) {
-      result.push({ entry, stepId });
-    }
-  }
-  return result;
-}
-
-function entriesForBlock(all: readonly EntryWithStep[], block: TemplateBlock): readonly Entry[] {
-  return all
-    .filter(
-      ({ entry, stepId }) =>
-        block.appSteps.includes(stepId) && entry.a3Visibility === "primary",
-    )
-    .sort((a, b) => a.entry.order - b.entry.order)
-    .map(({ entry }) => entry);
-}
-
 function buildAppendixSheets(
   all: readonly EntryWithStep[],
   droppedEntryIds: ReadonlySet<string>,
@@ -231,10 +220,12 @@ function buildAppendixSheets(
   );
 
   return appendixEntries.map(({ entry }, index) => {
-    const renderer = rendererMap[entry.methodId];
-    const content = renderer
-      ? renderer(entry.payload, { id: entry.id, title: entry.title, language })
-      : { lines: [{ text: entry.title, bold: true }] };
+    const content = resolveEntryContent(
+      entry.methodId,
+      entry.payload,
+      { id: entry.id, title: entry.title, language },
+      rendererMap,
+    );
 
     const appendixLines = flattenContentForAppendix(content);
 
@@ -312,25 +303,6 @@ function rangesOverlap(a: string, b: string): boolean {
     columnLetterToIndex(rangeB.start.column) <= columnLetterToIndex(rangeA.end.column);
   const rowsOverlap = rangeA.start.row <= rangeB.end.row && rangeB.start.row <= rangeA.end.row;
   return colsOverlap && rowsOverlap;
-}
-
-function columnWidthsInRange(
-  template: A3Template,
-  firstKey: string,
-  lastKey: string,
-): readonly ColumnWidth[] {
-  const firstIndex = template.columns.findIndex((column) => column.key === firstKey);
-  const lastIndex = template.columns.findIndex((column) => column.key === lastKey);
-  return template.columns.slice(firstIndex, lastIndex + 1).map((column) => ({
-    key: column.key,
-    widthPt: excelColumnWidthToPt(column.charWidth),
-  }));
-}
-
-function rowsInBlockRange(template: A3Template, block: TemplateBlock): readonly RowDef[] {
-  return template.rows.filter(
-    (row) => row.index >= block.contentRows.start && row.index <= block.contentRows.end,
-  );
 }
 
 /**
