@@ -1628,7 +1628,8 @@ AI layer: Faz 8 fully done (keychain + Vorion connection/model-discovery + strea
   (`pps-8step-auto`'s static geometry + template registry + block visual language, closes with
   its own BVVL round), L2 (template switching), L3 (elastic solver + drag-handle, deferred).
   `-plus`/`-en` filed as P-62, `BenefitCase` folded into P-18 — both out of Faz 11's scope.
-**Faz 11 — L1: CODE DONE (D-224, 2026-09-07), Barış's visual sign-off still owed.** Two
+**Faz 11 — L1: FULLY DONE (D-224, 2026-09-07) — Barış reviewed and approved the artifact,
+  P-43/P-26 CLOSED.** Two
   `AskUserQuestion` rounds, both resolved outside D-223's own proposal: no template-picker UI
   at all (only Rev00/`pps-8step-auto`, per Barış's own direction) — instead a new language
   (TR/EN) choice dialog in the new-project flow, replacing the old silent
@@ -1678,6 +1679,14 @@ AI layer: Faz 8 fully done (keychain + Vorion connection/model-discovery + strea
   lines, the nine new shared styles landing in `farplas-7step-tr`'s own style table).
   Deliberately not built: L2 (template switching), L3 (elastic solver/drag-handle — this dilim
   uses D-158's static row defaults), P-62/P-18 (untouched). Full record: D-224/P-63.
+**Same day, while reviewing the artifact**: Barış independently proposed the same elastic
+  allocation model L3 (D-158/159/160, LOCKED) already specifies — a block borrowing unused rows
+  from its neighbor within the same column — confirmed as already-designed, not new scope. His
+  second proposal (shrink font/line-height when no neighbor space remains) was declined — it
+  conflicts with D-40's (LOCKED) 8pt printed-legibility floor, which `pps-8step-auto` already
+  sits at; the real fallback is D-100's appendix mechanism (the whole entry moves to an
+  appendix page, never truncated or shrunk). P-43/P-26 fully closed; L2's own launch prompt
+  (`docs/oturumlar/L2-template-switching.md`) updated to skip the now-moot P-43 check.
 Templates: two company .xls files analysed; see reference/TEMPLATE_ANALYSIS.md
 Template geometry: VERIFIED 2026-08-01 against both .xls files. Five errors found and
   corrected in place — the largest was the column widths: the real split is 49.7/50.3, NOT

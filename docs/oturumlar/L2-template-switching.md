@@ -9,25 +9,24 @@
 >
 > Kanonik konum: `docs/oturumlar/L2-template-switching.md`. Yazıldı: 2026-09-07, L1'in kendi
 > kapanışında (D-224'ün hemen ardından, Barış'ın açık isteğiyle).
+>
+> ✅ **Güncelleme, aynı gün**: Barış artifact'i inceleyip onayladı — **P-43 KAPANDI.** Bu sırada
+> kendi kolon-içi elastik tahsis önerisini (komşudan boş satır ödünç alma) sordu; bu zaten
+> D-158/159/160'ın (LOCKED) L3'e ertelenmiş tasarımıyla birebir aynı çıktı, doğrulandı. Yazı
+> tipi/satır yüksekliği küçültme önerisinin kısmı ise D-40'ın (LOCKED) basılı okunabilirlik
+> tabanıyla çeliştiği için reddedildi — gerçek cevap D-100'ün (LOCKED) appendix mekanizması.
+> Tam kayıt: `DECISIONS.md` D-224'ün kapanış notu. **P-63 hâlâ açık** — aşağıdaki §0 hâlâ geçerli.
 
 ---
 
-## 0. İlk iş — önce L1'in kendi açık uçlarını kontrol et
+## 0. İlk iş — P-63'ün durumunu kontrol et
 
-Bu oturuma başlamadan önce, `DECISIONS.md`'de **D-224** ve **P-43**'ü oku ve gerçek durumu
-doğrula — bu dilim L1'in TAMAMEN kapandığı varsayımıyla yazıldı, ama bu varsayım bu dosya
-yazılırken Barış'ın kendi onayı henüz gelmemişken yapıldı:
+P-43 kapandı (yukarıya bakınız) — bu adım artık yalnızca **P-63**'ü kontrol ediyor:
 
 ```bash
-grep -n "^| D-224\|^| P-63" DECISIONS.md
+grep -n "^| P-63" DECISIONS.md
 ```
 
-- **P-43 hâlâ "AWAITING" ise**: Barış'a doğrudan sor — artifact'i inceledi mi, ADIM 1'in
-  Katman A/B renkleri ve panel yerleşimi B3'ün onaylı tasarımıyla tutarlı okundu mu. Onay
-  gelmeden L2'nin kendi build işine GEÇME — L2 "her iki şablon da doğru" varsayımı üzerine
-  kurulu, ve L1'in kendi şablonu henüz görsel olarak kapanmamışsa L2 yanlış bir temel üzerine
-  inşa eder. Yalnızca küçük bir düzeltme gerekiyorsa (örn. bir renk/konum ayarı), önce onu
-  düzelt, `scripts/gen-a3-fixture.ts`'i yeniden çalıştır (gerekirse), sonra L2'ye geç.
 - **P-63 (kpi-strip'in ADIM 7'de her zaman overflow etmesi) hâlâ açıksa**: Barış'a bu dilimde mi
   çözülsün yoksa ayrı bir dilime mi bıraksın diye sor (L1'in kendi artifact'inin §05'i bu soruyu
   zaten sormuştu — cevap gelmişse burada tekrar sorma, `DECISIONS.md`'den oku). Düzeltme küçük
@@ -35,7 +34,7 @@ grep -n "^| D-224\|^| P-63" DECISIONS.md
   zaten yaptığı gibi `lines: []` kullanması) ama L2'nin kendi konusu DEĞİL — kendi commit'i,
   kendi kararı olmalı, L2'nin template-switching işiyle karıştırılmamalı.
 
-Bu iki madde netleşmeden L2'nin kendi §2'sine geçme.
+Bu madde netleşmeden L2'nin kendi §2'sine geçme.
 
 ## 1. Sonra — bu promptu doğrula
 

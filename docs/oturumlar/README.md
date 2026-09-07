@@ -229,7 +229,7 @@ D-223.
 | Dilim | Kapsam | Durum |
 |---|---|---|
 | Kapsam belirleme — §0 taraması + dört `AskUserQuestion` + üç dilimlik plan | `docs/oturumlar/faz11-kapsam-belirleme.md` | ✅ BİTTİ 2026-09-06 — D-223, dört soru `AskUserQuestion` ile cevaplandı (üçü bu oturumun önerdiği seçeneğin DIŞINDA — Barış daha dar bir kapsam seçti). |
-| L1 — `pps-8step-auto`: statik sayfa geometrisi (§12.1-12.3) + template registry (`a3Preview.ts`'in `project.templateId`'yi gerçekten okuması + proje-oluşturma seçici UI) + blok görsel dili (D-47/D-165 paleti + header identity band + `gapStatement`'ın ADIM 1 zones/image genişlemesi), kendi ilk Block Visual Verification Loop onay turuyla kapanır (P-43'ü de kapatır) | `docs/oturumlar/L1-pps-8step-auto.md` | **KOD BİTTİ (D-224, 2026-09-07), Barış'ın görsel onayı bekleniyor.** Template seçici UI Barış'ın kararıyla YAPILMADI — yalnızca Rev00 kullanılıyor, bunun yerine yeni bir dil (TR/EN) seçici dialog. `place.ts`'te gerçek, önceden belgelenmemiş bir üretim kusuru bulunup düzeltildi (D-224 — zoned bir entry artık `zonesRowSpan` ile bloktan yalnızca kendi payını istiyor, `farplas-7step-tr`'yi de düzeltiyor). Gerçek bir `.xlsx` üretilip XML'i doğrudan okunarak doğrulandı, artifact: `https://claude.ai/code/artifact/5eb75eb2-2e0c-45ca-94f2-eee0d3e21a03`. Yeni bulgu **P-63** (kpiStrip ADIM 7'de her zaman appendix'e düşüyor) bilerek bu dilimde çözülmedi. `npm test` 1433/1433, `cargo test` yeşil. |
+| L1 — `pps-8step-auto`: statik sayfa geometrisi (§12.1-12.3) + template registry (`a3Preview.ts`'in `project.templateId`'yi gerçekten okuması + proje-oluşturma seçici UI) + blok görsel dili (D-47/D-165 paleti + header identity band + `gapStatement`'ın ADIM 1 zones/image genişlemesi), kendi ilk Block Visual Verification Loop onay turuyla kapanır (P-43'ü de kapatır) | `docs/oturumlar/L1-pps-8step-auto.md` | **TAMAMEN BİTTİ (D-224, 2026-09-07) — Barış artifact'i onayladı, P-43 KAPANDI.** Template seçici UI Barış'ın kararıyla YAPILMADI — yalnızca Rev00 kullanılıyor, bunun yerine yeni bir dil (TR/EN) seçici dialog. `place.ts`'te gerçek, önceden belgelenmemiş bir üretim kusuru bulunup düzeltildi (D-224 — zoned bir entry artık `zonesRowSpan` ile bloktan yalnızca kendi payını istiyor, `farplas-7step-tr`'yi de düzeltiyor). Gerçek bir `.xlsx` üretilip XML'i doğrudan okunarak doğrulandı, artifact: `https://claude.ai/code/artifact/5eb75eb2-2e0c-45ca-94f2-eee0d3e21a03`. Onay sırasında Barış'ın kendi sorusu L3'ün (D-158/159/160) kolon-içi elastik tahsis tasarımını bağımsız doğruladı; yazı-küçültme önerisi D-40'ın basılı okunabilirlik tabanıyla çeliştiği için reddedildi. Yeni bulgu **P-63** (kpiStrip ADIM 7'de her zaman appendix'e düşüyor) bilerek bu dilimde çözülmedi, L2'nin kendi §0'ı bekliyor. `npm test` 1433/1433, `cargo test` yeşil. |
 | L2 — Template switching mekanizması: `farplas-7step-tr` ↔ `pps-8step-auto` arası geçiş, preserve-every-entry + appendix-öncesi uyarı (SPEC'in kendi lafzî done-koşulu) | `docs/oturumlar/L2-template-switching.md` | Launch prompt L1'in kapanışında yazıldı (2026-09-07). Kendi §0'ı L1'in açık uçlarını (P-43 görsel onay, P-63 kpi-strip kararı) kontrol etmeden build işine geçmemeyi şart koşuyor. |
 | L3 — Esnek tahsis solver (D-158/159/160) + drag-handle arayüzü (D-170), L1'in statik varsayılanlarını gerçek elastik modele yükseltir | *(L1'den sonra yazılacak)* | Henüz yazılmadı — Barış'ın kendi kararıyla ertelendi, L2'ye göre sırası kesin değil. |
 
@@ -305,8 +305,8 @@ registry + blok görsel dili + BVVL onayı), **L2** (template switching), **L3**
 drag-handle). Tam kayıt ve tablo: yukarıdaki "Faz 11" bölümü, `DECISIONS.md` D-223. L1'in kendi
 launch prompt'u yazıldı: `docs/oturumlar/L1-pps-8step-auto.md`.
 
-**Faz 11 — L1'in kendi kodu BİTTİ (D-224, 2026-09-07), Barış'ın görsel onayı bekleniyor.**
-İki `AskUserQuestion` turu Barış'ın kendi kararıyla D-223'ün önerisinin DIŞINDA sonuçlandı:
+**Faz 11 — L1 TAMAMEN BİTTİ (D-224, 2026-09-07) — Barış artifact'i inceleyip onayladı, P-43
+KAPANDI.** İki `AskUserQuestion` turu Barış'ın kendi kararıyla D-223'ün önerisinin DIŞINDA sonuçlandı:
 template seçici UI hiç yapılmadı (yalnızca Rev00 kullanılıyor), onun yerine yeni-proje akışına
 bir dil (Türkçe/İngilizce) seçici dialog eklendi; header identity band'ın üç yeni alanı
 (`priority`/`targetClosureDate`/`generalRag`) SettingsScreen'in kalıcı yeni "Proje Bilgileri"
@@ -324,9 +324,17 @@ Bu turda bulunan ayrı bir kusur (**P-63** — `kpiStrip` ADIM 7'nin 6 satırlı
 sığmıyor) bilerek bu dilimde çözülmedi. `npm test` 1433/1433, `npm run lint`/`tsc`/`build` temiz,
 `cargo test`/`clippy`/`fmt` temiz (Rust dokunulmadı). Tam kayıt: `DECISIONS.md` D-224/P-63.
 
-Sıradaki iş: Barış'ın yukarıdaki artifact'i incelemesi (P-43'ü kapatır, L1'i tamamen biter) —
-onun ardından, Barış'ın kendi tercihine göre **L2** (template switching), **L3** (esnek solver)
-ya da **W2-adim-sayfasi.md** — hepsi birbirinden bağımsız.
+**Aynı gün, artifact onayı sırasında**: Barış kendi kolon-içi elastik tahsis önerisini sordu
+(bir blok komşusunun boş satırından ödünç alsın) — bu D-158/159/160'ın (LOCKED) L3'e ertelenmiş
+tasarımıyla birebir aynı çıktı, bağımsız doğrulandı. Yazı tipi/satır yüksekliği küçültme önerisi
+D-40'ın (LOCKED) 8pt basılı okunabilirlik tabanıyla çeliştiği için reddedildi — gerçek cevap
+D-100'ün appendix mekanizması (kırpma/küçültme yok, tam entry bir ek sayfaya taşınır). P-43/P-26
+kapandı, D-224'ün kendi kapanış notuna işlendi.
+
+Sıradaki iş: Barış'ın kendi tercihine göre **L2** (template switching — kendi launch prompt'u
+`L2-template-switching.md`'de yazılı, kendi §0'ı P-63 kararını bekliyor), **L3** (esnek solver —
+D-224'ün onaylanmış tasarımı, henüz kendi launch prompt'u yazılmadı) ya da **W2-adim-sayfasi.md**
+— hepsi birbirinden bağımsız.
 
 ## Prompt yazarken
 
