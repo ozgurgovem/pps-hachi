@@ -11,6 +11,7 @@ export {
   buildSetAiMetaCommand,
   buildSetProjectInfoCommand,
   buildSetSignOffCommand,
+  buildSetTemplateIdCommand,
   buildUpdateEntryCommand,
   type AddEntryInput,
   type DuplicateEntryInput,
@@ -28,4 +29,5 @@ export {
   type MetaProjectInfoSetCommand,
   type RoundsSetCommand,
   type SignOffSetCommand,
+  type TemplateIdSetCommand,
 } from "./types";

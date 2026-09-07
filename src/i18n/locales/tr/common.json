@@ -1285,6 +1285,20 @@
       "generalRagAmber": "Sarı",
       "generalRagGreen": "Yeşil"
     },
+    "template": {
+      "heading": "Şablon",
+      "noProject": "Şablonu değiştirmek için bir proje açın.",
+      "label": "A3 ihracat şablonu",
+      "names": {
+        "pps-8step-auto": "PPS A3 Problem Çözme Formu (Rev00, 8 Adım)",
+        "farplas-7step-tr": "Farplas 7 Adımlı Major Kaizen Formu (TR, eski)"
+      },
+      "confirmTitle": "Şablon değiştirilsin mi?",
+      "confirmDescription": "Aşağıdaki girdiler hedef şablonun bloklarına artık sığmıyor ve bir ek sayfaya taşınacak. Hiçbir girdi silinmez — geri dönülürse ana sayfaya yeniden sığabilirler.",
+      "droppedEntryLine": "{{title}} (Adım {{step}})",
+      "confirmButton": "Şablonu değiştir",
+      "cancelButton": "Vazgeç"
+    },
     "ai": {
       "providerName": "Vorion",
       "statusLoading": "Yükleniyor…",

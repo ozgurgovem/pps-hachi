@@ -1285,6 +1285,20 @@
       "generalRagAmber": "Amber",
       "generalRagGreen": "Green"
     },
+    "template": {
+      "heading": "Template",
+      "noProject": "Open a project to change its template.",
+      "label": "A3 export template",
+      "names": {
+        "pps-8step-auto": "PPS A3 Problem Solving Form (Rev00, 8 steps)",
+        "farplas-7step-tr": "Farplas 7-Step Major Kaizen Form (TR, legacy)"
+      },
+      "confirmTitle": "Switch template?",
+      "confirmDescription": "The following entries no longer fit the target template's blocks and will move to an appendix sheet. No entry is deleted — switching back may restore them to the main sheet.",
+      "droppedEntryLine": "{{title}} (Step {{step}})",
+      "confirmButton": "Switch template",
+      "cancelButton": "Cancel"
+    },
     "ai": {
       "providerName": "Vorion",
       "statusLoading": "Loading…",

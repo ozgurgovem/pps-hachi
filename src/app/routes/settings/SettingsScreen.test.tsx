@@ -5,7 +5,7 @@ import { MemoryRouter } from "react-router";
 import "../../../i18n";
 import { SettingsScreen } from "./SettingsScreen";
 import * as settingsIpc from "../../../ai/settingsIpc";
-import { createNewProject } from "../../../domain/model";
+import { createNewProject, type Entry } from "../../../domain/model";
 import { useProjectStore } from "../../../state";
 
 vi.mock("../../../ai/settingsIpc");
@@ -426,6 +426,133 @@ describe("SettingsScreen", () => {
       expect(await screen.findByText("Critical")).toBeTruthy();
       expect(screen.getByText("Red")).toBeTruthy();
       expect(screen.getByLabelText("Target Closure")).toHaveProperty("value", "2026-12-01");
+    });
+  });
+
+  describe("Template switching (Faz 11/L2)", () => {
+    function makeEntry(overrides: Partial<Entry> = {}): Entry {
+      const now = new Date().toISOString();
+      return {
+        id: overrides.id ?? crypto.randomUUID(),
+        methodId: "generic-text",
+        title: "A test entry",
+        order: 0,
+        a3Visibility: "primary",
+        payload: { text: "short body text" },
+        images: [],
+        createdAt: now,
+        updatedAt: now,
+        provenance: { origin: "human" },
+        ...overrides,
+      };
+    }
+
+    test("shows a message instead of the select when no project is open", async () => {
+      mocked.getKeyStatus.mockResolvedValueOnce(null);
+      mocked.getAiSettings.mockResolvedValueOnce(EMPTY_SETTINGS);
+
+      renderSettingsScreen();
+
+      expect(await screen.findByText("Open a project to change its template.")).toBeTruthy();
+      expect(screen.queryByLabelText("A3 export template")).toBeNull();
+    });
+
+    test("shows the project's current template selected for a fresh project", async () => {
+      const { project } = createNewProject({ title: "T", language: "en", appVersion: "0.1.0" });
+      useProjectStore.setState({ ...initialProjectStoreState, project });
+      mocked.getKeyStatus.mockResolvedValueOnce(null);
+      mocked.getAiSettings.mockResolvedValueOnce(EMPTY_SETTINGS);
+
+      renderSettingsScreen();
+
+      expect(project.templateId).toBe("pps-8step-auto");
+      expect(await screen.findByText("PPS A3 Problem Solving Form (Rev00, 8 steps)")).toBeTruthy();
+    });
+
+    test("switches immediately, with no confirmation dialog, when nothing would move to an appendix", async () => {
+      const user = userEvent.setup();
+      const { project } = createNewProject({ title: "T", language: "en", appVersion: "0.1.0" });
+      useProjectStore.setState({ ...initialProjectStoreState, project });
+      mocked.getKeyStatus.mockResolvedValueOnce(null);
+      mocked.getAiSettings.mockResolvedValueOnce(EMPTY_SETTINGS);
+
+      renderSettingsScreen();
+      await screen.findByLabelText("A3 export template");
+
+      await user.click(screen.getByLabelText("A3 export template"));
+      await user.click(await screen.findByRole("option", { name: "Farplas 7-Step Major Kaizen Form (TR, legacy)" }));
+
+      expect(useProjectStore.getState().project?.templateId).toBe("farplas-7step-tr");
+      expect(screen.queryByText("Switch template?")).toBeNull();
+    });
+
+    test("opens a confirmation dialog naming every entry that would move to an appendix", async () => {
+      const user = userEvent.setup();
+      const { project } = createNewProject({ title: "T", language: "en", appVersion: "0.1.0" });
+      const manyEntries = Array.from({ length: 60 }, (_, index) =>
+        makeEntry({ id: `overflow-${index}`, title: `Overflowing entry ${index}`, order: index }),
+      );
+      const overflowing = { ...project, steps: { ...project.steps, 1: { entries: manyEntries } } };
+      useProjectStore.setState({ ...initialProjectStoreState, project: overflowing });
+      mocked.getKeyStatus.mockResolvedValueOnce(null);
+      mocked.getAiSettings.mockResolvedValueOnce(EMPTY_SETTINGS);
+
+      renderSettingsScreen();
+      await screen.findByLabelText("A3 export template");
+
+      await user.click(screen.getByLabelText("A3 export template"));
+      await user.click(await screen.findByRole("option", { name: "Farplas 7-Step Major Kaizen Form (TR, legacy)" }));
+
+      expect(await screen.findByText("Switch template?")).toBeTruthy();
+      expect(screen.getAllByText(/Overflowing entry \d+ \(Step 1\)/).length).toBeGreaterThan(0);
+      // Not yet applied — the dialog is a confirmation, not the switch itself.
+      expect(useProjectStore.getState().project?.templateId).toBe("pps-8step-auto");
+    });
+
+    test("confirming the dialog applies the switch", async () => {
+      const user = userEvent.setup();
+      const { project } = createNewProject({ title: "T", language: "en", appVersion: "0.1.0" });
+      const manyEntries = Array.from({ length: 60 }, (_, index) =>
+        makeEntry({ id: `overflow-${index}`, title: `Overflowing entry ${index}`, order: index }),
+      );
+      const overflowing = { ...project, steps: { ...project.steps, 1: { entries: manyEntries } } };
+      useProjectStore.setState({ ...initialProjectStoreState, project: overflowing });
+      mocked.getKeyStatus.mockResolvedValueOnce(null);
+      mocked.getAiSettings.mockResolvedValueOnce(EMPTY_SETTINGS);
+
+      renderSettingsScreen();
+      await screen.findByLabelText("A3 export template");
+      await user.click(screen.getByLabelText("A3 export template"));
+      await user.click(await screen.findByRole("option", { name: "Farplas 7-Step Major Kaizen Form (TR, legacy)" }));
+      await screen.findByText("Switch template?");
+
+      await user.click(screen.getByRole("button", { name: "Switch template" }));
+
+      expect(useProjectStore.getState().project?.templateId).toBe("farplas-7step-tr");
+      expect(screen.queryByText("Switch template?")).toBeNull();
+    });
+
+    test("cancelling the dialog leaves templateId unchanged", async () => {
+      const user = userEvent.setup();
+      const { project } = createNewProject({ title: "T", language: "en", appVersion: "0.1.0" });
+      const manyEntries = Array.from({ length: 60 }, (_, index) =>
+        makeEntry({ id: `overflow-${index}`, title: `Overflowing entry ${index}`, order: index }),
+      );
+      const overflowing = { ...project, steps: { ...project.steps, 1: { entries: manyEntries } } };
+      useProjectStore.setState({ ...initialProjectStoreState, project: overflowing });
+      mocked.getKeyStatus.mockResolvedValueOnce(null);
+      mocked.getAiSettings.mockResolvedValueOnce(EMPTY_SETTINGS);
+
+      renderSettingsScreen();
+      await screen.findByLabelText("A3 export template");
+      await user.click(screen.getByLabelText("A3 export template"));
+      await user.click(await screen.findByRole("option", { name: "Farplas 7-Step Major Kaizen Form (TR, legacy)" }));
+      await screen.findByText("Switch template?");
+
+      await user.click(screen.getByRole("button", { name: "Cancel" }));
+
+      expect(useProjectStore.getState().project?.templateId).toBe("pps-8step-auto");
+      expect(screen.queryByText("Switch template?")).toBeNull();
     });
   });
 });

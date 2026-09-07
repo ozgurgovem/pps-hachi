@@ -4,6 +4,8 @@ import { Link } from "react-router";
 import {
   Button,
   Checkbox,
+  DialogContent,
+  DialogRoot,
   Input,
   Label,
   SelectContent,
@@ -13,11 +15,13 @@ import {
   SelectValue,
   Textarea,
 } from "../../../ui";
-import { buildSetAiMetaCommand, buildSetProjectInfoCommand } from "../../../domain/commands";
+import { buildSetAiMetaCommand, buildSetProjectInfoCommand, buildSetTemplateIdCommand } from "../../../domain/commands";
 import { PROJECT_PRIORITY_OPTIONS, type GeneralRag, type RedactionMode } from "../../../domain/model";
+import { listTemplates } from "../../../a3/templates/registry";
 import { resolveRedactionPolicy } from "../../../ai/redaction";
 import { useProjectStore } from "../../../state";
 import { errorMessage } from "../launch/errorMessage";
+import { previewTemplateSwitch, type TemplateSwitchDroppedEntry } from "./templateSwitch";
 import {
   getAiSettings,
   getCostSummary,
@@ -47,6 +51,14 @@ const NO_RAG_SELECTED = "__none__";
 type KeyState = { status: "loading" } | { status: "unset" } | { status: "set"; masked: string };
 
 /**
+ * Faz 11/L2 §3.1: `null` = no switch pending. `previewTemplateSwitch`'s own
+ * dry run decides whether this ever gets set — a target with nothing to
+ * warn about switches immediately (`handleSelectTemplate` below), so this
+ * state only exists once there is a concrete list of entries to confirm.
+ */
+type TemplateSwitchState = { readonly targetTemplateId: string; readonly droppedEntries: readonly TemplateSwitchDroppedEntry[] };
+
+/**
  * SPEC.md §8.4's "Settings → AI providers" tab, collapsed to a single card
  * since D-199 settled Faz 8 on one provider (Vorion). §2.1 of this dilim's
  * own session prompt: reached from a gear icon in `WorkspaceTopBar`, not
@@ -57,6 +69,7 @@ export function SettingsScreen() {
   const { t } = useTranslation();
   const project = useProjectStore((s) => s.project);
   const dispatch = useProjectStore((s) => s.dispatch);
+  const [templateSwitchState, setTemplateSwitchState] = useState<TemplateSwitchState | null>(null);
   const [keyState, setKeyState] = useState<KeyState>({ status: "loading" });
   const [keyInput, setKeyInput] = useState("");
   const [keyActionError, setKeyActionError] = useState<string | null>(null);
@@ -253,6 +266,38 @@ export function SettingsScreen() {
   }
 
   /**
+   * Faz 11/L2 §3.1: `previewTemplateSwitch` is a pure dry run against the
+   * *target* template's own block budgets (D-100) — when it comes back with
+   * nothing to warn about, the switch happens immediately (SPEC's own "warns
+   * before anything moves to an appendix" only applies when something
+   * actually would); otherwise `templateSwitchState` opens the confirmation
+   * dialog below rather than dispatching right away.
+   */
+  function handleSelectTemplate(targetTemplateId: string) {
+    if (!project || targetTemplateId === project.templateId) {
+      return;
+    }
+    const preview = previewTemplateSwitch(project, targetTemplateId);
+    if (preview.droppedEntries.length === 0) {
+      dispatch(buildSetTemplateIdCommand(project, targetTemplateId));
+      return;
+    }
+    setTemplateSwitchState({ targetTemplateId, droppedEntries: preview.droppedEntries });
+  }
+
+  function handleConfirmTemplateSwitch() {
+    if (!project || !templateSwitchState) {
+      return;
+    }
+    dispatch(buildSetTemplateIdCommand(project, templateSwitchState.targetTemplateId));
+    setTemplateSwitchState(null);
+  }
+
+  function handleCancelTemplateSwitch() {
+    setTemplateSwitchState(null);
+  }
+
+  /**
    * D-201: temporary debug control — §8.5's real New Project AI step (enable/
    * provider/model/redaction choice at project creation) doesn't exist yet,
    * so this is the only way to get `project.meta.ai.enabled` to `true` and
@@ -385,6 +430,33 @@ export function SettingsScreen() {
           </>
         ) : (
           <p className="font-body text-sm text-ink-muted">{t("settings.projectInfo.noProject")}</p>
+        )}
+      </section>
+
+      {/* Faz 11/L2: permanent — SPEC.md §6's own Faz 11 done-condition
+          ("switching a project between templates preserves every entry and
+          warns before anything moves to an appendix"), D-223's scope
+          narrowed to these two templates. */}
+      <section className="flex flex-col gap-3 rounded-control border border-border bg-surface-raised p-6">
+        <h2 className="font-display text-lg text-ink">{t("settings.template.heading")}</h2>
+        {project ? (
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="project-template">{t("settings.template.label")}</Label>
+            <SelectRoot value={project.templateId} onValueChange={handleSelectTemplate}>
+              <SelectTrigger id="project-template">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {listTemplates().map((template) => (
+                  <SelectItem key={template.id} value={template.id}>
+                    {t(`settings.template.names.${template.id}`, { defaultValue: template.name })}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </SelectRoot>
+          </div>
+        ) : (
+          <p className="font-body text-sm text-ink-muted">{t("settings.template.noProject")}</p>
         )}
       </section>
 
@@ -663,6 +735,33 @@ export function SettingsScreen() {
           <p className="font-body text-sm text-ink-muted">{t("settings.ai.redactionNoProject")}</p>
         )}
       </section>
+
+      <DialogRoot
+        open={templateSwitchState !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            handleCancelTemplateSwitch();
+          }
+        }}
+      >
+        <DialogContent title={t("settings.template.confirmTitle")} description={t("settings.template.confirmDescription")}>
+          <ul className="flex flex-col gap-1">
+            {templateSwitchState?.droppedEntries.map((entry) => (
+              <li key={entry.entryId} className="font-body text-sm text-ink">
+                {t("settings.template.droppedEntryLine", { title: entry.title, step: entry.stepId })}
+              </li>
+            ))}
+          </ul>
+          <div className="mt-4 flex gap-2">
+            <Button type="button" onClick={handleConfirmTemplateSwitch}>
+              {t("settings.template.confirmButton")}
+            </Button>
+            <Button type="button" variant="ghost" onClick={handleCancelTemplateSwitch}>
+              {t("settings.template.cancelButton")}
+            </Button>
+          </div>
+        </DialogContent>
+      </DialogRoot>
     </main>
   );
 }

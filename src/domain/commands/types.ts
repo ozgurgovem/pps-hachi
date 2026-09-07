@@ -109,6 +109,20 @@ export interface MetaProjectInfoSetCommand extends BaseCommand {
   readonly after: ProjectInfoFields;
 }
 
+/**
+ * Faz 11/L2: project-level, same reasoning as `RoundsSetCommand`/
+ * `SignOffSetCommand` — `templateId` lives on `ProjectModel` directly (not
+ * under `meta`, unlike `MetaProjectInfoSetCommand`'s three fields), so this
+ * command's name mirrors that: no `meta.` prefix. `before`/`after` are the
+ * complete `templateId` string, never a partial patch — there is nothing
+ * partial about a single string field.
+ */
+export interface TemplateIdSetCommand extends BaseCommand {
+  readonly type: "templateId.set";
+  readonly before: string;
+  readonly after: string;
+}
+
 export type Command =
   | EntryInsertCommand
   | EntryRemoveCommand
@@ -118,7 +132,8 @@ export type Command =
   | RoundsSetCommand
   | SignOffSetCommand
   | MetaAiSetCommand
-  | MetaProjectInfoSetCommand;
+  | MetaProjectInfoSetCommand
+  | TemplateIdSetCommand;
 
 /**
  * D-70: thrown by `applyCommand` when a command's precondition doesn't hold

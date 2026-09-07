@@ -190,14 +190,18 @@ language is the real threat to this bar, and it is Oturum B's job.
 
 ## Current state
 
-Phase: 11 of 12 — kapsam belirlendi (D-223, 2026-09-06), henüz inşa edilmedi. Faz 11'in kendi
-  üç dilimlik planı: **L1** (`pps-8step-auto`'nun statik geometrisi + template registry + blok
-  görsel dili, kendi Block Visual Verification Loop onay turuyla kapanır, henüz başlanmadı —
-  launch prompt `docs/oturumlar/L1-pps-8step-auto.md`), **L2** (template switching mekanizması,
-  L1'den sonra), **L3** (esnek tahsis solver D-158/159/160 + drag-handle D-170, ertelendi).
-  Kapsam SPEC'in orijinal üç-şablon+`BenefitCase` lafzından yalnızca `pps-8step-auto` +
-  switching'e daraltıldı — `farplas-7step-plus`/`farplas-7step-en` **P-62**'ye, `BenefitCase`
-  P-18'e filed, ikisi de kendi gelecekteki scope oturumunu bekliyor. Faz 10 (kapsam D-213,
+Phase: 11 of 12 — kapsam belirlendi (D-223, 2026-09-06); **L1 ve L2 artık BİTTİ, yalnızca L3
+  kalıyor.** Faz 11'in kendi üç dilimlik planı: **L1** (`pps-8step-auto`'nun statik geometrisi +
+  template registry + blok görsel dili — DONE, D-224, 2026-09-07, Barış'ın görsel onayıyla
+  birlikte P-43 kapandı), **L2** (template switching mekanizması — DONE, D-225, 2026-09-07,
+  `templateId.set` komutu + `SettingsScreen`'in kalıcı "Template" bölümü + `previewTemplateSwitch`
+  dry-run mekanizması), **L3** (esnek tahsis solver D-158/159/160 + drag-handle D-170, ertelendi,
+  henüz başlanmadı, kendi launch prompt'u henüz yazılmadı). Kapsam SPEC'in orijinal
+  üç-şablon+`BenefitCase` lafzından yalnızca `pps-8step-auto` + switching'e daraltıldı —
+  `farplas-7step-plus`/`farplas-7step-en` **P-62**'ye, `BenefitCase` P-18'e filed, ikisi de kendi
+  gelecekteki scope oturumunu bekliyor. Ayrıca **P-63** (kpi-strip'in `pps-8step-auto` ADIM 7'de
+  her zaman appendix'e düşmesi, L1'in kendi BVVL turunda bulundu) hâlâ açık — bilerek L2'ye
+  karıştırılmadı, kendi ayrı dilimini/commit'ini bekliyor. Faz 10 (kapsam D-213,
   dört dilimin K1/K2/K3/K4 DÖRDÜ de BİTTİ — K1 D-214, K2 D-215, K3 D-216, K4 D-221,
   2026-09-06) TAMAMEN kapandı. Phase 9 (all
   three slices J1/J2/J3, J3 itself in seven sub-slices J3-1..J3-7) FULLY COMPLETE 2026-09-05
@@ -1687,6 +1691,59 @@ AI layer: Faz 8 fully done (keychain + Vorion connection/model-discovery + strea
   sits at; the real fallback is D-100's appendix mechanism (the whole entry moves to an
   appendix page, never truncated or shrunk). P-43/P-26 fully closed; L2's own launch prompt
   (`docs/oturumlar/L2-template-switching.md`) updated to skip the now-moot P-43 check.
+**Faz 11 — L2: FULLY DONE (D-225, 2026-09-07) — Faz 11's three-slice plan now has two done
+  (L1/L2), only L3 remains.** The session's own §0 precondition check found P-43 already CLOSED
+  (committed by a concurrent session moments before this one started) — Barış was still asked
+  directly ("did you review the artifact, do you approve") and reconfirmed approval; P-63 was
+  still open, and Barış reconfirmed the same disposition (separate slice, not folded into L2).
+  One `AskUserQuestion` round (§3.3), both Barış's recommended option: the switch control lives
+  in a new permanent "Template" section in `SettingsScreen` (not a separate tab/dialog); the
+  preview/warning surface is a plain `DialogRoot`/`DialogContent` confirmation (matching L1's own
+  language-picker dialog), not K1's richer per-line diff-review panel — this is a deterministic
+  yes/no confirmation, not an AI-generated line-by-line proposal.
+  **This dilim's one real new mechanism**: `previewTemplateSwitch` (new
+  `src/app/routes/settings/templateSwitch.ts`) — a pure dry run that calls only the first (pure)
+  `buildA3Layout` pass against the target template and reads `descriptor.overflowWarnings[].
+  droppedEntryIds`, D-100's own already-existing mechanism — "does this entry fit" is never
+  reimplemented, only read. Entry title/step lookup reuses K1's own `buildEntryLookup`
+  (`layoutReview.ts`, G2 — shared ground instead of a second implementation).
+  **New command, following `MetaProjectInfoSetCommand`'s (D-224) exact pattern but without the
+  `meta.` prefix**: `TemplateIdSetCommand` (`type: "templateId.set"`) — `templateId` (D-223's own
+  finding) lives directly on `ProjectModel`, not under `meta`, so its name mirrors `rounds.set`/
+  `signOff.set` instead. `types.ts`/`builders.ts`/`applyCommand.ts`/`invertCommand.ts`/`index.ts`
+  all extended the same way D-224's command was; `tsc --noEmit` clean confirms every switch stayed
+  exhaustive. `buildSetTemplateIdCommand` never touches any entry's `a3Visibility` — SPEC's
+  "preserves every entry" is read LOCKED: a `primary` entry falling to appendix under the target
+  template is already automatic via `buildA3Layout`'s own `droppedEntryIds`, switching back needs
+  no compensating logic.
+  **UI**: `SettingsScreen.tsx` gained a new permanent "Template" section — a `SelectRoot` over
+  `listTemplates()`, showing the project's current `templateId`. A target with nothing to warn
+  about switches immediately, no dialog (SPEC's "warns before anything moves to an appendix" only
+  applies when something actually would — decided directly, Anayasa Madde 9, the launch prompt
+  itself left this optional); at least one dropped entry opens the dialog, listing each entry's
+  title+step, Confirm/Cancel. TR/EN i18n keys added together; template display names resolve
+  through new `settings.template.names.*` keys with `t()`'s own `defaultValue` falling back to
+  `A3Template.name`'s raw (Turkish-only, `src/a3` can't import i18n per D-43) string for any
+  future unregistered template.
+  **Verified end to end against real code** (Anayasa Madde 8, D-97/D-136's own discipline — a
+  temporary script, used then deleted): a real project with 61 `primary` entries (60 deliberately
+  stuffed into one step to force overflow) was run through two real `applyCommand` switches
+  (`pps-8step-auto` → `farplas-7step-tr` → back) — the primary-entry count stayed exactly 61
+  across both switches (nothing ever deleted), the preview correctly predicted the real dropped
+  count each direction (53, then 51), and a real `buildA3Layout` call under each templateId placed
+  a genuinely different cell count (54, then 48) — the two templates' different block budgets
+  produce measurably different results, not an assumed no-op round trip.
+  `npm test` 1448/1448 (296 files, up from 1433/1433 — 15 new tests: `builders.test.ts`+1,
+  `applyCommand.test.ts`+3, a new `templateSwitch.test.ts`+5, `SettingsScreen.test.tsx`+6), exit
+  code 0 (checked via a separate logfile, not piped through `tail`). `npm run lint` clean (the one
+  pre-existing `ThemeProvider` warning). `npm run build` green (same pre-existing chunk-size
+  warning). `cargo test`/`clippy`/`fmt` all clean — Rust genuinely untouched this dilim (TS-only
+  end to end, confirmed via `git status src-tauri/`, not assumed). `scripts/gen-a3-fixture.ts` not
+  re-run — this dilim touches no `src/a3/` file at all (grep+`git status`-confirmed), only
+  `src/domain/commands/`, `src/app/routes/settings/`, `src/i18n/locales/`. Deliberately not built:
+  L3 (elastic solver + drag-handle), P-63 (kpi-strip overflow — stays its own separate slice),
+  `farplas-7step-plus`/`farplas-7step-en` (P-62), `BenefitCase` (P-18), making `budget.ts` itself
+  elastic. Full record: `DECISIONS.md` D-225. L3's own launch prompt is not yet written.
 Templates: two company .xls files analysed; see reference/TEMPLATE_ANALYSIS.md
 Template geometry: VERIFIED 2026-08-01 against both .xls files. Five errors found and
   corrected in place — the largest was the column widths: the real split is 49.7/50.3, NOT

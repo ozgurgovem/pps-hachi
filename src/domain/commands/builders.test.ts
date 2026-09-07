@@ -11,6 +11,7 @@ import {
   buildSetAiMetaCommand,
   buildSetProjectInfoCommand,
   buildSetSignOffCommand,
+  buildSetTemplateIdCommand,
   buildUpdateEntryCommand,
 } from "./builders";
 
@@ -428,6 +429,21 @@ describe("buildSetProjectInfoCommand (Faz 11/L1, D-224)", () => {
         generalRag: project.meta.generalRag,
       },
       after: { priority: "high", targetClosureDate: "2026-12-01", generalRag: "amber" },
+      undoable: true,
+    });
+  });
+});
+
+describe("buildSetTemplateIdCommand (Faz 11/L2)", () => {
+  it("captures the project's current templateId as before and the given id as after", () => {
+    const project = makeProject();
+
+    const command = buildSetTemplateIdCommand(project, "farplas-7step-tr");
+
+    expect(command).toEqual({
+      type: "templateId.set",
+      before: project.templateId,
+      after: "farplas-7step-tr",
       undoable: true,
     });
   });

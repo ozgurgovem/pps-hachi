@@ -313,6 +313,16 @@ describe("invertCommand", () => {
     const command: Command = { type: "meta.projectInfo.set", before, after, undoable: true };
     expect(invertCommand(command)).toEqual({ ...command, before: after, after: before });
   });
+
+  it("templateId.set inverts by swapping before/after (Faz 11/L2)", () => {
+    const command: Command = {
+      type: "templateId.set",
+      before: "pps-8step-auto",
+      after: "farplas-7step-tr",
+      undoable: true,
+    };
+    expect(invertCommand(command)).toEqual({ ...command, before: "farplas-7step-tr", after: "pps-8step-auto" });
+  });
 });
 
 describe("applyCommand — rounds.set", () => {
@@ -408,6 +418,38 @@ describe("applyCommand — meta.projectInfo.set (Faz 11/L1, D-224)", () => {
       type: "meta.projectInfo.set",
       before: { priority: undefined, targetClosureDate: undefined, generalRag: undefined },
       after: { priority: "critical", targetClosureDate: undefined, generalRag: undefined },
+      undoable: true,
+    };
+
+    applyCommand(project, command);
+
+    expect(project).toEqual(before);
+  });
+});
+
+describe("applyCommand — templateId.set (Faz 11/L2)", () => {
+  it("replaces project.templateId with the command's after value, leaving the rest of the project untouched", () => {
+    const project = makeProject([]);
+    const command: Command = {
+      type: "templateId.set",
+      before: project.templateId,
+      after: "farplas-7step-tr",
+      undoable: true,
+    };
+
+    const next = applyCommand(project, command);
+
+    expect(next.templateId).toBe("farplas-7step-tr");
+    expect(next.meta.title).toBe(project.meta.title);
+  });
+
+  it("does not mutate the original project", () => {
+    const project = makeProject([]);
+    const before = JSON.parse(JSON.stringify(project));
+    const command: Command = {
+      type: "templateId.set",
+      before: project.templateId,
+      after: "farplas-7step-tr",
       undoable: true,
     };
 

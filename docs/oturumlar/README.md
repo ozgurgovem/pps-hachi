@@ -331,6 +331,28 @@ D-40'ın (LOCKED) 8pt basılı okunabilirlik tabanıyla çeliştiği için redde
 D-100'ün appendix mekanizması (kırpma/küçültme yok, tam entry bir ek sayfaya taşınır). P-43/P-26
 kapandı, D-224'ün kendi kapanış notuna işlendi.
 
+**Faz 11 — L2 TAMAMEN BİTTİ (D-225, 2026-09-07) — Faz 11'in üç dilimlik planı artık L1+L2
+kapanmış, yalnızca L3 kalıyor.** Oturumun kendi §0 ön-kontrolü P-43'ün eşzamanlı başka bir oturum
+tarafından zaten kapatıldığını buldu — Barış'a yine de doğrudan soruldu, onay tazelendi; P-63 hâlâ
+açık bulundu, ayrı dilim kararı yeniden doğrulandı. Bir `AskUserQuestion` turu (§3.3, ikisi de
+Barış'ın önerilen seçeneği): switch kontrolü `SettingsScreen`'e kalıcı yeni bir "Şablon" bölümü
+(ayrı sekme/diyalog değil); önizleme/uyarı basit bir `DialogRoot`/`DialogContent` onayı (K1'in
+zengin diff-panel deseni değil — bu deterministik bir evet/hayır onayı). Tek yeni mimari
+mekanizma: `previewTemplateSwitch` (`src/app/routes/settings/templateSwitch.ts`) — hedef
+şablonla `buildA3Layout`'un yalnızca birinci (saf) çağrısını yapan bir kuru çalıştırma, D-100'ün
+zaten var olan `overflowWarnings[].droppedEntryIds` mekanizmasını okur, "sığar mı" sorusunu asla
+yeniden icat etmez. Yeni komut `templateId.set` (`meta.` ön eki YOK — `templateId` `ProjectModel`'in
+doğrudan kendi alanı, `rounds.set`/`signOff.set`'in emsali) hiçbir entry'nin `a3Visibility`'sine
+dokunmuyor — SPEC'in "preserves every entry" lafzı LOCKED okundu. Hedefte düşen entry yoksa switch
+anında uygulanır, dialog açılmaz; en az biri düşecekse dialog listeler, Onayla/Vazgeç. Gerçek koda
+karşı uçtan uca doğrulama (geçici script, D-136/D2 disipliniyle kullanılıp silindi): 61 `primary`
+entry'li bir proje iki kez gerçek switch'ten geçirildi, her ikisinde de entry sayısı 61'de sabit
+kaldı (hiç silinmedi), önizleme her iki yönde de gerçek düşen entry sayısını doğru bildirdi.
+`npm test` 1448/1448 (296 dosya, 1433'ten yukarı — 15 yeni test), `npm run lint`/`tsc`/`build`
+temiz, `cargo test`/`clippy`/`fmt` temiz (Rust dokunulmadı, doğrulandı). `scripts/gen-a3-fixture.ts`
+yeniden çalıştırılmadı (bu dilim `src/a3/`'e hiç dokunmuyor). Kapsam dışı: L3, P-63 (ayrı dilim).
+Tam kayıt: `DECISIONS.md` D-225. L3'ün kendi launch prompt'u henüz yazılmadı.
+
 Sıradaki iş: Barış'ın kendi tercihine göre **L2** (template switching — kendi launch prompt'u
 `L2-template-switching.md`'de yazılı, kendi §0'ı P-63 kararını bekliyor), **L3** (esnek solver —
 D-224'ün onaylanmış tasarımı, henüz kendi launch prompt'u yazılmadı) ya da **W2-adim-sayfasi.md**

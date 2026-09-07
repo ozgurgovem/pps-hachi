@@ -22,6 +22,7 @@ import {
   type MetaProjectInfoSetCommand,
   type RoundsSetCommand,
   type SignOffSetCommand,
+  type TemplateIdSetCommand,
 } from "./types";
 
 /**
@@ -306,4 +307,15 @@ export function buildSetProjectInfoCommand(project: ProjectModel, info: ProjectI
     generalRag: project.meta.generalRag,
   };
   return { type: "meta.projectInfo.set", before, after: info, undoable: true };
+}
+
+/**
+ * Faz 11/L2: switches which template `project` exports through. Never
+ * touches any entry's `a3Visibility` — a target template's own block budget
+ * (D-100's `droppedEntryIds`) decides which `primary` entries actually land
+ * on the A3 sheet at export/preview time; switching back restores whatever
+ * fit before, with no compensating logic needed here.
+ */
+export function buildSetTemplateIdCommand(project: ProjectModel, templateId: string): TemplateIdSetCommand {
+  return { type: "templateId.set", before: project.templateId, after: templateId, undoable: true };
 }
