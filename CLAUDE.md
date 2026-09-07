@@ -1816,6 +1816,102 @@ AI layer: Faz 8 fully done (keychain + Vorion connection/model-discovery + strea
   `farplas-7step-tr`, P-63/P-62/P-18 (all untouched). L3b's own launch prompt is written:
   `docs/oturumlar/L3b-pinned-drag-handle.md` — **Faz 11's own three-slice plan (D-223) now has
   L1+L2+L3a done, only L3b remains.**
+**Faz 11 — L3b: FULLY DONE (D-227, 2026-09-07) — Faz 11's own three-slice plan (D-223) is now
+  FULLY CLOSED (L1+L2+L3a+L3b).** `L3b-pinned-drag-handle.md`'s own §0 pre-scan matched real code
+  exactly. Launch prompt's own four open questions went to Barış via one `AskUserQuestion` round,
+  all four his recommended option: (1) `pinned` lives on `ProjectModel.blockPins` directly, no
+  `meta.` prefix — same reasoning as `templateId` (a layout/export preference, not identity data);
+  (2) a single `blockPins.set` command (the whole map), matching D-224/D-225's own "whole slice,
+  not a partial patch" precedent, not separate `blockPin.set`/`blockPin.clear`; (3)
+  `resolveElasticBlocks` gains a pure 5th parameter (`pinnedCanvasRowsByStepId`, a `Map`) rather
+  than taking the whole `ProjectModel` — D-03/D-04's purity contract stays intact; (4) drag-handle
+  active in screen mode only, commit-on-release (no live rebuild per drag frame).
+  **Domain**: `BlockPinsSchema = z.partialRecord(StepIdSchema, z.number().int().positive())` —
+  deliberately not `z.record` (measured, not assumed: `StepsSchema`'s own `z.record` usage
+  requires ALL 8 literal-union keys present, a real Zod 4 behavior difference confirmed with a
+  throwaway Node script before writing any schema code). `ProjectModel.blockPins?:
+  Partial<Record<StepId, number>>`, optional (D-51) — every pre-L3b project parses unchanged.
+  New `BlockPinsSetCommand` (`type: "blockPins.set"`) follows `TemplateIdSetCommand`'s exact
+  shape; all five command-layer files extended, `tsc --noEmit` clean confirms every switch stayed
+  exhaustive.
+  **Solver**: `elasticAllocation.ts`'s old `distributeElasticColumn` split into `solveGroup(members,
+  targetTotal)` (the original algorithm, generalized to an arbitrary target instead of always
+  `sum(defaultRows)` — when `targetTotal === sum(defaultRows)`, `delta` is always 0 and this
+  reproduces the pre-D-170 output byte-for-byte) and a new `distributeElasticColumn` (partitions
+  pinned/non-pinned members, clamps each pin to its own floor AND collectively so no non-pinned
+  member can ever drop below its own `minimumCanvasRows`, then re-solves the remainder via
+  `solveGroup` against whatever budget the pins leave behind). **Never below floor, however
+  extreme the request** — verified by 9 new tests in `elasticAllocation.test.ts` (pin above/below
+  default, floor-clamping, correct block keyed by appStep not array position, an absurdly large
+  pin request, header/contentRows shifting correctly) — every expected value was hand-derived
+  first, then confirmed by the test actually passing.
+  **New UI foundation — `A3LayoutDescriptor.elasticBlocks`**: exposes every `.elastic` block's
+  resolved geometry (`stepIds`/`contentColumns`/`headerRange`/`contentRows`/`minimumCanvasRows`/
+  optional `pinnedCanvasRows`) for THIS project — the same "expose what `buildA3Layout` already
+  computed" pattern `provisionalBlocks`/D-198 already established, zero new business logic. New
+  `src/a3/render/gridGeometry.ts` (`columnOffsetPx`/`columnWidthPx`/`rowOffsetPx`/`rowHeightPx`)
+  — since the drag-handle overlay lives OUTSIDE `HtmlA3Renderer` (D-94/D-226) it can't share CSS
+  Grid track indices, so it needs its own cumulative pixel math reading the exact same
+  `sheet.columns`/`sheet.rows` fields and `PT_TO_PX` constant, so the two can never silently
+  disagree about where a cell boundary falls.
+  **Two new components, both in `src/a3/render/` (D-94's own ESLint carve-out — React/i18next
+  allowed there)**: `BlockPinOverlay.tsx` — one draggable horizontal bar per INTERNAL column
+  boundary (n blocks → n-1 handles, no handle below a column's last block — nothing to drag
+  against); `pointerup` dispatches `onPinBlock(stepId, canvasRows)` once (D-15's "human commits"
+  spirit — no command during the drag itself); `role="separator"`/`aria-valuenow`/`aria-valuemin`/
+  keyboard (ArrowUp/ArrowDown, each keypress its own immediate commit) — D-86's "canvas is
+  mouse-only, every effect separately reachable" discipline applied again. `PinnedBlockSummary.tsx`
+  — a plain-flow list, one row per currently-pinned block with a "reset to automatic" button;
+  needed as its own component precisely because a column's last block has no handle to attach a
+  reset control to. Both callback-driven, no store/Tauri knowledge of their own.
+  **Barış's own second `AskUserQuestion` round — after asking "what is a drag-handle?"**: once the
+  concept was explained concretely (a VSCode-panel-divider analogy), Barış chose the
+  NON-recommended option — the drag-handle works in BOTH the small in-panel preview AND the large
+  pop-out `A3PreviewWindow` (D-133), not just the panel. Since the pop-out window deliberately has
+  no project store of its own, this needed a real new mechanism: `window.ts` gained
+  `A3_PREVIEW_PIN_REQUEST_EVENT` (the reverse direction of `A3_PREVIEW_DESCRIPTOR_EVENT`) +
+  `requestBlockPin` (preview-window side, broadcasts via `emit`, same reasoning as
+  `A3_PREVIEW_READY_EVENT` — the preview window doesn't know the main window's label) +
+  `listenForBlockPinRequest` (main-window side, feeds `RightPanel`'s own `handlePinBlock`). Counted
+  as part of the "drag-handle UI" mechanism D-114 already budgeted, not a fourth independent one.
+  **Two real bugs, both caught while writing the code itself, before any external review**: (1)
+  the pop-out window's own zoom transform (`viewport.scale`) correctly re-scales the handle's
+  visual position for free (CSS), but `event.clientY` deltas always arrive in raw, unscaled screen
+  pixels — a new `dragScale` prop (default 1, `RightPanel` never passes it; `A3PreviewWindow`
+  passes `viewport.scale`) divides the raw delta before it enters the row-count math; a regression
+  test proves 80 screen-px at `dragScale={2}` equals 2 rows, not 4. (2) the pop-out window's own
+  pan container wraps the handle with a sibling `onPointerDown`/`Move`/`Up` — without
+  `event.stopPropagation()` in all three of the handle's own handlers, starting a drag would also
+  start a pan gesture underneath it; caught by writing a test first, then **mutation-verified**
+  (the fix temporarily removed, the test genuinely went RED, restored, confirmed GREEN again).
+  **Deliberately narrow scope, filed as P-64**: a column's LAST `.elastic` block (e.g. ADIM 3/
+  ADIM 8) has no drag handle of its own — nothing below it to grab. The solver itself already
+  supports pinning any block regardless (proven by its own "keyed by appStep, not array position"
+  test); this is only a UI scope limit — that block can still be cleared via
+  `PinnedBlockSummary`'s reset button if already pinned some other way, just never pinned directly
+  by mouse. "At floor" is signaled via the handle's own `title` tooltip + reduced opacity, not a
+  separate floating badge — `aria-valuenow === aria-valuemin` already gives assistive tech the
+  "at minimum" signal; a plainer visual treatment than D-170's literal "badge" wording, a
+  deliberate simplification given this slice's own scope.
+  `npm test` 1524/1524 (300 files, up from 1464/1464 — 60 new tests: `gridGeometry.test.ts`'s 12,
+  `BlockPinOverlay.test.tsx`'s 14, `PinnedBlockSummary.test.tsx`'s 3 in three new files, plus
+  growth across `elasticAllocation.test.ts`/`projectModel.test.ts`/`builders.test.ts`/
+  `applyCommand.test.ts`/`buildA3Layout.test.ts`/`window.test.ts`/`RightPanel.test.tsx`/
+  `A3PreviewWindow.test.tsx`), exit code 0 confirmed via a separate logfile, not piped through
+  `tail` (D-143's own lesson). `npm run lint` clean (the one pre-existing `ThemeProvider` warning).
+  `npm run build` green (same pre-existing chunk-size warning). `cargo test` 203/203 (193 lib + 2
+  fixture + 8 xlsx, unchanged from D-221's own baseline), `cargo clippy --all-targets -- -D
+  warnings` and `cargo fmt -- --check` both clean — Rust genuinely untouched (`git status
+  src-tauri/src/` empty; only the checked-in `a3-layout-descriptor.json` fixture changed, gaining
+  a purely-additive `"elasticBlocks": []` line Rust never reads and serde silently ignores, no
+  `deny_unknown_fields`). `scripts/gen-a3-fixture.ts` re-run, same single-line additive diff —
+  the fixture only exercises `farplas-7step-tr`, none of whose blocks declare `elastic`.
+  Deliberately not built this dilim: P-63 (kpi-strip overflow, its own slice), `farplas-7step-plus`/
+  `-en` (P-62), `BenefitCase` (P-18), making `farplas-7step-tr` itself elastic. **Honestly
+  unverified, the usual class of gap** (D-105/D-113/D-136/D-200/D-201/…/D-226): no display/Tauri
+  runtime in this environment — a real mouse drag in a real Tauri window, and a real pop-out
+  window's own zoom interacting with a real drag, were never tried; Barış's own `npm run tauri
+  dev` walkthrough is still owed.
 Templates: two company .xls files analysed; see reference/TEMPLATE_ANALYSIS.md
 Template geometry: VERIFIED 2026-08-01 against both .xls files. Five errors found and
   corrected in place — the largest was the column widths: the real split is 49.7/50.3, NOT

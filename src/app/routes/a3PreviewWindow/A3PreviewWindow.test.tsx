@@ -10,10 +10,12 @@ const listenForDescriptorPush = vi.fn((onDescriptor: (descriptor: A3LayoutDescri
   capturedOnDescriptor = onDescriptor;
   return Promise.resolve(unlistenSpy);
 });
+const requestBlockPin = vi.fn();
 
 vi.mock("./window", () => ({
   listenForDescriptorPush: (...args: [(descriptor: A3LayoutDescriptor) => void]) =>
     listenForDescriptorPush(...args),
+  requestBlockPin: (...args: [unknown]) => requestBlockPin(...args),
 }));
 
 vi.mock("../../../a3/render/HtmlA3Renderer", () => ({
@@ -56,6 +58,7 @@ function fakeDescriptor(templateId: string): A3LayoutDescriptor {
     },
     overflowWarnings: [],
     provisionalBlocks: [],
+    elasticBlocks: [],
   };
 }
 
@@ -66,10 +69,30 @@ function pushDescriptor(templateId = "t") {
   });
 }
 
+function pushDescriptorWithPinnedBlock() {
+  act(() => {
+    const descriptor = fakeDescriptor("pps-8step-auto");
+    capturedOnDescriptor?.({
+      ...descriptor,
+      elasticBlocks: [
+        {
+          stepIds: [2],
+          contentColumns: { first: "A", last: "A" },
+          headerRange: "A1:A1",
+          contentRows: { start: 2, end: 11 },
+          minimumCanvasRows: 5,
+          pinnedCanvasRows: 25,
+        },
+      ],
+    });
+  });
+}
+
 beforeEach(() => {
   capturedOnDescriptor = undefined;
   listenForDescriptorPush.mockClear();
   unlistenSpy.mockClear();
+  requestBlockPin.mockClear();
 });
 
 describe("A3PreviewWindow", () => {
@@ -141,5 +164,24 @@ describe("A3PreviewWindow", () => {
     await Promise.resolve();
 
     expect(unlistenSpy).toHaveBeenCalledOnce();
+  });
+});
+
+/**
+ * Faz 11/L3b (D-170/D-133): this window has no project store of its own, so
+ * a pin change is forwarded to the main window via `requestBlockPin` rather
+ * than dispatched directly — proven here against the real
+ * `BlockPinOverlay`/`PinnedBlockSummary` components (only `HtmlA3Renderer`
+ * is stubbed above), not a mock of either.
+ */
+describe("A3PreviewWindow — manual block pins (Faz 11/L3b)", () => {
+  it("clicking a pinned block's reset button in the summary asks the main window to clear that pin", async () => {
+    const user = userEvent.setup();
+    render(<A3PreviewWindow />);
+    pushDescriptorWithPinnedBlock();
+
+    await user.click(screen.getByRole("button", { name: /reset step 2/i }));
+
+    expect(requestBlockPin).toHaveBeenCalledExactlyOnceWith({ stepId: 2 });
   });
 });

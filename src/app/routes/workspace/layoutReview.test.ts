@@ -56,12 +56,16 @@ function seedProject(entries: Record<number, Entry[]>): ProjectModel {
   return { ...project, steps };
 }
 
-const EMPTY_DESCRIPTOR_BASE: Pick<A3LayoutDescriptor, "templateId" | "language" | "styles" | "sheets" | "provisionalBlocks"> = {
+const EMPTY_DESCRIPTOR_BASE: Pick<
+  A3LayoutDescriptor,
+  "templateId" | "language" | "styles" | "sheets" | "provisionalBlocks" | "elasticBlocks"
+> = {
   templateId: "farplas-7step-tr",
   language: "en",
   styles: [],
   sheets: { a3: {} as A3LayoutDescriptor["sheets"]["a3"], appendices: [] },
   provisionalBlocks: [],
+  elasticBlocks: [],
 };
 
 function descriptorWithWarnings(overflowWarnings: readonly OverflowWarning[]): A3LayoutDescriptor {

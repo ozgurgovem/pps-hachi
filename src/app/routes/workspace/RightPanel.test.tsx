@@ -15,11 +15,21 @@ const listenForPreviewReady = vi.fn((callback: () => void) => {
   capturedReadyCallback = callback;
   return Promise.resolve(vi.fn());
 });
+interface BlockPinRequest {
+  readonly stepId: number;
+  readonly canvasRows?: number;
+}
+let capturedPinRequestCallback: ((request: BlockPinRequest) => void) | undefined;
+const listenForBlockPinRequest = vi.fn((callback: (request: BlockPinRequest) => void) => {
+  capturedPinRequestCallback = callback;
+  return Promise.resolve(vi.fn());
+});
 
 vi.mock("../a3PreviewWindow/window", () => ({
   openOrFocusA3PreviewWindow: (...args: unknown[]) => openOrFocusA3PreviewWindow(...args),
   pushDescriptorToPreviewWindow: (...args: unknown[]) => pushDescriptorToPreviewWindow(...args),
   listenForPreviewReady: (...args: [() => void]) => listenForPreviewReady(...args),
+  listenForBlockPinRequest: (...args: [(request: BlockPinRequest) => void]) => listenForBlockPinRequest(...args),
 }));
 
 const initialStoreState = useProjectStore.getState();
@@ -75,5 +85,47 @@ describe("RightPanel — pop-out preview window", () => {
     await user.click(screen.getByRole("button", { name: "Collapse panel" }));
 
     expect(screen.getByRole("button", { name: "Expand panel" })).toBeTruthy();
+  });
+});
+
+/**
+ * Faz 11/L3b (D-170): both the in-panel drag-handle's own commit and the
+ * pop-out preview window's cross-window pin request route through the same
+ * `handlePinBlock` → `dispatch(buildSetBlockPinsCommand(...))` — proven here
+ * against the real store, not a mocked dispatch, so a regression in either
+ * wiring path shows up as a real `project.blockPins` mismatch.
+ */
+describe("RightPanel — manual block pins (Faz 11/L3b)", () => {
+  function renderWithPin() {
+    const { project } = createNewProject({ title: "T", language: "en", appVersion: "0.1.0" });
+    useProjectStore.setState({ ...initialStoreState, project: { ...project, blockPins: { 2: 30 } } });
+    return render(<RightPanel />);
+  }
+
+  it("clicking a pinned block's reset button in the summary clears exactly that pin", async () => {
+    const user = userEvent.setup();
+    renderWithPin();
+
+    await user.click(await screen.findByRole("button", { name: /reset step 2/i }));
+
+    await waitFor(() => expect(useProjectStore.getState().project?.blockPins).toEqual({}));
+  });
+
+  it("a pin request forwarded from the pop-out preview window sets the pin on the real project", async () => {
+    renderRightPanel();
+    await waitFor(() => expect(listenForBlockPinRequest).toHaveBeenCalled());
+
+    capturedPinRequestCallback?.({ stepId: 2, canvasRows: 25 });
+
+    await waitFor(() => expect(useProjectStore.getState().project?.blockPins).toEqual({ 2: 25 }));
+  });
+
+  it("a pin request with no canvasRows clears that block's pin, mirroring 'reset to automatic'", async () => {
+    renderWithPin();
+    await waitFor(() => expect(listenForBlockPinRequest).toHaveBeenCalled());
+
+    capturedPinRequestCallback?.({ stepId: 2 });
+
+    await waitFor(() => expect(useProjectStore.getState().project?.blockPins).toEqual({}));
   });
 });

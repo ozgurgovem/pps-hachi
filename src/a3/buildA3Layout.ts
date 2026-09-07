@@ -3,6 +3,7 @@ import type { ProjectModel, StepId } from "../domain/model";
 import type {
   A3LayoutDescriptor,
   CellData,
+  ElasticBlockGeometry,
   ImagePlacement,
   MergedRange,
   OverflowWarning,
@@ -72,6 +73,7 @@ export function buildA3Layout(
   const dynamicMerges: MergedRange[] = [];
   const overflowWarnings: OverflowWarning[] = [];
   const provisionalBlocks: ProvisionalBlockMarker[] = [];
+  const elasticBlocks: ElasticBlockGeometry[] = [];
   const droppedEntryIds = new Set<string>();
   const pendingImages: PendingImageSlot[] = [];
 
@@ -136,6 +138,21 @@ export function buildA3Layout(
       // static `merges` list; an elastic block's header moves per project,
       // so its merge can only be declared here, from the resolved range.
       dynamicMerges.push({ range: block.headerRange });
+
+      // Faz 11/L3b (D-170): the drag-handle overlay's own geometry source —
+      // `stepIds[0]` is the same key `resolveElasticBlocks` already reads
+      // `pinnedCanvasRowsByStepId` by, so this stays consistent with
+      // whichever pin actually drove this block's resolved `contentRows`.
+      const stepId = block.appSteps[0];
+      const pinnedCanvasRows = stepId === undefined ? undefined : pinnedCanvasRowsByStepId.get(stepId);
+      elasticBlocks.push({
+        stepIds: block.appSteps,
+        contentColumns: block.contentColumns,
+        headerRange: block.headerRange,
+        contentRows: block.contentRows,
+        minimumCanvasRows: block.elastic.minimumCanvasRows,
+        ...(pinnedCanvasRows === undefined ? undefined : { pinnedCanvasRows }),
+      });
     }
 
     const blockEntries = entriesForBlock(allEntries, block);
@@ -218,6 +235,7 @@ export function buildA3Layout(
       sheets: { a3: a3Sheet, appendices },
       overflowWarnings,
       provisionalBlocks,
+      elasticBlocks,
     },
     pendingImages,
   };

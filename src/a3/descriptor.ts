@@ -148,6 +148,31 @@ export interface ProvisionalBlockMarker {
   readonly range: RangeRef;
 }
 
+/**
+ * Faz 11/L3b (D-170): geometry for every `.elastic`-declared block in THIS
+ * project's resolved layout — the drag-handle overlay (`BlockPinOverlay`,
+ * outside `HtmlA3Renderer`/D-94, shared by `RightPanel`'s in-panel preview
+ * and the pop-out `A3PreviewWindow`, D-133) needs a block's rectangle and
+ * floor to draw a handle and a "reset to automatic"/at-floor indicator,
+ * without recomputing anything `resolveElasticBlocks` already resolved. A
+ * non-elastic block (every `farplas-7step-tr` block) never appears here.
+ */
+export interface ElasticBlockGeometry {
+  /** Usually one step; every `pps-8step-auto` block is 1:1 with a single app-step (D-224). */
+  readonly stepIds: readonly StepId[];
+  readonly contentColumns: { readonly first: string; readonly last: string };
+  readonly headerRange: RangeRef;
+  readonly contentRows: { readonly start: number; readonly end: number };
+  readonly minimumCanvasRows: number;
+  /**
+   * The raw value from `ProjectModel.blockPins` when this block currently
+   * carries a manual override — absent otherwise. May differ from this
+   * block's actual resolved `contentRows` span if the solver had to clamp
+   * it down to protect a neighbour's own floor (D-170's iron law).
+   */
+  readonly pinnedCanvasRows?: number;
+}
+
 export interface A3LayoutDescriptor {
   readonly templateId: string;
   readonly language: "tr" | "en";
@@ -158,4 +183,5 @@ export interface A3LayoutDescriptor {
   };
   readonly overflowWarnings: readonly OverflowWarning[];
   readonly provisionalBlocks: readonly ProvisionalBlockMarker[];
+  readonly elasticBlocks: readonly ElasticBlockGeometry[];
 }

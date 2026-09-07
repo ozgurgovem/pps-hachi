@@ -181,6 +181,14 @@
       "previewError": "Bu proje için A3 önizlemesi oluşturulamadı.",
       "previewLoading": "A3 önizlemesi hazırlanıyor…"
     },
+    "blockPin": {
+      "handleLabel": "ADIM {{step}}'in alanını yeniden boyutlandır",
+      "atFloor": "Asgari boyutta",
+      "summaryLabel": "Elle boyutlandırılmış adımlar",
+      "pinnedChip": "ADIM {{step}}: {{rows}} satır",
+      "resetToAutomatic": "Otomatiğe döndür",
+      "resetAriaLabel": "ADIM {{step}}'i otomatik boyutlandırmaya döndür"
+    },
     "assistant": {
       "noModelConfigured": "Bu proje için henüz bir model seçilmedi.",
       "goToSettings": "Ayarlara git",

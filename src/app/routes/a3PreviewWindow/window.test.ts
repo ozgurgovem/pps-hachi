@@ -34,10 +34,13 @@ const {
   A3_PREVIEW_WINDOW_LABEL,
   A3_PREVIEW_DESCRIPTOR_EVENT,
   A3_PREVIEW_READY_EVENT,
+  A3_PREVIEW_PIN_REQUEST_EVENT,
   openOrFocusA3PreviewWindow,
   pushDescriptorToPreviewWindow,
   listenForPreviewReady,
   listenForDescriptorPush,
+  requestBlockPin,
+  listenForBlockPinRequest,
 } = await import("./window");
 
 beforeEach(() => {
@@ -193,5 +196,55 @@ describe("the ready handshake", () => {
     capturedHandler?.({ payload: { templateId: "t" } });
 
     expect(onDescriptor).toHaveBeenCalledWith({ templateId: "t" });
+  });
+});
+
+describe("the block-pin request round trip (Faz 11/L3b, D-170)", () => {
+  it("requestBlockPin broadcasts the request with emit (not emitTo) — the preview window doesn't know the main window's label", async () => {
+    await requestBlockPin({ stepId: 2, canvasRows: 25 });
+
+    expect(emitMock).toHaveBeenCalledWith(A3_PREVIEW_PIN_REQUEST_EVENT, { stepId: 2, canvasRows: 25 });
+    expect(emitToMock).not.toHaveBeenCalled();
+  });
+
+  it("requestBlockPin never lets a rejected emit call escape as an unhandled rejection", async () => {
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+    emitMock.mockRejectedValue(new Error("denied"));
+
+    await expect(requestBlockPin({ stepId: 1, canvasRows: 10 })).resolves.toBeUndefined();
+
+    expect(consoleError).toHaveBeenCalled();
+    consoleError.mockRestore();
+  });
+
+  it("listenForBlockPinRequest subscribes to the pin-request event", async () => {
+    await listenForBlockPinRequest(vi.fn());
+
+    expect(listenMock).toHaveBeenCalledWith(A3_PREVIEW_PIN_REQUEST_EVENT, expect.any(Function));
+  });
+
+  it("listenForBlockPinRequest forwards the event payload to the callback", async () => {
+    let capturedHandler: ((event: { payload: unknown }) => void) | undefined;
+    listenMock.mockImplementation(async (_name: string, handler: (event: { payload: unknown }) => void) => {
+      capturedHandler = handler;
+      return vi.fn();
+    });
+    const onRequest = vi.fn();
+
+    await listenForBlockPinRequest(onRequest);
+    capturedHandler?.({ payload: { stepId: 3, canvasRows: 5 } });
+
+    expect(onRequest).toHaveBeenCalledWith({ stepId: 3, canvasRows: 5 });
+  });
+
+  it("listenForBlockPinRequest never lets a rejected listen call escape, and returns a no-op unlisten instead", async () => {
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+    listenMock.mockRejectedValue(new Error("no Tauri runtime"));
+
+    const unlisten = await listenForBlockPinRequest(vi.fn());
+
+    expect(consoleError).toHaveBeenCalled();
+    await expect(unlisten()).resolves.toBeUndefined();
+    consoleError.mockRestore();
   });
 });

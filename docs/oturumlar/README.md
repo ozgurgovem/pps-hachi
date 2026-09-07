@@ -232,7 +232,7 @@ D-223.
 | L1 — `pps-8step-auto`: statik sayfa geometrisi (§12.1-12.3) + template registry (`a3Preview.ts`'in `project.templateId`'yi gerçekten okuması + proje-oluşturma seçici UI) + blok görsel dili (D-47/D-165 paleti + header identity band + `gapStatement`'ın ADIM 1 zones/image genişlemesi), kendi ilk Block Visual Verification Loop onay turuyla kapanır (P-43'ü de kapatır) | `docs/oturumlar/L1-pps-8step-auto.md` | **TAMAMEN BİTTİ (D-224, 2026-09-07) — Barış artifact'i onayladı, P-43 KAPANDI.** Template seçici UI Barış'ın kararıyla YAPILMADI — yalnızca Rev00 kullanılıyor, bunun yerine yeni bir dil (TR/EN) seçici dialog. `place.ts`'te gerçek, önceden belgelenmemiş bir üretim kusuru bulunup düzeltildi (D-224 — zoned bir entry artık `zonesRowSpan` ile bloktan yalnızca kendi payını istiyor, `farplas-7step-tr`'yi de düzeltiyor). Gerçek bir `.xlsx` üretilip XML'i doğrudan okunarak doğrulandı, artifact: `https://claude.ai/code/artifact/5eb75eb2-2e0c-45ca-94f2-eee0d3e21a03`. Onay sırasında Barış'ın kendi sorusu L3'ün (D-158/159/160) kolon-içi elastik tahsis tasarımını bağımsız doğruladı; yazı-küçültme önerisi D-40'ın basılı okunabilirlik tabanıyla çeliştiği için reddedildi. Yeni bulgu **P-63** (kpiStrip ADIM 7'de her zaman appendix'e düşüyor) bilerek bu dilimde çözülmedi, L2'nin kendi §0'ı bekliyor. `npm test` 1433/1433, `cargo test` yeşil. |
 | L2 — Template switching mekanizması: `farplas-7step-tr` ↔ `pps-8step-auto` arası geçiş, preserve-every-entry + appendix-öncesi uyarı (SPEC'in kendi lafzî done-koşulu) | `docs/oturumlar/L2-template-switching.md` | **TAMAMEN BİTTİ (D-225, 2026-09-07).** `templateId.set` komutu + `SettingsScreen`'in kalıcı "Template" bölümü + `previewTemplateSwitch` dry-run mekanizması (D-100'ün zaten var olan `droppedEntryIds`'ini okuyor, yeniden icat etmiyor). Gerçek koda karşı uçtan uca doğrulandı (geçici probe script, D-136 disipliniyle silindi) — 61 entry'li bir proje iki kez switch'ten geçti, hiçbiri kaybolmadı. `npm test` 1448/1448, `cargo test` yeşil (Rust dokunulmadı). |
 | L3a — Esnek tahsis solver çekirdeği (D-158/159/160): `TemplateBlock.elastic` + `resolveElasticBlocks`, L1'in statik varsayılanlarını gerçek per-proje elastik modele yükseltir. `pinned`/drag-handle YOK | `docs/oturumlar/L3-esnek-tahsis-solver.md` | **TAMAMEN BİTTİ (D-226, 2026-09-07).** Dört `AskUserQuestion`, dördü de önerilen seçenek: kapsam yalnızca `pps-8step-auto`, `pinned` kalıcı olacak (L3b'nin işi), talep bağımsız yeni bir saf fonksiyon (`estimateBlockRowDemand`), drag-handle (L3b) renderer'ın DIŞINDaki bir overlay katmanında. D-160'ın kendi sayısal örneği (ADIM 2'nin 33 toplam satıra büyümesi) bağımsız bir testte birebir yeniden üretildi. G2: üçüncü tekrardan önce `resolveEntryContent`/`entriesByBlock.ts` çıkarıldı. `farplas-7step-tr` hiç dokunulmadı (hiçbir bloğu `elastic` değil). `npm test` 1464/1464, `cargo test`/`clippy`/`fmt` temiz (Rust dokunulmadı), fixture sıfır fark. |
-| L3b — `pinned` domain alanı/komutu + drag-handle arayüzü (D-170), L3a'nın gerçek solver'ı üzerine manuel override | `docs/oturumlar/L3b-pinned-drag-handle.md` | Launch prompt L3a'nın kapanışında yazıldı (2026-09-07), henüz başlanmadı. |
+| L3b — `pinned` domain alanı/komutu + drag-handle arayüzü (D-170), L3a'nın gerçek solver'ı üzerine manuel override | `docs/oturumlar/L3b-pinned-drag-handle.md` | **TAMAMEN BİTTİ (D-227, 2026-09-07) — Faz 11'in üç dilimlik planı (D-223) artık TAMAMEN kapandı.** Launch prompt'un dört sorusu bir `AskUserQuestion` turunda, dördü de önerilen seçenek: `ProjectModel.blockPins` (meta. öneki yok), tek `blockPins.set` komutu (tüm harita), `resolveElasticBlocks`'a saf bir ek parametre (`pinnedCanvasRowsByStepId`), drag-handle yalnızca ekran modu + bırakınca commit. Beşinci soru ("Drag-handle nedir?" sonrası) — Barış ÖNERİLENİN TERSİNİ seçti: drag-handle hem RightPanel'in küçük panelinde HEM DE büyük pop-out pencerede (A3PreviewWindow, D-133) çalışacak; bu, A3PreviewWindow'un kendi store'u olmaması nedeniyle yeni bir ters-yön IPC olayı gerektirdi (`A3_PREVIEW_PIN_REQUEST_EVENT`/`requestBlockPin`/`listenForBlockPinRequest`). İki gerçek hata (zoom-scale'i hesaba katmayan drag matematiği, pop-out'un pan handler'ına sızan pointer olayları) kodlanırken yakalanıp mutasyon-doğrulandı. `npm test` 1524/1524, `cargo test`/`clippy`/`fmt` temiz (Rust dokunulmadı). Yeni **P-64** (bir kolonun son bloğunun kendi tutamacı yok, YAGNI). |
 
 Filed, planlanmamış (Faz 11'in dışında): **P-62** (yeni — `farplas-7step-plus`/`farplas-7step-en`,
 D-149'un hiçbir oturumu hiç dokunmadı), **P-18** (güncellendi — `BenefitCase`/`Onay formu`).
@@ -385,9 +385,38 @@ dokunulmadı), `scripts/gen-a3-fixture.ts` yeniden çalıştırıldı — **sıf
 esneklik, P-63, P-62, P-18. Tam kayıt: `DECISIONS.md` D-226. L3b'nin kendi launch prompt'u yazıldı:
 `docs/oturumlar/L3b-pinned-drag-handle.md`.
 
-Sıradaki iş: Barış'ın kendi tercihine göre **L3b** (`pinned` + drag-handle — kendi launch prompt'u
-`L3b-pinned-drag-handle.md`'de yazılı) ya da **W2-adim-sayfasi.md** — ikisi birbirinden bağımsız.
-**Faz 11'in üç dilimlik planı (D-223) artık L1+L2+L3a kapanmış, yalnızca L3b kalıyor.**
+**Faz 11 — L3b TAMAMEN BİTTİ (D-227, 2026-09-07) — Faz 11'in üç dilimlik planı (D-223) artık
+TAMAMEN kapandı (L1+L2+L3a+L3b).** `L3b-pinned-drag-handle.md`'nin kendi §0'ı gerçek koda karşı
+doğrulandı, launch prompt'un dört sorusu bir `AskUserQuestion` turuyla soruldu — dördü de Barış'ın
+önerilen seçeneği: `pinned` `ProjectModel.blockPins`'te yaşayacak (`meta.` öneki yok); tek
+`blockPins.set` komutu (tüm harita, D-224/D-225'in emsali); `resolveElasticBlocks` saf bir ek
+parametre alıyor (`ProjectModel`'i değil); drag-handle yalnızca ekran modu, bırakınca commit.
+Domain: `BlockPinsSchema = z.partialRecord(...)` (Zod'un `z.record`'ı literal-union anahtarlar
+için TÜMÜNÜ zorunlu kılıyor, ölçülüp doğrulandı). Solver: eski `distributeElasticColumn` ikiye
+ayrıldı — `solveGroup(members, targetTotal)` (genelleştirilmiş, pin yokken eskisiyle birebir aynı)
+ve yeni `distributeElasticColumn` (her pin'i kendi floor'una VE kolektif olarak diğer üyelerin
+floor'larına göre kırpıyor — floor'un altına pinlemek asla mümkün değil, 9 yeni testle
+doğrulandı). UI: yeni `A3LayoutDescriptor.elasticBlocks` alanı (zaten hesaplanan geometriyi UI'ye
+açan saf eklenti) + yeni `src/a3/render/gridGeometry.ts` (piksel matematiği) + iki yeni bileşen
+(`BlockPinOverlay.tsx` — sürüklenebilir tutamaçlar, klavye erişilebilir; `PinnedBlockSummary.tsx`
+— reset kontrolleri), ikisi de `src/a3/render/`'de (D-94'ün React/i18next istisnası).
+**Barış'ın kendi ikinci `AskUserQuestion` turu** ("Drag-handle nedir?" açıklamasından sonra) —
+önerilenin TERSİNİ seçti: drag-handle hem küçük panelde HEM DE büyük pop-out pencerede
+(A3PreviewWindow, D-133) çalışacak, bu da A3PreviewWindow'un store'suzluğu nedeniyle yeni bir
+ters-yön IPC olayı gerektirdi (`A3_PREVIEW_PIN_REQUEST_EVENT`). İki gerçek hata — pop-out'un
+zoom transformunu hesaba katmayan drag matematiği (`dragScale` prop'uyla düzeltildi) ve tutamacın
+pop-out'un kendi pan handler'ına sızan pointer olayları (`stopPropagation()`, mutasyon-doğrulandı)
+— dışarıdan bir inceleme olmadan, kodlama sürecinin kendisinde yakalandı. `npm test` 1524/1524
+(300 dosya, 1464'ten yukarı — 60 yeni test), `npm run lint`/`tsc`/`build` temiz, `cargo test`
+203/203/`clippy`/`fmt` temiz (Rust dokunulmadı — yalnızca `elasticBlocks: []` ekleyen fixture
+değişti). `scripts/gen-a3-fixture.ts` yeniden çalıştırıldı — tek satırlık katkısız fark. Kapsam
+dışı: P-63, P-62, P-18, `farplas-7step-tr`'ye esneklik. Yeni **P-64** (bir kolonun son bloğunun
+kendi tutamacı yok — solver destekliyor, yalnızca UI'nin fare-tutamacı kapsamı dar, YAGNI). Tam
+kayıt: `DECISIONS.md` D-227/P-64.
+
+**Faz 11'in üç dilimlik planı (D-223) artık TAMAMEN kapandı (L1+L2+L3a+L3b).** Sıradaki iş
+Barış'ın kendi tercihine göre — örn. **W2-adim-sayfasi.md** (Workspace Yüzey Yenilemesi'nin
+ikinci dilimi) — Faz 11'den bağımsız.
 
 ## Prompt yazarken
 

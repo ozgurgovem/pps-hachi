@@ -2,6 +2,7 @@
 
 exports[`buildA3Layout > matches the golden-file snapshot for a representative project 1`] = `
 {
+  "elasticBlocks": [],
   "language": "tr",
   "overflowWarnings": [
     {

@@ -1,6 +1,7 @@
 import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { emit, emitTo, listen, type UnlistenFn } from "@tauri-apps/api/event";
 import type { A3LayoutDescriptor } from "../../../a3/descriptor";
+import type { StepId } from "../../../domain/model";
 
 /**
  * Must match `src-tauri/capabilities/a3-preview.json`'s `"windows"` entry
@@ -140,4 +141,43 @@ export async function listenForDescriptorPush(
   );
   await emit(A3_PREVIEW_READY_EVENT);
   return unlisten;
+}
+
+/**
+ * Faz 11/L3b (D-170): `BlockPinOverlay`'s own drag-handle, rendered inside
+ * the pop-out preview window too (Barış's own explicit choice — the small
+ * in-panel preview is too cramped for precise dragging), has no project
+ * store to dispatch a `blockPins.set` command against there (D-133's own
+ * deliberate isolation: the preview window is a separate JS runtime with no
+ * Zustand store). This is the reverse direction of
+ * `A3_PREVIEW_DESCRIPTOR_EVENT` — the preview window asks the main window to
+ * apply the change instead. Broadcast, same reasoning as
+ * `A3_PREVIEW_READY_EVENT`: the preview window has no reliable way to learn
+ * the main window's actual label.
+ */
+export const A3_PREVIEW_PIN_REQUEST_EVENT = "a3-preview:pin-request";
+
+export interface BlockPinRequest {
+  readonly stepId: StepId;
+  /** Present = set/replace this block's pin to this many canvas rows; absent = clear it (reset to automatic). */
+  readonly canvasRows?: number;
+}
+
+/** Preview window side: asks the main window to set or clear one block's pin. */
+export async function requestBlockPin(request: BlockPinRequest): Promise<void> {
+  try {
+    await emit(A3_PREVIEW_PIN_REQUEST_EVENT, request);
+  } catch (error) {
+    console.error("Failed to send a block-pin request from the A3 preview window", error);
+  }
+}
+
+/** Main window (`RightPanel`) side: listens for a pin request from the preview window. */
+export async function listenForBlockPinRequest(onRequest: (request: BlockPinRequest) => void): Promise<UnlistenFn> {
+  try {
+    return await listen<BlockPinRequest>(A3_PREVIEW_PIN_REQUEST_EVENT, (event) => onRequest(event.payload));
+  } catch (error) {
+    console.error("Failed to listen for block-pin requests from the A3 preview window", error);
+    return async () => {};
+  }
 }

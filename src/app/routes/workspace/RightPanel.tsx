@@ -1,11 +1,20 @@
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { save } from "@tauri-apps/plugin-dialog";
+import { buildSetBlockPinsCommand } from "../../../domain/commands";
+import type { StepId } from "../../../domain/model";
 import { useProjectStore } from "../../../state";
 import { Button, TabsContent, TabsList, TabsRoot, TabsTrigger } from "../../../ui";
+import { BlockPinOverlay } from "../../../a3/render/BlockPinOverlay";
 import { HtmlA3Renderer } from "../../../a3/render/HtmlA3Renderer";
+import { PinnedBlockSummary } from "../../../a3/render/PinnedBlockSummary";
 import type { A3LayoutDescriptor } from "../../../a3/descriptor";
-import { openOrFocusA3PreviewWindow, listenForPreviewReady, pushDescriptorToPreviewWindow } from "../a3PreviewWindow/window";
+import {
+  listenForBlockPinRequest,
+  listenForPreviewReady,
+  openOrFocusA3PreviewWindow,
+  pushDescriptorToPreviewWindow,
+} from "../a3PreviewWindow/window";
 import { errorMessage } from "../launch/errorMessage";
 import { AssistantPanel } from "./AssistantPanel";
 import { LayoutReviewPanel } from "./LayoutReviewPanel";
@@ -37,6 +46,7 @@ export function RightPanel() {
   const { t } = useTranslation();
   const project = useProjectStore((s) => s.project);
   const otherEntries = useProjectStore((s) => s.otherEntries);
+  const dispatch = useProjectStore((s) => s.dispatch);
   const [collapsed, setCollapsed] = useState(false);
   const [previewMode, setPreviewMode] = useState<"screen" | "print">("screen");
   const [isExporting, setIsExporting] = useState(false);
@@ -44,6 +54,36 @@ export function RightPanel() {
   const [descriptorResult, setDescriptorResult] = useState<DescriptorResult>({ status: "loading" });
   const latestDescriptorResult = useRef(descriptorResult);
   latestDescriptorResult.current = descriptorResult;
+  // Faz 11/L3b: read from a ref inside the block-pin-request listener below
+  // (registered once, empty deps) rather than closing over `project`
+  // directly — the same "avoid a stale closure" reasoning
+  // `latestDescriptorResult` already established one field over.
+  const latestProject = useRef(project);
+  latestProject.current = project;
+
+  /**
+   * Faz 11/L3b (D-170): pins or clears one block's manual row-count
+   * override, spreading whatever `blockPins` the project already has
+   * (D-224/D-225's own "whole slice, not a partial patch" precedent) —
+   * `canvasRows === null` clears that one key (reset to automatic).
+   * The single dispatch point for both `BlockPinOverlay`'s own drag/keyboard
+   * commits (rendered directly here, in-panel) and the pop-out preview
+   * window's own drag, which asks via `requestBlockPin`/`listenForBlockPinRequest`
+   * since it has no store of its own (D-133).
+   */
+  function handlePinBlock(stepId: StepId, canvasRows: number | null) {
+    const currentProject = latestProject.current;
+    if (!currentProject) {
+      return;
+    }
+    const nextPins = { ...currentProject.blockPins };
+    if (canvasRows === null) {
+      delete nextPins[stepId];
+    } else {
+      nextPins[stepId] = canvasRows;
+    }
+    dispatch(buildSetBlockPinsCommand(currentProject, nextPins));
+  }
 
   useEffect(() => {
     if (!project) {
@@ -89,6 +129,20 @@ export function RightPanel() {
     return () => {
       unlisten.then((fn) => fn());
     };
+  }, []);
+
+  // Faz 11/L3b: the pop-out preview window's own drag-handle has no store to
+  // dispatch against (D-133), so it asks here instead — registered once,
+  // reads `handlePinBlock`'s own `latestProject` ref, the same pattern the
+  // ready-handshake listener above already uses.
+  useEffect(() => {
+    const unlisten = listenForBlockPinRequest((request) => {
+      handlePinBlock(request.stepId, request.canvasRows ?? null);
+    });
+    return () => {
+      unlisten.then((fn) => fn());
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   if (!project) {
@@ -192,9 +246,27 @@ export function RightPanel() {
                 {exportError}
               </p>
             )}
+            {descriptorResult.status === "ok" && (
+              <PinnedBlockSummary
+                descriptor={descriptorResult.descriptor}
+                onResetBlock={(stepId) => handlePinBlock(stepId, null)}
+              />
+            )}
             <div className="overflow-auto rounded border border-border">
               {descriptorResult.status === "ok" && (
-                <HtmlA3Renderer descriptor={descriptorResult.descriptor} mode={previewMode} />
+                // Faz 11/L3b (D-226): `BlockPinOverlay` is a sibling of
+                // `HtmlA3Renderer`, never a child inside it (D-94's dumb-
+                // renderer contract) — the shared `position: relative`
+                // wrapper is what lets the overlay's own pixel math
+                // (`gridGeometry.ts`) line up with the renderer's grid.
+                <div style={{ position: "relative" }}>
+                  <HtmlA3Renderer descriptor={descriptorResult.descriptor} mode={previewMode} />
+                  <BlockPinOverlay
+                    descriptor={descriptorResult.descriptor}
+                    mode={previewMode}
+                    onPinBlock={handlePinBlock}
+                  />
+                </div>
               )}
               {descriptorResult.status === "loading" && (
                 <p className="p-3 font-body text-sm text-ink-muted">

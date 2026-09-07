@@ -2,9 +2,12 @@ import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } f
 import { useTranslation } from "react-i18next";
 import type { A3LayoutDescriptor } from "../../../a3/descriptor";
 import { fitScale } from "../../../a3/layout/measure";
+import { BlockPinOverlay } from "../../../a3/render/BlockPinOverlay";
 import { HtmlA3Renderer } from "../../../a3/render/HtmlA3Renderer";
+import { PinnedBlockSummary } from "../../../a3/render/PinnedBlockSummary";
+import type { StepId } from "../../../domain/model";
 import { Button } from "../../../ui";
-import { listenForDescriptorPush } from "./window";
+import { listenForDescriptorPush, requestBlockPin } from "./window";
 import {
   centeredOrigin,
   fitToWindowScale,
@@ -136,6 +139,17 @@ export function A3PreviewWindow() {
     );
   }
 
+  /**
+   * Faz 11/L3b (D-170): this window has no project store of its own
+   * (D-133) — every pin change is forwarded to the main window instead,
+   * which applies it and pushes back a fresh descriptor through the
+   * existing `A3_PREVIEW_DESCRIPTOR_EVENT` channel this window already
+   * listens on, so the result appears here exactly like any other edit.
+   */
+  function handlePinBlock(stepId: StepId, canvasRows: number | null) {
+    void requestBlockPin({ stepId, ...(canvasRows === null ? {} : { canvasRows }) });
+  }
+
   return (
     <div className="flex h-screen flex-col bg-surface">
       <div className="flex items-center justify-between gap-2 border-b border-border p-2">
@@ -172,6 +186,12 @@ export function A3PreviewWindow() {
         </div>
       </div>
 
+      {descriptor && (
+        <div className="border-b border-border p-2">
+          <PinnedBlockSummary descriptor={descriptor} onResetBlock={(stepId) => handlePinBlock(stepId, null)} />
+        </div>
+      )}
+
       <div
         ref={containerRef}
         className="relative flex-1 overflow-hidden bg-surface-raised"
@@ -190,6 +210,12 @@ export function A3PreviewWindow() {
             }}
           >
             <HtmlA3Renderer descriptor={descriptor} mode={mode} />
+            <BlockPinOverlay
+              descriptor={descriptor}
+              mode={mode}
+              onPinBlock={handlePinBlock}
+              dragScale={viewport.scale}
+            />
           </div>
         ) : (
           <p className="p-6 font-body text-sm text-ink-muted">{t("a3PreviewWindow.waiting")}</p>

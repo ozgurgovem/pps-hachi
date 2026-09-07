@@ -428,6 +428,18 @@ describe("buildA3Layout — pps-8step-auto manual block pins (Faz 11/L3b)", () =
     // growth) keeps its own original default header range.
     expect(cells.find((cell) => cell.ref === "A46")?.value).toBe("ADIM 3. HEDEF BELİRLEYİN");
     expect(merges).toContainEqual({ range: "A46:L47" });
+
+    // elasticBlocks (the drag-handle overlay's own geometry source) reports
+    // ADIM 1's real pin and every left-column block's resolved geometry.
+    const adim1Geometry = descriptor.elasticBlocks.find((block) => block.stepIds.includes(1));
+    expect(adim1Geometry).toMatchObject({
+      contentRows: { start: 6, end: 25 },
+      minimumCanvasRows: 10,
+      pinnedCanvasRows: 20,
+    });
+    const adim3Geometry = descriptor.elasticBlocks.find((block) => block.stepIds.includes(3));
+    expect(adim3Geometry).toMatchObject({ minimumCanvasRows: 3 });
+    expect(adim3Geometry?.pinnedCanvasRows).toBeUndefined();
   });
 
   it("is a no-op when blockPins is omitted — same geometry as an unpinned project", () => {
@@ -440,5 +452,14 @@ describe("buildA3Layout — pps-8step-auto manual block pins (Faz 11/L3b)", () =
       { rendererMap },
     );
     expect(withEmptyPins.descriptor.sheets.a3.merges).toEqual(withoutPins.descriptor.sheets.a3.merges);
+    expect(withEmptyPins.descriptor.elasticBlocks).toEqual(withoutPins.descriptor.elasticBlocks);
+    expect(withoutPins.descriptor.elasticBlocks.every((block) => block.pinnedCanvasRows === undefined)).toBe(true);
+  });
+
+  it("reports elasticBlocks as empty for farplas-7step-tr, which declares no `.elastic` blocks at all", () => {
+    const { descriptor } = buildA3Layout(fixtureProject({ templateId: "farplas-7step-tr" }), farplas7StepTr, {
+      rendererMap,
+    });
+    expect(descriptor.elasticBlocks).toEqual([]);
   });
 });

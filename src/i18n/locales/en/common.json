@@ -181,6 +181,14 @@
       "previewError": "The A3 preview could not be built for this project.",
       "previewLoading": "Building the A3 preview…"
     },
+    "blockPin": {
+      "handleLabel": "Resize Step {{step}}'s area",
+      "atFloor": "At minimum size",
+      "summaryLabel": "Manually resized steps",
+      "pinnedChip": "Step {{step}}: {{rows}} rows",
+      "resetToAutomatic": "Reset to automatic",
+      "resetAriaLabel": "Reset Step {{step}} to automatic sizing"
+    },
     "assistant": {
       "noModelConfigured": "No model is chosen for this project yet.",
       "goToSettings": "Go to Settings",
