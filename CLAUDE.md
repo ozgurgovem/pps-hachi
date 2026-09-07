@@ -196,7 +196,9 @@ Phase: 11 of 12 — kapsam belirlendi (D-223, 2026-09-06); **L1 ve L2 artık Bİ
   birlikte P-43 kapandı), **L2** (template switching mekanizması — DONE, D-225, 2026-09-07,
   `templateId.set` komutu + `SettingsScreen`'in kalıcı "Template" bölümü + `previewTemplateSwitch`
   dry-run mekanizması), **L3** (esnek tahsis solver D-158/159/160 + drag-handle D-170, ertelendi,
-  henüz başlanmadı, kendi launch prompt'u henüz yazılmadı). Kapsam SPEC'in orijinal
+  henüz başlanmadı — kendi launch prompt'u yazıldı, `docs/oturumlar/L3-esnek-tahsis-solver.md`,
+  D-114'ün bir-dilim-bir-mekanizma bütçesini muhtemelen aşıyor, beş açık tasarım sorusu içeriyor).
+  Kapsam SPEC'in orijinal
   üç-şablon+`BenefitCase` lafzından yalnızca `pps-8step-auto` + switching'e daraltıldı —
   `farplas-7step-plus`/`farplas-7step-en` **P-62**'ye, `BenefitCase` P-18'e filed, ikisi de kendi
   gelecekteki scope oturumunu bekliyor. Ayrıca **P-63** (kpi-strip'in `pps-8step-auto` ADIM 7'de
@@ -1743,7 +1745,11 @@ AI layer: Faz 8 fully done (keychain + Vorion connection/model-discovery + strea
   `src/domain/commands/`, `src/app/routes/settings/`, `src/i18n/locales/`. Deliberately not built:
   L3 (elastic solver + drag-handle), P-63 (kpi-strip overflow — stays its own separate slice),
   `farplas-7step-plus`/`farplas-7step-en` (P-62), `BenefitCase` (P-18), making `budget.ts` itself
-  elastic. Full record: `DECISIONS.md` D-225. L3's own launch prompt is not yet written.
+  elastic. Full record: `DECISIONS.md` D-225. L3's own launch prompt is written, same day, at
+  Barış's request: `docs/oturumlar/L3-esnek-tahsis-solver.md` — it flags this slice as likely
+  exceeding D-114's one-mechanism budget (solver core + a new `pinned` domain field/command +
+  drag-handle UI are three real new mechanisms) and names five real open design questions for
+  its own first `AskUserQuestion` round before any code.
 Templates: two company .xls files analysed; see reference/TEMPLATE_ANALYSIS.md
 Template geometry: VERIFIED 2026-08-01 against both .xls files. Five errors found and
   corrected in place — the largest was the column widths: the real split is 49.7/50.3, NOT
