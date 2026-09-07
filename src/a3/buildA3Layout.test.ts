@@ -397,3 +397,48 @@ describe("buildA3Layout — pps-8step-auto elastic block allocation (Faz 11/L3a)
     expect(descriptor.sheets.a3.merges).toContainEqual({ range: step2Block.headerRange });
   });
 });
+
+/**
+ * Faz 11/L3b (D-170): end-to-end proof that `project.blockPins` actually
+ * reaches the real pipeline — `elasticAllocation.test.ts` already proves the
+ * arithmetic in isolation, this is the "does buildA3Layout actually read
+ * `project.blockPins` and wire it through" check.
+ */
+describe("buildA3Layout — pps-8step-auto manual block pins (Faz 11/L3b)", () => {
+  it("grows ADIM 1 to its pinned row count, shrinking ADIM 2 toward its own floor, through the real pipeline", () => {
+    const project = fixtureProject({
+      templateId: "pps-8step-auto",
+      blockPins: { 1: 20 },
+    });
+
+    const { descriptor } = buildA3Layout(project, pps8StepAuto, { rendererMap });
+    const { cells, merges } = descriptor.sheets.a3;
+
+    // ADIM 1's header never moves (top of the column); its own content now
+    // spans 20 rows instead of its 12-row default.
+    expect(cells.find((cell) => cell.ref === "A4")?.value).toBe("ADIM 1. PROBLEMİ NETLEŞTİRİN");
+
+    // ADIM 2's header shifts down from its default A18:L19 to A26:L27 — a
+    // real dynamic merge for the shifted range, the old one gone.
+    expect(cells.find((cell) => cell.ref === "A26")?.value).toBe("ADIM 2. PROBLEMİ PARÇALARA AYIRIN");
+    expect(merges).toContainEqual({ range: "A26:L27" });
+    expect(merges).not.toContainEqual({ range: "A18:L19" });
+
+    // ADIM 3 (untouched — ADIM 2 alone had enough slack to cover ADIM 1's
+    // growth) keeps its own original default header range.
+    expect(cells.find((cell) => cell.ref === "A46")?.value).toBe("ADIM 3. HEDEF BELİRLEYİN");
+    expect(merges).toContainEqual({ range: "A46:L47" });
+  });
+
+  it("is a no-op when blockPins is omitted — same geometry as an unpinned project", () => {
+    const withoutPins = buildA3Layout(fixtureProject({ templateId: "pps-8step-auto" }), pps8StepAuto, {
+      rendererMap,
+    });
+    const withEmptyPins = buildA3Layout(
+      fixtureProject({ templateId: "pps-8step-auto", blockPins: {} }),
+      pps8StepAuto,
+      { rendererMap },
+    );
+    expect(withEmptyPins.descriptor.sheets.a3.merges).toEqual(withoutPins.descriptor.sheets.a3.merges);
+  });
+});

@@ -226,4 +226,98 @@ describe("resolveElasticBlocks", () => {
     const adim2 = resolved[1]!;
     expect(adim2.contentRows.end - adim2.contentRows.start + 1).toBe(31); // same ceiling as the finite "hungry" case
   });
+
+  // Faz 11/L3b (D-170): a manual `pinned` override, sourced from
+  // `ProjectModel.blockPins` and keyed by `StepId` — `resolveElasticBlocks`'s
+  // 5th parameter. All rows referenced below are pps-8step-auto's own left-
+  // column numbers: ADIM1 default 12/floor 10, ADIM2 default 26/floor 18,
+  // ADIM3 default 6/floor 3, columnTotal 44.
+  describe("resolveElasticBlocks with a `pinned` override (Faz 11/L3b, D-170)", () => {
+    function canvasRows(block: TemplateBlock): number {
+      return block.contentRows.end - block.contentRows.start + 1;
+    }
+
+    it("is unaffected when the pin map is omitted entirely — byte-identical to pre-L3b behavior", () => {
+      const template = fixtureElasticTemplate(leftColumnBlocks());
+      const resolved = resolveElasticBlocks(template, [], {}, "en");
+      expect(resolved).toEqual(template.blocks);
+    });
+
+    it("reproduces the unpinned defaults when a block is pinned to exactly its own default", () => {
+      const template = fixtureElasticTemplate(leftColumnBlocks());
+      const pinned = new Map<StepId, number>([[1, 12]]);
+      const resolved = resolveElasticBlocks(template, [], {}, "en", pinned);
+      expect(resolved).toEqual(template.blocks);
+    });
+
+    it("shrinks a pinned block below its own default, dumping the freed row on the column's last block when nobody else demands it", () => {
+      const template = fixtureElasticTemplate(leftColumnBlocks());
+      const pinned = new Map<StepId, number>([[1, 11]]);
+      const [adim1, adim2, adim3] = resolveElasticBlocks(template, [], {}, "en", pinned);
+      expect(canvasRows(adim1!)).toBe(11);
+      expect(canvasRows(adim2!)).toBe(26); // untouched — no demand for the freed row
+      expect(canvasRows(adim3!)).toBe(7); // default (6) + the 1 freed row, dumped on the last block
+      expect(canvasRows(adim1!) + canvasRows(adim2!) + canvasRows(adim3!)).toBe(44); // column total invariant
+    });
+
+    it("grows a pinned block above its own default, shrinking the nearest non-pinned neighbour(s) toward their own floor in declaration order", () => {
+      const template = fixtureElasticTemplate(leftColumnBlocks());
+      const pinned = new Map<StepId, number>([[1, 20]]);
+      const [adim1, adim2, adim3] = resolveElasticBlocks(template, [], {}, "en", pinned);
+      expect(canvasRows(adim1!)).toBe(20);
+      expect(canvasRows(adim2!)).toBe(18); // shrunk all the way to its floor first (declared before ADIM3)
+      expect(canvasRows(adim3!)).toBe(6); // untouched — ADIM2 alone had enough slack to cover the pin's growth
+      expect(canvasRows(adim1!) + canvasRows(adim2!) + canvasRows(adim3!)).toBe(44);
+    });
+
+    it("never lets a pin push a non-pinned neighbour below its own floor, however large the requested pin", () => {
+      const template = fixtureElasticTemplate(leftColumnBlocks());
+      const pinned = new Map<StepId, number>([[1, 100]]);
+      const [adim1, adim2, adim3] = resolveElasticBlocks(template, [], {}, "en", pinned);
+      expect(canvasRows(adim2!)).toBe(18); // floor, not below
+      expect(canvasRows(adim3!)).toBe(3); // floor, not below
+      // The pin itself is capped to whatever the column can actually spare once every other floor is honoured.
+      expect(canvasRows(adim1!)).toBe(44 - 18 - 3);
+      expect(canvasRows(adim1!) + canvasRows(adim2!) + canvasRows(adim3!)).toBe(44);
+    });
+
+    it("clamps a pin requested below the pinned block's own floor up to that floor", () => {
+      const template = fixtureElasticTemplate(leftColumnBlocks());
+      const pinned = new Map<StepId, number>([[3, 1]]); // ADIM3's floor is 3
+      const [, , adim3] = resolveElasticBlocks(template, [], {}, "en", pinned);
+      expect(canvasRows(adim3!)).toBeGreaterThanOrEqual(3);
+    });
+
+    it("keys the pin by the block's own appStep, not by array position", () => {
+      const template = fixtureElasticTemplate(leftColumnBlocks());
+      const pinned = new Map<StepId, number>([[3, 10]]); // pin the LAST block, not the first
+      const [adim1, adim2, adim3] = resolveElasticBlocks(template, [], {}, "en", pinned);
+      expect(canvasRows(adim3!)).toBe(10);
+      // ADIM3's growth (6 → 10, +4) is covered in declaration order: ADIM1's
+      // 2 rows of floor-slack (12 → 10) are taken first, the remaining 2 come
+      // from ADIM2 (26 → 24) — the same index-order precedence the original
+      // demand-driven solver already uses for consuming giveable capacity.
+      expect(canvasRows(adim1!)).toBe(10);
+      expect(canvasRows(adim2!)).toBe(24);
+      expect(canvasRows(adim1!) + canvasRows(adim2!) + canvasRows(adim3!)).toBe(44);
+    });
+
+    it("still shifts headerRange/contentRows to follow the resolved geometry, exactly like the demand-only solver", () => {
+      const template = fixtureElasticTemplate(leftColumnBlocks());
+      const pinned = new Map<StepId, number>([[1, 11]]);
+      const [adim1, adim2, adim3] = resolveElasticBlocks(template, [], {}, "en", pinned);
+      expect(adim1!.headerRange).toBe("A4:A5"); // column top never moves
+      expect(adim1!.contentRows).toEqual({ start: 6, end: 16 });
+      expect(adim2!.headerRange).toBe("A17:A18"); // shifted up by ADIM1's 1-row shrink
+      expect(adim2!.contentRows).toEqual({ start: 19, end: 44 });
+      expect(adim3!.headerRange).toBe("A45:A46");
+      expect(adim3!.contentRows).toEqual({ start: 47, end: 53 }); // default (6) + the 1 dumped row
+    });
+
+    it("leaves farplas-7step-tr (no `.elastic` blocks) completely unaffected by a pin map, since nothing there ever reads it", () => {
+      const pinned = new Map<StepId, number>([[1, 999]]);
+      const resolved = resolveElasticBlocks(farplas7StepTr, [], {}, "en", pinned);
+      expect(resolved).toEqual(farplas7StepTr.blocks);
+    });
+  });
 });

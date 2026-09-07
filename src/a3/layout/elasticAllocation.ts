@@ -1,4 +1,4 @@
-import type { Entry, ProjectModel } from "../../domain/model";
+import type { Entry, ProjectModel, StepId } from "../../domain/model";
 import { parseRange } from "../cellRef";
 import { resolveEntryContent, type A3EntryRendererMap } from "../methodContract";
 import type { A3Template, TemplateBlock } from "../templates/types";
@@ -71,6 +71,14 @@ interface ElasticMember {
   readonly defaultRows: number;
   readonly minimumRows: number;
   readonly demandRows: number;
+  /**
+   * Faz 11/L3b (D-170): a manual override — when present, this member's
+   * final row count is fixed (floor-clamped, see `distributeElasticColumn`)
+   * rather than computed from `demandRows`. The remaining, non-pinned
+   * members of the column are then re-solved by the same demand-based
+   * arithmetic against whatever total the pin(s) leave behind.
+   */
+  readonly pinnedRows?: number;
 }
 
 /**
@@ -83,9 +91,23 @@ interface ElasticMember {
  * and `sum(shrink) === sum(grow)` by construction) regardless of how content
  * is distributed. A block with `Number.POSITIVE_INFINITY` demand always
  * absorbs whatever surplus is left once it's reached in column order.
+ *
+ * Same demand-based redistribution, generalized to target an arbitrary
+ * `targetTotal` instead of always `sum(defaultRows)` — needed so a pinned
+ * neighbour's fixed row count (which may itself differ from ITS OWN
+ * default) can shrink or grow the pool the remaining members redistribute
+ * without disturbing the column's true, physically-fixed total. When
+ * `targetTotal === sum(defaultRows)` (every existing call site before
+ * D-170, and `distributeElasticColumn`'s own no-pin branch), `delta` is
+ * always 0 and this reproduces the original algorithm byte-for-byte.
  */
-function distributeElasticColumn(members: readonly ElasticMember[]): readonly number[] {
+function solveGroup(members: readonly ElasticMember[], targetTotal: number): readonly number[] {
+  if (members.length === 0) {
+    return [];
+  }
+
   const natural = members.map((member) => clamp(member.demandRows, member.minimumRows, member.defaultRows));
+  const defaultTotal = members.reduce((sum, member) => sum + member.defaultRows, 0);
   const giveable = members.map((member, index) => member.defaultRows - natural[index]!);
   const wanted = members.map((member) =>
     member.demandRows === Number.POSITIVE_INFINITY
@@ -117,7 +139,99 @@ function distributeElasticColumn(members: readonly ElasticMember[]): readonly nu
     remainingToGive -= give;
   }
 
-  return members.map((member, index) => member.defaultRows - shrink[index]! + grow[index]!);
+  const provisional = members.map((member, index) => member.defaultRows - shrink[index]! + grow[index]!);
+
+  const delta = targetTotal - defaultTotal;
+  if (delta === 0) {
+    return provisional;
+  }
+
+  const result = [...provisional];
+  if (delta > 0) {
+    // Extra budget beyond what pure demand-based redistribution already
+    // granted (freed by a pinned neighbour shrinking below its own
+    // default) — hand it to whichever member still has unmet demand, in
+    // declaration order; if nobody wants it, it still has to belong to
+    // some block's canvas, so it lands on the column's last member.
+    let remaining = delta;
+    for (let index = 0; index < members.length && remaining > 0; index += 1) {
+      const unmet = wanted[index]! === Number.POSITIVE_INFINITY ? Number.POSITIVE_INFINITY : wanted[index]! - grow[index]!;
+      if (unmet <= 0) {
+        continue;
+      }
+      const give = Number.isFinite(unmet) ? Math.min(unmet, remaining) : remaining;
+      result[index]! += give;
+      remaining -= give;
+    }
+    if (remaining > 0) {
+      result[result.length - 1]! += remaining;
+    }
+  } else {
+    // A pinned neighbour grew beyond its own default, consuming from this
+    // group's pool — take the shortfall from members with slack above
+    // their own floor, in declaration order. Always feasible: the caller
+    // (`distributeElasticColumn`) never lets a pin's growth push this
+    // group's target below the sum of its own members' floors.
+    let remaining = -delta;
+    for (let index = 0; index < members.length && remaining > 0; index += 1) {
+      const slack = provisional[index]! - members[index]!.minimumRows;
+      if (slack <= 0) {
+        continue;
+      }
+      const take = Math.min(slack, remaining);
+      result[index]! -= take;
+      remaining -= take;
+    }
+  }
+  return result;
+}
+
+/**
+ * Faz 11/L3b (D-170): partitions `members` into pinned and non-pinned, caps
+ * each pin so every non-pinned member can still reach its own floor
+ * (`minimumCanvasRows` is an iron law — D-160, LOCKED — a pin can never
+ * violate it, however large the request), then re-solves the non-pinned
+ * remainder via `solveGroup` against whatever total the pins leave behind.
+ * With no pinned members at all, this is exactly the pre-D-170 algorithm
+ * (`solveGroup(members, sum(defaultRows))`), so every call site that never
+ * passes a pin reproduces its old output byte-for-byte.
+ */
+function distributeElasticColumn(members: readonly ElasticMember[]): readonly number[] {
+  const columnTotal = members.reduce((sum, member) => sum + member.defaultRows, 0);
+  const pinnedIndices: number[] = [];
+  const nonPinnedIndices: number[] = [];
+  members.forEach((member, index) => {
+    (member.pinnedRows === undefined ? nonPinnedIndices : pinnedIndices).push(index);
+  });
+
+  if (pinnedIndices.length === 0) {
+    return solveGroup(members, columnTotal);
+  }
+
+  const nonPinnedFloorSum = nonPinnedIndices.reduce((sum, index) => sum + members[index]!.minimumRows, 0);
+  let remainingPinBudget = columnTotal - nonPinnedFloorSum;
+  const pinnedActual = new Map<number, number>();
+  for (const index of pinnedIndices) {
+    const member = members[index]!;
+    const requested = Math.max(member.pinnedRows!, member.minimumRows);
+    const actual = Math.max(member.minimumRows, Math.min(requested, remainingPinBudget));
+    pinnedActual.set(index, actual);
+    remainingPinBudget -= actual;
+  }
+
+  const pinnedTotal = [...pinnedActual.values()].reduce((sum, value) => sum + value, 0);
+  const remainingTotal = columnTotal - pinnedTotal;
+  const nonPinnedMembers = nonPinnedIndices.map((index) => members[index]!);
+  const nonPinnedRows = solveGroup(nonPinnedMembers, remainingTotal);
+
+  const result = new Array<number>(members.length);
+  pinnedIndices.forEach((index) => {
+    result[index] = pinnedActual.get(index)!;
+  });
+  nonPinnedIndices.forEach((index, memberIndex) => {
+    result[index] = nonPinnedRows[memberIndex]!;
+  });
+  return result;
 }
 
 function clamp(value: number, min: number, max: number): number {
@@ -145,12 +259,25 @@ function columnGroupKey(block: TemplateBlock): string {
  * within their column (true for `pps-8step-auto`'s own declaration order) —
  * `resolveElasticBlocks.test.ts` pins the exact resulting geometry against
  * the shipped defaults to catch a future reordering that would break this.
+ *
+ * `pinnedCanvasRowsByStepId` (Faz 11/L3b, D-170) is a pure, optional 5th
+ * parameter — `resolveElasticBlocks` stays free of any dependency on
+ * `ProjectModel.blockPins` itself (D-03/D-04's purity contract, Barış's own
+ * choice via `AskUserQuestion`); `buildA3Layout.ts` is the one place that
+ * reads `project.blockPins` and translates it into this map. Keyed by
+ * `StepId` rather than block index because every `pps-8step-auto` block is
+ * 1:1 with a single app-step (D-224) — a stable, template-agnostic key that
+ * survives a future template reordering its own `blocks` array. A block
+ * whose own `appSteps[0]` has no entry in the map (including every
+ * `farplas-7step-tr` block, and any project with no pins at all) resolves
+ * exactly as it did before D-170.
  */
 export function resolveElasticBlocks(
   template: A3Template,
   allEntries: readonly EntryWithStep[],
   rendererMap: A3EntryRendererMap,
   language: ProjectModel["meta"]["language"],
+  pinnedCanvasRowsByStepId?: ReadonlyMap<StepId, number>,
 ): readonly TemplateBlock[] {
   const groups = new Map<string, number[]>();
   template.blocks.forEach((block, index) => {
@@ -176,7 +303,14 @@ export function resolveElasticBlocks(
         block.contentColumns.last,
       );
       const demandRows = estimateBlockRowDemand(blockEntries, contentColumnWidths, rendererMap, language);
-      return { defaultRows, minimumRows: block.elastic!.minimumCanvasRows, demandRows };
+      const stepId = block.appSteps[0];
+      const pinnedRows = stepId === undefined ? undefined : pinnedCanvasRowsByStepId?.get(stepId);
+      return {
+        defaultRows,
+        minimumRows: block.elastic!.minimumCanvasRows,
+        demandRows,
+        ...(pinnedRows === undefined ? undefined : { pinnedRows }),
+      };
     });
 
     const rowCounts = distributeElasticColumn(members);

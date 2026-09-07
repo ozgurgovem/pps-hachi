@@ -1,6 +1,7 @@
 import type { Entry, ProjectModel, StepState } from "../model";
 import {
   CommandPreconditionError,
+  type BlockPinsSetCommand,
   type Command,
   type MetaAiSetCommand,
   type MetaProjectInfoSetCommand,
@@ -12,7 +13,12 @@ import {
 /** Every command this function handles carries a `stepId` — the project-scoped ones are routed to `applyToProject` instead. */
 type StepScopedCommand = Exclude<
   Command,
-  RoundsSetCommand | SignOffSetCommand | MetaAiSetCommand | MetaProjectInfoSetCommand | TemplateIdSetCommand
+  | RoundsSetCommand
+  | SignOffSetCommand
+  | MetaAiSetCommand
+  | MetaProjectInfoSetCommand
+  | TemplateIdSetCommand
+  | BlockPinsSetCommand
 >;
 
 type ProjectScopedCommand =
@@ -20,7 +26,8 @@ type ProjectScopedCommand =
   | SignOffSetCommand
   | MetaAiSetCommand
   | MetaProjectInfoSetCommand
-  | TemplateIdSetCommand;
+  | TemplateIdSetCommand
+  | BlockPinsSetCommand;
 
 /** D-71: array position is authoritative; every mutation ends by re-sequencing `order` to match it. */
 function resequence(entries: Entry[]): Entry[] {
@@ -114,6 +121,8 @@ function applyToProject(project: ProjectModel, command: ProjectScopedCommand): P
       return { ...project, meta: { ...project.meta, ...command.after } };
     case "templateId.set":
       return { ...project, templateId: command.after };
+    case "blockPins.set":
+      return { ...project, blockPins: command.after };
   }
 }
 
@@ -129,7 +138,8 @@ export function applyCommand(project: ProjectModel, command: Command): ProjectMo
     command.type === "signOff.set" ||
     command.type === "meta.ai.set" ||
     command.type === "meta.projectInfo.set" ||
-    command.type === "templateId.set"
+    command.type === "templateId.set" ||
+    command.type === "blockPins.set"
   ) {
     return applyToProject(project, command);
   }

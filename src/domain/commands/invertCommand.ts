@@ -27,5 +27,7 @@ export function invertCommand(command: Command): Command {
       return { ...command, before: command.after, after: command.before };
     case "templateId.set":
       return { ...command, before: command.after, after: command.before };
+    case "blockPins.set":
+      return { ...command, before: command.after, after: command.before };
   }
 }

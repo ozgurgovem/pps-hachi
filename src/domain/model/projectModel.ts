@@ -102,12 +102,30 @@ const StepsSchema = z.record(StepIdSchema, StepStateSchema);
  * field it doesn't recognise when it re-saves a project written by a newer
  * one. `schemaVersion` (not the shape) is what a migration keys off.
  */
+/**
+ * Faz 11/L3b (D-170, LOCKED): a manual per-block row-count override for an
+ * `.elastic`-declared template block (`pps-8step-auto` today), keyed by the
+ * app-step it projects onto — every `pps-8step-auto` block is 1:1 with a
+ * single `StepId` (D-224), so a step id is a stable, template-agnostic key
+ * for "which block". No `meta.` prefix, same reasoning as `templateId`
+ * (Barış's own choice, `AskUserQuestion`): `pinned` is a layout/export
+ * preference, not project identity data. `z.partialRecord` (not
+ * `z.record`, which requires every `StepId` key present — `StepsSchema`'s
+ * own use of it) is what makes this genuinely partial: most projects pin no
+ * block at all, and a template that never declares `.elastic`
+ * (`farplas-7step-tr`) silently ignores this map entirely regardless of what
+ * it contains (`resolveElasticBlocks` only ever reads it for elastic
+ * blocks) — switching templates never has to clear it.
+ */
+const BlockPinsSchema = z.partialRecord(StepIdSchema, z.number().int().positive());
+
 export const ProjectModelSchema = z.looseObject({
   id: z.string().min(1),
   schemaVersion: z.number().int().positive(),
   meta: ProjectMetaSchema,
   steps: StepsSchema,
   templateId: z.string(),
+  blockPins: BlockPinsSchema.optional(),
   signOff: z.looseObject({
     preparedBy: SignOffEntrySchema.optional(),
     reviewedBy: SignOffEntrySchema.optional(),
@@ -122,6 +140,8 @@ export type Person = z.infer<typeof PersonSchema>;
 export type AiMeta = ProjectModel["meta"]["ai"];
 /** D-224 (Faz 11/L1): the header identity band's three new fields, in isolation — `MetaProjectInfoSetCommand`'s `before`/`after` shape, same posture as `AiMeta`. */
 export type ProjectInfoFields = Pick<ProjectModel["meta"], "priority" | "targetClosureDate" | "generalRag">;
+/** Faz 11/L3b (D-170): `blockPins` in isolation — `BlockPinsSetCommand`'s `before`/`after` shape, same posture as `AiMeta`/`ProjectInfoFields`. */
+export type BlockPins = NonNullable<ProjectModel["blockPins"]>;
 export type GeneralRag = NonNullable<ProjectModel["meta"]["generalRag"]>;
 export type RedactionMode = z.infer<typeof RedactionModeSchema>;
 export type RedactionPolicy = z.infer<typeof RedactionPolicySchema>;

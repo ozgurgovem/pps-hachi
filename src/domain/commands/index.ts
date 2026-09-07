@@ -9,6 +9,7 @@ export {
   buildReorderCommand,
   buildSetA3VisibilityCommand,
   buildSetAiMetaCommand,
+  buildSetBlockPinsCommand,
   buildSetProjectInfoCommand,
   buildSetSignOffCommand,
   buildSetTemplateIdCommand,
@@ -19,6 +20,7 @@ export {
 } from "./builders";
 export {
   CommandPreconditionError,
+  type BlockPinsSetCommand,
   type Command,
   type EntriesReorderCommand,
   type EntryInsertCommand,

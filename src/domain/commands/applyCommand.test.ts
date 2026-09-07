@@ -323,6 +323,16 @@ describe("invertCommand", () => {
     };
     expect(invertCommand(command)).toEqual({ ...command, before: "farplas-7step-tr", after: "pps-8step-auto" });
   });
+
+  it("blockPins.set inverts by swapping before/after (Faz 11/L3b, D-170)", () => {
+    const command: Command = {
+      type: "blockPins.set",
+      before: {},
+      after: { 2: 25 },
+      undoable: true,
+    };
+    expect(invertCommand(command)).toEqual({ ...command, before: { 2: 25 }, after: {} });
+  });
 });
 
 describe("applyCommand — rounds.set", () => {
@@ -450,6 +460,38 @@ describe("applyCommand — templateId.set (Faz 11/L2)", () => {
       type: "templateId.set",
       before: project.templateId,
       after: "farplas-7step-tr",
+      undoable: true,
+    };
+
+    applyCommand(project, command);
+
+    expect(project).toEqual(before);
+  });
+});
+
+describe("applyCommand — blockPins.set (Faz 11/L3b, D-170)", () => {
+  it("replaces project.blockPins with the command's after value, leaving the rest of the project untouched", () => {
+    const project = makeProject([]);
+    const command: Command = {
+      type: "blockPins.set",
+      before: {},
+      after: { 2: 25 },
+      undoable: true,
+    };
+
+    const next = applyCommand(project, command);
+
+    expect(next.blockPins).toEqual({ 2: 25 });
+    expect(next.meta.title).toBe(project.meta.title);
+  });
+
+  it("does not mutate the original project", () => {
+    const project = makeProject([]);
+    const before = JSON.parse(JSON.stringify(project));
+    const command: Command = {
+      type: "blockPins.set",
+      before: {},
+      after: { 2: 25 },
       undoable: true,
     };
 

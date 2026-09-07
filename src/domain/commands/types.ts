@@ -1,4 +1,4 @@
-import type { A3Visibility, AiMeta, Entry, ProjectInfoFields, Round, SignOffState, StepId } from "../model";
+import type { A3Visibility, AiMeta, BlockPins, Entry, ProjectInfoFields, Round, SignOffState, StepId } from "../model";
 
 /**
  * D-70: every mutation to `ProjectModel` is one of these, dispatched through
@@ -123,6 +123,22 @@ export interface TemplateIdSetCommand extends BaseCommand {
   readonly after: string;
 }
 
+/**
+ * Faz 11/L3b: project-level, same reasoning and shape as `TemplateIdSetCommand`
+ * — `blockPins` lives on `ProjectModel` directly (not under `meta`, Barış's
+ * own choice via `AskUserQuestion`, D-170). `before`/`after` are the
+ * complete map (D-224/D-225's own "whole slice, not a partial patch"
+ * precedent) — a caller pinning or clearing one block still spreads the
+ * project's own current `blockPins` and overrides one key, the same way
+ * `buildSetProjectInfoCommand`'s one caller already has every field's
+ * current value in hand.
+ */
+export interface BlockPinsSetCommand extends BaseCommand {
+  readonly type: "blockPins.set";
+  readonly before: BlockPins;
+  readonly after: BlockPins;
+}
+
 export type Command =
   | EntryInsertCommand
   | EntryRemoveCommand
@@ -133,7 +149,8 @@ export type Command =
   | SignOffSetCommand
   | MetaAiSetCommand
   | MetaProjectInfoSetCommand
-  | TemplateIdSetCommand;
+  | TemplateIdSetCommand
+  | BlockPinsSetCommand;
 
 /**
  * D-70: thrown by `applyCommand` when a command's precondition doesn't hold

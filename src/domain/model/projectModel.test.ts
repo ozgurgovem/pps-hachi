@@ -172,4 +172,46 @@ describe("ProjectModelSchema", () => {
       expect(result.success).toBe(false);
     });
   });
+
+  // Faz 11/L3b, D-170: blockPins is optional and genuinely partial — most
+  // projects (and every pre-L3b `.ppsx`) pin nothing at all.
+  describe("blockPins (Faz 11/L3b, D-170)", () => {
+    test("parses a freshly-created project with no blockPins field at all", () => {
+      const result = ProjectModelSchema.safeParse(validProject());
+      expect(result.success).toBe(true);
+      expect(result.success && result.data.blockPins).toBeUndefined();
+    });
+
+    test("accepts a map pinning only a subset of the 8 steps", () => {
+      const input = { ...validProject(), blockPins: { 2: 25 } };
+
+      const parsed = ProjectModelSchema.parse(input);
+
+      expect(parsed.blockPins).toEqual({ 2: 25 });
+    });
+
+    test("accepts an empty blockPins object (every pin cleared)", () => {
+      const input = { ...validProject(), blockPins: {} };
+
+      const result = ProjectModelSchema.safeParse(input);
+
+      expect(result.success).toBe(true);
+    });
+
+    test("rejects a blockPins key outside the 1-8 StepId union", () => {
+      const input = { ...validProject(), blockPins: { 9: 25 } };
+
+      const result = ProjectModelSchema.safeParse(input);
+
+      expect(result.success).toBe(false);
+    });
+
+    test("rejects a non-positive pinned row count", () => {
+      const input = { ...validProject(), blockPins: { 2: 0 } };
+
+      const result = ProjectModelSchema.safeParse(input);
+
+      expect(result.success).toBe(false);
+    });
+  });
 });

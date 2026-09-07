@@ -32,6 +32,7 @@ export {
   type SignOffState,
   type AiMeta,
   type ProjectInfoFields,
+  type BlockPins,
   type GeneralRag,
   type RedactionMode,
   type RedactionPolicy,

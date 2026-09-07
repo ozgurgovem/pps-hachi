@@ -1,6 +1,7 @@
 import type {
   A3Visibility,
   AiMeta,
+  BlockPins,
   Entry,
   EntryReference,
   ImageRef,
@@ -13,6 +14,7 @@ import type {
   StepState,
 } from "../model";
 import {
+  type BlockPinsSetCommand,
   type EntryInsertCommand,
   type EntryRemoveCommand,
   type EntrySetA3VisibilityCommand,
@@ -318,4 +320,18 @@ export function buildSetProjectInfoCommand(project: ProjectModel, info: ProjectI
  */
 export function buildSetTemplateIdCommand(project: ProjectModel, templateId: string): TemplateIdSetCommand {
   return { type: "templateId.set", before: project.templateId, after: templateId, undoable: true };
+}
+
+/**
+ * Faz 11/L3b (D-170): sets the whole `blockPins` map at once, same posture
+ * as `buildSetTemplateIdCommand` — the drag-handle overlay (and any future
+ * "reset to automatic" control) always has the project's current map in
+ * hand (it renders from it), so pinning/unpinning one block means spreading
+ * that map and overriding a single key at the call site, not a partial-patch
+ * builder here. `project.blockPins` is optional (D-51, pre-L3b projects have
+ * none) — `?? {}` gives `before` the same "no pins yet" shape a fresh
+ * project's `after` would have if every pin were cleared.
+ */
+export function buildSetBlockPinsCommand(project: ProjectModel, blockPins: BlockPins): BlockPinsSetCommand {
+  return { type: "blockPins.set", before: project.blockPins ?? {}, after: blockPins, undoable: true };
 }

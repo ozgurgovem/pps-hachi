@@ -1,5 +1,5 @@
 import { evaluateReadiness } from "../domain/readiness";
-import type { ProjectModel } from "../domain/model";
+import type { ProjectModel, StepId } from "../domain/model";
 import type {
   A3LayoutDescriptor,
   CellData,
@@ -109,7 +109,21 @@ export function buildA3Layout(
   // madde 1) get their `headerRange`/`contentRows` recomputed for this
   // specific project here — every other block (every `farplas-7step-tr`
   // block) passes through `resolveElasticBlocks` unchanged.
-  const resolvedBlocks = resolveElasticBlocks(template, allEntries, options.rendererMap, project.meta.language);
+  // Faz 11/L3b (D-170): `project.blockPins` (optional, D-51 — absent on
+  // every pre-L3b project) is the one place this map is read; translating
+  // it into a `Map` here, rather than passing `project.blockPins` itself,
+  // keeps `resolveElasticBlocks` free of any dependency on `ProjectModel`'s
+  // own shape (D-03/D-04).
+  const pinnedCanvasRowsByStepId = new Map<StepId, number>(
+    Object.entries(project.blockPins ?? {}).map(([stepId, rows]) => [Number(stepId) as StepId, rows]),
+  );
+  const resolvedBlocks = resolveElasticBlocks(
+    template,
+    allEntries,
+    options.rendererMap,
+    project.meta.language,
+    pinnedCanvasRowsByStepId,
+  );
 
   for (const block of resolvedBlocks) {
     cells.push({

@@ -9,6 +9,7 @@ import {
   buildReorderCommand,
   buildSetA3VisibilityCommand,
   buildSetAiMetaCommand,
+  buildSetBlockPinsCommand,
   buildSetProjectInfoCommand,
   buildSetSignOffCommand,
   buildSetTemplateIdCommand,
@@ -444,6 +445,34 @@ describe("buildSetTemplateIdCommand (Faz 11/L2)", () => {
       type: "templateId.set",
       before: project.templateId,
       after: "farplas-7step-tr",
+      undoable: true,
+    });
+  });
+});
+
+describe("buildSetBlockPinsCommand (Faz 11/L3b, D-170)", () => {
+  it("captures the project's current blockPins (defaulting to {} when unset) as before and the given map as after", () => {
+    const project = makeProject();
+
+    const command = buildSetBlockPinsCommand(project, { 2: 25 });
+
+    expect(command).toEqual({
+      type: "blockPins.set",
+      before: {},
+      after: { 2: 25 },
+      undoable: true,
+    });
+  });
+
+  it("captures the project's existing blockPins as before when one is already set", () => {
+    const project: ProjectModel = { ...makeProject(), blockPins: { 1: 12 } };
+
+    const command = buildSetBlockPinsCommand(project, { 1: 12, 2: 25 });
+
+    expect(command).toEqual({
+      type: "blockPins.set",
+      before: { 1: 12 },
+      after: { 1: 12, 2: 25 },
       undoable: true,
     });
   });
