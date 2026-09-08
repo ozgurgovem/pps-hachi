@@ -2168,6 +2168,35 @@ AI layer: Faz 8 fully done (keychain + Vorion connection/model-discovery + strea
   session touched no `src/`/`src-tauri/src/` file, confirmed via `git status`. M1-M4's own
   launch prompts are written: `docs/oturumlar/M1-i18n-tarama.md`, `M2-auto-update.md`,
   `M3-paketleme-imza-kapanisi.md`, `M4-polish-kalite-tabani.md`.
+**P-62 kapsam belirleme (`farplas-7step-plus`/`farplas-7step-en`): §0 pre-scan + real evidence
+  DONE 2026-09-08 (D-231) — the scope decision itself stays PENDING.** Ran in an isolated git
+  worktree (parallel background-agent context) with no `AskUserQuestion` tool available
+  (searched via `ToolSearch`, genuinely absent from both the top-level and deferred tool
+  lists) — no live question could be put to Barış, so no fabricated "Barış chose X" was
+  written. §0's own verification ran clean against real code (`registry.ts` only knows
+  `farplas7StepTr`/`pps8StepAuto`, `SPEC.md` still carries the old three-template wording,
+  D-95 still not marked SUPERSEDED). **Real, decisive evidence found — already sitting in the
+  repo, never before connected to this scope question**: `reference/TEMPLATE_ANALYSIS.md`
+  §9.5/§9.6 (written 2026-08-01, before Phase 4, from the real `PPS_A3_Format_ENG.xls`/
+  `PPS_A3_Format_TR.xls` BIFF8 records) already proves `-en` and `-tr` are genuinely different
+  geometries — TR has no spacer row (ENG does), header rows differ by 0.05 pt, and the loss
+  taxonomy category *count* differs (ENG 7, TR 8 — TR splits Maintenance into two). This
+  disproves the working assumption that `-en` could be built on top of D-188's existing
+  i18n mechanism (translating export labels) alone — it needs its own small, real template
+  file, though the geometry is already ~95% analyzed. A separate, genuine tension was found
+  for `-plus`: D-157's approval of Rev00 (`pps-8step-auto`) partially undercuts `-plus`'s own
+  "no re-approval needed" rationale, but `pps-8step-auto` doesn't replace the real,
+  currently-printed 7-block form, so `-plus`'s value proposition may still stand for a team
+  that must stay on that exact form — a real product-priority call, not something readable
+  from code. A third, unrelated real gap was found by accident and filed as **P-66**: the
+  already-shipped `tpmLossTaxonomy` (D-122, Phase 6a) uses ENG's 7-category set, not the real
+  TR form's own 8-category split that `farplas-7step-tr` claims byte-fidelity to.
+  `P62-kalan-sablonlar-kapsam.md`'s own §2.1 was sharpened with this evidence into two
+  ready-to-run questions (each with a build / YAGNI-close / defer option) for the next live
+  session's `AskUserQuestion` round. No code written. Full record: `DECISIONS.md` D-231
+  (status `PENDING`, this repo's own established marker for "raised, not yet decided"), P-62's
+  own "Update 2026-09-08" note, new P-66, `docs/oturumlar/README.md`'s new "P-62 kapsam
+  belirleme" section.
 Templates: two company .xls files analysed; see reference/TEMPLATE_ANALYSIS.md
 Template geometry: VERIFIED 2026-08-01 against both .xls files. Five errors found and
   corrected in place — the largest was the column widths: the real split is 49.7/50.3, NOT

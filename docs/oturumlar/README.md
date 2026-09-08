@@ -278,6 +278,37 @@ CLAUDE.md'nin hiç sistematik denetlenmemiş Quality floor listesini kapsar. Tam
 Filed, planlanmamış (Faz 12'nin dışında): **P-65** (yeni — PDF/PNG export, gerçek ihtiyaç
 doğmadan YAGNI), **P-58** (bilinçli olarak Faz 12'ye dahil edilmedi, kendi ayrı oturumu).
 
+## P-62 kapsam belirleme — `farplas-7step-plus`/`farplas-7step-en`
+
+`docs/oturumlar/P62-kalan-sablonlar-kapsam.md` — D-149'un dört oturumluk (Oturum A/B1-B3/
+C1-C6/D1-D2b) derinliğini hiç almamış iki şablonun kendi kapsam-belirleme oturumu.
+
+**§0 taraması + kanıt toplama BİTTİ 2026-09-08 (D-231) — kapsam kararı kendisi PENDING
+kaldı.** Bu oturum izole bir git worktree'de (paralel/arka-plan ajan bağlamı) çalıştı ve
+`AskUserQuestion` aracı ortamında hiç mevcut değildi (`ToolSearch` ile arandı, bulunamadı) —
+bu yüzden Barış'a gerçek zamanlı soru sorulamadı, fabrik edilmiş bir "Barış'ın seçimi" YAZILMADI.
+Bunun yerine §0'ın kendi doğrulaması gerçek koda karşı çalıştırıldı (`registry.ts` yalnızca
+`farplas7StepTr`/`pps8StepAuto` tanıyor, `SPEC.md` hâlâ eski üç-şablon lafzını taşıyor, D-95
+hâlâ SUPERSEDED işaretlenmedi) ve **depoda zaten duran ama hiç bu soruya bağlanmamış gerçek
+kanıt** bulundu: `reference/TEMPLATE_ANALYSIS.md` §9.5/§9.6 (2026-08-01, Faz 4'ten önce
+yazılmış) `-en` ile `-tr`'nin GERÇEKTEN farklı geometriler olduğunu zaten kanıtlıyor — TR'de
+spacer satırı yok, başlık satırları farklı yükseklikte, ve kayıp taksonomisi kategori sayısı
+gerçekten farklı (ENG 7, TR 8 — Maintenance ikiye bölünmüş). Sonuç: `-en`'in D-188'in zaten
+inşa edilmiş i18n mekanizması (yalnızca dışa aktarım etiketlerini çevirme) üzerine bina
+edilebileceği varsayımı YANLIŞ çıktı — gerçek geometri farkı var, ama analiz zaten ~%95 hazır.
+`-plus` için ayrı bir gerçek gerilim bulundu (pps-8step-auto'nun onayı `-plus`'ın "re-approval
+gerektirmeden" gerekçesini kısmen zayıflatıyor, ama pps-8step-auto mevcut basılı formun yerine
+geçmiyor, `-plus`'ın değer önerisi teorik olarak ayakta kalabilir) — kod okumakla çözülemeyen
+gerçek bir iş-önceliği kararı. Ayrıca rastlantısal, P-62'den bağımsız gerçek bir gap bulundu:
+**P-66** — zaten şevk edilmiş `tpmLossTaxonomy` (D-122) ENG'in 7-kategorili listesini
+kullanıyor, gerçek TR formunun (farplas-7step-tr'nin byte-faithful olduğu iddia edilen kaynak)
+8-kategorili listesi değil.
+
+`P62-kalan-sablonlar-kapsam.md`'nin kendi §2.1'i bu kanıtla keskinleştirildi — iki soru, üç
+seçenekle (build / YAGNI-kapat / ertelensin), bir sonraki interaktif oturumda doğrudan
+`AskUserQuestion` ile çalıştırılmaya hazır. Tam kayıt: `DECISIONS.md` D-231, P-62'nin kendi
+"Update 2026-09-08" notu, yeni **P-66**.
+
 ## Sıradaki iş — Faz 12 kapsam belirleme artık BİTTİ, üç bağımsız aday + dört yeni M-dilimi bekliyor
 
 W3 ile D-217 girişimi (W1+W2+W3) ve Faz 11'in kendi üç dilimlik planı (L1+L2+L3a+L3b) ikisi de
@@ -288,7 +319,7 @@ Kalan üç aday hâlâ başlamadı:
 | Aday | Prompt | Ne | Kod mu, kapsam mı |
 |---|---|---|---|
 | ~~Faz 12 kapsam belirleme~~ | ~~`docs/oturumlar/faz12-kapsam-belirleme.md`~~ | **BİTTİ (D-230, 2026-09-08)** — bkz. yukarıdaki "Faz 12" bölümü, M1-M4 | Kapsam belirleme TAMAMLANDI, KOD YOK — dört yeni launch prompt yazıldı |
-| P-62 kapsam belirleme | `docs/oturumlar/P62-kalan-sablonlar-kapsam.md` | `farplas-7step-plus`/`farplas-7step-en` — D-149'un dört oturumluk derinliğini hiç almamış iki şablon | Kapsam belirleme, KOD YOK (madde 2.1'in cevabına göre küçük bir kod dilimi doğurabilir) |
+| ~~P-62 kapsam belirleme~~ | ~~`docs/oturumlar/P62-kalan-sablonlar-kapsam.md`~~ | **§0 taraması + kanıt toplama BİTTİ (D-231, 2026-09-08) — kapsam kararının kendisi PENDING** (`AskUserQuestion` bu oturumun ortamında yoktu). Gerçek kanıt bulundu: `-en` gerçek bir geometri farkı (§9.5/§9.6), `-plus` gerçek bir iş-önceliği gerilimi. İki soru artık kanıtla keskinleştirilmiş, hazır — bkz. yukarıdaki "P-62 kapsam belirleme" bölümü | Kapsam belirleme TAMAMLANDI, KOD YOK — iki soru bir sonraki interaktif oturumda `AskUserQuestion` ile çalıştırılmaya hazır |
 | P-58 | `docs/oturumlar/P58-gorsel-dil-yayilmasi.md` | W1'in Farplas görsel dilini (D-218) `src/ui/`'nin 12 primitifine yayma — kendi filed notunda "yüksek patlama-yarıçapı" uyarısı | Gerçek kod, kendi ilk `AskUserQuestion` turuyla açılıyor |
 | Küçük açık maddeler | `docs/oturumlar/kucuk-acik-maddeler.md` | P-63 (kpi-strip'in ADIM 7'de her zaman appendix'e düşmesi) + P-64 (bir kolonun son bloğunun kendi sürükleme tutamacı yok) — ikisi de zaten iyi tanımlanmış, küçük düzeltmeler | Gerçek kod, doğrudan başlanabilir |
 | M1-M4 (Faz 12'nin kendi dilimleri) | `docs/oturumlar/M1-i18n-tarama.md` / `M2-auto-update.md` / `M3-paketleme-imza-kapanisi.md` / `M4-polish-kalite-tabani.md` | i18n taraması, auto-update, packaging/signing kapanışı, Quality floor denetimi — bkz. yukarıdaki "Faz 12" bölümü | Gerçek kod, M1/M4 bağımsız+paralel, M2 kendi tek onaylı ilk adımıyla (repo public), M3 M2'den bağımsız |
@@ -303,7 +334,8 @@ kodu seviyesinde dosya çakışma riski:
 
 - **Faz 12 kapsam belirleme + P-62 kapsam belirleme**: DÜŞÜK risk, paralel çalıştırılabilir —
   ikisi de "kod yok," yalnızca kendi yeni dosyalarını + DECISIONS.md/README.md'nin sonunu
-  değiştiriyor.
+  değiştiriyor. **İkisi de artık BİTTİ** (Faz 12: D-230, tam kapandı; P-62: D-231, §0+kanıt
+  bitti ama kapsam kararı kendisi `AskUserQuestion`'ın bu ortamda yokluğu nedeniyle PENDING).
 - **Küçük açık maddeler**: DÜŞÜK risk, yukarıdaki ikisiyle VE kendi içinde paralel çalıştırılabilir
   — `src/methods/kpiStrip/` (P-63) ve `src/a3/render/BlockPinOverlay.tsx` (P-64) tamamen ayrı
   dosyalar, ikisi de Faz 12/P-62'nin dokunduğu hiçbir dosyaya değmiyor.

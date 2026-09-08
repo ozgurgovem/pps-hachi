@@ -1,5 +1,15 @@
 # OTURUM P-62 — `farplas-7step-plus`/`farplas-7step-en` kapsam belirleme
 
+> **DURUM (2026-09-08, D-231): §0'ın gerçek-koda-karşı doğrulaması yapıldı, gerçek kanıt
+> toplandı, §2.1 aşağıda kanıtla keskinleştirildi — ama bu oturumun ortamında (izole git
+> worktree, arka-plan/paralel ajan) `AskUserQuestion` aracı HİÇ mevcut değildi, `ToolSearch`
+> ile arandı ve bulunamadı. Barış'a gerçek zamanlı soru sorulamadı — kapsam kararı PENDING,
+> fabrik edilmiş bir "Barış'ın seçimi" YOK.** Aşağıdaki §2.1, bir sonraki interaktif oturumda
+> (ya da Barış'ın kendisiyle doğrudan) çalıştırılmaya hazır, kanıtla desteklenmiş iki soru
+> hâline getirildi — üçüncü madde (BenefitCase/gerçek-ihtiyaç sorusu) zaten bu iki sorunun
+> içine gömülü. Tam kayıt: `DECISIONS.md` D-231, P-62'nin kendi satırındaki "Update
+> 2026-09-08" notu.
+
 > Faz 11'in orijinal `SPEC.md` §6 lafzı üç yeni şablon sayıyordu: `farplas-7step-plus`,
 > `farplas-7step-en`, `pps-8step-auto`. D-223'ün kendi kapsam-belirleme oturumunda (2026-09-06)
 > Barış'ın kendi seçimiyle (`AskUserQuestion`) Faz 11'in gerçek dilim planı yalnızca
@@ -80,24 +90,47 @@ Eksik/adı değişmiş dosya varsa DUR ve Barış'a söyle.
 
 ### 2.1 Gerçek açık sorular — Barış'a `AskUserQuestion` ile sorulmalı
 
-1. **`-en` gerçekten yeni bir GEOMETRİ mi, yoksa yalnızca bir ÇEVİRİ mi?** D-188 zaten
-   `farplas-7step-tr`'nin dışa aktarım metinlerini `project.meta.language`'e göre TR/EN
-   arasında değiştirebiliyor (Oturum D1). Eğer `-en`'in tek farkı "printed template labels
-   İngilizce" ise, bu YENİ bir şablon dosyası gerektirmeyebilir — `farplas-7step-tr.ts`'in
-   kendisi zaten iki dilli render edebilir hâle getirilebilir (şablonun statik `label`/
-   `TemplateField.label` alanları da `language`'e göre seçilsin), ki bu P-62'yi neredeyse
-   kapatır. Bu, `-plus`'tan TAMAMEN bağımsız, kendi başına küçük bir soru.
-2. **`-plus`'ın "sekiz disiplini yedi bloğa sığdırma" tasarımı hâlâ doğru mu?** `pps-8step-auto`
-   artık gerçek, 8-blok bir alternatif olarak var — `-plus`'ın orijinal gerekçesi (Farplas'ın
-   kendi 7-adım .xls formuna sadık kalmak, ama Toyota'nın 8 adımını da öğretmek) hâlâ geçerli
-   mi, yoksa `pps-8step-auto`'nun kendisi (Rev00, Farplas'ın onayladığı form, D-157/P-29) bu
-   ihtiyacı zaten karşılıyor mu? Eğer öyleyse `-plus` tamamen gereksiz kalabilir.
-3. **Gerçek bir kullanım senaryosu var mı, yoksa bu tamamen spekülatif mi?** Anayasa Madde 1'in
-   "iş kabaca ne yakar" sorusu — Barış'ın şu an gerçek bir proje/müşteri için `-plus` ya da
-   `-en`'e ihtiyacı var mı, yoksa bu SPEC'in orijinal (Faz 4 zamanındaki, D-01 öncesi)
-   spekülasyonunun bir kalıntısı mı? Cevap "hayır, gerçek ihtiyaç yok" ise, bu oturumun kendi
-   sonucu P-62'yi KAPATMADAN "kasıtlı olarak YAGNI, gerçek talep gelene kadar ertelendi" diye
-   güncellemek olabilir — Faz 12'ye ya da hiçbir yere hiç kod yazmadan.
+> **2026-09-08 güncellemesi (D-231): §0 çalıştırıldı, aşağıdaki iki soru artık gerçek kanıtla
+> keskinleştirildi — orijinal üç madde (spekülatif) yerine.** Kanıt: `reference/
+> TEMPLATE_ANALYSIS.md` §9.5/§9.6 (2026-08-01'de, Faz 4'ten önce, `PPS_A3_Format_ENG.xls`/
+> `PPS_A3_Format_TR.xls`'in kendi BIFF8 kayıtlarından yazıldı, hiç bu soruya bağlanmamıştı).
+
+1. **`-en` gerçekten yeni bir GEOMETRİ mi, yoksa yalnızca bir ÇEVİRİ mi? — CEVAP: gerçek bir
+   geometri, kanıtlandı, D-188'in i18n mekanizması TEK BAŞINA yetmez.** §9.5: TR'de spacer
+   satırı yok (ENG'de var, 7.2 pt), başlık satırları 20.15 pt (ENG 20.10 pt), footer farklı —
+   §9.5'in kendi sözü: "TR needs its own row table in the template definition — reusing
+   ENG's with an offset will drift by ~0.8 pt over the sheet." §9.6: kayıp taksonomisi
+   kategori SAYISI farklı — ENG 7 (Work Safety/Costing/Productivity/Quality/**Maintenance**/
+   Human Resources/Environment), TR 8 (aynı liste, Maintenance ikiye bölünmüş: **Bağı.
+   Bakım**/**Prof. Bakım**) — §9.6'nın kendi sözü: "the loss taxonomy is a per-template
+   list, not a shared constant... a single hardcoded taxonomy will silently corrupt one of
+   the two." **Rastlantısal bulunan, ilgili bir gap (P-66, D-231)**: şu an ZATEN ŞEVK EDİLMİŞ
+   `tpmLossTaxonomy` (D-122) ENG'in 7-kategorili listesini kullanıyor — `farplas-7step-tr`'nin
+   kendi "byte-faithful to the approved form" iddiasına rağmen, gerçek TR formunun 8
+   kategorisi DEĞİL. **Sorulacak soru artık bu değil ("geometri mi çeviri mi"), şu**:
+   geometri gerçekten farklı olduğuna göre (analiz ~%95 hazır, §9.8'in üç küçük maddesi
+   dışında) — (a) `-en`'in kendi küçük ama gerçek bir template dosyası (kendi satır tablosu +
+   kendi 7-kategorili kayıp listesi) inşa edilsin mi (kendi küçük bir oturum, D-149'un Oturum
+   A'sının çok daha küçük bir versiyonu — geometri zaten analiz edilmiş, iş çoğunlukla
+   transkripsiyon), (b) `pps-8step-auto`'nun zaten sunduğu gerçek TR/EN çift-dilli export
+   (D-188/L1, D-224) yeterli sayılıp `-en` kapansın (YAGNI), yoksa (c) emin değilim,
+   ertelensin?
+2. **`-plus`'ın "sekiz disiplini yedi bloğa sığdırma" tasarımı hâlâ doğru mu? — CEVAP: gerçek
+   bir gerilim var, kod okumakla çözülemez.** `pps-8step-auto` artık gerçek, Farplas'ın
+   onayladığı (D-157/P-29) 8-blok bir alternatif olarak var — `-plus`'ın orijinal gerekçesi
+   (SPEC §3.0: "re-approval gerektirmeden 8 disiplin, mevcut basılı 7-blok forma sadık
+   kalarak") kısmen zayıflamış olabilir, çünkü Rev00 da zaten onaylı. Ama `pps-8step-auto`
+   Farplas'ın şu an gerçekten basılı/kullanılan 7-blok formunun YERİNE geçmiyor — yeni bir
+   seçenek olarak duruyor (D-157: "`farplas-7step-tr` is demoted... it stays in the registry
+   so existing 7-step A3s open and export"). Mevcut basılı forma sadık kalmak ZORUNDA olan
+   bir ekip için `-plus`'ın değer önerisi teorik olarak hâlâ ayakta olabilir. **Sorulacak
+   soru**: (a) `-plus` gerçek bir kullanım senaryosuna hizmet ediyor, kendi küçük bir
+   scope-definition oturumu (D-149'un Oturum A/B1-B3'ünün küçültülmüş versiyonu, gerçek yeni
+   geometri gerektirir) açılsın mı, (b) `pps-8step-auto` onu zaten gereksiz kılıyor, `-plus`
+   P-62'den YAGNI olarak kapansın mı, yoksa (c) emin değilim, ertelensin?
+
+Her iki soruda da (c) seçilirse P-62 aynen kalır, yalnızca bu oturumun kanıtıyla
+zenginleşmiş olarak.
 
 ### 2.2 Muhtemel dilim adayları (madde 2.1'in cevaplarına göre büyük ölçüde değişir)
 
