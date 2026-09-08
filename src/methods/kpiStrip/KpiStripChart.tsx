@@ -111,24 +111,36 @@ function Tile({ item, x, width, height, sustainLabel, resultLabel }: TileProps) 
   );
 }
 
+/** P-63: the entry's own title used to be a separate `A3BlockContent.lines` row spent on top of this chart's fixed row-span — one row too many for `pps-8step-auto`'s exactly-6-row ADIM 7 canvas. Rendering it as this chart's own header band instead keeps the title visible while costing zero extra rows outside the chart's own budget. */
+const TITLE_HEIGHT_FRACTION = 0.14;
+const MIN_TITLE_HEIGHT_PX = 14;
+
 export function KpiStripChart({ spec, size }: { spec: KpiStripChartSpec; size: A3ImageSize }) {
   const count = Math.max(1, spec.items.length);
   const tileWidth = size.widthPx / count;
+  const titleHeight = Math.max(MIN_TITLE_HEIGHT_PX, size.heightPx * TITLE_HEIGHT_FRACTION);
+  const tilesHeight = Math.max(1, size.heightPx - titleHeight);
+  const titleFontSize = Math.max(9, titleHeight * 0.6);
 
   return (
     <svg width={size.widthPx} height={size.heightPx} viewBox={`0 0 ${size.widthPx} ${size.heightPx}`}>
       <rect x={0} y={0} width={size.widthPx} height={size.heightPx} fill="#FFFFFF" />
-      {spec.items.map((item, index) => (
-        <Tile
-          key={`${item.label}-${index}`}
-          item={item}
-          x={index * tileWidth}
-          width={tileWidth}
-          height={size.heightPx}
-          sustainLabel={spec.sustainLabel}
-          resultLabel={spec.resultLabel}
-        />
-      ))}
+      <text x={0} y={titleFontSize} fontWeight={700} fontSize={titleFontSize} fill={LABEL_COLOR}>
+        {spec.title}
+      </text>
+      <g transform={`translate(0, ${titleHeight})`}>
+        {spec.items.map((item, index) => (
+          <Tile
+            key={`${item.label}-${index}`}
+            item={item}
+            x={index * tileWidth}
+            width={tileWidth}
+            height={tilesHeight}
+            sustainLabel={spec.sustainLabel}
+            resultLabel={spec.resultLabel}
+          />
+        ))}
+      </g>
     </svg>
   );
 }

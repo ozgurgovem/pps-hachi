@@ -19,15 +19,31 @@ const RESULT_LABEL: Readonly<Record<A3Language, string>> = { tr: "Sonuç", en: "
  */
 const CHART_ROW_SPAN = 6;
 
+/**
+ * P-63 fix: the title used to be a separate `lines` entry (1 row) on top of
+ * the chart's own `CHART_ROW_SPAN` (6) — 7 rows total, one more than
+ * `pps-8step-auto`'s exactly-6-row ADIM 7 canvas, so every `kpi-strip` entry
+ * unconditionally overflowed to an appendix regardless of content. Checked
+ * before applying the fix (per this file's own launch prompt): unlike
+ * `smartTarget` (whose Zone A `lines` already carries the title) or
+ * `fiveN1K` (whose reference image has no heading to begin with),
+ * `KpiStripChart.tsx` renders no title anywhere — matching their `lines: []`
+ * pattern blindly would have silently dropped the entry's title from the
+ * exported sheet. Moving the title into the chart's own header band
+ * (`KpiStripChart`'s `title` prop) keeps it visible while freeing the row it
+ * used to cost: `lines: []` + `image.rowSpan: 6` = 6 total, exactly the
+ * canvas's own budget.
+ */
 export function renderKpiStripToA3(payload: KpiStripPayload, entry: A3EntrySummary): A3BlockContent {
   const language = resolveA3Language(entry);
   return {
-    lines: [{ text: entry.title, bold: true }],
+    lines: [],
     image: {
       kind: "kpi-strip",
       rowSpan: CHART_ROW_SPAN,
       spec: {
         kind: "kpi-strip",
+        title: entry.title,
         items: payload.items.map((item) => ({
           label: item.label,
           unit: item.unit || undefined,

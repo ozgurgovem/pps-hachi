@@ -10,12 +10,22 @@ function emptyPayload(): KpiStripPayload {
 }
 
 describe("renderKpiStripToA3", () => {
-  it("puts the bold entry title as the only line, and requests the kpi-strip image kind", () => {
+  /**
+   * P-63: `lines` used to carry the bold entry title (1 row) on top of the
+   * chart's own `rowSpan` (6) — 7 rows total against `pps-8step-auto`'s
+   * exactly-6-row ADIM 7 canvas, so every entry unconditionally overflowed
+   * to an appendix. The title now travels inside the chart's own spec
+   * (`KpiStripChart`'s header band) instead, so `lines` stays empty and the
+   * block's total row request drops to exactly 6.
+   */
+  it("carries the entry title through the chart spec, keeps lines empty, and requests the kpi-strip image kind", () => {
     const content = renderKpiStripToA3(emptyPayload(), ENTRY);
 
-    expect(content.lines).toEqual([{ text: "ADIM 7 KPI izleme", bold: true }]);
+    expect(content.lines).toEqual([]);
     expect(content.image?.kind).toBe("kpi-strip");
     expect(content.image?.rowSpan).toBe(6);
+    const spec = content.image?.spec as KpiStripChartSpec;
+    expect(spec.title).toBe("ADIM 7 KPI izleme");
   });
 
   it("builds a KpiStripChartSpec item per KPI, carrying status straight through unchanged", () => {
