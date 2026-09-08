@@ -2168,6 +2168,38 @@ AI layer: Faz 8 fully done (keychain + Vorion connection/model-discovery + strea
   session touched no `src/`/`src-tauri/src/` file, confirmed via `git status`. M1-M4's own
   launch prompts are written: `docs/oturumlar/M1-i18n-tarama.md`, `M2-auto-update.md`,
   `M3-paketleme-imza-kapanisi.md`, `M4-polish-kalite-tabani.md`.
+**Faz 12 — M1 (i18n tarama tamamlama): PARTIALLY DONE (D-231, 2026-09-08) — the mechanism is
+  built, the one real product decision is still open.** Run in an isolated parallel-worktree
+  sub-agent context (one of six independent slices launched the same day) — `M1-i18n-tarama.md`'s
+  own §0 pre-scan re-verified against real code, matched exactly: TR/EN key parity still 957/957,
+  zero drift; `.toLocaleUpperCase` only in `StepPage.tsx` (D-219's own fix); `.toUpperCase`/
+  `.toLowerCase` only in `StepPage.tsx` (a comment) and `workspaceEffects.ts` (a keyboard-shortcut
+  comparison, locale-safe); all four `Intl.DateTimeFormat` call sites pass `i18n.language`/`locale`
+  explicitly; all seven `.sort()` calls are numeric; the same six `.toFixed()` call sites as
+  before. **§2.1 (the mechanism protecting TR/EN key parity from future drift) DONE**: new
+  `src/i18n/localeParity.test.ts` flattens both `common.json` trees to leaf-key sets and diffs
+  them, naming any drifted key directly in the failure message; a second test guards against both
+  files going empty at once. Mutation-verified: a temporary key was added to `en/common.json`, the
+  test genuinely went RED naming that exact key, the file was reverted via `git checkout`, the test
+  went GREEN again — the real `git diff` at session end is clean.
+  **§2.2 (the `.toFixed()` non-locale-aware decimal-separator question) was deliberately NOT
+  decided by this session — it could not be asked.** The launch prompt's own CRITICAL instruction
+  required asking Barış directly via `AskUserQuestion` and waiting for his answer, explicitly
+  forbidding a self-made call. This session's own tool surface (an isolated sub-agent spawned by
+  an orchestrating session as one of six parallel slices) has no `AskUserQuestion` tool — confirmed
+  both from the initial tool list and via `ToolSearch`. Anayasa Madde 9's "decide yourself when you
+  already have the information" does not apply here — this is a genuine product/UX call, not
+  information already in hand — so the question was filed as **P-66** verbatim rather than
+  answered, for a future interactive session to actually put to Barış.
+  `npm test` 1551/1551 (307 files, up from 1549/1549 at 306 — one new file/two new tests), exit
+  code 0 (checked via a separate logfile + `echo $?`, not piped through `tail`). `npm run lint`
+  clean (the one pre-existing `ThemeProvider` warning). `npx tsc --noEmit` clean. `npm run build`
+  green (same pre-existing chunk-size warning). `cargo test`/`clippy`/`fmt` not run — Rust
+  genuinely untouched (`git status src-tauri/` empty, confirmed), this slice's only change is the
+  one new TS test file. D10.4-D10.9's remaining items stay deliberately out of scope, per Barış's
+  own earlier choice (D-230). Committed to this session's own worktree branch only — not merged to
+  main, not pushed to origin/main, per this task's own instructions (parallel-slice merge is a
+  human's later, sequenced job).
 Templates: two company .xls files analysed; see reference/TEMPLATE_ANALYSIS.md
 Template geometry: VERIFIED 2026-08-01 against both .xls files. Five errors found and
   corrected in place — the largest was the column widths: the real split is 49.7/50.3, NOT
