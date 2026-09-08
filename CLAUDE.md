@@ -2084,6 +2084,27 @@ AI layer: Faz 8 fully done (keychain + Vorion connection/model-discovery + strea
   resize, and the 600ms debounce actually feeling right while typing were never tried; Barış's
   own `npm run tauri dev` walkthrough is still owed. **D-217's three-slice plan (W1+W2+W3) is
   now fully closed — this initiative ends here, with no further launch prompt to hand off.**
+**Next work — four independent candidates, no single one pre-selected as "next."** With D-217
+  (W1+W2+W3) and Faz 11 (L1+L2+L3a+L3b) both fully closed the same day (2026-09-08), four
+  self-contained launch prompts were written, all independent of each other: `docs/oturumlar/
+  faz12-kapsam-belirleme.md` (Phase 12 scope definition — SPEC.md's own last phase: polish,
+  i18n TR/EN completion, PDF/PNG export, packaging, signing, auto-update; no code, matches the
+  Phase 8-11 kapsam-belirleme precedent), `docs/oturumlar/P62-kalan-sablonlar-kapsam.md`
+  (scope definition for `farplas-7step-plus`/`farplas-7step-en`, filed as P-62, never touched
+  by any of D-149's four sessions), `docs/oturumlar/P58-gorsel-dil-yayilmasi.md` (rolling W1's
+  Farplas visual tokens, D-218, out to `src/ui/`'s 12 primitives — filed as P-58 with its own
+  "high blast-radius" warning, opens with its own `AskUserQuestion` round before any code),
+  and `docs/oturumlar/kucuk-acik-maddeler.md` (P-63 — `kpi-strip` always overflowing to
+  appendix on `pps-8step-auto`'s ADIM 7 canvas — plus P-64 — a column's last elastic block has
+  no drag handle of its own — both already well-specified, small, independent fixes).
+  Parallelism assessment (this repo's git history is entirely linear — no worktree/branch-based
+  concurrent session has ever been used here, so real parallelism needs separate worktrees and
+  all four will append to the same tail of `DECISIONS.md`/this README on close, a manual-but-easy
+  merge): Faz 12 kapsam belirleme + P-62 kapsam belirleme + the small P-63/P-64 items are LOW
+  conflict risk and can run concurrently; P-58 is HIGH risk (touches the shared UI primitive
+  layer every other page depends on) and should run alone — either first, on a clean slate, or
+  last, as a final visual pass once nothing else is still moving. Barış's own choice on which to
+  start is still owed — none of the four has begun.
 Templates: two company .xls files analysed; see reference/TEMPLATE_ANALYSIS.md
 Template geometry: VERIFIED 2026-08-01 against both .xls files. Five errors found and
   corrected in place — the largest was the column widths: the real split is 49.7/50.3, NOT

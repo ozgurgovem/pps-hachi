@@ -242,6 +242,44 @@ D-223.
 Filed, planlanmamış (Faz 11'in dışında): **P-62** (yeni — `farplas-7step-plus`/`farplas-7step-en`,
 D-149'un hiçbir oturumu hiç dokunmadı), **P-18** (güncellendi — `BenefitCase`/`Onay formu`).
 
+## Sıradaki iş — dört bağımsız aday, hazır bekleyen tek bir "sıradaki oturum" YOK
+
+W3 ile D-217 girişimi (W1+W2+W3) ve Faz 11'in kendi üç dilimlik planı (L1+L2+L3a+L3b) ikisi de
+2026-09-08'de TAMAMEN kapandı — bu ikisinin aksine, artık otomatik olarak "sıradaki dilim" diye
+bir tek launch prompt yok. Dört bağımsız aday, hepsi 2026-09-08'de W3'ün kapanışında yazıldı:
+
+| Aday | Prompt | Ne | Kod mu, kapsam mı |
+|---|---|---|---|
+| Faz 12 kapsam belirleme | `docs/oturumlar/faz12-kapsam-belirleme.md` | `SPEC.md`'nin SONUNCU fazı: cilalama, i18n TR/EN tamamlama, PDF/PNG export, paketleme, imzalama, otomatik güncelleme | Kapsam belirleme, KOD YOK |
+| P-62 kapsam belirleme | `docs/oturumlar/P62-kalan-sablonlar-kapsam.md` | `farplas-7step-plus`/`farplas-7step-en` — D-149'un dört oturumluk derinliğini hiç almamış iki şablon | Kapsam belirleme, KOD YOK (madde 2.1'in cevabına göre küçük bir kod dilimi doğurabilir) |
+| P-58 | `docs/oturumlar/P58-gorsel-dil-yayilmasi.md` | W1'in Farplas görsel dilini (D-218) `src/ui/`'nin 12 primitifine yayma — kendi filed notunda "yüksek patlama-yarıçapı" uyarısı | Gerçek kod, kendi ilk `AskUserQuestion` turuyla açılıyor |
+| Küçük açık maddeler | `docs/oturumlar/kucuk-acik-maddeler.md` | P-63 (kpi-strip'in ADIM 7'de her zaman appendix'e düşmesi) + P-64 (bir kolonun son bloğunun kendi sürükleme tutamacı yok) — ikisi de zaten iyi tanımlanmış, küçük düzeltmeler | Gerçek kod, doğrudan başlanabilir |
+
+**Paralel çalıştırma değerlendirmesi** (Barış'ın kendi sorusu, 2026-09-08): bu depo bugüne kadar
+HİÇBİR zaman worktree/branch-bazlı paralel oturum kullanmadı — her oturum doğrudan `main`'e
+commit etti (git geçmişi tamamen doğrusal). Gerçek eşzamanlı çalışma bu yüzden ayrı git
+worktree'ler/branch'ler gerektirir, ve DÖRDÜ de kapanışta AYNI iki dosyaya (`DECISIONS.md`,
+bu README) ekleme yapıyor — bu, tamamen otomatik hiçbir birleştirmenin olmayacağı, ama kolay
+(ekleme-sonuna-ekleme, çakışsa bile elle çözümü bariz) bir birleştirme maliyeti demek. Üretim
+kodu seviyesinde dosya çakışma riski:
+
+- **Faz 12 kapsam belirleme + P-62 kapsam belirleme**: DÜŞÜK risk, paralel çalıştırılabilir —
+  ikisi de "kod yok," yalnızca kendi yeni dosyalarını + DECISIONS.md/README.md'nin sonunu
+  değiştiriyor.
+- **Küçük açık maddeler**: DÜŞÜK risk, yukarıdaki ikisiyle VE kendi içinde paralel çalıştırılabilir
+  — `src/methods/kpiStrip/` (P-63) ve `src/a3/render/BlockPinOverlay.tsx` (P-64) tamamen ayrı
+  dosyalar, ikisi de Faz 12/P-62'nin dokunduğu hiçbir dosyaya değmiyor.
+- **P-58**: YÜKSEK risk — kendi filed notunun "yüksek patlama-yarıçapı" uyarısı tam olarak bunu
+  söylüyor: `src/ui/`'nin 12 primitifi uygulamanın HER yerinde kullanılıyor. Diğer üçüyle aynı anda
+  çalıştırmak dosya-seviyesinde doğrudan çakışmasa bile (P-58 `src/ui/`'ye, diğerleri oraya
+  dokunmuyor), SEMANTİK risk var — P-58 devam ederken başka bir oturumun `src/ui/` primitiflerini
+  KULLANAN yeni bir bileşen eklemesi (örn. Faz 12'nin polish işi), P-58'in henüz bitmemiş görsel
+  geçişiyle tutarsız bir sonuç doğurabilir. **Önerilen sıralama: P-58 YALNIZ çalıştırılsın —
+  ya ilk (temiz bir zeminde) ya da diğer üçü bittikten sonra (artık değişmeyen bir uygulamanın
+  üzerine son bir görsel geçiş olarak).**
+
+**Barış'ın kendi seçimi bekleniyor** — bu tablo yalnızca aday listesi, hiçbiri henüz başlamadı.
+
 ## Kullanım
 
 Yeni oturumu şu iki satırla başlat (dosya adını sıradaki oturuma göre değiştir):
