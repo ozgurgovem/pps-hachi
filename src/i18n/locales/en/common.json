@@ -138,8 +138,9 @@
     },
     "stepPreview": {
       "title": "A3 block preview — this step's own area",
-      "comingSoonBadge": "Coming soon",
-      "comingSoonBody": "This step's own A3 block will render here as a live, cropped view of the real export — not a second drawing, a window onto it. Until then, use A3 Preview to see the full sheet."
+      "liveBadge": "Live",
+      "caption": "Same descriptor as Export A3 — a live crop of this step's own block, not a second drawing.",
+      "waiting": "Building this step's preview…"
     },
     "quickJump": {
       "backToOverview": "Overview",

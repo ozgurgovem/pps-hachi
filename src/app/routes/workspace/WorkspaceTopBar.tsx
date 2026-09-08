@@ -4,8 +4,14 @@ import { selectCanRedo, selectCanUndo, useProjectStore } from "../../../state";
 import { Button } from "../../../ui";
 import { ProjectToolsBar } from "./ProjectToolsBar";
 import { SaveIndicator } from "./SaveIndicator";
+import type { DescriptorResult } from "./useA3PreviewSync";
 
-export function WorkspaceTopBar() {
+export interface WorkspaceTopBarProps {
+  /** W3: built once in `WorkspaceShell`, threaded to `ProjectToolsBar` — see `useA3PreviewSync`'s own doc comment. */
+  readonly descriptorResult: DescriptorResult;
+}
+
+export function WorkspaceTopBar({ descriptorResult }: WorkspaceTopBarProps) {
   const { t } = useTranslation();
   const title = useProjectStore((s) => s.project?.meta.title);
   const canUndo = useProjectStore(selectCanUndo);
@@ -22,7 +28,7 @@ export function WorkspaceTopBar() {
         <h1 className="font-display text-sm font-semibold text-ink">{title}</h1>
       </div>
       <div className="flex items-center gap-3">
-        <ProjectToolsBar />
+        <ProjectToolsBar descriptorResult={descriptorResult} />
         <Button variant="ghost" size="sm" onClick={undo} disabled={!canUndo}>
           {t("workspace.undo")}
         </Button>

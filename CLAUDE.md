@@ -1996,6 +1996,94 @@ AI layer: Faz 8 fully done (keychain + Vorion connection/model-discovery + strea
   written: `docs/oturumlar/W3-canli-onizleme.md` — updated from `W-kapsam-belirleme.md`'s original
   W3 sketch to reflect W2's real final architecture (no `RightPanel`, a real
   `A3PreviewReservedBand` placeholder to fill in).
+**Workspace Yüzey Yenilemesi — W3 (the live, cropped-to-this-step A3 preview): FULLY DONE
+  (D-229, 2026-09-08) — D-217's three-slice plan (W1+W2+W3) is now FULLY CLOSED.**
+  `W3-canli-onizleme.md`'s own §0 pre-scan matched real code exactly. §2.3's own mandatory
+  measurement ran **before** any code: a temporary `/perf-probe` route (D-136/D-113's own
+  "use, then delete" practice) driven by `npx playwright` (a real, previously-cached Chromium,
+  installed locally into the scratchpad directory rather than the project's own
+  `node_modules`) measured the real `buildProjectA3Layout` — a chart-free project costs
+  ~0.1ms, but any project carrying a chart-bearing entry **anywhere** (not just the active
+  step) costs ~50-75ms, an existing cost D-84's own per-keystroke store write already
+  triggers today, independent of W3. That number, not a guess, settled §2.1's own real fork
+  via `AskUserQuestion`: **option (a)**, `useA3PreviewSync()` called exactly once in
+  `WorkspaceShell`, its `descriptorResult` threaded down as a prop to both `ProjectToolsBar`
+  (via `WorkspaceTopBar`) and `A3PreviewReservedBand` (via `StepPage`) — a second, independent
+  call (option b) would have doubled that per-keystroke cost on any chart-bearing project.
+  The same measurement showed a real debounce was warranted, not assumed: `useA3PreviewSync.ts`
+  gained a `DEBOUNCE_MS = 600` constant (the same value as `projectStore.ts`'s own
+  `TEXT_COALESCE_WINDOW_MS`/D-84, but a separate constant — a different concern that happens
+  to share a tuning number) — the very first build (opening a project) still fires with no
+  delay, every subsequent rebuild (every keystroke) now waits out 600ms of quiet before
+  firing, so a fast-typing burst on a chart-bearing project coalesces into one rebuild
+  instead of N overlapping ~50-75ms ones.
+  §2.2 stayed LOCKED (D-217): no new renderer. New pure `src/a3/render/blockRectForStep.ts`
+  returns the active step's own block rectangle in "world" (screen-mode, scale=1) pixels —
+  reading `descriptor.elasticBlocks` first (Faz 11/L3a/L3b's already-resolved geometry) and
+  falling back to the template's static `TemplateBlock` otherwise, the same "read the
+  geometry, never recompute placement" posture `BlockPinOverlay`/`gridGeometry.ts` already
+  established. `A3PreviewReservedBand.tsx` was rewritten in full: the **entire**
+  `HtmlA3Renderer` (mode `"screen"`) renders inside an `overflow: hidden` container, shifted
+  with `transform: scale(fitScale) translate(-leftPx, -topPx)` so that rectangle's top-left
+  corner lands at the container's own origin — `fitScale` computed via `zoomMath.ts`'s
+  already-existing `fitToWindowScale` (the pop-out window's own "never magnify past 1"
+  convention), against the container's measured width (`ResizeObserver`) and a 420px height
+  cap. What renders is therefore pixel-identical to the real export — there is no second
+  drawing path. The last successfully-built descriptor is kept in local state and stays on
+  screen (dimmed slightly) while a newer one is debounced-loading, rather than flashing to a
+  loading placeholder on every keystroke — the waiting message only ever shows before the
+  very first successful build. The "Coming soon" badge/body copy is gone, replaced with a
+  "Live" badge and a short caption ("Same descriptor as Export A3 — a live crop of this
+  step's own block, not a second drawing"); i18n keys updated TR+EN together
+  (`comingSoonBadge`/`comingSoonBody` removed, `liveBadge`/`caption`/`waiting` added). The
+  full-page "A3 Preview" pop-out button is untouched.
+  **A real, reproducible race condition was found and fixed while adding the debounce — out
+  of this slice's own stated scope, but blocking, the same class of thing D-136/D-143 already
+  hit once each.** Adding the `setTimeout`-based debounce made `useA3PreviewSync.test.ts`'s
+  "re-pushes the current descriptor when the preview window announces it is ready" test flaky
+  (~60-70% failure rate across repeated runs — confirmed empirically, not assumed: the
+  original, un-debounced code passed 4/4 reliably via `git stash`, the debounced version
+  failed 5-6 of 8 consecutive runs). Root-caused with temporary `console.log` instrumentation
+  (added, observed, removed — never committed): the ready-handshake listener read
+  `latestDescriptorResult`, a ref updated **during render**, while
+  `pushDescriptorToPreviewWindow`'s first call happens **synchronously**, immediately after
+  `setDescriptorResult({status: "ok"})`, inside the build's own `.then()` — React's own
+  state-flush timing is asynchronous relative to that synchronous call, so the instant the
+  test's `capturedReadyCallback` fires, the ref could still read stale ("loading") even though
+  the push had already happened. The debounce's extra `setTimeout` macrotask made this
+  previously-latent window land where `waitFor`'s own polling could actually observe it.
+  Fixed with a new `latestOkDescriptor` ref, updated in the exact same synchronous block as
+  `pushDescriptorToPreviewWindow` itself — no longer dependent on React's render cycle at
+  all. Verified with 8 consecutive clean runs (up from ~2-3 of 8 passing before the fix).
+  `WorkspaceScreen.test.tsx`'s own "an unknown methodId entry renders as a restricted
+  read-only placeholder (P-05)" test also broke, for a legitimate reason: the cropped live
+  preview now renders the active step's real A3 block, and an unrecognized `methodId`'s
+  export fallback (`resolveEntryContent`, a bare `{lines: [{text: entry.title}]}`) puts that
+  same entry title on the sheet too — right alongside `EntriesBand`'s own copy of it, so
+  `within(screen.getByRole("main"))` started matching twice. Fixed the same way D-102's own
+  test-scoping lesson already taught: scoped the query to `EntriesBand`'s own `<section>`
+  instead of the whole `main`.
+  `npm test` 1549/1549 (306 files, up from 1537/1537 at 304 — 12 net new tests: new
+  `blockRectForStep.test.ts` (4), new `useA3PreviewSync.debounce.test.ts` (3, `vi.useFakeTimers()`
+  — first build fires with no delay, a rapid burst of changes coalesces into one rebuild,
+  still rebuilds once real quiet time passes), `A3PreviewReservedBand.test.tsx` rewritten in
+  full (5), `ProjectToolsBar.test.tsx`'s Export-button test split into two prop-driven cases),
+  exit code 0 confirmed across **two separate full-suite runs** (not just once — this slice's
+  own flaky-test discovery made that extra caution worth it), each via a separate logfile, not
+  piped through `tail` (D-143's own lesson, doubly relevant here). `npm run lint` clean (the
+  one pre-existing `ThemeProvider` warning). `npx tsc --noEmit` clean. `npm run build` green
+  (same pre-existing chunk-size warning). `cargo test`/`clippy`/`fmt` all clean — Rust
+  genuinely untouched this dilim (`git status src-tauri/` empty, confirmed — TS/React-only end
+  to end). `scripts/gen-a3-fixture.ts` not re-run — this dilim added only one new pure file
+  and threaded an existing prop through already-shipped UI components, touching no template
+  style, `A3ImageKind`, or the export pipeline itself (confirmed via `git status src/a3/`: only
+  two new files). `SPEC.md` §2.2's "A3 block preview (reserved as of W2 ...)" line corrected
+  to describe the real, built behavior. **Honestly unverified, the usual class of gap**: no
+  display/Tauri runtime in this environment — the cropped preview rendering at the correct
+  size/position in a real WKWebView, `ResizeObserver` reacting correctly to a real window
+  resize, and the 600ms debounce actually feeling right while typing were never tried; Barış's
+  own `npm run tauri dev` walkthrough is still owed. **D-217's three-slice plan (W1+W2+W3) is
+  now fully closed — this initiative ends here, with no further launch prompt to hand off.**
 Templates: two company .xls files analysed; see reference/TEMPLATE_ANALYSIS.md
 Template geometry: VERIFIED 2026-08-01 against both .xls files. Five errors found and
   corrected in place — the largest was the column widths: the real split is 49.7/50.3, NOT

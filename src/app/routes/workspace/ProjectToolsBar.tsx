@@ -9,12 +9,17 @@ import { LayoutReviewPanel } from "./LayoutReviewPanel";
 import { MockAuditPanel } from "./MockAuditPanel";
 import { TranslateReportPanel } from "./TranslateReportPanel";
 import { TraceabilityView } from "./TraceabilityView";
-import { useA3PreviewSync } from "./useA3PreviewSync";
+import type { DescriptorResult } from "./useA3PreviewSync";
 import { xlsxExport } from "./xlsxIpc";
 
 const XLSX_FILTER = [{ name: "Excel Workbook", extensions: ["xlsx"] }];
 
 type ToolDialog = "traceability" | "review" | "audit" | "translate";
+
+export interface ProjectToolsBarProps {
+  /** W3: built once in `WorkspaceShell` (shared with `A3PreviewReservedBand`) rather than a second `useA3PreviewSync()` call here — see that hook's own doc comment for the measured reason. */
+  readonly descriptorResult: DescriptorResult;
+}
 
 /**
  * W2/D-217: replaces the removed `RightPanel` for everything that isn't
@@ -27,10 +32,9 @@ type ToolDialog = "traceability" | "review" | "audit" | "translate";
  * four is a one-shot answer (checkboxes to apply, findings to jump from,
  * lines to accept).
  */
-export function ProjectToolsBar() {
+export function ProjectToolsBar({ descriptorResult }: ProjectToolsBarProps) {
   const { t } = useTranslation();
   const project = useProjectStore((s) => s.project);
-  const descriptorResult = useA3PreviewSync();
   const [openDialog, setOpenDialog] = useState<ToolDialog | null>(null);
   const [isExporting, setIsExporting] = useState(false);
   const [exportError, setExportError] = useState<string | null>(null);

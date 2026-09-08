@@ -2,9 +2,11 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import "../../../i18n";
+import type { A3LayoutDescriptor } from "../../../a3/descriptor";
 import { createNewProject } from "../../../domain/model";
 import { useProjectStore } from "../../../state";
 import { ProjectToolsBar } from "./ProjectToolsBar";
+import type { DescriptorResult } from "./useA3PreviewSync";
 
 vi.mock("@tauri-apps/plugin-dialog", () => ({ save: vi.fn() }));
 vi.mock("../a3PreviewWindow/window", () => ({
@@ -14,15 +16,19 @@ vi.mock("../a3PreviewWindow/window", () => ({
   listenForBlockPinRequest: vi.fn(() => Promise.resolve(vi.fn())),
 }));
 
+const FAKE_DESCRIPTOR = {} as A3LayoutDescriptor;
+const OK_RESULT: DescriptorResult = { status: "ok", descriptor: FAKE_DESCRIPTOR };
+const LOADING_RESULT: DescriptorResult = { status: "loading" };
+
 const initialStoreState = useProjectStore.getState();
 
-function renderBar(aiEnabled = false) {
+function renderBar(aiEnabled = false, descriptorResult: DescriptorResult = OK_RESULT) {
   const { project } = createNewProject({ title: "T", language: "en", appVersion: "0.1.0" });
   useProjectStore.setState({
     ...initialStoreState,
     project: { ...project, meta: { ...project.meta, ai: { ...project.meta.ai, enabled: aiEnabled } } },
   });
-  return render(<ProjectToolsBar />);
+  return render(<ProjectToolsBar descriptorResult={descriptorResult} />);
 }
 
 afterEach(() => {
@@ -80,10 +86,17 @@ describe("ProjectToolsBar", () => {
     expect(dialog).toBeTruthy();
   });
 
-  it("Export is disabled until the descriptor finishes building", async () => {
-    renderBar(false);
+  it("Export is disabled while the descriptor is still loading", () => {
+    renderBar(false, LOADING_RESULT);
 
-    const exportButton = await screen.findByRole("button", { name: "Export A3" });
-    await waitFor(() => expect(exportButton).toHaveProperty("disabled", false));
+    const exportButton = screen.getByRole("button", { name: "Export A3" });
+    expect(exportButton).toHaveProperty("disabled", true);
+  });
+
+  it("Export is enabled once the descriptor has built (status ok)", () => {
+    renderBar(false, OK_RESULT);
+
+    const exportButton = screen.getByRole("button", { name: "Export A3" });
+    expect(exportButton).toHaveProperty("disabled", false);
   });
 });

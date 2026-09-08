@@ -1,7 +1,10 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { render, screen } from "@testing-library/react";
 import i18next from "../../../i18n";
+import type { DescriptorResult } from "./useA3PreviewSync";
 import { StepPage } from "./StepPage";
+
+const LOADING_RESULT: DescriptorResult = { status: "loading" };
 
 afterEach(async () => {
   await i18next.changeLanguage("en");
@@ -9,7 +12,9 @@ afterEach(async () => {
 
 describe("StepPage title", () => {
   it("renders 'Step-N. Name' upper-cased in English", () => {
-    render(<StepPage stepId={4} advisory={null} onDismissAdvisory={() => {}} />);
+    render(
+      <StepPage stepId={4} advisory={null} onDismissAdvisory={() => {}} descriptorResult={LOADING_RESULT} />,
+    );
 
     expect(screen.getByRole("heading", { name: "STEP-4. ROOT CAUSE ANALYSIS" })).toBeTruthy();
   });
@@ -20,7 +25,9 @@ describe("StepPage title", () => {
     async () => {
       await i18next.changeLanguage("tr");
 
-      render(<StepPage stepId={4} advisory={null} onDismissAdvisory={() => {}} />);
+      render(
+        <StepPage stepId={4} advisory={null} onDismissAdvisory={() => {}} descriptorResult={LOADING_RESULT} />,
+      );
 
       // Plain `.toUpperCase()` would produce "ADIM-4. KÖK NEDEN ANALIZI" (no
       // dot on the final I) — the locale-aware form must keep "ANALİZİ".

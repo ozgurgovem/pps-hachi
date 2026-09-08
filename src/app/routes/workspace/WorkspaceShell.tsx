@@ -7,6 +7,7 @@ import { StepOverview } from "./StepOverview";
 import { StepPage } from "./StepPage";
 import { StepQuickJump } from "./StepQuickJump";
 import { isStepEmpty } from "./stepStatus";
+import { useA3PreviewSync } from "./useA3PreviewSync";
 import { WorkspaceTopBar } from "./WorkspaceTopBar";
 
 /**
@@ -22,6 +23,11 @@ import { WorkspaceTopBar } from "./WorkspaceTopBar";
  * no meaning without a step to be scoped to. `StepPage` gets `key={activeStepId}`
  * so its own `ActiveEditor` accordion state resets on every step change
  * instead of leaking a stale `entryId`/`plugin` reference across steps.
+ *
+ * W3: `useA3PreviewSync()` is called exactly ONCE here — the shared build
+ * `ProjectToolsBar` (via `WorkspaceTopBar`) and the active step page's own
+ * `A3PreviewReservedBand` both read, rather than each running its own build
+ * (see that hook's own doc comment for the measured reason).
  */
 export function WorkspaceShell() {
   const { t } = useTranslation();
@@ -30,6 +36,7 @@ export function WorkspaceShell() {
   const activeStepId = useProjectStore((s) => s.activeStepId);
   const setActiveStep = useProjectStore((s) => s.setActiveStep);
   const [advisoryStepId, setAdvisoryStepId] = useState<StepId | null>(null);
+  const descriptorResult = useA3PreviewSync();
 
   if (!project) {
     return null;
@@ -48,7 +55,7 @@ export function WorkspaceShell() {
 
   return (
     <div className="flex h-screen flex-col">
-      <WorkspaceTopBar />
+      <WorkspaceTopBar descriptorResult={descriptorResult} />
       {readOnly && (
         <p
           role="status"
@@ -78,6 +85,7 @@ export function WorkspaceShell() {
                     : null
                 }
                 onDismissAdvisory={() => setAdvisoryStepId(null)}
+                descriptorResult={descriptorResult}
               />
             </div>
             {project.meta.ai.enabled && <AssistantColumn stepId={activeStepId} />}

@@ -138,8 +138,9 @@
     },
     "stepPreview": {
       "title": "A3 blok önizlemesi — bu adımın alanı",
-      "comingSoonBadge": "Yakında",
-      "comingSoonBody": "Bu adımın kendi A3 bloğu burada, gerçek dışa aktarımın canlı, kırpılmış bir görünümü olarak yer alacak — ikinci bir çizim değil, ona açılan bir pencere. O zamana kadar tüm sayfayı görmek için A3 Önizleme'yi kullanın."
+      "liveBadge": "Canlı",
+      "caption": "Export A3 ile aynı descriptor — bu adımın kendi bloğunun canlı bir kırpması, ikinci bir çizim değil.",
+      "waiting": "Bu adımın önizlemesi oluşturuluyor…"
     },
     "quickJump": {
       "backToOverview": "İniş",

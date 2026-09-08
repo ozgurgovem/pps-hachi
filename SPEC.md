@@ -251,10 +251,12 @@ panel was retired entirely (W2, D-217, 2026-09-08):
    by drag, each with edit / duplicate / delete, and an A3 visibility control. Editing an
    entry expands its editor inline, directly below that entry's own row — no modal, and
    only one entry (or one new-entry draft) can be open at a time.
-4. **A3 block preview** (reserved as of W2 — the live, cropped-to-this-step view itself is
-   W3's own build): a full-width "A3 Preview" button opens the existing pop-out window
-   (D-133) showing the whole sheet, with its own zoom/pan and block-pin editing, until the
-   inline crop exists.
+4. **A3 block preview** (W3): the active step's own printed block, rendered live — the same
+   `HtmlA3Renderer`/`A3LayoutDescriptor` the export uses, cropped to that block's rectangle
+   and scaled to fit the band's width, never a second drawing path. Updates as the project
+   changes, debounced (600ms) so a fast-typing burst doesn't fire overlapping rebuilds. A
+   full-width "A3 Preview" button still opens the pop-out window (D-133) for the whole sheet,
+   with its own zoom/pan and block-pin editing.
 
 ### 2.3 Multiple entries — the key requirement
 

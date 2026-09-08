@@ -9,11 +9,14 @@ import { MethodBand } from "./MethodBand";
 import { ReadinessAdvisory } from "./ReadinessAdvisory";
 import { RoundsBand } from "./RoundsBand";
 import { SignOffPanel } from "./SignOffPanel";
+import type { DescriptorResult } from "./useA3PreviewSync";
 
 interface StepPageProps {
   stepId: StepId;
   advisory: string | null;
   onDismissAdvisory: () => void;
+  /** W3: built once in `WorkspaceShell`, threaded down to `A3PreviewReservedBand` — see its own doc comment. */
+  descriptorResult: DescriptorResult;
 }
 
 /**
@@ -23,7 +26,7 @@ interface StepPageProps {
  * (`key={stepId}`), which resets this state for free instead of needing an
  * explicit effect to clear a stale `entryId`/`plugin` reference.
  */
-export function StepPage({ stepId, advisory, onDismissAdvisory }: StepPageProps) {
+export function StepPage({ stepId, advisory, onDismissAdvisory, descriptorResult }: StepPageProps) {
   const { t, i18n } = useTranslation();
   const [activeEditor, setActiveEditor] = useState<ActiveEditor | null>(null);
   const stepLabel = t("workspace.stepNumberLabel", { step: stepId });
@@ -74,7 +77,7 @@ export function StepPage({ stepId, advisory, onDismissAdvisory }: StepPageProps)
       />
       {stepId === 7 && <RoundsBand />}
       {stepId === 8 && <SignOffPanel />}
-      <A3PreviewReservedBand />
+      <A3PreviewReservedBand stepId={stepId} descriptorResult={descriptorResult} />
     </main>
   );
 }

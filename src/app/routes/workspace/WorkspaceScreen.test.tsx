@@ -204,7 +204,12 @@ describe("WorkspaceScreen — Phase 3 done-condition", () => {
     await user.click(await screen.findByRole("button", { name: /^Step 3:/ }));
 
     expect(await screen.findByText("Unknown method")).toBeTruthy();
-    expect(within(screen.getByRole("main")).getByText("A future method entry")).toBeTruthy();
+    // W3: the step page's own live A3 block preview now renders this same
+    // entry's title too (an unrecognized methodId falls back to a bare
+    // title line on the sheet, same as the export) — scope to the entries
+    // list itself, not the whole `main`, so this stays unambiguous.
+    const entriesBand = screen.getByRole("heading", { name: /^Entries/ }).closest("section");
+    expect(within(entriesBand!).getByText("A future method entry")).toBeTruthy();
     expect(screen.queryByRole("button", { name: "Edit" })).toBeFalsy();
     expect(screen.getByRole("button", { name: "Delete" })).toBeTruthy();
   });

@@ -187,14 +187,15 @@ viewport'una KIRPILMASI. `RightPanel`'in altı sekmesi DEĞİŞMİYOR (hepsi pro
 çevirdi** (D-217 §2.4/D-228): `RightPanel`'in tamamı kaldırıldı, dört proje-geneli aracı
 (İzlenebilirlik/İnceleme/Denetim/Çeviri) `WorkspaceTopBar`'ın yeni "Proje araçları" grubuna,
 tam A3 önizlemesi (D-133'ün pop-out penceresi) bir düğmeye, Assistant ise kendi adıma-özel
-sütununa taşındı — bkz. D-228. Tam kayıt: D-217/D-228.
+sütununa taşındı — bkz. D-228. **Bu girişimin üç dilimlik planı (W1+W2+W3) ARTIK TAMAMEN
+KAPALI — D-229, 2026-09-08.** Tam kayıt: D-217/D-228/D-229.
 
 | Dilim | Kapsam | Durum |
 |---|---|---|
 | Kapsam belirleme — üç mimari sorunun `AskUserQuestion` ile cevaplanması + üç dilimlik plan | `docs/oturumlar/W-kapsam-belirleme.md` | ✅ BİTTİ 2026-09-06 — D-217. |
 | W1 — İniş görünümü + navigasyon değişimi (rail kaldırılıyor, sekiz adım kartı, hızlı-atlama şeridi) | Tasarım: `docs/oturumlar/W1-adim-genel-bakis.md`. İnşa: `docs/oturumlar/W1-insa.md`. | ✅ TAM BİTTİ — tasarım (D-218, 4 tur) + kod (D-219, 2026-09-06). `activeStepId: StepId \| null`, `StepStepper` silindi, `StepOverview.tsx`/`StepQuickJump.tsx` yeni, `StepPage`'in başlığı locale-aware upper-case. |
 | W2 — Adım sayfasının kendisi: `EntryEditorDialog`'un modal'dan sayfa-içi (accordion) bir düzenleme alanına dönüşümü + adım-özel AI destek sütunu (P-59) + `RightPanel`'in tamamen kaldırılıp dört aracın üst şeride taşınması | `docs/oturumlar/W2-adim-sayfasi.md` | ✅ TAM BİTTİ — tasarım (D-228, iki `AskUserQuestion` turu + iki maket revizyonu) + kod, 2026-09-08. |
-| W3 — Canlı, adıma-kırpılmış A3 önizlemesi (`A3PreviewReservedBand`'ın kendi yer tutucusunu gerçek bir kırpılmış `HtmlA3Renderer` görünümüyle doldurması, performans ölçümü) | `docs/oturumlar/W3-canli-onizleme.md` | Launch prompt'u W2'nin kapanışında yazıldı (D-228), henüz başlanmadı. |
+| W3 — Canlı, adıma-kırpılmış A3 önizlemesi (`A3PreviewReservedBand`'ın kendi yer tutucusunu gerçek bir kırpılmış `HtmlA3Renderer` görünümüyle doldurması, performans ölçümü) | `docs/oturumlar/W3-canli-onizleme.md` | ✅ TAM BİTTİ — D-229, 2026-09-08. Gerçek Chromium ölçümü (`npx playwright`) → tek build (WorkspaceShell) + 600ms debounce; yeni `blockRectForStep.ts`; debounce eklerken bulunan gerçek bir yarış durumu da düzeltildi. **D-217'nin üç dilimlik planı (W1+W2+W3) TAMAMEN KAPALI.** |
 
 ## Faz 11 — `SPEC.md` §6'nın kendi sıradaki fazı: kalan şablonlar + template switching + `BenefitCase`
 
@@ -467,6 +468,35 @@ değişmedi, diff ile doğrulandı). **Dürüst-doğrulanmamış boşluk, her za
 ortamda ekran/Tauri runtime yok — gerçek bir WKWebView'da accordion'un açılıp kapanması, AI
 sütununun sığması, üst şeritteki dialog'ların gerçekten açılması hiç denenmedi. W3'ün kendi
 launch prompt'u yazıldı: `docs/oturumlar/W3-canli-onizleme.md`.
+
+**Workspace Yüzey Yenilemesi — W3 TAMAMEN BİTTİ (D-229, 2026-09-08) — D-217'nin üç dilimlik
+planı (W1+W2+W3) ARTIK TAMAMEN KAPALI.** `W3-canli-onizleme.md`'nin kendi §0'ı doğrulandı,
+tam eşleşti. §2.3'ün kendi zorunlu ölçümü kod yazılmadan ÖNCE yapıldı: geçici bir `/perf-probe`
+route'u + `npx playwright` (D-136/D-113'ün "kullan, sonra sil" pratiği) ile gerçek
+`buildProjectA3Layout` ölçüldü — grafiksiz proje ~0,1ms, projede herhangi bir yerde bir grafik
+taşıyan tek bir kayıt (Pareto) varsa ~50-75ms, ve bu D-84'ün her tuş vuruşunda tetiklediği bir
+maliyet, W3'ten bağımsız zaten var. Bu ölçümle birlikte Barış'a `AskUserQuestion` soruldu:
+**seçenek (a)** — `useA3PreviewSync()` `WorkspaceShell`'de TEK kez çağrılır, `descriptorResult`
+prop olarak hem `ProjectToolsBar`'a hem `A3PreviewReservedBand`'e akar — seçildi (G2, ikinci bir
+çağrı grafikli bir projede tuş başına maliyeti ikiye katlardı). Ölçüm ayrıca bir debounce'un
+gerekli olduğunu gösterdiği için `useA3PreviewSync.ts`'e D-84'ün değeriyle AYNI (600ms) ama
+BAĞIMSIZ bir sabit taşıyan bir debounce eklendi (ilk build gecikmesiz, sonrakiler 600ms'lik
+sessizlik penceresi bekliyor). §2.2 (KARARLAŞTIRILMIŞ): yeni bir renderer yok — yeni saf dosya
+`src/a3/render/blockRectForStep.ts` aktif adımın blok dikdörtgenini (`descriptor.elasticBlocks`
+öncelikli, yoksa şablonun statik `TemplateBlock`'u) piksel cinsinden döndürüyor,
+`A3PreviewReservedBand.tsx` TAM `HtmlA3Renderer`'ı `overflow:hidden` bir konteynırda
+`transform: scale() translate()` ile kırpıyor (`zoomMath.ts`'in `fitToWindowScale`'i, "asla
+büyütme" kuralıyla). **Debounce'u eklerken W3'ün kendi kapsamı dışında ama engelleyici gerçek
+bir yarış durumu bulundu ve düzeltildi**: `useA3PreviewSync.test.ts`'in ready-handshake testi
+debounce sonrası ~%60-70 flaky hale geldi — kök neden, ready-callback'in RENDER SIRASINDA
+güncellenen bir ref okurken, `pushDescriptorToPreviewWindow`'un build'in `.then()`'i içinde bu
+ref'in React flush'ından ÖNCE senkron çağrılması. Yeni bir `latestOkDescriptor` ref'i,
+`pushDescriptorToPreviewWindow` ile TAM AYNI senkron blokta güncellenerek düzeltildi — 8/8 art
+arda temiz koşuyla doğrulandı. `npm test` 1549/1549 (306 dosya, 304'ten — +12 net test), iki
+ayrı tam-paket koşuda exit code 0 doğrulandı. `npm run lint`/`npx tsc --noEmit`/`npm run build`
+temiz. `cargo test`/`clippy`/`fmt` temiz — Rust bu dilimde HİÇ değişmedi. `scripts/gen-a3-
+fixture.ts` yeniden çalıştırılmadı — bu dilim yalnızca yeni bir saf dosya ekledi ve mevcut UI
+bileşenlerinde prop-threading yaptı. Tam kayıt: `DECISIONS.md` D-229.
 
 ## Prompt yazarken
 
