@@ -2168,6 +2168,35 @@ AI layer: Faz 8 fully done (keychain + Vorion connection/model-discovery + strea
   session touched no `src/`/`src-tauri/src/` file, confirmed via `git status`. M1-M4's own
   launch prompts are written: `docs/oturumlar/M1-i18n-tarama.md`, `M2-auto-update.md`,
   `M3-paketleme-imza-kapanisi.md`, `M4-polish-kalite-tabani.md`.
+**Faz 12 — M3 (packaging/signing closure): PARTIALLY DONE (D-231, 2026-09-08, run as one of six
+  parallel worktree/branch dilims — not yet merged to main).** §0's own pre-scan re-verified
+  against real code, matched exactly: `bundle.publisher`/`copyright`/`license`/`shortDescription`
+  all `None`, no `LICENSE*` file anywhere, `ci.yml`'s `paths-ignore` already names a `"LICENSE"`
+  file that doesn't exist, CI signing key still the deliberate empty string. **This session could
+  not run the launch prompt's own mandatory `AskUserQuestion` round** — this worktree's
+  environment has no `AskUserQuestion` tool at all (confirmed via `ToolSearch`), so the two real
+  legal/business calls the prompt explicitly flags (LICENSE type; whether `publisher` is Farplas
+  or Barış's own name/company) could not be put to Barış in real time. Rather than guess on a
+  choice with real consequence once M2 makes the repo public, `publisher`/`copyright`/`license`
+  were left unset and no `LICENSE` file was created — CLAUDE.md's own "don't silently invent
+  scope" rule and Anayasa Madde 9 both point the same way here. Two concrete candidate answers
+  are recorded in `DECISIONS.md` D-231 for Barış's quick confirmation: (A) proprietary/all-rights-
+  reserved, Farplas Otomotiv A.Ş. as holder; (B) proprietary/all-rights-reserved, Barış's own
+  name/company as holder — a third, open-source option is named only to close out the prompt's
+  own "or some other arrangement" phrasing, and reads inconsistent with D-230's own "internal-
+  corporate tool" framing. **What was done**: `tauri.conf.json`'s `bundle.shortDescription`
+  added (`"Toyota 8-step Practical Problem Solving A3 report builder"` — identity-independent,
+  cheap to revise); D-44's own row in `DECISIONS.md` got an explicit clarifying note (the
+  "unsigned" half is now closed on D-230's *permanent, accepted-state* rationale, distinct from
+  this row's original *"too early, revisit later"* reasoning — a pure record correction, no
+  Barış input needed). §2's SÜREÇ walkthrough (clean-account Gatekeeper/SmartScreen behavior) is
+  the usual class of gap this environment cannot close (no display/Tauri runtime, no clean
+  macOS/Windows account) — recorded as owed from Barış's own account, same as P-12, which this
+  session does **not** close either (a real Farplas machine is still needed for that). `npm test`/
+  `npm run lint`/`npx tsc --noEmit`/`npm run build` all re-run and green (unchanged counts — this
+  session's only production-file touch is the one `shortDescription` line in `tauri.conf.json`,
+  confirmed via `git status`). Not merged to main — sits on its own branch pending Barış's review
+  of the LICENSE/publisher decision and the other five parallel dilims' own branches.
 Templates: two company .xls files analysed; see reference/TEMPLATE_ANALYSIS.md
 Template geometry: VERIFIED 2026-08-01 against both .xls files. Five errors found and
   corrected in place — the largest was the column widths: the real split is 49.7/50.3, NOT
