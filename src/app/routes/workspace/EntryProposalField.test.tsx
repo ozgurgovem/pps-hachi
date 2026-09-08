@@ -10,7 +10,7 @@ import { EntryProposalField } from "./EntryProposalField";
 import * as entryProposal from "./entryProposal";
 
 // `getMethodById` (not the raw `paretoMethod` export) so `plugin` is the
-// same `ErasedMethodPlugin` shape `EntryEditorDialog` actually passes —
+// same `ErasedMethodPlugin` shape `EntryEditorPanel` actually passes —
 // `MethodPlugin<ParetoPayload>` isn't assignable to it under
 // `exactOptionalPropertyTypes` (D-135's own registry-erasure precedent).
 const paretoPlugin = (() => {

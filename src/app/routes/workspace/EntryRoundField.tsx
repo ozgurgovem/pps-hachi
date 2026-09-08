@@ -16,7 +16,7 @@ interface EntryRoundFieldProps {
 
 /**
  * D-149(6d): opt-in tagging, not a required field — most entries never
- * belong to a round. Rendered by `EntryEditorDialog` only when at least one
+ * belong to a round. Rendered by `EntryEditorPanel` only when at least one
  * round exists (an empty list would offer nothing but a confusing "no
  * round" option on every entry in the project).
  */

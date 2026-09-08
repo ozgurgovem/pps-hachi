@@ -61,14 +61,14 @@ async function addEntry(user: ReturnType<typeof userEvent.setup>, methodName: st
   }
   const card = within(methodBand!).getByText(methodName).closest("div");
   await user.click(within(card!).getByRole("button", { name: "Add entry" }));
-  const dialog = await screen.findByRole("dialog");
-  await user.type(within(dialog).getByLabelText("Title"), title);
-  return dialog;
+  const panel = await screen.findByRole("group", { name: "New entry" });
+  await user.type(within(panel).getByLabelText("Title"), title);
+  return panel;
 }
 
-async function saveDialog(user: ReturnType<typeof userEvent.setup>, dialog: HTMLElement) {
-  await user.click(within(dialog).getByRole("button", { name: "Save" }));
-  await waitFor(() => expect(screen.queryByRole("dialog")).toBeFalsy());
+async function saveDialog(user: ReturnType<typeof userEvent.setup>, panel: HTMLElement) {
+  await user.click(within(panel).getByRole("button", { name: "Save" }));
+  await waitFor(() => expect(screen.queryByRole("group", { name: "New entry" })).toBeFalsy());
 }
 
 beforeEach(() => {

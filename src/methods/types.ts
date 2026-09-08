@@ -53,7 +53,7 @@ export interface MethodReferenceRole {
  * the picker needs a Tauri IPC round-trip (`useProjectStore`'s
  * `importEntryImage`) that `MethodEditorProps`'s pure `{payload, onChange}`
  * shape cannot express, so it lives in the generic shell
- * (`EntryImagesField`, beside the title field in `EntryEditorDialog`) and
+ * (`EntryImagesField`, beside the title field in `EntryEditorPanel`) and
  * writes `Entry.images[]` directly.
  *
  * `role` is `undefined` for a plain, unrolled, repeatable slot (Gemba's
@@ -127,7 +127,7 @@ export interface MethodPlugin<TPayload> {
    * J1/§2.4: the fourth application of D-125's "declare, don't render"
    * pattern (after `referenceRoles`/`imageSlots`/`tier`) — a method opts
    * into the generic "AI ile öner" trigger (`EntryProposalField`, beside
-   * the title field in `EntryEditorDialog`) by naming which prompt-library
+   * the title field in `EntryEditorPanel`) by naming which prompt-library
    * file version to use. The file itself lives at
    * `src/ai/prompts/{step}/{id}.{promptVersion}.md` (SPEC.md §8.7) — the
    * method never touches Vorion, JSON Schema conversion, or the Accept

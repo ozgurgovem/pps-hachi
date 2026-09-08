@@ -210,39 +210,51 @@ contrast, reduced-motion respected, light and dark themes.
 
 ### 2.2 Project workspace
 
-Three-region layout — the left rail described in earlier drafts of this section was replaced
-by a landing view + quick-jump strip (Workspace Yüzey Yenilemesi, W1, D-217/D-218, 2026-09-06):
+The left rail described in earlier drafts of this section was replaced by a landing view +
+quick-jump strip (W1, D-217/D-218, 2026-09-06); the step page itself was then rebuilt around
+an inline, modal-free editor and a step-scoped AI column, and the old always-present right
+panel was retired entirely (W2, D-217, 2026-09-08):
 
 - **Landing view** (center column, shown when no step is selected — the default on opening a
   project): eight step cards, one per step. Each shows: number label, name, completion state
   (empty / complete / flagged — see D-196's readiness selector), a short purpose sentence, a
   short "how to enter" sentence, and entry count. Click a card to open that step's page;
   jumping to an empty step shows the same gentle advisory as before, not a warning.
-- **Step page's quick-jump strip** (center column, shown only while a step page is open, above
-  the step page itself): an "Overview" control back to the landing view, plus one chip per
-  step (number label + a shape glyph for its status) for jumping directly to any other step
-  without returning to the landing view first — the rail's one function it preserves, not its
+- **Step page's quick-jump strip** (shown only while a step page is open, above the step page
+  itself): an "Overview" control back to the landing view, plus one chip per step (number
+  label + a shape glyph for its status) for jumping directly to any other step without
+  returning to the landing view first — the rail's one function it preserves, not its
   persistent-column form.
-- **Center** — the active step page.
-- **Right panel** — collapsible, with two tabs:
-  - **A3 Preview** — live thumbnail with "expand to full preview", and a badge when the
-    current step's content overflows its cell budget.
-  - **Assistant** — the AI conversation for this project, scoped to the active step. Only
-    present when AI is configured and enabled (§8). When it is not, the panel shows the
-    Preview tab alone with no empty AI affordance.
+- **Top bar**: project title, undo/redo, save indicator, settings — plus, since W2, "Export
+  A3" and a small "Project tools" group (Traceability / Review / Audit / Translate), each
+  opening its own real, unchanged panel in a dialog. All four are whole-project, not scoped
+  to one step; Traceability needs no AI and stays available with AI off, the other three stay
+  gated on AI being enabled, exactly as they were as tabs.
+- **Center** — the active step page (see the four bands below).
+- **AI column** (only while a step page is open, and only when AI is enabled) — a dedicated,
+  collapsible chatbox scoped to the active step: an automatic guide card derived from that
+  step's own coaching content (never a model call), then the same accept/reject chat this app
+  has always had, with every outgoing prompt enriched with the step's coaching content and
+  available methods before it reaches the model.
 
-**Every step page has the same three bands:**
+**Every step page has the same four bands, in the same order:**
 
 1. **Coach band** (collapsible, remembers state per step): what this step is for, what
    "good" looks like, the two or three most common failure modes at this step, and a
    worked micro-example. Written in the app's voice — plain, specific, no filler. Content
    is data, stored in `src/content/coaching/{tr,en}/step-N.md`, not hardcoded in
    components.
-2. **Method band**: the method picker for this step. Cards showing method name, a
-   one-line "use this when…", and a small preview of its output shape. Selecting a method
-   opens its dedicated editor.
+2. **Method band**: the method picker for this step. Cards showing method name and a
+   one-line "use this when…". Selecting a method expands its editor inline, directly below
+   the card grid — no modal.
 3. **Entries band**: the list of entries the user has created for this step, reorderable
-   by drag, each with edit / duplicate / delete, and an A3 visibility control.
+   by drag, each with edit / duplicate / delete, and an A3 visibility control. Editing an
+   entry expands its editor inline, directly below that entry's own row — no modal, and
+   only one entry (or one new-entry draft) can be open at a time.
+4. **A3 block preview** (reserved as of W2 — the live, cropped-to-this-step view itself is
+   W3's own build): a full-width "A3 Preview" button opens the existing pop-out window
+   (D-133) showing the whole sheet, with its own zoom/pan and block-pin editing, until the
+   inline crop exists.
 
 ### 2.3 Multiple entries — the key requirement
 

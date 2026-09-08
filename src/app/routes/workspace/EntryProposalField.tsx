@@ -40,13 +40,13 @@ interface EntryProposalFieldProps {
   promptVersion: string;
   modelId: string;
   acceptedBy: string;
-  /** Faz 10/K4: `ai::usage`'s per-project log sidecar needs this — the open project's own id, passed down from `EntryEditorDialog`. */
+  /** Faz 10/K4: `ai::usage`'s per-project log sidecar needs this — the open project's own id, passed down from `EntryEditorPanel`. */
   projectId: string;
-  /** J2/D-205: already resolved by the caller (`EntryEditorDialog`) via `resolveRedactionPolicy` — this component never reads `project.meta.ai.redaction` directly. */
+  /** J2/D-205: already resolved by the caller (`EntryEditorPanel`) via `resolveRedactionPolicy` — this component never reads `project.meta.ai.redaction` directly. */
   redaction: ResolvedRedactionPolicy;
   /**
    * D-116/D-125's own posture, one field over: this component never
-   * dispatches a command itself — `EntryEditorDialog` decides what
+   * dispatches a command itself — `EntryEditorPanel` decides what
    * "accepting a draft" means for the mode it's in (an immediate discrete
    * update in edit mode, local create-mode state otherwise), the same
    * split `EntryReferenceField`'s `onChange` already draws.
@@ -63,7 +63,7 @@ type Phase =
 
 /**
  * J1/D-125's fourth "declare, don't render" generic-shell field — the
- * "AI ile öner" trigger next to `EntryEditorDialog`'s title field, only
+ * "AI ile öner" trigger next to `EntryEditorPanel`'s title field, only
  * rendered for a method declaring `MethodPlugin.aiProposal`. D-15's real
  * Accept/Edit&Accept/Reject triple (not D-201's collapsed single-textarea
  * pattern, per this dilim's own instruction): the draft is reviewed and

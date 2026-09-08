@@ -16,11 +16,12 @@ import { columnOffsetPx, columnWidthPx, rowHeightPx, rowOffsetPx } from "./gridG
  * already places `HtmlA3Renderer` in, using `gridGeometry.ts`'s own pixel
  * math (not CSS Grid tracks) to line up with the renderer's own cells.
  *
- * Callback-driven, not store/IPC-aware: `RightPanel` (which has direct
- * store access) and `A3PreviewWindow` (which does not, D-133 — it asks the
- * main window instead, via `requestBlockPin`) each supply their own
- * `onPinBlock`, so this component itself needs no knowledge of which
- * surface it's rendered in.
+ * Callback-driven, not store/IPC-aware: `A3PreviewWindow` (which has no
+ * store of its own, D-133 — it asks the main window instead, via
+ * `requestBlockPin`) supplies its own `onPinBlock`, so this component itself
+ * needs no knowledge of which surface it's rendered in. `ProjectToolsBar`'s
+ * `useA3PreviewSync` (W2/D-217, the direct-store-access side of that same
+ * request) is the only other caller of the same `handlePinBlock` shape.
  *
  * Screen mode only (Barış's own choice via `AskUserQuestion`) — print mode
  * is preview-only (D-34) and 1 pt = 1 px only holds in screen mode, so this
@@ -42,8 +43,9 @@ export interface BlockPinOverlayProps {
    * position for free — but `event.clientY` deltas arrive in unscaled
    * SCREEN pixels regardless of zoom, so a raw delta must be divided by
    * this factor before it means "sheet pixels" and can be converted to row
-   * counts. `RightPanel`'s own in-panel preview has no such ancestor
-   * transform, so it never passes this (default 1).
+   * counts. This overlay is only ever rendered inside `A3PreviewWindow` as of
+   * W2/D-217 (the old in-panel preview it also used to render inside is
+   * gone) — the default (1) exists only for a future non-scaled caller.
    */
   readonly dragScale?: number;
 }

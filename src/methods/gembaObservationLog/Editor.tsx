@@ -5,7 +5,7 @@ import type { GembaObservationLogPayload } from "./schema";
 
 /**
  * The `photos` slot itself is rendered by the generic `EntryImagesField`
- * shell (`EntryEditorDialog`, driven by `gembaObservationLogMethod.imageSlots`)
+ * shell (`EntryEditorPanel`, driven by `gembaObservationLogMethod.imageSlots`)
  * — this Editor only owns the four `payload` fields, same split D-118/D-193
  * establishes for every image-bearing method.
  */

@@ -3,11 +3,12 @@ import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
 import { cancelCompletion, completeStreaming, type CompletionMeta } from "../../../ai/completionIpc";
 import { buildAddEntryCommand } from "../../../domain/commands";
-import type { Provenance } from "../../../domain/model";
+import type { Provenance, StepId } from "../../../domain/model";
 import { GENERIC_TEXT_METHOD_ID } from "../../../methods/genericText";
 import { useProjectStore } from "../../../state";
 import { Button, Textarea } from "../../../ui";
 import { errorMessage } from "../launch/errorMessage";
+import { buildStepAssistantPrompt } from "./stepAiContext";
 
 /**
  * D-201/§8.7: this dilim's bare chat box has no schema, no step context and
@@ -38,16 +39,29 @@ type AssistantState =
     }
   | { readonly phase: "error"; readonly message: string };
 
+interface AssistantPanelProps {
+  /**
+   * W2/D-217/P-59: this panel now only ever mounts inside a step page's own
+   * `AssistantColumn` (`activeStepId` is never `null` there), so the step is
+   * a required prop rather than a store read — the old `activeStepId ===
+   * null` guard this component carried (for the landing view, where it used
+   * to live inside `RightPanel`) is no longer reachable and has been removed.
+   */
+  stepId: StepId;
+}
+
 /**
- * D-199 Q3 / §2.4: "no step context, no mode selector, no schema, no
- * persistent history" — free text in, streamed text out. D-15/D-16 still
- * apply in full: nothing reaches `ProjectModel` before an explicit Accept,
- * and the response is shown before it can be accepted, never auto-applied.
+ * D-199 Q3 / §2.4 (bare chat, D-201) plus P-59/D-218 (step-scoped, W2):
+ * still free text in, streamed text out, still no persistent history — but
+ * the outgoing prompt is now enriched with this step's coaching content and
+ * available methods (`buildStepAssistantPrompt`) before it ever reaches
+ * Vorion. D-15/D-16 still apply in full: nothing reaches `ProjectModel`
+ * before an explicit Accept, and the response is shown before it can be
+ * accepted, never auto-applied.
  */
-export function AssistantPanel() {
-  const { t } = useTranslation();
+export function AssistantPanel({ stepId }: AssistantPanelProps) {
+  const { t, i18n } = useTranslation();
   const project = useProjectStore((s) => s.project);
-  const activeStepId = useProjectStore((s) => s.activeStepId);
   const dispatch = useProjectStore((s) => s.dispatch);
 
   const [promptText, setPromptText] = useState("");
@@ -76,8 +90,11 @@ export function AssistantPanel() {
       cancelling: false,
     });
 
+    const language = i18n.language === "tr" ? "tr" : "en";
+    const enrichedPrompt = buildStepAssistantPrompt(stepId, language, t, trimmed);
+
     try {
-      const meta = await completeStreaming(trimmed, modelId, (event) => {
+      const meta = await completeStreaming(enrichedPrompt, modelId, (event) => {
         setState((prev) => {
           if (prev.phase !== "streaming") {
             return prev;
@@ -125,10 +142,10 @@ export function AssistantPanel() {
   }
 
   function handleAccept() {
-    if (state.phase !== "done" || !project || activeStepId === null) {
+    if (state.phase !== "done" || !project) {
       return;
     }
-    const step = project.steps[activeStepId];
+    const step = project.steps[stepId];
     const wasEdited = editedText !== state.originalText;
     const provenance: Provenance = {
       origin: wasEdited ? "ai-edited" : "ai-accepted",
@@ -142,7 +159,7 @@ export function AssistantPanel() {
       acceptedAt: new Date().toISOString(),
     };
     dispatch(
-      buildAddEntryCommand(step, activeStepId, {
+      buildAddEntryCommand(step, stepId, {
         methodId: GENERIC_TEXT_METHOD_ID,
         // The prompt becomes the title, the response becomes the body — the
         // entries list reads as a Q&A pair rather than a title that's just a
@@ -217,11 +234,8 @@ export function AssistantPanel() {
             onChange={(event) => setEditedText(event.target.value)}
             aria-label={t("workspace.assistant.responseLabel")}
           />
-          {activeStepId === null && (
-            <p className="font-body text-xs text-ink-muted">{t("workspace.assistant.noActiveStep")}</p>
-          )}
           <div className="flex gap-2">
-            <Button onClick={handleAccept} disabled={!editedText.trim() || activeStepId === null}>
+            <Button onClick={handleAccept} disabled={!editedText.trim()}>
               {t("workspace.assistant.accept")}
             </Button>
             <Button variant="ghost" onClick={handleReject}>

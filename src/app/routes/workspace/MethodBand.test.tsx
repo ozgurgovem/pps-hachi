@@ -16,7 +16,7 @@ vi.mock("../../../methods", async () => {
 /**
  * A minimal, schema-valid stand-in plugin — these tests only exercise
  * `MethodBand`'s own grouping/disclosure logic (D-169), never
- * `EntryEditorDialog` (never opened here), so the payload/Editor/renderToA3
+ * `EntryEditorPanel` (never opened here), so the payload/Editor/renderToA3
  * fields just need to satisfy `ErasedMethodPlugin`'s shape.
  */
 function plugin(id: string, nameKey: string, tier?: "recommended" | "more"): ErasedMethodPlugin {
@@ -44,7 +44,9 @@ const ACTION = plugin("action-item", "methods.actionItem.name", "more");
 const WEIGHTED = plugin("weighted-decision-matrix", "methods.weightedDecisionMatrix.name", undefined);
 
 function renderMethodBand() {
-  return render(<MethodBand stepId={1} />);
+  return render(
+    <MethodBand stepId={1} activeEditor={null} onStartCreate={() => {}} onCloseEditor={() => {}} />,
+  );
 }
 
 /** DOM-order check via `compareDocumentPosition`, robust against CSS/layout. */

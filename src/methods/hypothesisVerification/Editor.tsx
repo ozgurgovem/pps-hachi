@@ -4,7 +4,7 @@ import { HYPOTHESIS_VERIFICATION_COLUMNS } from "./columns";
 import type { HypothesisVerificationPayload } from "./schema";
 
 /**
- * The `pointOfCause` reference is **not** edited here. `EntryEditorDialog`
+ * The `pointOfCause` reference is **not** edited here. `EntryEditorPanel`
  * renders the generic picker from this plugin's `referenceRoles` (D-116), so
  * this Editor stays payload-only like every other one.
  */

@@ -182,15 +182,19 @@ bloğunun canlı-kırpılmış önizlemesi + aynı yerde AI desteği. **Kapsam b
 hızlı-atlama şeridi; (2) AI desteği yeni bir mekanizma değil — `EntryProposalField`/
 `EntryTranslateField` modal'dan sayfa-içine TAŞINIYOR; (3) canlı önizleme yeni bir renderer
 değil — gerçek `HtmlA3Renderer`/`A3LayoutDescriptor`'ın `TemplateBlock`'tan türetilen bir CSS
-viewport'una KIRPILMASI. `RightPanel`'in altı sekmesi DEĞİŞMİYOR (hepsi proje-geneli). Tam
-kayıt: D-217.
+viewport'una KIRPILMASI. `RightPanel`'in altı sekmesi DEĞİŞMİYOR (hepsi proje-geneli) —
+**W2'nin kendi Block Visual Verification Loop turunda Barış bu son kararı bilerek tersine
+çevirdi** (D-217 §2.4/D-228): `RightPanel`'in tamamı kaldırıldı, dört proje-geneli aracı
+(İzlenebilirlik/İnceleme/Denetim/Çeviri) `WorkspaceTopBar`'ın yeni "Proje araçları" grubuna,
+tam A3 önizlemesi (D-133'ün pop-out penceresi) bir düğmeye, Assistant ise kendi adıma-özel
+sütununa taşındı — bkz. D-228. Tam kayıt: D-217/D-228.
 
 | Dilim | Kapsam | Durum |
 |---|---|---|
 | Kapsam belirleme — üç mimari sorunun `AskUserQuestion` ile cevaplanması + üç dilimlik plan | `docs/oturumlar/W-kapsam-belirleme.md` | ✅ BİTTİ 2026-09-06 — D-217. |
 | W1 — İniş görünümü + navigasyon değişimi (rail kaldırılıyor, sekiz adım kartı, hızlı-atlama şeridi) | Tasarım: `docs/oturumlar/W1-adim-genel-bakis.md`. İnşa: `docs/oturumlar/W1-insa.md`. | ✅ TAM BİTTİ — tasarım (D-218, 4 tur) + kod (D-219, 2026-09-06). `activeStepId: StepId \| null`, `StepStepper` silindi, `StepOverview.tsx`/`StepQuickJump.tsx` yeni, `StepPage`'in başlığı locale-aware upper-case. |
-| W2 — Adım sayfasının kendisi: `EntryEditorDialog`'un modal'dan sayfa-içi bir düzenleme alanına dönüşümü + adım-özel AI destek chatbox'ı (P-59, D-218'de Barış'tan gelen yeni bir istek — mevcut Assistant sohbetinin adım-bağlamlı uzantısı) | `docs/oturumlar/W2-adim-sayfasi.md` | Launch prompt'u bu oturumun kapanışında yazıldı (D-219), henüz başlanmadı. |
-| W3 — Canlı, adıma-kırpılmış A3 önizlemesi (`buildProjectA3Layout`'un yeniden kullanımı, performans ölçümü) | *(W1/W2'den sonra yazılacak)* | Henüz yazılmadı. |
+| W2 — Adım sayfasının kendisi: `EntryEditorDialog`'un modal'dan sayfa-içi (accordion) bir düzenleme alanına dönüşümü + adım-özel AI destek sütunu (P-59) + `RightPanel`'in tamamen kaldırılıp dört aracın üst şeride taşınması | `docs/oturumlar/W2-adim-sayfasi.md` | ✅ TAM BİTTİ — tasarım (D-228, iki `AskUserQuestion` turu + iki maket revizyonu) + kod, 2026-09-08. |
+| W3 — Canlı, adıma-kırpılmış A3 önizlemesi (`A3PreviewReservedBand`'ın kendi yer tutucusunu gerçek bir kırpılmış `HtmlA3Renderer` görünümüyle doldurması, performans ölçümü) | `docs/oturumlar/W3-canli-onizleme.md` | Launch prompt'u W2'nin kapanışında yazıldı (D-228), henüz başlanmadı. |
 
 ## Faz 11 — `SPEC.md` §6'nın kendi sıradaki fazı: kalan şablonlar + template switching + `BenefitCase`
 
@@ -417,6 +421,52 @@ kayıt: `DECISIONS.md` D-227/P-64.
 **Faz 11'in üç dilimlik planı (D-223) artık TAMAMEN kapandı (L1+L2+L3a+L3b).** Sıradaki iş
 Barış'ın kendi tercihine göre — örn. **W2-adim-sayfasi.md** (Workspace Yüzey Yenilemesi'nin
 ikinci dilimi) — Faz 11'den bağımsız.
+
+**Workspace Yüzey Yenilemesi — W2 TAMAMEN BİTTİ (D-228, 2026-09-08) — W1+W2 artık ikisi de
+tamam, yalnızca W3 kalıyor.** `W2-adim-sayfasi.md`'nin kendi §0'ı gerçek koda karşı doğrulandı,
+uyuşmadı. İki `AskUserQuestion` turu, ikisi de Barış'ın kendi seçimi: (1) yerleşim — modal
+yerine **genişleyen satır (accordion)**, iki-sütun ya da sabit-bant seçenekleri değil; (2) AI
+desteği — mevcut `AssistantPanel`'in RightPanel'den **tamamen taşınması**, ikinci bir panel
+eklenmesi ya da yerinde bağlam-enjeksiyonu değil. Onay öncesi mockup turunda Barış **iki kez**
+kararı bilerek genişletti — önce "AI sağda chatbox, A3 önizlemesi aşağıda geniş pencerede"
+diyerek AI'yi tekrar ayrı bir sütuna taşıttı (ilk maket onu ana sütuna gömmüştü), sonra "sağdaki
+İzlenebilirlik/İnceleme/Denetim/Çeviri sekmeleri ne işe yarıyor, hepsini kaldırıp üst şeride
+düğme yapalım" diyerek **`RightPanel`'in tamamının kaldırılmasını** istedi — ikisi de ayrı
+mockup revizyonlarıyla somutlaştırılıp onaylandı.
+**Gerçek mimari**: `EntryEditorDialog` silindi, yerine `EntryEditorPanel` (aynı D-84
+create/edit ayrımı, `DialogRoot`/`DialogContent` kabuğu yok) — `StepPage` tek bir
+`ActiveEditor` slotu tutuyor (`activeEditor.ts`), `MethodBand`/`EntriesBand`'e prop olarak
+akıyor, `key={activeStepId}` ile her adım değişiminde sıfırlanıyor. Yeni `AssistantColumn`
+(adım sayfasının kendi sağ sütunu, `RightPanel`'in "Asistan" sekmesinin YERİNE) — otomatik bir
+rehber kartı (`CoachBand`'in AYNI coaching içeriği, yeni paylaşılan `CoachingBlocks.tsx`
+üzerinden, hiçbir model çağrısı yok) + `AssistantPanel` (artık store'dan `activeStepId` okumak
+yerine zorunlu bir `stepId` prop'u alıyor, `activeStepId === null` guard'ı tamamen kalktı) +
+her giden prompt'u bu adımın coaching içeriği + yöntem listesiyle otomatik zenginleştiren yeni
+`stepAiContext.ts`. `RightPanel.tsx` TAMAMEN silindi — yerine: yeni `useA3PreviewSync.ts`
+(descriptor build/push/ready-handshake/pin-forwarding, eskiden RightPanel'in içindeydi, şimdi
+bağımsız bir hook), yeni `ProjectToolsBar.tsx` (`WorkspaceTopBar`'a eklendi — "A3'ü dışa aktar"
++ İzlenebilirlik her zaman görünür — AI kapalıyken bile çalışması gerektiği için — İnceleme/
+Denetim/Çeviri `aiEnabled`'a bağlı, dördü de kendi GERÇEK, değişmemiş bileşenini bir dialog'da
+açıyor), yeni `A3PreviewReservedBand.tsx` (adım sayfasının en altında, W3'ün gerçek kırpılmış
+önizlemesi için yer tutucu + mevcut pop-out pencereyi açan bir "A3 Önizleme" düğmesi — Anasayfa'nın
+kendi düğmesiyle AYNI i18n key'i, D-114'ün "aynı eylem aynı isim" ilkesi). i18n:
+`workspace.rightPanel.*`'nin proje-araçlarına ait kısmı (export/traceability/review/audit/
+translate) yeni `workspace.projectTools.*` ad alanına taşındı (kod-içi anahtar, görünen metin
+değişmedi); `openInNewWindow`/`preview`/`assistant`/`previewStub`/`previewLoading`/
+`previewError`/`assistant.noActiveStep` ölü anahtarlar olarak silindi; yeni
+`workspace.assistant.columnTitle`/`guideEyebrow`, `workspace.stepPreview.*` eklendi.
+`WorkspaceScreen.test.tsx`/`entryReferences.integration.test.tsx`'in kendi `dialog` sorguları
+`role="group"`/`aria-label` (Girişi düzenle / New entry) sorgularına çevrildi — modal'ın
+"bir seferde bir şey" disiplinini artık bir ARIA rolü değil, `StepPage`'in tek `ActiveEditor`
+state'i garanti ediyor. `npm test` 1537/1537 (304 dosya, 300'den +5 yeni dosya −1 silinen
+`RightPanel.test.tsx`), exit code ayrıca kontrol edildi (D-143). `npm run lint`/`npx tsc
+--noEmit`/`npm run build` temiz. `cargo test`/`clippy`/`fmt` temiz — bu dilim Rust'a hiç
+dokunmadı (TS/React-only, `git status src-tauri/` boş). `scripts/gen-a3-fixture.ts` yeniden
+çalıştırılmadı — bu dilim `src/a3/`'de yalnızca iki yorum-satırı düzeltmesi yaptı (gerçek kod
+değişmedi, diff ile doğrulandı). **Dürüst-doğrulanmamış boşluk, her zamanki sınıf**: bu
+ortamda ekran/Tauri runtime yok — gerçek bir WKWebView'da accordion'un açılıp kapanması, AI
+sütununun sığması, üst şeritteki dialog'ların gerçekten açılması hiç denenmedi. W3'ün kendi
+launch prompt'u yazıldı: `docs/oturumlar/W3-canli-onizleme.md`.
 
 ## Prompt yazarken
 

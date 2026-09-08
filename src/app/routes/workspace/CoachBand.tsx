@@ -4,6 +4,7 @@ import type { StepId } from "../../../domain/model";
 import { Button } from "../../../ui";
 import { getCoachingMarkdown } from "./coachContent";
 import { parseCoachingMarkdown } from "./coachingMarkdown";
+import { CoachingBlocks } from "./CoachingBlocks";
 
 interface CoachBandProps {
   stepId: StepId;
@@ -34,32 +35,7 @@ export function CoachBand({ stepId }: CoachBandProps) {
       </Button>
       {isOpen && (
         <div className="mt-3 flex flex-col gap-3">
-          {blocks.map((block, index) => {
-            if (block.type === "heading") {
-              return (
-                <h3
-                  key={index}
-                  className="font-display text-xs font-semibold uppercase tracking-wide text-ink"
-                >
-                  {block.text}
-                </h3>
-              );
-            }
-            if (block.type === "list") {
-              return (
-                <ul key={index} className="list-disc pl-5 font-body text-sm text-ink-muted">
-                  {block.items.map((item, itemIndex) => (
-                    <li key={itemIndex}>{item}</li>
-                  ))}
-                </ul>
-              );
-            }
-            return (
-              <p key={index} className="font-body text-sm text-ink-muted">
-                {block.text}
-              </p>
-            );
-          })}
+          <CoachingBlocks blocks={blocks} />
         </div>
       )}
     </section>

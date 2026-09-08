@@ -17,6 +17,8 @@ export interface EntryRowProps {
   entry: Entry;
   /** `undefined` when this build doesn't recognize `entry.methodId` — P-05's UI half. */
   plugin: ErasedMethodPlugin | undefined;
+  /** W2/D-217 §2.1: true while this row's own accordion editor is open below it — a visual echo of the old modal's focus. */
+  isEditing: boolean;
   /** D-149(6d): the entry's round ordinal ("Tur N"), precomputed by the caller — `undefined` when untagged. */
   roundOrdinal?: number | undefined;
   readOnly: boolean;
@@ -40,6 +42,7 @@ export interface EntryRowProps {
 export function EntryRow({
   entry,
   plugin,
+  isEditing,
   roundOrdinal,
   readOnly,
   canMoveUp,
@@ -58,7 +61,7 @@ export function EntryRow({
     <div
       className={cn(
         "flex flex-col gap-2 rounded-control border bg-surface p-3",
-        isUnknown ? "border-dashed border-border" : "border-border",
+        isEditing ? "border-accent" : isUnknown ? "border-dashed border-border" : "border-border",
       )}
     >
       <div className="flex items-start justify-between gap-3">

@@ -136,6 +136,11 @@
       "summary": "{{complete}} / 8 tamamlandı, {{flagged}} devam ediyor",
       "openA3Preview": "A3 Önizleme"
     },
+    "stepPreview": {
+      "title": "A3 blok önizlemesi — bu adımın alanı",
+      "comingSoonBadge": "Yakında",
+      "comingSoonBody": "Bu adımın kendi A3 bloğu burada, gerçek dışa aktarımın canlı, kırpılmış bir görünümü olarak yer alacak — ikinci bir çizim değil, ona açılan bir pencere. O zamana kadar tüm sayfayı görmek için A3 Önizleme'yi kullanın."
+    },
     "quickJump": {
       "backToOverview": "İniş",
       "backToOverviewAriaLabel": "İniş görünümüne dön"
@@ -165,21 +170,18 @@
     "rightPanel": {
       "collapse": "Paneli daralt",
       "expand": "Paneli genişlet",
-      "openInNewWindow": "Yeni pencerede aç",
-      "preview": "Önizleme",
+      "screenMode": "Ekran",
+      "printMode": "Baskı"
+    },
+    "projectTools": {
+      "groupLabel": "Proje araçları",
       "traceability": "İzlenebilirlik",
-      "assistant": "Asistan",
       "review": "İnceleme",
       "audit": "Denetim",
       "translate": "Çeviri",
-      "previewStub": "A3 önizlemesi, dışa aktarıcı Faz 4'te gelince burada görünecek.",
-      "screenMode": "Ekran",
-      "printMode": "Baskı",
       "export": "A3'ü dışa aktar",
       "exporting": "Dışa aktarılıyor…",
-      "exportDialogTitle": "A3'ü Excel olarak dışa aktar",
-      "previewError": "Bu proje için A3 önizlemesi oluşturulamadı.",
-      "previewLoading": "A3 önizlemesi hazırlanıyor…"
+      "exportDialogTitle": "A3'ü Excel olarak dışa aktar"
     },
     "blockPin": {
       "handleLabel": "ADIM {{step}}'in alanını yeniden boyutlandır",
@@ -190,9 +192,10 @@
       "resetAriaLabel": "ADIM {{step}}'i otomatik boyutlandırmaya döndür"
     },
     "assistant": {
+      "columnTitle": "AI Desteği",
+      "guideEyebrow": "Bu adım için rehber",
       "noModelConfigured": "Bu proje için henüz bir model seçilmedi.",
       "goToSettings": "Ayarlara git",
-      "noActiveStep": "Bu yanıtı bir adıma eklemek için önce iniş görünümünden bir adım seçin.",
       "promptLabel": "Asistana sor",
       "promptPlaceholder": "Bir soru sor…",
       "send": "Gönder",

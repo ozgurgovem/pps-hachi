@@ -2,6 +2,7 @@ import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
 import { selectCanRedo, selectCanUndo, useProjectStore } from "../../../state";
 import { Button } from "../../../ui";
+import { ProjectToolsBar } from "./ProjectToolsBar";
 import { SaveIndicator } from "./SaveIndicator";
 
 export function WorkspaceTopBar() {
@@ -21,6 +22,7 @@ export function WorkspaceTopBar() {
         <h1 className="font-display text-sm font-semibold text-ink">{title}</h1>
       </div>
       <div className="flex items-center gap-3">
+        <ProjectToolsBar />
         <Button variant="ghost" size="sm" onClick={undo} disabled={!canUndo}>
           {t("workspace.undo")}
         </Button>

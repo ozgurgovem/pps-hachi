@@ -42,10 +42,12 @@ function entryLabel(lookup: ReadonlyMap<string, EntryLookupEntry>, entryId: stri
 
 /**
  * Faz 10/K3/§2.2/§2.4: the whole-report translation mode, self-contained in
- * its own `RightPanel` tab per Barış's own choice — unlike D-213's own
- * suggested split (a Settings trigger + a shared review surface), this tab
- * holds both the "Translate whole report" trigger and the resulting diff,
- * matching the Review/Audit tabs' own self-contained shape exactly. §2.5
+ * its own `RightPanel` tab per Barış's own choice (now opened as a dialog
+ * from `ProjectToolsBar`, W2/D-217 — the component itself is unchanged) —
+ * unlike D-213's own suggested split (a Settings trigger + a shared review
+ * surface), this holds both the "Translate whole report" trigger and the
+ * resulting diff, matching the Review/Audit surfaces' own self-contained
+ * shape exactly. §2.5
  * LOCKED (D-213): accepting a line never touches `project.meta.language` —
  * it only rewrites the entry's own title/payload field, the same way K1's
  * `LayoutReviewPanel` never touches anything beyond the entry it changes.

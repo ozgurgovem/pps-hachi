@@ -19,10 +19,10 @@ interface EntryTranslateFieldProps {
   sourceLanguage: ReportLanguage;
   modelId: string;
   acceptedBy: string;
-  /** Faz 10/K4: `ai::usage`'s per-project log sidecar needs this — the open project's own id, passed down from `EntryEditorDialog`. */
+  /** Faz 10/K4: `ai::usage`'s per-project log sidecar needs this — the open project's own id, passed down from `EntryEditorPanel`. */
   projectId: string;
   redaction: ResolvedRedactionPolicy;
-  /** Same split as `EntryProposalField.onAccept` (D-125/D-116) — this component never dispatches a command itself, `EntryEditorDialog` decides what accepting a translation means for the mode it's in. */
+  /** Same split as `EntryProposalField.onAccept` (D-125/D-116) — this component never dispatches a command itself, `EntryEditorPanel` decides what accepting a translation means for the mode it's in. */
   onAccept: (nextTitle: string, nextPayload: unknown, provenance: Provenance) => void;
 }
 

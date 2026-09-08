@@ -19,9 +19,10 @@ type Phase =
   | { readonly phase: "error"; readonly message: string };
 
 /**
- * Faz 10/K2/§2.1-§2.2: the mock-auditor findings list — a permanent 5th
- * `RightPanel` tab, `aiEnabled`-gated exactly like Preview/Traceability/
- * Assistant/Review. Structurally different from `LayoutReviewPanel`
+ * Faz 10/K2/§2.1-§2.2: the mock-auditor findings list — originally a
+ * permanent 5th `RightPanel` tab, `aiEnabled`-gated exactly like Review;
+ * opened as a dialog from `ProjectToolsBar` since W2/D-217, unchanged
+ * itself. Structurally different from `LayoutReviewPanel`
  * (K1): a finding is never applied to `ProjectModel` (§2.1 — D-15's "human
  * accepts" rule is trivially satisfied here because there is no write path
  * at all, not because of an Accept gate), so there is no checkbox, no Apply

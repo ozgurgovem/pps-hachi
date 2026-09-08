@@ -5,7 +5,7 @@ import { buildAddEntryCommand, buildUpdateEntryCommand } from "../../../domain/c
 import { resolveRedactionPolicy } from "../../../ai/redaction";
 import type { ErasedMethodPlugin } from "../../../methods";
 import { useProjectStore } from "../../../state";
-import { Button, DialogClose, DialogContent, DialogRoot, Input, Label } from "../../../ui";
+import { Button, Input, Label } from "../../../ui";
 import { EntryImagesField } from "./EntryImagesField";
 import { EntryProposalField } from "./EntryProposalField";
 import { EntryReferenceField } from "./EntryReferenceField";
@@ -25,29 +25,38 @@ export type EntryEditorMode =
     };
 
 /**
- * D-149(6d)/D-58: rounds iterate the step 4-7 analysis loop ("step-7 failure
- * → step-4 loop history", SPEC.md §4.2) — the picker only offers tagging on
+ * D-149(6d): rounds iterate the step 4-7 analysis loop ("step-7 failure →
+ * step-4 loop history", SPEC.md §4.2) — the picker only offers tagging on
  * the steps a round actually spans, so it doesn't show up as a confusing,
  * always-irrelevant control on Steps 1-3/8.
  */
 const ROUND_TAGGABLE_STEPS: readonly StepId[] = [4, 5, 6, 7];
 
-interface EntryEditorDialogProps {
+interface EntryEditorPanelProps {
   stepId: StepId;
   plugin: ErasedMethodPlugin;
   mode: EntryEditorMode;
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
+  onClose: () => void;
 }
 
 /**
+ * W2/D-217 §2.1: the accordion's inline editor — everything the old, now-
+ * deleted `EntryEditorDialog` used to be, minus the `DialogRoot`/
+ * `DialogContent` shell. `StepPage` owns the one `ActiveEditor` slot (D-84's
+ * "one thing at a time" discipline, now enforced by only ever mounting one
+ * of these at once, not by a modal) and `MethodBand`/`EntriesBand` render
+ * this directly inline — below the method-card grid for a create, below the
+ * entry's own row for an edit.
+ *
  * D-84: editing an existing entry dispatches on every keystroke through
  * `dispatchCoalescedUpdate` — there is no "Save" button for edit mode, the
  * store already reflects whatever is on screen. Creating a new entry has
  * nothing to dispatch against yet, so it stays local state behind an
- * explicit "Save" that fires one `entry.insert` command.
+ * explicit "Save" that fires one `entry.insert` command. Behavior here is
+ * byte-for-byte the same as `EntryEditorDialog`'s was — only the container
+ * changed.
  */
-export function EntryEditorDialog({ stepId, plugin, mode, open, onOpenChange }: EntryEditorDialogProps) {
+export function EntryEditorPanel({ stepId, plugin, mode, onClose }: EntryEditorPanelProps) {
   const { t } = useTranslation();
   const project = useProjectStore((s) => s.project);
   const dispatch = useProjectStore((s) => s.dispatch);
@@ -217,108 +226,96 @@ export function EntryEditorDialog({ stepId, plugin, mode, open, onOpenChange }: 
         provenance: createProvenance,
       });
       dispatch(command);
-      setCreateTitle("");
-      setCreatePayload(plugin.createEmptyPayload());
-      setCreateReferences([]);
-      setCreateRoundId(undefined);
-      setCreateImages([]);
-      setCreateProvenance(undefined);
     }
-    onOpenChange(false);
+    onClose();
   }
 
-  function handleClose(nextOpen: boolean) {
-    if (!nextOpen) {
-      sealTextEditCoalescing();
-    }
-    onOpenChange(nextOpen);
+  function handleCancel() {
+    sealTextEditCoalescing();
+    onClose();
   }
 
   const Editor = plugin.Editor;
 
   return (
-    <DialogRoot open={open} onOpenChange={handleClose}>
-      <DialogContent
-        title={isEdit ? t("workspace.entryDialog.editTitle") : t("workspace.entryDialog.createTitle")}
-      >
-        <div className="flex flex-col gap-4">
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="entry-title">{t("workspace.entryDialog.titleFieldLabel")}</Label>
-            <Input
-              id="entry-title"
-              value={title}
-              placeholder={t("workspace.entryDialog.titlePlaceholder")}
-              onChange={(event) => handleTitleChange(event.target.value)}
-              onBlur={sealTextEditCoalescing}
-            />
-          </div>
+    <section
+      role="group"
+      aria-label={isEdit ? t("workspace.entryDialog.editTitle") : t("workspace.entryDialog.createTitle")}
+      className="flex flex-col gap-4 rounded-control border border-accent bg-surface p-4"
+    >
+      <div className="flex flex-col gap-1.5">
+        <Label htmlFor="entry-title">{t("workspace.entryDialog.titleFieldLabel")}</Label>
+        <Input
+          id="entry-title"
+          value={title}
+          placeholder={t("workspace.entryDialog.titlePlaceholder")}
+          onChange={(event) => handleTitleChange(event.target.value)}
+          onBlur={sealTextEditCoalescing}
+        />
+      </div>
 
-          {project && plugin.aiProposal && project.meta.ai.modelId && (
-            <EntryProposalField
-              stepId={stepId}
-              plugin={plugin}
-              promptVersion={plugin.aiProposal.promptVersion}
-              modelId={project.meta.ai.modelId}
-              acceptedBy={project.meta.owner.name}
-              projectId={project.id}
-              redaction={resolveRedactionPolicy(project.meta.ai.redaction)}
-              onAccept={handleAcceptProposal}
-            />
-          )}
+      {project && plugin.aiProposal && project.meta.ai.modelId && (
+        <EntryProposalField
+          stepId={stepId}
+          plugin={plugin}
+          promptVersion={plugin.aiProposal.promptVersion}
+          modelId={project.meta.ai.modelId}
+          acceptedBy={project.meta.owner.name}
+          projectId={project.id}
+          redaction={resolveRedactionPolicy(project.meta.ai.redaction)}
+          onAccept={handleAcceptProposal}
+        />
+      )}
 
-          {/* Faz 10/K3/§2.1: unconditional — unlike `EntryProposalField`,
-              translating an entry needs no method-specific prompt file, so
-              this renders for every method whenever AI is configured. */}
-          {project && project.meta.ai.modelId && (
-            <EntryTranslateField
-              plugin={plugin}
-              title={title}
-              payload={payload}
-              sourceLanguage={project.meta.language}
-              modelId={project.meta.ai.modelId}
-              acceptedBy={project.meta.owner.name}
-              projectId={project.id}
-              redaction={resolveRedactionPolicy(project.meta.ai.redaction)}
-              onAccept={handleAcceptTranslation}
-            />
-          )}
+      {/* Faz 10/K3/§2.1: unconditional — unlike `EntryProposalField`,
+          translating an entry needs no method-specific prompt file, so
+          this renders for every method whenever AI is configured. */}
+      {project && project.meta.ai.modelId && (
+        <EntryTranslateField
+          plugin={plugin}
+          title={title}
+          payload={payload}
+          sourceLanguage={project.meta.language}
+          modelId={project.meta.ai.modelId}
+          acceptedBy={project.meta.owner.name}
+          projectId={project.id}
+          redaction={resolveRedactionPolicy(project.meta.ai.redaction)}
+          onAccept={handleAcceptTranslation}
+        />
+      )}
 
-          <Editor payload={payload} onChange={handlePayloadChange} />
+      <Editor payload={payload} onChange={handlePayloadChange} />
 
-          {project && project.rounds.length > 0 && ROUND_TAGGABLE_STEPS.includes(stepId) && (
-            <EntryRoundField rounds={project.rounds} value={roundId} onChange={handleRoundChange} />
-          )}
+      {project && project.rounds.length > 0 && ROUND_TAGGABLE_STEPS.includes(stepId) && (
+        <EntryRoundField rounds={project.rounds} value={roundId} onChange={handleRoundChange} />
+      )}
 
-          {plugin.imageSlots && plugin.imageSlots.length > 0 && (
-            <EntryImagesField slots={plugin.imageSlots} images={images} onChange={handleImagesChange} />
-          )}
+      {plugin.imageSlots && plugin.imageSlots.length > 0 && (
+        <EntryImagesField slots={plugin.imageSlots} images={images} onChange={handleImagesChange} />
+      )}
 
-          {project &&
-            plugin.referenceRoles?.map((role) => (
-              <EntryReferenceField
-                key={role.role}
-                project={project}
-                role={role}
-                references={references}
-                onChange={handleReferencesChange}
-                currentEntryId={mode.kind === "edit" ? mode.entryId : undefined}
-              />
-            ))}
+      {project &&
+        plugin.referenceRoles?.map((role) => (
+          <EntryReferenceField
+            key={role.role}
+            project={project}
+            role={role}
+            references={references}
+            onChange={handleReferencesChange}
+            currentEntryId={mode.kind === "edit" ? mode.entryId : undefined}
+          />
+        ))}
 
-          <div className="flex justify-end gap-2">
-            <DialogClose asChild>
-              <Button variant="secondary">
-                {isEdit ? t("workspace.entryDialog.close") : t("workspace.entryDialog.cancel")}
-              </Button>
-            </DialogClose>
-            {!isEdit && (
-              <Button onClick={handleSave} disabled={createTitle.trim().length === 0}>
-                {t("workspace.entryDialog.save")}
-              </Button>
-            )}
-          </div>
-        </div>
-      </DialogContent>
-    </DialogRoot>
+      <div className="flex justify-end gap-2">
+        <Button variant="secondary" onClick={handleCancel}>
+          {isEdit ? t("workspace.entryDialog.close") : t("workspace.entryDialog.cancel")}
+        </Button>
+        {!isEdit && (
+          <Button onClick={handleSave} disabled={createTitle.trim().length === 0}>
+            {t("workspace.entryDialog.save")}
+          </Button>
+        )}
+      </div>
+    </section>
   );
 }

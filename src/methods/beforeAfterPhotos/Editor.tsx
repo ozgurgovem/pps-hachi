@@ -5,7 +5,7 @@ import type { BeforeAfterPhotosPayload } from "./schema";
 /**
  * All of this method's real content lives outside `payload` — the entry's
  * own title (the caption) and the two role-tagged photos, rendered by the
- * generic `EntryImagesField` shell (`EntryEditorDialog`, driven by
+ * generic `EntryImagesField` shell (`EntryEditorPanel`, driven by
  * `beforeAfterPhotosMethod.imageSlots`). This `Editor` has nothing of its
  * own to edit, so it renders a hint rather than an empty box.
  */

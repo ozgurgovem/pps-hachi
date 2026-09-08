@@ -1912,6 +1912,90 @@ AI layer: Faz 8 fully done (keychain + Vorion connection/model-discovery + strea
   runtime in this environment — a real mouse drag in a real Tauri window, and a real pop-out
   window's own zoom interacting with a real drag, were never tried; Barış's own `npm run tauri
   dev` walkthrough is still owed.
+**Workspace Yüzey Yenilemesi — W2 (the step page itself): FULLY DONE (D-228, 2026-09-08) — W1+W2
+  are both done now, only W3 remains of D-217's three-slice plan.** `W2-adim-sayfasi.md`'s own §0
+  pre-scan matched real code exactly. Two `AskUserQuestion` rounds, both Barış's own pick (no
+  recommendation offered, per the prompt's own rule): (1) layout — modal to inline, **accordion**
+  (expanding row) over a two-column split or a fixed always-visible band; (2) AI support — the
+  existing `AssistantPanel` **moves out of `RightPanel` entirely** into its own column, not a
+  second panel or in-place context injection. Before any component code, a Block Visual
+  Verification Loop round (D-165/D-171/W1's own precedent) with real Step 4 content (Fishbone/
+  5-Why) went through **three** revisions, not one: TUR 1 mocked the AI support as a band inside
+  the main column (faithful to the literal wording of decision (2), but not what Barış actually
+  wanted); TUR 2, after Barış said "AI on the right as a chatbox, A3 preview below in a wide
+  window, like the mockup from an earlier session" — the AI column moved out to its own sidebar,
+  and a reserved, badged "A3 block preview" band was added at the bottom of the main column for
+  W3; TUR 3, after Barış asked "what do Traceability/Review/Audit/Translate even do, let's remove
+  that whole panel and make them buttons on the top bar" — this **reopened and reversed** a LOCKED
+  call from the scope-defining session (W-kapsam-belirleme.md §2.4: "none of RightPanel's six tabs
+  change"). Rather than silently comply or refuse, three concrete frictions were laid out in prose
+  first (Traceability needs no AI and must keep working with AI off; Review/Audit/Translate aren't
+  one-shot answers, they have real checkbox/jump-to-step UIs; Translate doesn't actually flip the
+  whole report's language in one click) and Barış picked, from three concrete options, moving all
+  four to a new "Project tools" group on the top bar. Every round republished to the same artifact
+  URL (D-165's "artifact is disposable, docs are the record" discipline).
+  **Real architecture**: `EntryEditorDialog` deleted, replaced by `EntryEditorPanel` — D-84's
+  create/edit split (coalescing vs. one `Save`) preserved byte-for-byte, only the
+  `DialogRoot`/`DialogContent` shell is gone; the root element is now `role="group"` +
+  `aria-label` ("New entry"/"Edit entry"), so tests query `screen.findByRole("group", {name})`
+  instead of `"dialog"`. New `activeEditor.ts` (`ActiveEditor = {kind:"create",plugin} |
+  {kind:"edit",entryId} | null`) lives as one `useState` inside `StepPage` (the modal's "one thing
+  at a time" discipline is now enforced by this single slot, not an ARIA role), flows down to
+  `MethodBand`/`EntriesBand` as props; `WorkspaceShell` renders `<StepPage key={activeStepId}
+  .../>` so React's own remount clears it on step change, no manual reset effect needed.
+  `MethodCard`/`EntryRow` each gained an `isActive`/`isEditing` prop (an accent border, D-49's
+  existing token, no new color).
+  New `AssistantColumn.tsx` — the step page's own right-hand sidebar, replacing `RightPanel`'s old
+  "Assistant" tab: an `AssistantGuideCard` (the step's own coaching content verbatim — not a
+  hand-picked excerpt, D-218's "never independently AI-generated" rule met without inventing a
+  section-picking heuristic; moved into a new shared `CoachingBlocks.tsx` that `CoachBand` now also
+  uses, G2) above the unchanged `AssistantPanel`. `AssistantPanel` no longer reads `activeStepId`
+  from the store — it takes a required `stepId` prop (it only ever mounts inside a step page now),
+  and the `activeStepId === null` guard plus `workspace.assistant.noActiveStep` are gone entirely.
+  New `stepAiContext.ts`'s `buildStepAssistantPrompt` enriches every outgoing prompt with the
+  step's coaching content plus `getMethodsForStep`'s real `nameKey`/`useWhenKey` pairs —
+  deliberately not a runtime Zod-schema introspection (fragile across schema shapes/zod versions),
+  a method's own localized name/description standing in for "what this method needs" instead (a
+  narrowing of D-218's "method schema" wording, decided directly, Anayasa Madde 9).
+  `RightPanel.tsx` is DELETED entirely. In its place: new `useA3PreviewSync.ts` (the descriptor
+  build/push/ready-handshake/pin-forwarding logic, extracted verbatim out of `RightPanel`, now a
+  standalone hook); new `ProjectToolsBar.tsx` (inside `WorkspaceTopBar`) — "Export A3" +
+  Traceability (always visible, no `aiEnabled` gate — it needs no AI at all, and losing it when
+  AI is off would break "the app is fully functional with AI off") + Review/Audit/Translate
+  (`aiEnabled`-gated, same gate `RightPanel` had), each opening its own real, unchanged component
+  in a dialog (not a tab, since none of the four is a one-shot text answer); new
+  `A3PreviewReservedBand.tsx` at the bottom of `StepPage` — a "Coming soon" placeholder (real
+  user-facing copy, not an internal codename) for W3's real live crop, plus an "A3 Preview" button
+  reusing the exact same `openOrFocusA3PreviewWindow()` pop-out (D-133) and the exact same i18n key
+  `StepOverview`'s own button already uses (D-114's "one name, one source"). A step-page copy of
+  `PinnedBlockSummary` was deliberately NOT built — `A3PreviewWindow.tsx` already carries its own
+  (since D-133), building a second would be G2.
+  i18n: the project-tools half of `workspace.rightPanel.*` (export/exporting/exportDialogTitle/
+  traceability/review/audit/translate) moved to a new `workspace.projectTools.*` namespace (key
+  name only, displayed text unchanged); `collapse`/`expand`/`screenMode`/`printMode` stayed under
+  `rightPanel` (still used by `AssistantColumn`/`A3PreviewWindow`, generic labels). Dead keys
+  removed: `openInNewWindow`, `preview`, `assistant` (tab labels), `previewStub`/`previewLoading`/
+  `previewError`, `assistant.noActiveStep` — every removal grep-confirmed to have zero remaining
+  references. New: `assistant.columnTitle`/`guideEyebrow`, `stepPreview.title`/
+  `comingSoonBadge`/`comingSoonBody`, `projectTools.groupLabel`.
+  `npm test` 1537/1537 (304 files, up from 1524/1524 at 300 — `RightPanel.test.tsx`'s 7 tests
+  removed, 5 new files' tests added: `useA3PreviewSync.test.ts` (the old `RightPanel.test.tsx`'s
+  descriptor/pin coverage, ported verbatim), `ProjectToolsBar.test.tsx`, `AssistantColumn.test.tsx`,
+  `A3PreviewReservedBand.test.tsx`, `stepAiContext.test.ts`), exit code 0 confirmed via a separate
+  logfile, not piped through `tail` (D-143's own lesson). `npm run lint` clean (the one
+  pre-existing `ThemeProvider` warning). `npx tsc --noEmit` clean. `npm run build` green (same
+  pre-existing chunk-size warning). `cargo test`/`clippy`/`fmt` all clean — Rust genuinely
+  untouched this dilim (`git status src-tauri/` empty, confirmed — TS/React-only end to end).
+  `scripts/gen-a3-fixture.ts` not re-run — this dilim's only two touches inside `src/a3/`
+  (`descriptor.ts`/`BlockPinOverlay.tsx`) are doc-comment corrections, `git diff` confirmed zero
+  real code lines changed. `SPEC.md` §2.2 rewritten (four-band step page, top-bar project tools,
+  the AI column, the reserved preview band). **Honestly unverified, the usual class of gap**: no
+  display/Tauri runtime in this environment — the accordion opening/closing, the three-column
+  width at real screen sizes, and the top-bar dialogs actually opening were never tried in a real
+  window; Barış's own `npm run tauri dev` walkthrough is still owed. W3's own launch prompt is
+  written: `docs/oturumlar/W3-canli-onizleme.md` — updated from `W-kapsam-belirleme.md`'s original
+  W3 sketch to reflect W2's real final architecture (no `RightPanel`, a real
+  `A3PreviewReservedBand` placeholder to fill in).
 Templates: two company .xls files analysed; see reference/TEMPLATE_ANALYSIS.md
 Template geometry: VERIFIED 2026-08-01 against both .xls files. Five errors found and
   corrected in place — the largest was the column widths: the real split is 49.7/50.3, NOT

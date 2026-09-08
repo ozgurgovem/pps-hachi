@@ -3,23 +3,33 @@ import { useTranslation } from "react-i18next";
 import type { StepId } from "../../../domain/model";
 import { getMethodsForStep, type ErasedMethodPlugin } from "../../../methods";
 import { useProjectStore } from "../../../state";
-import { Button } from "../../../ui";
-import { EntryEditorDialog } from "./EntryEditorDialog";
+import { Button, cn } from "../../../ui";
+import type { ActiveEditor } from "./activeEditor";
+import { EntryEditorPanel } from "./EntryEditorPanel";
 
 interface MethodBandProps {
   stepId: StepId;
+  activeEditor: ActiveEditor | null;
+  onStartCreate: (plugin: ErasedMethodPlugin) => void;
+  onCloseEditor: () => void;
 }
 
 interface MethodCardProps {
   plugin: ErasedMethodPlugin;
   readOnly: boolean;
+  isActive: boolean;
   onAdd: (plugin: ErasedMethodPlugin) => void;
 }
 
-function MethodCard({ plugin, readOnly, onAdd }: MethodCardProps) {
+function MethodCard({ plugin, readOnly, isActive, onAdd }: MethodCardProps) {
   const { t } = useTranslation();
   return (
-    <div className="flex w-64 flex-col gap-2 rounded-control border border-border bg-surface-raised p-3">
+    <div
+      className={cn(
+        "flex w-64 flex-col gap-2 rounded-control border bg-surface-raised p-3",
+        isActive ? "border-2 border-accent p-[11px]" : "border-border",
+      )}
+    >
       <span className="font-body text-sm font-medium text-ink">{t(plugin.nameKey)}</span>
       <p className="font-body text-xs text-ink-muted">{t(plugin.useWhenKey)}</p>
       <Button size="sm" onClick={() => onAdd(plugin)} disabled={readOnly}>
@@ -35,15 +45,20 @@ function MethodCard({ plugin, readOnly, onAdd }: MethodCardProps) {
  * daraltılmış bir disclosure (D-133'ün pop-out zoom kontrolleri gibi yerel
  * `useState<boolean>`, yeni bir bağımlılık yok). "Diğer yöntemler" listesi
  * boşsa (§2.3) toggle hiç render edilmez.
+ *
+ * W2/D-217 §2.1: a card's own "Giriş ekle" no longer opens a modal —
+ * `StepPage` owns the one `ActiveEditor` slot; a click here just asks the
+ * parent to claim it (`onStartCreate`), and the inline `EntryEditorPanel`
+ * renders directly below the card grid when this band is the one holding it.
  */
-export function MethodBand({ stepId }: MethodBandProps) {
+export function MethodBand({ stepId, activeEditor, onStartCreate, onCloseEditor }: MethodBandProps) {
   const { t } = useTranslation();
   const readOnly = useProjectStore((s) => s.readOnly);
-  const [activePlugin, setActivePlugin] = useState<ErasedMethodPlugin | null>(null);
   const [otherExpanded, setOtherExpanded] = useState(false);
   const methods = getMethodsForStep(stepId);
   const recommended = methods.filter((plugin) => plugin.tier === "recommended");
   const other = methods.filter((plugin) => plugin.tier !== "recommended");
+  const activePlugin = activeEditor?.kind === "create" ? activeEditor.plugin : null;
 
   return (
     <section className="flex flex-col gap-3">
@@ -52,7 +67,13 @@ export function MethodBand({ stepId }: MethodBandProps) {
       </h2>
       <div className="flex flex-wrap gap-3">
         {recommended.map((plugin) => (
-          <MethodCard key={plugin.id} plugin={plugin} readOnly={readOnly} onAdd={setActivePlugin} />
+          <MethodCard
+            key={plugin.id}
+            plugin={plugin}
+            readOnly={readOnly}
+            isActive={activePlugin?.id === plugin.id}
+            onAdd={onStartCreate}
+          />
         ))}
       </div>
 
@@ -72,7 +93,13 @@ export function MethodBand({ stepId }: MethodBandProps) {
           {otherExpanded && (
             <div className="flex flex-wrap gap-3">
               {other.map((plugin) => (
-                <MethodCard key={plugin.id} plugin={plugin} readOnly={readOnly} onAdd={setActivePlugin} />
+                <MethodCard
+                  key={plugin.id}
+                  plugin={plugin}
+                  readOnly={readOnly}
+                  isActive={activePlugin?.id === plugin.id}
+                  onAdd={onStartCreate}
+                />
               ))}
             </div>
           )}
@@ -80,15 +107,7 @@ export function MethodBand({ stepId }: MethodBandProps) {
       )}
 
       {activePlugin && (
-        <EntryEditorDialog
-          stepId={stepId}
-          plugin={activePlugin}
-          mode={{ kind: "create" }}
-          open
-          onOpenChange={(open) => {
-            if (!open) setActivePlugin(null);
-          }}
-        />
+        <EntryEditorPanel stepId={stepId} plugin={activePlugin} mode={{ kind: "create" }} onClose={onCloseEditor} />
       )}
     </section>
   );

@@ -21,22 +21,26 @@ import { roundOrdinal } from "../../../domain/selectors";
 import { getMethodById } from "../../../methods";
 import { useProjectStore } from "../../../state";
 import { Button, DialogContent, DialogRoot } from "../../../ui";
-import { EntryEditorDialog } from "./EntryEditorDialog";
+import type { ActiveEditor } from "./activeEditor";
+import { EntryEditorPanel } from "./EntryEditorPanel";
 import { EntryRow } from "./EntryRow";
 import { SortableEntryRow } from "./SortableEntryRow";
 
 interface EntriesBandProps {
   stepId: StepId;
+  activeEditor: ActiveEditor | null;
+  onStartEdit: (entryId: string) => void;
+  onCloseEditor: () => void;
 }
 
-export function EntriesBand({ stepId }: EntriesBandProps) {
+export function EntriesBand({ stepId, activeEditor, onStartEdit, onCloseEditor }: EntriesBandProps) {
   const { t } = useTranslation();
   const project = useProjectStore((s) => s.project);
   const readOnly = useProjectStore((s) => s.readOnly);
   const dispatch = useProjectStore((s) => s.dispatch);
 
-  const [editingEntryId, setEditingEntryId] = useState<string | null>(null);
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+  const editingEntryId = activeEditor?.kind === "edit" ? activeEditor.entryId : null;
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
@@ -50,8 +54,6 @@ export function EntriesBand({ stepId }: EntriesBandProps) {
 
   const entries = step.entries;
   const pendingDeleteEntry = entries.find((entry) => entry.id === pendingDeleteId);
-  const editingEntry = entries.find((entry) => entry.id === editingEntryId);
-  const editingPlugin = editingEntry ? getMethodById(editingEntry.methodId) : undefined;
 
   const moveEntry = (entryId: string, toIndex: number) => {
     const command = buildReorderCommand(step, stepId, entryId, toIndex);
@@ -85,56 +87,57 @@ export function EntriesBand({ stepId }: EntriesBandProps) {
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
           <SortableContext items={entries.map((entry) => entry.id)} strategy={verticalListSortingStrategy}>
             <div className="flex flex-col gap-2">
-              {entries.map((entry, index) => (
-                <SortableEntryRow key={entry.id} id={entry.id} title={entry.title} disabled={readOnly}>
-                  <EntryRow
-                    entry={entry}
-                    plugin={getMethodById(entry.methodId)}
-                    roundOrdinal={entry.roundId ? roundOrdinal(project?.rounds ?? [], entry.roundId) : undefined}
-                    readOnly={readOnly}
-                    canMoveUp={index > 0}
-                    canMoveDown={index < entries.length - 1}
-                    onEdit={() => setEditingEntryId(entry.id)}
-                    onDuplicate={() =>
-                      dispatch(
-                        buildDuplicateEntryCommand(step, stepId, entry.id, {
-                          now: new Date().toISOString(),
-                          newId: crypto.randomUUID(),
-                        }),
-                      )
-                    }
-                    onDelete={() => setPendingDeleteId(entry.id)}
-                    onSetA3Visibility={(visibility) =>
-                      dispatch(buildSetA3VisibilityCommand(step, stepId, entry.id, visibility))
-                    }
-                    onMoveUp={() => moveEntry(entry.id, index - 1)}
-                    onMoveDown={() => moveEntry(entry.id, index + 1)}
-                  />
-                </SortableEntryRow>
-              ))}
+              {entries.map((entry, index) => {
+                const isEditingThisEntry = editingEntryId === entry.id;
+                const plugin = getMethodById(entry.methodId);
+                return (
+                  <SortableEntryRow key={entry.id} id={entry.id} title={entry.title} disabled={readOnly}>
+                    <EntryRow
+                      entry={entry}
+                      plugin={plugin}
+                      isEditing={isEditingThisEntry}
+                      roundOrdinal={entry.roundId ? roundOrdinal(project?.rounds ?? [], entry.roundId) : undefined}
+                      readOnly={readOnly}
+                      canMoveUp={index > 0}
+                      canMoveDown={index < entries.length - 1}
+                      onEdit={() => onStartEdit(entry.id)}
+                      onDuplicate={() =>
+                        dispatch(
+                          buildDuplicateEntryCommand(step, stepId, entry.id, {
+                            now: new Date().toISOString(),
+                            newId: crypto.randomUUID(),
+                          }),
+                        )
+                      }
+                      onDelete={() => setPendingDeleteId(entry.id)}
+                      onSetA3Visibility={(visibility) =>
+                        dispatch(buildSetA3VisibilityCommand(step, stepId, entry.id, visibility))
+                      }
+                      onMoveUp={() => moveEntry(entry.id, index - 1)}
+                      onMoveDown={() => moveEntry(entry.id, index + 1)}
+                    />
+                    {isEditingThisEntry && plugin && (
+                      <EntryEditorPanel
+                        stepId={stepId}
+                        plugin={plugin}
+                        mode={{
+                          kind: "edit",
+                          entryId: entry.id,
+                          initialTitle: entry.title,
+                          initialPayload: entry.payload,
+                          initialReferences: entry.references,
+                          initialRoundId: entry.roundId,
+                          initialImages: entry.images,
+                        }}
+                        onClose={onCloseEditor}
+                      />
+                    )}
+                  </SortableEntryRow>
+                );
+              })}
             </div>
           </SortableContext>
         </DndContext>
-      )}
-
-      {editingEntry && editingPlugin && (
-        <EntryEditorDialog
-          stepId={stepId}
-          plugin={editingPlugin}
-          mode={{
-            kind: "edit",
-            entryId: editingEntry.id,
-            initialTitle: editingEntry.title,
-            initialPayload: editingEntry.payload,
-            initialReferences: editingEntry.references,
-            initialRoundId: editingEntry.roundId,
-            initialImages: editingEntry.images,
-          }}
-          open
-          onOpenChange={(open) => {
-            if (!open) setEditingEntryId(null);
-          }}
-        />
       )}
 
       <DeleteConfirmDialog

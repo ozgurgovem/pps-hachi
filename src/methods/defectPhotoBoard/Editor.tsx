@@ -5,7 +5,7 @@ import type { DefectPhotoBoardPayload } from "./schema";
 /**
  * All of this method's real content lives outside `payload` — the entry's
  * title (the caption) and its one photo, rendered by the generic
- * `EntryImagesField` shell (`EntryEditorDialog`, driven by
+ * `EntryImagesField` shell (`EntryEditorPanel`, driven by
  * `defectPhotoBoardMethod.imageSlots`) plus, when the user chooses to mark
  * it up, the shared `EntryAnnotationEditor`. This `Editor` has nothing of
  * its own to edit, so it renders a hint rather than an empty box —

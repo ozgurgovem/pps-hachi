@@ -136,6 +136,11 @@
       "summary": "{{complete}} / 8 complete, {{flagged}} in progress",
       "openA3Preview": "A3 Preview"
     },
+    "stepPreview": {
+      "title": "A3 block preview — this step's own area",
+      "comingSoonBadge": "Coming soon",
+      "comingSoonBody": "This step's own A3 block will render here as a live, cropped view of the real export — not a second drawing, a window onto it. Until then, use A3 Preview to see the full sheet."
+    },
     "quickJump": {
       "backToOverview": "Overview",
       "backToOverviewAriaLabel": "Back to step overview"
@@ -165,21 +170,18 @@
     "rightPanel": {
       "collapse": "Collapse panel",
       "expand": "Expand panel",
-      "openInNewWindow": "Open in new window",
-      "preview": "Preview",
+      "screenMode": "Screen",
+      "printMode": "Print"
+    },
+    "projectTools": {
+      "groupLabel": "Project tools",
       "traceability": "Traceability",
-      "assistant": "Assistant",
       "review": "Review",
       "audit": "Audit",
       "translate": "Translate",
-      "previewStub": "The A3 preview renders here once the exporter ships in Phase 4.",
-      "screenMode": "Screen",
-      "printMode": "Print",
       "export": "Export A3",
       "exporting": "Exporting…",
-      "exportDialogTitle": "Export A3 as Excel",
-      "previewError": "The A3 preview could not be built for this project.",
-      "previewLoading": "Building the A3 preview…"
+      "exportDialogTitle": "Export A3 as Excel"
     },
     "blockPin": {
       "handleLabel": "Resize Step {{step}}'s area",
@@ -190,9 +192,10 @@
       "resetAriaLabel": "Reset Step {{step}} to automatic sizing"
     },
     "assistant": {
+      "columnTitle": "AI support",
+      "guideEyebrow": "Guide for this step",
       "noModelConfigured": "No model is chosen for this project yet.",
       "goToSettings": "Go to Settings",
-      "noActiveStep": "Select a step from the overview first to add this response.",
       "promptLabel": "Ask the assistant",
       "promptPlaceholder": "Ask a question…",
       "send": "Send",

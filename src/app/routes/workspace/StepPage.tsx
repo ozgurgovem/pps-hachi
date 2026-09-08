@@ -1,5 +1,8 @@
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { StepId } from "../../../domain/model";
+import type { ActiveEditor } from "./activeEditor";
+import { A3PreviewReservedBand } from "./A3PreviewReservedBand";
 import { CoachBand } from "./CoachBand";
 import { EntriesBand } from "./EntriesBand";
 import { MethodBand } from "./MethodBand";
@@ -13,9 +16,16 @@ interface StepPageProps {
   onDismissAdvisory: () => void;
 }
 
-/** SPEC.md §2.2: every step page has the same three bands, in the same order. */
+/**
+ * W2/D-217 §2.1: owns the single `ActiveEditor` slot the accordion layout
+ * needs (create in `MethodBand` XOR edit in `EntriesBand`, never both) —
+ * `WorkspaceShell` remounts this component on every step change
+ * (`key={stepId}`), which resets this state for free instead of needing an
+ * explicit effect to clear a stale `entryId`/`plugin` reference.
+ */
 export function StepPage({ stepId, advisory, onDismissAdvisory }: StepPageProps) {
   const { t, i18n } = useTranslation();
+  const [activeEditor, setActiveEditor] = useState<ActiveEditor | null>(null);
   const stepLabel = t("workspace.stepNumberLabel", { step: stepId });
   const stepName = t(`workspace.steps.${stepId}.name`);
   // W1/D-218 §2.6: `i18n.language`, not `project.meta.language` — this is
@@ -50,10 +60,21 @@ export function StepPage({ stepId, advisory, onDismissAdvisory }: StepPageProps)
       <ReadinessAdvisory stepId={stepId} />
 
       <CoachBand stepId={stepId} />
-      <MethodBand stepId={stepId} />
-      <EntriesBand stepId={stepId} />
+      <MethodBand
+        stepId={stepId}
+        activeEditor={activeEditor}
+        onStartCreate={(plugin) => setActiveEditor({ kind: "create", plugin })}
+        onCloseEditor={() => setActiveEditor(null)}
+      />
+      <EntriesBand
+        stepId={stepId}
+        activeEditor={activeEditor}
+        onStartEdit={(entryId) => setActiveEditor({ kind: "edit", entryId })}
+        onCloseEditor={() => setActiveEditor(null)}
+      />
       {stepId === 7 && <RoundsBand />}
       {stepId === 8 && <SignOffPanel />}
+      <A3PreviewReservedBand />
     </main>
   );
 }

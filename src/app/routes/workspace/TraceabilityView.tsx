@@ -39,7 +39,9 @@ function ChainNode({ node, flaggedSteps, onJump }: ChainNodeProps) {
 }
 
 /**
- * G2: `RightPanel`'s third tab. `buildTraceabilityChains` is this session's
+ * G2: originally `RightPanel`'s third tab, now opened as a dialog from
+ * `ProjectToolsBar` (W2/D-217) — unchanged itself, only its container moved.
+ * `buildTraceabilityChains` is this session's
  * only new mechanism (§4's own budget) — everything else here reads
  * already-shipped selectors: `findOrphanedReferences` (D-117) for the
  * "warns on orphans" half of `SPEC.md` §4.2, `evaluateReadiness` (D-196) for

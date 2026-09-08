@@ -124,7 +124,7 @@ export interface UpdateEntryInput {
   now: string;
   /**
    * Absent means "leave whatever references this entry already has alone" —
-   * the title and payload edit paths (`EntryEditorDialog`) each call this
+   * the title and payload edit paths (`EntryEditorPanel`) each call this
    * builder without knowing about references. Present (including empty)
    * replaces the whole list, which is how the picker clears the last one.
    */

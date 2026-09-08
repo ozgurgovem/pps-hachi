@@ -4,10 +4,11 @@ import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router";
 import "../../../i18n";
 import { createNewProject } from "../../../domain/model";
-import type { AiMeta, ProjectModel } from "../../../domain/model";
+import type { AiMeta, ProjectModel, StepId } from "../../../domain/model";
 import { GENERIC_TEXT_METHOD_ID } from "../../../methods/genericText";
 import { useProjectStore } from "../../../state";
 import { AssistantPanel } from "./AssistantPanel";
+import { getCoachingMarkdown } from "./coachContent";
 import * as completionIpc from "../../../ai/completionIpc";
 import type { CompletionMeta, StreamEvent } from "../../../ai/completionIpc";
 
@@ -26,17 +27,16 @@ function seedProject(aiOverrides: Partial<AiMeta> = {}): ProjectModel {
       ai: { enabled: true, providerId: "vorion", modelId: "openai/gpt-4o", redaction: {}, ...aiOverrides },
     },
   };
-  // W1/D-218: `activeStepId` now starts `null` (the landing view) — these
-  // tests exercise Accept, which needs a real active step, so seed one
-  // explicitly rather than relying on a default that no longer holds.
-  useProjectStore.setState({ ...initialStoreState, project: withAi, activeStepId: 1 });
+  useProjectStore.setState({ ...initialStoreState, project: withAi });
   return withAi;
 }
 
-function renderPanel() {
+// W2/D-217/P-59: `AssistantPanel` only ever mounts inside a step's own
+// `AssistantColumn` now — `stepId` is a required prop, not a store read.
+function renderPanel(stepId: StepId = 1) {
   return render(
     <MemoryRouter>
-      <AssistantPanel />
+      <AssistantPanel stepId={stepId} />
     </MemoryRouter>,
   );
 }
@@ -69,16 +69,19 @@ describe("AssistantPanel", () => {
     expect(screen.getByRole("button", { name: "Send" })).toHaveProperty("disabled", true);
   });
 
-  it("sends the typed prompt together with the project's chosen model id", async () => {
+  it("sends the typed prompt enriched with this step's coaching content, together with the chosen model id (P-59)", async () => {
     const user = userEvent.setup();
     seedProject({ modelId: "openai/gpt-4o" });
     mocked.completeStreaming.mockImplementationOnce(pendingCompletion);
 
-    renderPanel();
+    renderPanel(1);
     await user.type(screen.getByLabelText("Ask the assistant"), "What is 5 Why?");
     await user.click(screen.getByRole("button", { name: "Send" }));
 
-    expect(mocked.completeStreaming).toHaveBeenCalledWith("What is 5 Why?", "openai/gpt-4o", expect.any(Function));
+    expect(mocked.completeStreaming).toHaveBeenCalledWith(expect.any(String), "openai/gpt-4o", expect.any(Function));
+    const [sentPrompt] = mocked.completeStreaming.mock.calls[0]!;
+    expect(sentPrompt).toContain("What is 5 Why?");
+    expect(sentPrompt).toContain(getCoachingMarkdown("en", 1).trim());
   });
 
   it("streams chunks into the response area as they arrive, and shows a Cancel button", async () => {

@@ -23,7 +23,7 @@ import {
 const LAYOUT_REVIEW_PROMPT_VERSION = "v1";
 
 interface LayoutReviewPanelProps {
-  /** Reused, never rebuilt — `RightPanel` already built this for the Preview tab (§1 point 5's own instruction: derive from what `buildA3Layout` already produces). */
+  /** Reused, never rebuilt — `ProjectToolsBar`'s own `useA3PreviewSync` already built this (§1 point 5's own instruction: derive from what `buildA3Layout` already produces). */
   readonly descriptor: A3LayoutDescriptor;
 }
 

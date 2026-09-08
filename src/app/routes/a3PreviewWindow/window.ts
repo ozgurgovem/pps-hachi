@@ -11,7 +11,7 @@ import type { StepId } from "../../../domain/model";
  */
 export const A3_PREVIEW_WINDOW_LABEL = "a3-preview";
 
-/** Pushed from the main window whenever `RightPanel` rebuilds the descriptor. */
+/** Pushed from the main window whenever `useA3PreviewSync` (W2/D-217; formerly `RightPanel`) rebuilds the descriptor. */
 export const A3_PREVIEW_DESCRIPTOR_EVENT = "a3-preview:descriptor";
 
 /**
@@ -27,7 +27,7 @@ export const A3_PREVIEW_DESCRIPTOR_EVENT = "a3-preview:descriptor";
  * reliable way to learn the main window's actual label (it is not
  * necessarily "main" by convention alone, and hardcoding it would be a
  * silent, hard-to-notice failure mode if that ever changed) — broadcasting
- * and letting `RightPanel` be the only listener sidesteps the question
+ * and letting the main window be the only listener sidesteps the question
  * entirely.
  */
 export const A3_PREVIEW_READY_EVENT = "a3-preview:ready";
@@ -95,7 +95,7 @@ export async function openOrFocusA3PreviewWindow(): Promise<void> {
 /**
  * No-ops when the preview window isn't open — the main window doesn't track
  * "is it open" as its own state, it just checks on every push. Cheap: this
- * only fires when `RightPanel` finishes building a new descriptor, not on
+ * only fires when `useA3PreviewSync` finishes building a new descriptor, not on
  * every keystroke.
  */
 export async function pushDescriptorToPreviewWindow(descriptor: A3LayoutDescriptor): Promise<void> {
@@ -114,9 +114,9 @@ export async function pushDescriptorToPreviewWindow(descriptor: A3LayoutDescript
 }
 
 /**
- * Main window (`RightPanel`) side of the ready handshake — see
+ * Main window (`useA3PreviewSync`, formerly `RightPanel`) side of the ready handshake — see
  * `A3_PREVIEW_READY_EVENT`. Wrapped in try/catch like its two siblings
- * above (D-134) — this one was missed in that pass: `RightPanel`'s mount
+ * above (D-134, when this lived in `RightPanel`; now `useA3PreviewSync`) — this one was missed in that pass: the mount
  * effect calls this without `await`/`.catch`, so an unhandled `listen()`
  * rejection (e.g. no Tauri runtime, as in every test environment) escaped
  * as a genuinely unhandled promise rejection rather than a visible error.
@@ -172,7 +172,7 @@ export async function requestBlockPin(request: BlockPinRequest): Promise<void> {
   }
 }
 
-/** Main window (`RightPanel`) side: listens for a pin request from the preview window. */
+/** Main window (`useA3PreviewSync`, formerly `RightPanel`) side: listens for a pin request from the preview window. */
 export async function listenForBlockPinRequest(onRequest: (request: BlockPinRequest) => void): Promise<UnlistenFn> {
   try {
     return await listen<BlockPinRequest>(A3_PREVIEW_PIN_REQUEST_EVENT, (event) => onRequest(event.payload));

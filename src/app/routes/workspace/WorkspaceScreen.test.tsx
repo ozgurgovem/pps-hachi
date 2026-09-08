@@ -57,11 +57,11 @@ async function addGenericTextEntry(user: ReturnType<typeof userEvent.setup>, tit
   }
   const freeTextCard = within(methodBand!).getByText("Free text").closest("div");
   await user.click(within(freeTextCard!).getByRole("button", { name: "Add entry" }));
-  const dialog = await screen.findByRole("dialog");
-  await user.type(within(dialog).getByLabelText("Title"), title);
-  await user.type(within(dialog).getByLabelText("Text"), `${title} body`);
-  await user.click(within(dialog).getByRole("button", { name: "Save" }));
-  await waitFor(() => expect(screen.queryByRole("dialog")).toBeFalsy());
+  const panel = await screen.findByRole("group", { name: "New entry" });
+  await user.type(within(panel).getByLabelText("Title"), title);
+  await user.type(within(panel).getByLabelText("Text"), `${title} body`);
+  await user.click(within(panel).getByRole("button", { name: "Save" }));
+  await waitFor(() => expect(screen.queryByRole("group", { name: "New entry" })).toBeFalsy());
 }
 
 beforeEach(() => {
@@ -130,9 +130,9 @@ describe("WorkspaceScreen — Phase 3 done-condition", () => {
     await addGenericTextEntry(user, "Editable entry");
 
     await user.click(screen.getByRole("button", { name: "Edit" }));
-    const dialog = await screen.findByRole("dialog");
-    await user.type(within(dialog).getByLabelText("Text"), " — extra detail");
-    await user.click(within(dialog).getByRole("button", { name: "Close" }));
+    const panel = await screen.findByRole("group", { name: "Edit entry" });
+    await user.type(within(panel).getByLabelText("Text"), " — extra detail");
+    await user.click(within(panel).getByRole("button", { name: "Close" }));
 
     expect(useProjectStore.getState().project?.steps[2].entries[0]?.payload).toMatchObject({
       text: "Editable entry body — extra detail",

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { StepId } from "../../../domain/model";
 import { useProjectStore } from "../../../state";
-import { RightPanel } from "./RightPanel";
+import { AssistantColumn } from "./AssistantColumn";
 import { StepOverview } from "./StepOverview";
 import { StepPage } from "./StepPage";
 import { StepQuickJump } from "./StepQuickJump";
@@ -13,8 +13,15 @@ import { WorkspaceTopBar } from "./WorkspaceTopBar";
  * W1/D-217/D-218: `StepStepper`'s persistent rail is gone — the center
  * column is either the landing overview (`activeStepId === null`, the
  * default on open) or a step page with its own quick-jump strip above it.
- * `RightPanel` is unaffected either way, per D-217's own "this initiative
- * only touches the center column" boundary.
+ *
+ * W2/D-217: the old, always-present `RightPanel` is gone entirely. Export
+ * and the four whole-project tools (Traceability/Review/Audit/Translate)
+ * moved to `WorkspaceTopBar`'s `ProjectToolsBar` (always mounted, so they
+ * stay reachable on the landing view too); the step-scoped AI chatbox
+ * (`AssistantColumn`) only renders alongside an open step page, since it has
+ * no meaning without a step to be scoped to. `StepPage` gets `key={activeStepId}`
+ * so its own `ActiveEditor` accordion state resets on every step change
+ * instead of leaking a stale `entryId`/`plugin` reference across steps.
  */
 export function WorkspaceShell() {
   const { t } = useTranslation();
@@ -54,25 +61,28 @@ export function WorkspaceShell() {
         {activeStepId === null ? (
           <StepOverview project={project} onNavigate={handleNavigate} />
         ) : (
-          <div className="flex flex-1 flex-col overflow-hidden">
-            <StepQuickJump
-              project={project}
-              activeStepId={activeStepId}
-              onNavigate={handleNavigate}
-              onBackToOverview={() => setActiveStep(null)}
-            />
-            <StepPage
-              stepId={activeStepId}
-              advisory={
-                advisoryStepId === activeStepId
-                  ? t("workspace.jumpAdvisory", { step: activeStepId })
-                  : null
-              }
-              onDismissAdvisory={() => setAdvisoryStepId(null)}
-            />
-          </div>
+          <>
+            <div className="flex flex-1 flex-col overflow-hidden">
+              <StepQuickJump
+                project={project}
+                activeStepId={activeStepId}
+                onNavigate={handleNavigate}
+                onBackToOverview={() => setActiveStep(null)}
+              />
+              <StepPage
+                key={activeStepId}
+                stepId={activeStepId}
+                advisory={
+                  advisoryStepId === activeStepId
+                    ? t("workspace.jumpAdvisory", { step: activeStepId })
+                    : null
+                }
+                onDismissAdvisory={() => setAdvisoryStepId(null)}
+              />
+            </div>
+            {project.meta.ai.enabled && <AssistantColumn stepId={activeStepId} />}
+          </>
         )}
-        <RightPanel />
       </div>
     </div>
   );

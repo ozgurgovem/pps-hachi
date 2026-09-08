@@ -25,7 +25,8 @@ const INITIAL_VIEWPORT: Viewport = { scale: 1, originX: 0, originY: 0 };
  * consumer of an already-built `A3LayoutDescriptor` — it never calls
  * `buildProjectA3Layout`/the method registry itself, so it needs no
  * knowledge of `src/methods` or the project store at all, only the descriptor
- * `RightPanel` pushes across (`window.ts`'s handshake). This mirrors how
+ * `useA3PreviewSync` (W2/D-217; formerly `RightPanel`) pushes across
+ * (`window.ts`'s handshake). This mirrors how
  * `HtmlA3Renderer` is already a dumb renderer of a finished descriptor
  * (D-94) — one layer up.
  */
