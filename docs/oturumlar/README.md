@@ -242,18 +242,56 @@ D-223.
 Filed, planlanmamış (Faz 11'in dışında): **P-62** (yeni — `farplas-7step-plus`/`farplas-7step-en`,
 D-149'un hiçbir oturumu hiç dokunmadı), **P-18** (güncellendi — `BenefitCase`/`Onay formu`).
 
-## Sıradaki iş — dört bağımsız aday, hazır bekleyen tek bir "sıradaki oturum" YOK
+## Faz 12 — `SPEC.md` §6'nın kendi SONUNCU fazı: polish, i18n TR/EN complete, PDF/PNG export, packaging, signing, auto-update
+
+`SPEC.md`'nin faz tablosu: "Polish, i18n TR/EN complete, PDF/PNG export, packaging, signing,
+auto-update — Done when: Signed installers for both platforms." Altı ayrı iş kalemini tek
+satırda sıkıştırıyordu, gerçek kod tabanında hiçbiri inşa edilmemişti.
+
+**Kapsam belirleme BİTTİ 2026-09-08 (D-230).** §0'ın kendi ön taraması gerçek koda karşı
+doğrulandı, promptun beş bulgusunun beşi de eşleşti: hiçbir üretim dosyasında PDF üretimi yok,
+ayrı bir PNG-export akışı yok, `tauri.conf.json`'da `updater`/`plugins` boş, CI bilinçli imzasız
+bundle üretiyor. Bu oturumun kendi ek ölçümü: TR/EN anahtar sayısı **957/957 tam eşleşiyor**;
+`kontrol-dil.sh` bu projeye karşı **KAPSAM DIŞI** döndü (0 dosya — yalnızca Swift/Python kapsıyor,
+bu proje TS/Rust, D10 tamamen ELLE yürünüyor) — launch prompt'un "muhtemelen bu betiği
+çalıştıracak" varsayımı YANLIŞ çıktı, bu betiğin bu depo için hiçbir zaman gerçek kapsama
+sağlamadığı ilk kez bu oturumda doğrulandı. Beş `AskUserQuestion` + auto-update seçiminden sonra
+bulunan bir engelin kendi ek turu: (1) **PDF export** ertelendi → **P-65**; (2) **Packaging/
+signing** → imzasız kalıcı, iç-kurumsal araç kabul edildi (Barış'ın kendi seçimi, önerilenin
+DIŞINDA); (3) **Auto-update** → Faz 12'nin içinde, GitHub Releases üzerinden tam otomatik — ama
+repo private olduğu için (`gh repo view` ile doğrulandı) private-repo Release asset'lerinin
+kimlik doğrulaması gerektirmesi üretim-engelleyici bir bulgu doğurdu; ikinci turda Barış'ın
+kararı: **repo public yapılsın** (gerçek uygulama M2'nin kendi ilk adımı, kendi ayrı onayıyla —
+geri-alınması zor bir eylem); (4) **i18n "complete"** → mekanik tarama + anahtar eşliği yeterli,
+ama "mekanik tarama"nın (kontrol-dil.sh) sıfır kapsam sağladığı bulgusuyla M1 küçük bir elle-grep
+dilimine daraldı; (5) **"Polish"/P-58** → P-58 ayrı kalsın, Faz 12'nin kendi "polish"i
+CLAUDE.md'nin hiç sistematik denetlenmemiş Quality floor listesini kapsar. Tam kayıt: D-230.
+
+| Dilim | Kapsam | Durum |
+|---|---|---|
+| Kapsam belirleme — §0 taraması + beş `AskUserQuestion` (+ bir ek engel turu) + dört dilimlik plan | `docs/oturumlar/faz12-kapsam-belirleme.md` | ✅ BİTTİ 2026-09-08 — D-230. |
+| M1 — i18n: TR/EN anahtar eşliği doğrulaması (zaten 957/957) + `kontrol-dil.sh`'ın bu proje için KAPSAM DIŞI olduğunun kaydı + bilinen-desen (D-219 sınıfı: `.toLocaleUpperCase`/tarih biçimlendirme/sıralama) sınırlı bir elle grep taraması | `docs/oturumlar/M1-i18n-tarama.md` | Başlanmadı. |
+| M2 — Auto-update: repo'yu public yapma (kendi onayıyla) + `tauri-plugin-updater` kurulumu + CI'ye release-publish adımı + Settings'e "check for updates" UI'si | `docs/oturumlar/M2-auto-update.md` | Başlanmadı. D-44'ün kendi "revisit once a real release process exists" tetikleyicisi burada çözülür. |
+| M3 — Packaging/signing kapanışı: D-44/D-46'yı "kalıcı imzasız, iç-kurumsal" durum olarak kapatan küçük bir kod+SÜREÇ dilimi (bundle metadata doğrulaması + sınırlı bir SmartScreen/Gatekeeper SÜREÇ yürüyüşü) | `docs/oturumlar/M3-paketleme-imza-kapanisi.md` | Başlanmadı. |
+| M4 — Polish: CLAUDE.md'nin kendi Quality floor listesinin (klavye nav, focus ring, WCAG AA kontrast, reduced motion, layout shift, unhandled rejection, console noise) proje çapında ilk sistematik denetimi | `docs/oturumlar/M4-polish-kalite-tabani.md` | Başlanmadı. |
+
+Filed, planlanmamış (Faz 12'nin dışında): **P-65** (yeni — PDF/PNG export, gerçek ihtiyaç
+doğmadan YAGNI), **P-58** (bilinçli olarak Faz 12'ye dahil edilmedi, kendi ayrı oturumu).
+
+## Sıradaki iş — Faz 12 kapsam belirleme artık BİTTİ, üç bağımsız aday + dört yeni M-dilimi bekliyor
 
 W3 ile D-217 girişimi (W1+W2+W3) ve Faz 11'in kendi üç dilimlik planı (L1+L2+L3a+L3b) ikisi de
-2026-09-08'de TAMAMEN kapandı — bu ikisinin aksine, artık otomatik olarak "sıradaki dilim" diye
-bir tek launch prompt yok. Dört bağımsız aday, hepsi 2026-09-08'de W3'ün kapanışında yazıldı:
+2026-09-08'de TAMAMEN kapandı. Aynı gün yazılan dört bağımsız adaydan biri — **Faz 12 kapsam
+belirleme — artık BİTTİ (D-230)**, kendi dört M-dilimini (yukarıdaki "Faz 12" bölümü) doğurdu.
+Kalan üç aday hâlâ başlamadı:
 
 | Aday | Prompt | Ne | Kod mu, kapsam mı |
 |---|---|---|---|
-| Faz 12 kapsam belirleme | `docs/oturumlar/faz12-kapsam-belirleme.md` | `SPEC.md`'nin SONUNCU fazı: cilalama, i18n TR/EN tamamlama, PDF/PNG export, paketleme, imzalama, otomatik güncelleme | Kapsam belirleme, KOD YOK |
+| ~~Faz 12 kapsam belirleme~~ | ~~`docs/oturumlar/faz12-kapsam-belirleme.md`~~ | **BİTTİ (D-230, 2026-09-08)** — bkz. yukarıdaki "Faz 12" bölümü, M1-M4 | Kapsam belirleme TAMAMLANDI, KOD YOK — dört yeni launch prompt yazıldı |
 | P-62 kapsam belirleme | `docs/oturumlar/P62-kalan-sablonlar-kapsam.md` | `farplas-7step-plus`/`farplas-7step-en` — D-149'un dört oturumluk derinliğini hiç almamış iki şablon | Kapsam belirleme, KOD YOK (madde 2.1'in cevabına göre küçük bir kod dilimi doğurabilir) |
 | P-58 | `docs/oturumlar/P58-gorsel-dil-yayilmasi.md` | W1'in Farplas görsel dilini (D-218) `src/ui/`'nin 12 primitifine yayma — kendi filed notunda "yüksek patlama-yarıçapı" uyarısı | Gerçek kod, kendi ilk `AskUserQuestion` turuyla açılıyor |
 | Küçük açık maddeler | `docs/oturumlar/kucuk-acik-maddeler.md` | P-63 (kpi-strip'in ADIM 7'de her zaman appendix'e düşmesi) + P-64 (bir kolonun son bloğunun kendi sürükleme tutamacı yok) — ikisi de zaten iyi tanımlanmış, küçük düzeltmeler | Gerçek kod, doğrudan başlanabilir |
+| M1-M4 (Faz 12'nin kendi dilimleri) | `docs/oturumlar/M1-i18n-tarama.md` / `M2-auto-update.md` / `M3-paketleme-imza-kapanisi.md` / `M4-polish-kalite-tabani.md` | i18n taraması, auto-update, packaging/signing kapanışı, Quality floor denetimi — bkz. yukarıdaki "Faz 12" bölümü | Gerçek kod, M1/M4 bağımsız+paralel, M2 kendi tek onaylı ilk adımıyla (repo public), M3 M2'den bağımsız |
 
 **Paralel çalıştırma değerlendirmesi** (Barış'ın kendi sorusu, 2026-09-08): bu depo bugüne kadar
 HİÇBİR zaman worktree/branch-bazlı paralel oturum kullanmadı — her oturum doğrudan `main`'e
@@ -277,6 +315,15 @@ kodu seviyesinde dosya çakışma riski:
   geçişiyle tutarsız bir sonuç doğurabilir. **Önerilen sıralama: P-58 YALNIZ çalıştırılsın —
   ya ilk (temiz bir zeminde) ya da diğer üçü bittikten sonra (artık değişmeyen bir uygulamanın
   üzerine son bir görsel geçiş olarak).**
+- **M1-M4 (Faz 12'nin kendi dilimleri, 2026-09-08'de eklendi)**: M1 (i18n grep) ve M4 (Quality
+  floor denetimi) DÜŞÜK risk — ikisi de küçük, dosya-seviyesinde P-62/küçük-açık-maddeler'le
+  çakışmıyor, birbirleriyle de paralel çalıştırılabilir. **M2 kendi başına yürünmeli** — ilk
+  adımı (repo'yu public yapmak) geri-alınması zor, GÖRÜNÜR bir eylem; bu adım tamamlanana kadar
+  M2'nin geri kalanı (CI release-publish, `tauri-plugin-updater`) başlamamalı, ve M2 devam
+  ederken P-58 gibi `src/ui/`'ye dokunan başka bir oturum aynı anda çalışmamalı (Settings'e
+  eklenecek "check for updates" UI'si `src/ui/` primitiflerini KULLANIR). M3, D-44/D-46'yı
+  yalnızca "kalıcı imzasız" olarak kapatan küçük bir dilim — M2'den bağımsız, herhangi bir
+  sırada çalıştırılabilir.
 
 **Barış'ın kendi seçimi bekleniyor** — bu tablo yalnızca aday listesi, hiçbiri henüz başlamadı.
 

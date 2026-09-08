@@ -2105,6 +2105,69 @@ AI layer: Faz 8 fully done (keychain + Vorion connection/model-discovery + strea
   layer every other page depends on) and should run alone — either first, on a clean slate, or
   last, as a final visual pass once nothing else is still moving. Barış's own choice on which to
   start is still owed — none of the four has begun.
+**Faz 12 kapsam belirleme DONE (D-230, 2026-09-08) — no code, matches the Phase 8-11
+  kapsam-belirleme precedent.** `faz12-kapsam-belirleme.md`'s own §0 pre-scan re-verified
+  against real code, matched all five of the prompt's own findings: no production PDF/PNG
+  export path exists, `tauri.conf.json`'s `plugins`/`bundle.updater` are empty, CI builds a
+  deliberately unsigned bundle (`TAURI_SIGNING_PRIVATE_KEY=""`). This session's own added
+  measurement: TR/EN key parity is **957/957, zero drift** (flattened leaf keys); running
+  `~/.claude/tools/kontrol-dil.sh` against this repo returns **out of scope** (0 files scanned
+  — the script covers Swift/Python only, this project is TS/Rust, so it provides zero real
+  coverage here — a finding that corrects the launch prompt's own assumption that the script
+  would apply). Five `AskUserQuestion` questions (plus one follow-up round triggered by a real
+  blocker this session found after Barış's own auto-update choice) — four of five landed on
+  the recommended option, one (signing) did not: (1) **PDF export** deferred, filed as **P-65**
+  — no real evidence of need, all five completed Farplas A3s print from Excel today, xlsx is
+  already the delivery format; (2) **packaging/signing** → **permanently unsigned, accepted as
+  an internal-corporate-tool's ongoing state** (Barış's own non-recommended choice) — no Apple
+  Developer Program enrollment, no Windows EV certificate, SmartScreen/Gatekeeper warnings stay
+  a permanent, accepted UX cost, IT manages via its own AppLocker/WDAC policy (consistent with
+  P-12's own open question); (3) **auto-update** → included in Faz 12, full automatic via
+  GitHub Releases + `tauri-plugin-updater` — but this choice surfaced a real production blocker
+  this session found (not anticipated by the launch prompt): the repo is private (confirmed via
+  `gh repo view`), and GitHub private-repo Release assets require authentication that an
+  installed end-user binary will never have — `tauri-plugin-updater` would 404 in production. A
+  second `AskUserQuestion` round resolved it: **make the repo public** — the actual `gh repo
+  edit --visibility public` is deliberately **not executed in this scope session** (a
+  hard-to-reverse, externally-visible action gets its own explicit confirmation at execution
+  time, per this session's own "Executing actions with care" discipline) — it becomes M2's own
+  first, separately-confirmed step; (4) **i18n "complete"** → mechanical scan + key parity is
+  enough — but since the "mechanical scan" tool contributes nothing for this stack, M1's real
+  scope shrank to key parity (done) plus a small, bounded manual grep for known trap patterns
+  (D-219's own bug class), not the full D10.4-D10.9 systematic audit Barış explicitly declined;
+  (5) **"polish"/P-58 relationship** → P-58 stays independent, Faz 12's own "polish" slice
+  covers CLAUDE.md's own never-systematically-audited Quality floor checklist instead.
+  **Confirmed four-slice plan, letter M** (next unused letter after Faz 7's G, Faz 9's J, Faz
+  10's K, Faz 11's L): **M1** — i18n: TR/EN key-parity regression test (the one real new
+  mechanism — nothing currently protects the verified 957/957 parity from future drift) + a
+  small bounded grep for known locale-trap patterns, plus a real open question on `.toFixed()`'s
+  non-locale-aware decimal separator (six call sites found, none yet asked about). **M2** —
+  auto-update: flip repo visibility to public (its own confirmed first step) + CI
+  release-publish pipeline + `tauri-plugin-updater` wiring + Settings "check for updates" UI;
+  flagged as likely exceeding D-114's one-mechanism budget (repo visibility + CI release flow +
+  frontend UI + Tauri's own minisign update-signature keypair are at least three real new
+  mechanisms) — that session's own first job is deciding whether to split, mirroring L3's own
+  precedent (D-226). **M3** — packaging/signing closure: bundle metadata (publisher/copyright/
+  description, all currently unset), a LICENSE-file decision (real gap found this session — the
+  repo has none today, and CI's own `paths-ignore` already names a "LICENSE" file that doesn't
+  exist; this matters more once M2 makes the repo public), and a small SÜREÇ walkthrough
+  (`APPLE-GONDERIM.md`'s [DID]-profile Gatekeeper/SmartScreen section, adapted for "permanently
+  unsigned" rather than "notarized" as the accepted target state) that does NOT close P-12 (a
+  real Farplas machine is still needed for that). **M4** — polish: the first systematic pass
+  over CLAUDE.md's own Quality floor list (keyboard nav, focus rings, WCAG AA contrast, reduced
+  motion, layout shift, unhandled rejections, console noise) — this session's own quick grep
+  found the baseline already largely sound (14 files use `focus-visible:`, `prefers-reduced-
+  motion` handled correctly once, only 3 files carry `console.*` and all three are already
+  documented/deliberate, D-134/D-136/D-194), so M4 is mostly verification-and-close rather than
+  bug-hunting. `DECISIONS.md` D-44/D-46 both got explicit notes: D-44's own "revisit once a real
+  release process exists" trigger has now fired (M2's own job); D-46's "revisit before external
+  collaborator access" trigger fired for a different reason than it anticipated (auto-update,
+  not collaboration) — status stays OPEN until M2 actually executes the visibility flip. Updated
+  this session: this section, `DECISIONS.md` D-230 (+P-65, +D-44/D-46 notes),
+  `docs/oturumlar/README.md`'s new Faz 12 section + its own "Sıradaki iş" table. No code — this
+  session touched no `src/`/`src-tauri/src/` file, confirmed via `git status`. M1-M4's own
+  launch prompts are written: `docs/oturumlar/M1-i18n-tarama.md`, `M2-auto-update.md`,
+  `M3-paketleme-imza-kapanisi.md`, `M4-polish-kalite-tabani.md`.
 Templates: two company .xls files analysed; see reference/TEMPLATE_ANALYSIS.md
 Template geometry: VERIFIED 2026-08-01 against both .xls files. Five errors found and
   corrected in place — the largest was the column widths: the real split is 49.7/50.3, NOT
