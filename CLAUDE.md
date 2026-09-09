@@ -2168,6 +2168,40 @@ AI layer: Faz 8 fully done (keychain + Vorion connection/model-discovery + strea
   session touched no `src/`/`src-tauri/src/` file, confirmed via `git status`. M1-M4's own
   launch prompts are written: `docs/oturumlar/M1-i18n-tarama.md`, `M2-auto-update.md`,
   `M3-paketleme-imza-kapanisi.md`, `M4-polish-kalite-tabani.md`.
+**Faz 12 — M3 (packaging/signing closure): FULLY DONE (D-231, 2026-09-08/09, run as one of six
+  parallel worktree/branch dilims — not yet merged to main).** §0's own pre-scan re-verified
+  against real code, matched exactly: `bundle.publisher`/`copyright`/`license`/`shortDescription`
+  all `None`, no `LICENSE*` file anywhere, `ci.yml`'s `paths-ignore` already names a `"LICENSE"`
+  file that doesn't exist, CI signing key still the deliberate empty string. **This session could
+  not run the launch prompt's own mandatory `AskUserQuestion` round** — this worktree's
+  environment has no `AskUserQuestion` tool at all (confirmed via `ToolSearch`), so the two real
+  legal/business calls the prompt explicitly flags (LICENSE type; whether `publisher` is Farplas
+  or Barış's own name/company) could not be put to Barış in real time within this session's own
+  turn. Rather than guess on a choice with real consequence once M2 makes the repo public,
+  `publisher`/`copyright`/`license` were first left unset and no `LICENSE` file was created —
+  CLAUDE.md's own "don't silently invent scope" rule and Anayasa Madde 9 both pointed the same
+  way — with two concrete candidate answers recorded in `DECISIONS.md` D-231 for Barış's
+  confirmation: (A) proprietary/all-rights-reserved, Farplas Otomotiv A.Ş. as holder; (B)
+  proprietary/all-rights-reserved, Barış's own name/company as holder. **Barış's answer arrived
+  via the orchestrating session (relayed, not a direct `AskUserQuestion` in this worktree) —
+  both LICENSE holder and `publisher` are Farplas Otomotiv A.Ş., matching (A) exactly.** A real
+  root `LICENSE` file (proprietary/all-rights-reserved, holder "Farplas Otomotiv A.Ş.", 2026) was
+  created; `tauri.conf.json`'s `bundle` gained `publisher: "Farplas Otomotiv A.Ş."` and
+  `copyright: "Copyright © 2026 Farplas Otomotiv A.Ş."` alongside the earlier
+  `shortDescription: "Toyota 8-step Practical Problem Solving A3 report builder"` — all four
+  bundle-metadata fields §0 found empty are now filled; `.github/workflows/ci.yml`'s
+  `paths-ignore` `"LICENSE"` entry now names a real file. D-44's own row in `DECISIONS.md` got an
+  explicit clarifying note (the "unsigned" half is now closed on D-230's *permanent,
+  accepted-state* rationale, distinct from this row's original *"too early, revisit later"*
+  reasoning — a pure record correction, no Barış input needed). §2's SÜREÇ walkthrough
+  (clean-account Gatekeeper/SmartScreen behavior) is the usual class of gap this environment
+  cannot close (no display/Tauri runtime, no clean macOS/Windows account) — recorded as owed from
+  Barış's own account, same as P-12, which this session does **not** close either (a real Farplas
+  machine is still needed for that). `npm test`/`npm run lint`/`npx tsc --noEmit`/`npm run build`
+  all re-run after the LICENSE/publisher/copyright addition and green — this session's only
+  production-file touches are `LICENSE` (new) and three `bundle` fields in `tauri.conf.json`,
+  confirmed via `git status`. Not merged to main — sits on its own branch pending the other five
+  parallel dilims' own branches.
 Templates: two company .xls files analysed; see reference/TEMPLATE_ANALYSIS.md
 Template geometry: VERIFIED 2026-08-01 against both .xls files. Five errors found and
   corrected in place — the largest was the column widths: the real split is 49.7/50.3, NOT

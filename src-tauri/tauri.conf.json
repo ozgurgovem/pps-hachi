@@ -36,7 +36,10 @@
       "icons/128x128@2x.png",
       "icons/icon.icns",
       "icons/icon.ico"
-    ]
+    ],
+    "publisher": "Farplas Otomotiv A.Ş.",
+    "copyright": "Copyright © 2026 Farplas Otomotiv A.Ş.",
+    "shortDescription": "Toyota 8-step Practical Problem Solving A3 report builder"
   }
 }
 
