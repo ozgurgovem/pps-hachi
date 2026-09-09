@@ -2420,6 +2420,58 @@ AI layer: Faz 8 fully done (keychain + Vorion connection/model-discovery + strea
   the next session's own first verification steps: `docs/oturumlar/CI-kirmizi-durum.md`. No code
   changed for this — filed as its own future session, likely splitting into two independent
   slices (D-114's own "one root cause per slice" logic) given how unrelated the two causes are.
+**P-69's own follow-on session (D-239, 2026-09-09): both root causes fixed in one session, not
+  split — code done, real CI verification still owed.** Re-ran `CI-kirmizi-durum.md`'s own §2
+  verification against the live run first: still red, same two patterns exactly (Windows single-
+  test `testTimeout` at 5000ms; macOS 2/6 E2E tests passing, the other 4 failing as the cascading
+  result of the project screen never appearing within 15s of the "New Project" click). **CI-A —
+  P-49's hypothesis is now CONFIRMED, by reading source, not guessed**: `@tauri-apps/api/core.js`'s
+  real `invoke()` (the function this app's own `invoke` import — and `@tauri-apps/plugin-dialog`'s
+  `save()`, which calls it too — actually is) calls `window.__TAURI_INTERNALS__.invoke(...)`
+  directly; `@wdio/tauri-plugin`'s `setupInvokeInterception()` (the only active interception path
+  in this app's `driverProvider: "embedded"`/native mode, confirmed against `e2e/wdio.conf.ts`)
+  patches a completely different property, `window.__TAURI__.core.invoke`, via
+  `Object.defineProperty` — confirmed a third way by the package's own docs
+  (`@wdio/tauri-service/docs/plugin-setup.md`: "Intercepts `window.__TAURI__.core.invoke` for
+  mocking," and every documented mocking example triggers the mock from inside
+  `browser.tauri.execute()`, never from a real UI click). `@wdio/native-spy`'s own
+  `window.__TAURI_INTERNALS__.invoke` patch exists but is browser-mode-only (Chrome + dev server,
+  no real binary) — irrelevant to this app's native/embedded E2E setup. A related but distinct
+  upstream issue (`webdriverio/desktop-mobile#591`) was found and was closed by the maintainer as
+  unreproducible in isolation — not the same bug, just further evidence this whole area (native
+  mode + real `invoke()`) is a known rough edge in the tool. **Fix**: new
+  `src/testing/e2eInvokeMockBridge.ts` (+5 unit tests) — mirrors what `@wdio/native-spy` already
+  does for browser mode, but for native mode: patches `window.__TAURI_INTERNALS__.invoke` to
+  consult the same `window.__wdio_mocks__` registry `@wdio/tauri-plugin`'s own `mock()` already
+  writes into (confirmed via `@wdio/native-spy`'s `buildRegistrationScript` — both mechanisms
+  share that one global), falling through to the real internals invoke otherwise. Wired into
+  `src/main.tsx` in the same `import.meta.env.MODE === "e2e"`-gated dynamic-import pattern as
+  `@wdio/tauri-plugin` itself — verified both directions, D-202's own method: a real `npm run
+  build` (production) has zero occurrences of `"wdio"`/`"e2eInvokeMockBridge"` in the output
+  bundle (grep-checked), while `npm run build:e2e` produces a real, separate
+  `e2eInvokeMockBridge-*.js` chunk (0.31 kB). **CI-B**: `vitest.config.ts` gained
+  `testTimeout: 15000` (up from vitest's 5000ms default, the upper end of the doc's own suggested
+  range) — this session's own fresh evidence showed only a genuine `testTimeout` overrun (the
+  8-step x 2-entry `WorkspaceScreen.test.tsx` test, real `userEvent.type()` character-by-character
+  simulation plus a live A3 preview rebuild per step, is real, substantial work padded by a tight
+  fixed budget, not a race condition — three different runs failing three different tests, always
+  Windows, never macOS, is the signature of a CI-load-induced flake, not one deterministic bug).
+  Testing-library's own `waitFor` timeout was deliberately left untouched — this session's own
+  fresh evidence showed only the one `testTimeout` shape, and touching a second, unevidenced knob
+  would have been a guess, not a fix. **Split decision**: made directly (Anayasa Madde 9) rather
+  than deferred to two separate CI-A/CI-B sessions like L3a/L3b or M2's own precedent — the
+  investigation and evidence were already gathered in this same session, so splitting would only
+  have meant re-deriving the same context. `npm test` 1580/1580 (311 files, up from 1575/1575 —
+  5 new tests), exit code 0 (checked via a separate logfile, not piped through `tail`, D-143's own
+  lesson — verified twice). `npm run lint` clean (the one pre-existing `ThemeProvider` warning).
+  `npx tsc --noEmit` clean. `npm run build` green (same pre-existing chunk-size warning). Rust
+  genuinely untouched this session (`git status src-tauri/` empty, confirmed), `cargo test`/
+  `clippy`/`fmt` not re-run. `scripts/gen-a3-fixture.ts` not re-run — this session touches no
+  `src/a3/` file. **Honestly owed**: whether this fix actually turns real CI green is unverified
+  until this commit's own push is watched via `gh run list`/`gh run view` — local verification
+  proves the mechanism is architecturally sound, not that the real WKWebView/real Windows runner
+  behave as predicted (the usual D-105/D-113/D-136/… class of gap, but this one is closable by
+  watching the next real CI run rather than needing Barış's own `npm run tauri dev`).
 Templates: two company .xls files analysed; see reference/TEMPLATE_ANALYSIS.md
 Template geometry: VERIFIED 2026-08-01 against both .xls files. Five errors found and
   corrected in place — the largest was the column widths: the real split is 49.7/50.3, NOT

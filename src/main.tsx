@@ -14,6 +14,12 @@ import "./index.css";
 // mock() — test-only, never shipped.
 if (import.meta.env.MODE === "e2e") {
   void import("@wdio/tauri-plugin");
+  // CI-A fix (P-49, docs/oturumlar/CI-kirmizi-durum.md): @wdio/tauri-plugin's
+  // own mock interception only patches window.__TAURI__.core.invoke, which
+  // this app's real invoke() calls (imported from @tauri-apps/api/core) never
+  // read — see e2eInvokeMockBridge.ts's own header comment for the full,
+  // source-verified chain. Also dead-code-eliminated from every real build.
+  void import("./testing/e2eInvokeMockBridge");
 }
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
