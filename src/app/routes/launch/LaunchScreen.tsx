@@ -57,11 +57,22 @@ export function LaunchScreen() {
 
   async function handleNewProject() {
     setActionError(null);
-    const path = await save({
-      title: t("launch.newProjectDialogTitle"),
-      filters: PPSX_FILTER,
-      defaultPath: "Untitled.ppsx",
-    });
+    // M4 (2026-09-08): the native `save()` dialog call itself had no
+    // try/catch — a rejection (rare, but not impossible: OS-level dialog
+    // failures) would have escaped as a genuinely unhandled promise
+    // rejection, the exact class of bug D-134/D-136 already fixed twice in
+    // this file's own neighboring `a3PreviewWindow/window.ts`.
+    let path: string | null;
+    try {
+      path = await save({
+        title: t("launch.newProjectDialogTitle"),
+        filters: PPSX_FILTER,
+        defaultPath: "Untitled.ppsx",
+      });
+    } catch (error) {
+      setActionError(t("launch.errors.dialogFailed", { reason: errorMessage(error) }));
+      return;
+    }
     if (!path) {
       return;
     }
@@ -89,11 +100,19 @@ export function LaunchScreen() {
 
   async function handleOpenProject() {
     setActionError(null);
-    const picked = await open({
-      title: t("launch.openProjectDialogTitle"),
-      filters: PPSX_FILTER,
-      multiple: false,
-    });
+    // M4 (2026-09-08): same fix as `handleNewProject` above — the native
+    // `open()` dialog call had no try/catch of its own.
+    let picked: string | string[] | null;
+    try {
+      picked = await open({
+        title: t("launch.openProjectDialogTitle"),
+        filters: PPSX_FILTER,
+        multiple: false,
+      });
+    } catch (error) {
+      setActionError(t("launch.errors.dialogFailed", { reason: errorMessage(error) }));
+      return;
+    }
     const path = Array.isArray(picked) ? picked[0] : picked;
     if (!path) {
       return;

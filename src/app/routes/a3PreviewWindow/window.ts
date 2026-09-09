@@ -132,15 +132,31 @@ export async function listenForPreviewReady(onReady: () => void): Promise<Unlist
   }
 }
 
-/** Preview window side: registers the descriptor listener, then announces readiness. */
+/**
+ * Preview window side: registers the descriptor listener, then announces
+ * readiness. Found during M4's own polish pass (2026-09-08): unlike its four
+ * siblings in this file, this call had no try/catch — `A3PreviewWindow.tsx`'s
+ * mount effect calls it as `const unlisten = listenForDescriptorPush(...)`
+ * with no `await`/`.catch`, so a rejected `listen()` (no Tauri runtime, true
+ * of every test environment and any real capability mismatch) would have
+ * escaped as a genuinely unhandled promise rejection instead of a visible,
+ * logged error — the exact same failure shape D-134/D-136 already fixed for
+ * this file's other four exports, just never re-checked here (G2's own
+ * lesson: the same bug class recurring in a sibling that was missed).
+ */
 export async function listenForDescriptorPush(
   onDescriptor: (descriptor: A3LayoutDescriptor) => void,
 ): Promise<UnlistenFn> {
-  const unlisten = await listen<A3LayoutDescriptor>(A3_PREVIEW_DESCRIPTOR_EVENT, (event) =>
-    onDescriptor(event.payload),
-  );
-  await emit(A3_PREVIEW_READY_EVENT);
-  return unlisten;
+  try {
+    const unlisten = await listen<A3LayoutDescriptor>(A3_PREVIEW_DESCRIPTOR_EVENT, (event) =>
+      onDescriptor(event.payload),
+    );
+    await emit(A3_PREVIEW_READY_EVENT);
+    return unlisten;
+  } catch (error) {
+    console.error("Failed to listen for A3 descriptor pushes in the preview window", error);
+    return async () => {};
+  }
 }
 
 /**

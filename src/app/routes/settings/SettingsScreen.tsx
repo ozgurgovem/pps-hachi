@@ -119,9 +119,24 @@ export function SettingsScreen() {
     }
     let cancelled = false;
     async function load(openProjectId: string) {
-      const summary = await getCostSummary(openProjectId);
-      if (!cancelled) {
-        setCostSummary(summary ?? null);
+      try {
+        const summary = await getCostSummary(openProjectId);
+        if (!cancelled) {
+          setCostSummary(summary ?? null);
+        }
+      } catch (error) {
+        // M4 polish audit (2026-09-09): this call was previously un-caught —
+        // `void load(...)` below with no `.catch` let a rejected `getCostSummary`
+        // (no Tauri runtime, true of every test environment) escape as a
+        // genuinely unhandled promise rejection, the same bug class D-134/
+        // D-136/6c already fixed twice in `a3PreviewWindow/window.ts`. The cost
+        // summary is a nice-to-have display (§2.5's own "nothing to show yet"
+        // state already covers `null`), so the safe degrade here is simply
+        // logging and leaving it `null` rather than surfacing a dedicated
+        // error banner for a non-critical panel.
+        if (!cancelled) {
+          console.error("Failed to load the AI cost summary", error);
+        }
       }
     }
     void load(project.id);
@@ -146,14 +161,32 @@ export function SettingsScreen() {
   useEffect(() => {
     let cancelled = false;
     async function load() {
-      const [masked, loadedSettings] = await Promise.all([getKeyStatus(), getAiSettings()]);
-      if (cancelled) {
-        return;
-      }
-      setKeyState(masked ? { status: "set", masked } : { status: "unset" });
-      setSettings(loadedSettings);
-      if (masked) {
-        await refreshModels();
+      try {
+        const [masked, loadedSettings] = await Promise.all([getKeyStatus(), getAiSettings()]);
+        if (cancelled) {
+          return;
+        }
+        setKeyState(masked ? { status: "set", masked } : { status: "unset" });
+        setSettings(loadedSettings);
+        if (masked) {
+          await refreshModels();
+        }
+      } catch (error) {
+        // M4 polish audit (2026-09-09): unlike `handleSaveKey`/`handleRemoveKey`/
+        // `persistSettings` in this same file (all wrapped in try/catch, all
+        // surfacing `keyActionError`/`settingsError`), this initial-mount load
+        // had none — `void load()` below with no `.catch` let a rejected
+        // `getKeyStatus`/`getAiSettings` (no Tauri runtime, true of every test
+        // environment) escape as a genuinely unhandled promise rejection, the
+        // same bug class D-134/D-136/6c already fixed twice in
+        // `a3PreviewWindow/window.ts`. Degrades to `"unset"` (the same safe
+        // default `handleRemoveKey` already leaves the screen in) rather than
+        // leaving `keyState` stuck on `"loading"` forever, and reuses the
+        // existing `settingsError` banner rather than inventing a new one.
+        if (!cancelled) {
+          setKeyState({ status: "unset" });
+          setSettingsError(errorMessage(error));
+        }
       }
     }
     void load();

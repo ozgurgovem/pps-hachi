@@ -45,6 +45,36 @@ describe("SettingsScreen", () => {
     expect(mocked.listModels).not.toHaveBeenCalled();
   });
 
+  test("M4 polish audit: never lets a rejected getKeyStatus/getAiSettings call escape as an unhandled rejection, and degrades to the unset state with a visible error", async () => {
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+    mocked.getKeyStatus.mockRejectedValueOnce(new Error("no Tauri runtime"));
+    mocked.getAiSettings.mockResolvedValueOnce(EMPTY_SETTINGS);
+
+    renderSettingsScreen();
+
+    expect((await screen.findByRole("alert")).textContent).toContain("no Tauri runtime");
+    expect(screen.getByText("Not connected")).toBeTruthy();
+    expect(mocked.listModels).not.toHaveBeenCalled();
+    consoleError.mockRestore();
+  });
+
+  test("M4 polish audit: never lets a rejected getCostSummary call escape as an unhandled rejection, and leaves the cost summary blank instead", async () => {
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+    const { project } = createNewProject({ title: "T", language: "en", appVersion: "0.1.0" });
+    useProjectStore.setState({ ...initialProjectStoreState, project });
+    mocked.getKeyStatus.mockResolvedValueOnce("nk_live_…d41d");
+    mocked.getAiSettings.mockResolvedValueOnce(EMPTY_SETTINGS);
+    mocked.listModels.mockResolvedValueOnce([]);
+    mocked.getCostSummary.mockRejectedValueOnce(new Error("no Tauri runtime"));
+
+    renderSettingsScreen();
+
+    await screen.findByText("AI cost");
+    await waitFor(() => expect(consoleError).toHaveBeenCalledWith("Failed to load the AI cost summary", expect.any(Error)));
+    expect(screen.queryByText(/\$/)).toBeNull();
+    consoleError.mockRestore();
+  });
+
   test("saving a key stores it, shows only the masked preview, and never renders the raw key", async () => {
     const user = userEvent.setup();
     mocked.getKeyStatus.mockResolvedValueOnce(null);

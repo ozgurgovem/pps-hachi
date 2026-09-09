@@ -21,7 +21,8 @@
       "stepProgress": "{{current}} of {{total}} steps have entries"
     },
     "errors": {
-      "corrupt": "Couldn't open this file: {{reason}}"
+      "corrupt": "Couldn't open this file: {{reason}}",
+      "dialogFailed": "Couldn't open the file dialog: {{reason}}"
     }
   },
   "project": {

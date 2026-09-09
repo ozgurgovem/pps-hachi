@@ -21,7 +21,8 @@
       "stepProgress": "{{total}} adımın {{current}} tanesinde giriş var"
     },
     "errors": {
-      "corrupt": "Bu dosya açılamadı: {{reason}}"
+      "corrupt": "Bu dosya açılamadı: {{reason}}",
+      "dialogFailed": "Dosya penceresi açılamadı: {{reason}}"
     }
   },
   "project": {
