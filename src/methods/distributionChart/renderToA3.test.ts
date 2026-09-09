@@ -22,7 +22,7 @@ describe("renderDistributionChartToA3", () => {
       payload({ chartType: "histogram", unit: "mm", samples: [{ id: "s1", value: "1" }, { id: "s2", value: "x" }] }),
       ENTRY,
     );
-    expect(block.image?.spec).toEqual({ kind: "histogram", unit: "mm", values: [1], binCount: undefined });
+    expect(block.image?.spec).toEqual({ kind: "histogram", unit: "mm", values: [1], binCount: undefined, language: "en" });
   });
 
   it("builds a scatter spec from parsed points, ignoring the unused samples list", () => {

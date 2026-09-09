@@ -23,8 +23,16 @@ const TARGET_COLOR = "#1A1A1A";
 const LABEL_COLOR = "#1A1A1A";
 const FOOTER_COLOR = "#4D4D4D";
 
-function formatValue(value: number, unit: string | undefined): string {
-  const rounded = Number.isInteger(value) ? String(value) : value.toFixed(1);
+/**
+ * D-231/P-66: `locale` is the content language (`KpiStripChartSpec.language`
+ * — never the UI's active i18next language, see that field's own doc
+ * comment), driving the decimal separator via `Intl.NumberFormat` in place
+ * of a locale-blind `.toFixed(1)`.
+ */
+function formatValue(value: number, unit: string | undefined, locale: string): string {
+  const rounded = Number.isInteger(value)
+    ? String(value)
+    : new Intl.NumberFormat(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(value);
   return unit ? `${rounded} ${unit}` : rounded;
 }
 
@@ -35,9 +43,10 @@ interface TileProps {
   readonly height: number;
   readonly sustainLabel: string;
   readonly resultLabel: string;
+  readonly locale: string;
 }
 
-function Tile({ item, x, width, height, sustainLabel, resultLabel }: TileProps) {
+function Tile({ item, x, width, height, sustainLabel, resultLabel, locale }: TileProps) {
   const padding = Math.max(4, width * 0.06);
   const hasFooter = item.sustain !== undefined || item.result !== undefined;
   const labelHeight = height * (hasFooter ? 0.26 : 0.3);
@@ -77,7 +86,7 @@ function Tile({ item, x, width, height, sustainLabel, resultLabel }: TileProps) 
         fill={STATUS_FILL_COLOR[item.status]}
         textAnchor="end"
       >
-        {formatValue(item.actual, item.unit)}
+        {formatValue(item.actual, item.unit, locale)}
       </text>
 
       <rect x={barLeft} y={barTop} width={barWidth} height={barHeight} fill={TRACK_COLOR} />
@@ -100,8 +109,8 @@ function Tile({ item, x, width, height, sustainLabel, resultLabel }: TileProps) 
       {hasFooter && (
         <text x={x + padding} y={height - footerFontSize * 0.4} fontSize={footerFontSize} fill={FOOTER_COLOR}>
           {[
-            item.sustain !== undefined ? `${sustainLabel}: ${formatValue(item.sustain, item.unit)}` : undefined,
-            item.result !== undefined ? `${resultLabel}: ${formatValue(item.result, item.unit)}` : undefined,
+            item.sustain !== undefined ? `${sustainLabel}: ${formatValue(item.sustain, item.unit, locale)}` : undefined,
+            item.result !== undefined ? `${resultLabel}: ${formatValue(item.result, item.unit, locale)}` : undefined,
           ]
             .filter((part): part is string => part !== undefined)
             .join("   ·   ")}
@@ -114,6 +123,7 @@ function Tile({ item, x, width, height, sustainLabel, resultLabel }: TileProps) 
 export function KpiStripChart({ spec, size }: { spec: KpiStripChartSpec; size: A3ImageSize }) {
   const count = Math.max(1, spec.items.length);
   const tileWidth = size.widthPx / count;
+  const locale = spec.language ?? "en";
 
   return (
     <svg width={size.widthPx} height={size.heightPx} viewBox={`0 0 ${size.widthPx} ${size.heightPx}`}>
@@ -127,6 +137,7 @@ export function KpiStripChart({ spec, size }: { spec: KpiStripChartSpec; size: A
           height={size.heightPx}
           sustainLabel={spec.sustainLabel}
           resultLabel={spec.resultLabel}
+          locale={locale}
         />
       ))}
     </svg>

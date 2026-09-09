@@ -41,8 +41,18 @@ export interface HistogramBin {
 /**
  * Equal-width bins spanning `[min, max]`. Returns an empty array for fewer
  * than 2 samples — a histogram of one point has no meaningful range.
+ *
+ * D-231/P-66: `locale` (the content language, `HistogramChartSpec.language`
+ * — never the UI's active i18next language, see that field's own doc
+ * comment) drives the bin-range decimal separator (`,` for `tr`, `.` for
+ * `en`) via `Intl.NumberFormat`, replacing a locale-blind `.toFixed(1)`.
+ * Defaults to `"en"` to match `HistogramChartSpec.language`'s own default.
  */
-export function computeHistogramBins(values: readonly number[], binCount?: number): readonly HistogramBin[] {
+export function computeHistogramBins(
+  values: readonly number[],
+  binCount?: number,
+  locale = "en",
+): readonly HistogramBin[] {
   if (values.length < 2) {
     return [];
   }
@@ -50,6 +60,7 @@ export function computeHistogramBins(values: readonly number[], binCount?: numbe
   const max = Math.max(...values);
   const bins = Math.max(1, binCount ?? sturgesBinCount(values.length));
   const width = max === min ? 1 : (max - min) / bins;
+  const formatter = new Intl.NumberFormat(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 
   const counts = new Array<number>(bins).fill(0);
   for (const value of values) {
@@ -60,7 +71,7 @@ export function computeHistogramBins(values: readonly number[], binCount?: numbe
   return counts.map((count, index) => {
     const lower = min + index * width;
     const upper = index === bins - 1 ? max : min + (index + 1) * width;
-    return { rangeLabel: `${lower.toFixed(1)}–${upper.toFixed(1)}`, count };
+    return { rangeLabel: `${formatter.format(lower)}–${formatter.format(upper)}`, count };
   });
 }
 

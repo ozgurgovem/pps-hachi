@@ -16,15 +16,20 @@ import { formatIngestedTableForPrompt, proposeStructuredEntry } from "./entryPro
  * could technically read). */
 const SPREADSHEET_FILTER = [{ name: "Spreadsheets", extensions: ["xlsx", "csv"] }];
 
-function formatFileSize(bytes: number): string {
+/** D-231/P-66: `locale` is the UI's active i18next language (`i18n.language`,
+ * this component IS UI-facing, unlike the export-side chart specs) — drives
+ * the decimal separator via `Intl.NumberFormat` in place of a locale-blind
+ * `.toFixed(1)`. */
+function formatFileSize(bytes: number, locale: string): string {
   if (bytes < 1024) {
     return `${bytes} B`;
   }
+  const formatter = new Intl.NumberFormat(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
   const kb = bytes / 1024;
   if (kb < 1024) {
-    return `${kb.toFixed(1)} KB`;
+    return `${formatter.format(kb)} KB`;
   }
-  return `${(kb / 1024).toFixed(1)} MB`;
+  return `${formatter.format(kb / 1024)} MB`;
 }
 
 type AttachmentState =
@@ -85,7 +90,7 @@ export function EntryProposalField({
   redaction,
   onAccept,
 }: EntryProposalFieldProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [rawInput, setRawInput] = useState("");
   const [state, setState] = useState<Phase>({ phase: "idle" });
@@ -267,7 +272,7 @@ export function EntryProposalField({
           {attachment.status === "ready" && (
             <div className="flex flex-col gap-1 rounded-control border border-border bg-surface p-2">
               <p className="font-body text-sm font-medium text-ink">
-                {attachment.preview.fileName} · {formatFileSize(attachment.preview.fileSizeBytes)}
+                {attachment.preview.fileName} · {formatFileSize(attachment.preview.fileSizeBytes, i18n.language)}
               </p>
               <p className="font-body text-2xs text-ink-muted">
                 {t("workspace.entryProposal.attachment.rowCount", { count: attachment.preview.table.rowCount })}

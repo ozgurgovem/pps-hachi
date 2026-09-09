@@ -270,15 +270,15 @@ CLAUDE.md'nin hiç sistematik denetlenmemiş Quality floor listesini kapsar. Tam
 | Dilim | Kapsam | Durum |
 |---|---|---|
 | Kapsam belirleme — §0 taraması + beş `AskUserQuestion` (+ bir ek engel turu) + dört dilimlik plan | `docs/oturumlar/faz12-kapsam-belirleme.md` | ✅ BİTTİ 2026-09-08 — D-230. |
-| M1 — i18n: TR/EN anahtar eşliği doğrulaması (zaten 957/957) + `kontrol-dil.sh`'ın bu proje için KAPSAM DIŞI olduğunun kaydı + bilinen-desen (D-219 sınıfı: `.toLocaleUpperCase`/tarih biçimlendirme/sıralama) sınırlı bir elle grep taraması | `docs/oturumlar/M1-i18n-tarama.md` | **KISMEN BİTTİ (D-231, 2026-09-08).** §2.1 (kalıcı `src/i18n/localeParity.test.ts`, 957/957 eşliğini korur, mutation-verified) BİTTİ; §2.2'nin `.toFixed()` decimal-separator sorusu `AskUserQuestion` aracının bu dilimin izole alt-ajan bağlamında mevcut olmaması nedeniyle SORULAMADI — **P-66** olarak filed, Barış'ın doğrudan cevabı bekleniyor. |
+| M1 — i18n: TR/EN anahtar eşliği doğrulaması (zaten 957/957) + `kontrol-dil.sh`'ın bu proje için KAPSAM DIŞI olduğunun kaydı + bilinen-desen (D-219 sınıfı: `.toLocaleUpperCase`/tarih biçimlendirme/sıralama) sınırlı bir elle grep taraması | `docs/oturumlar/M1-i18n-tarama.md` | **TAMAMEN BİTTİ (D-231+D-232, 2026-09-08/09).** §2.1 (kalıcı `src/i18n/localeParity.test.ts`, 957/957 eşliğini korur, mutation-verified) BİTTİ; §2.2'nin `.toFixed()` decimal-separator sorusu Barış'a koordinatör aracılığıyla soruldu ve cevaplandı ("altısı da düzeltilsin") — **P-66 KAPANDI (D-232)**, altı çağrı sitesi `Intl.NumberFormat(i18n.language, …)`'a geçirildi (export grafikleri `project.meta.language`, UI bileşenleri `i18n.language` — D-43/P-42'nin içerik-dili/UI-dili ayrımı korundu). |
 | M2 — Auto-update: repo'yu public yapma (kendi onayıyla) + `tauri-plugin-updater` kurulumu + CI'ye release-publish adımı + Settings'e "check for updates" UI'si | `docs/oturumlar/M2-auto-update.md` | Başlanmadı. D-44'ün kendi "revisit once a real release process exists" tetikleyicisi burada çözülür. |
 | M3 — Packaging/signing kapanışı: D-44/D-46'yı "kalıcı imzasız, iç-kurumsal" durum olarak kapatan küçük bir kod+SÜREÇ dilimi (bundle metadata doğrulaması + sınırlı bir SmartScreen/Gatekeeper SÜREÇ yürüyüşü) | `docs/oturumlar/M3-paketleme-imza-kapanisi.md` | Başlanmadı. |
 | M4 — Polish: CLAUDE.md'nin kendi Quality floor listesinin (klavye nav, focus ring, WCAG AA kontrast, reduced motion, layout shift, unhandled rejection, console noise) proje çapında ilk sistematik denetimi | `docs/oturumlar/M4-polish-kalite-tabani.md` | Başlanmadı. |
 
 Filed, planlanmamış (Faz 12'nin dışında): **P-65** (yeni — PDF/PNG export, gerçek ihtiyaç
-doğmadan YAGNI), **P-58** (bilinçli olarak Faz 12'ye dahil edilmedi, kendi ayrı oturumu),
-**P-66** (yeni, D-231 — M1'in kendi `.toFixed()` decimal-separator sorusu, `AskUserQuestion`
-aracı mevcut olmadığı için hiç sorulamadı, Barış'ın doğrudan cevabı bekleniyor).
+doğmadan YAGNI), **P-58** (bilinçli olarak Faz 12'ye dahil edilmedi, kendi ayrı oturumu).
+**P-66 KAPANDI (D-232)** — M1'in kendi `.toFixed()` decimal-separator sorusu Barış'a soruldu,
+cevaplandı, uygulandı.
 
 ## Sıradaki iş — Faz 12 kapsam belirleme artık BİTTİ, üç bağımsız aday + dört yeni M-dilimi bekliyor
 

@@ -40,6 +40,7 @@ export function renderKpiStripToA3(payload: KpiStripPayload, entry: A3EntrySumma
         })),
         sustainLabel: SUSTAIN_LABEL[language],
         resultLabel: RESULT_LABEL[language],
+        language,
       },
     },
   };
