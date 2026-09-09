@@ -49,24 +49,30 @@ describe("AI kapalı mutlu yol (D-20)", () => {
     // assumed. Everything downstream of this one mocked call (project
     // creation, ppsx_write, the whole rest of this spec) runs for real.
     //
-    // HONESTLY UNVERIFIED (same class of gap as D-105/D-113/D-136/D-200/
-    // D-201 — no display/Tauri runtime in this environment): this app calls
-    // `invoke()` via the `@tauri-apps/api/core` ESM import, which forwards
-    // to `window.__TAURI_INTERNALS__.invoke` — NOT via the `window.__TAURI__`
-    // global object tauri-plugin-wdio's own docs describe intercepting.
-    // `withGlobalTauri: true` (e2e/tauri.e2e.conf.json) makes `window.__TAURI__`
-    // exist, and the plugin's own "sets up invoke interception" step runs
-    // once at import time (not per-`execute()`-call), which is only
-    // consistent with a real Tauri app's UI-triggered calls if it patches
-    // the shared underlying hook rather than only the `window.__TAURI__`
-    // mirror — but this was never confirmed by running it. If this mock
-    // does not actually intercept the real button's `save()` call, this
-    // test fails on a real native dialog opening with nothing to dismiss
-    // it, rather than passing — a loud failure, not a silent false pass.
+    // P-49/D-239/D-240: this app calls `invoke()` via the `@tauri-apps/api/
+    // core` ESM import, which forwards to `window.__TAURI_INTERNALS__.invoke`
+    // directly — NOT via the `window.__TAURI__` property `@wdio/tauri-
+    // plugin`'s own mock interception actually patches (confirmed by reading
+    // both packages' real source, not assumed). `src/testing/
+    // e2eInvokeMockBridge.ts` (e2e-mode-only, dead-code-eliminated from every
+    // real build) bridges that gap by patching `window.__TAURI_INTERNALS__.
+    // invoke` itself to consult the same `window.__wdio_mocks__` registry
+    // `browser.tauri.mock()` already writes into.
     const saveDialogMock = await browser.tauri.mock("plugin:dialog|save");
     await saveDialogMock.mockResolvedValueOnce(projectPath);
 
     await (await $("button*=New PPS Project")).click();
+
+    // Faz 11/L1 (D-223/D-224) added a "which language should this project be
+    // kept in" dialog between the save-path pick and actual project
+    // creation — this spec predates that dialog (D-202) and never accounted
+    // for it, which was a second, independent reason "New Project" never
+    // completed once this dialog shipped (found via P-69/D-240's own real-CI
+    // re-verification, not guessed). Pick English so the rest of this spec's
+    // own English-language selectors stay valid.
+    const englishOption = await $("button=English");
+    await englishOption.waitForDisplayed({ timeout: 15000 });
+    await englishOption.click();
 
     const projectHeading = await $("h1*=e2e-test-project");
     await projectHeading.waitForDisplayed({ timeout: 15000 });
@@ -93,12 +99,17 @@ describe("AI kapalı mutlu yol (D-20)", () => {
       const addEntryButton = await freeTextCard.$("button=Add entry");
       await addEntryButton.click();
 
-      const dialog = await $('[role="dialog"]');
-      await dialog.waitForDisplayed();
-      await (await dialog.$("#entry-title")).setValue(`Step ${stepId} note`);
-      await (await dialog.$("#generic-text-editor")).setValue(`Step ${stepId} note body`);
-      await (await dialog.$("button=Save")).click();
-      await dialog.waitForExist({ reverse: true });
+      // W2/D-217 (§2.1) replaced the modal `EntryEditorDialog` (`role="dialog"`)
+      // with an inline accordion panel, `EntryEditorPanel` (`role="group"`,
+      // `aria-label="New entry"` for a create) — this spec predates that
+      // change (D-202) and never accounted for it either, found the same way
+      // as the language-dialog gap above (P-69/D-240).
+      const panel = await $('[role="group"][aria-label="New entry"]');
+      await panel.waitForDisplayed();
+      await (await panel.$("#entry-title")).setValue(`Step ${stepId} note`);
+      await (await panel.$("#generic-text-editor")).setValue(`Step ${stepId} note body`);
+      await (await panel.$("button=Save")).click();
+      await panel.waitForExist({ reverse: true });
     }
   });
 

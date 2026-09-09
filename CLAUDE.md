@@ -2494,6 +2494,24 @@ AI layer: Faz 8 fully done (keychain + Vorion connection/model-discovery + strea
   from a stale checkout relative to this exact push in a way that isn't fully ruled out, this
   entry deliberately does NOT claim CI-A is fixed — only that it needs re-checking on the next
   push that includes this session's own test-scoping fix.
+**D-240's own push was watched (D-241, 2026-09-10) — CI-B's fix is now confirmed real (Windows
+  `Frontend tests` genuinely green), but CI-A's own status is still unresolved because the E2E
+  spec itself turned out to have two more independent stale-selector bugs, unrelated to the
+  invoke-mock-bridge fix.** Reading the actual app code (not guessing) found: `LaunchScreen.tsx`'s
+  `handleNewProject` doesn't create the project immediately after `save()` resolves — it opens a
+  "Project language" choice dialog (Faz 11/L1, D-223/D-224, added 2026-09-06/07 — a week after
+  this E2E suite was written) that the spec never clicks through, so the project screen would
+  never appear regardless of whether the invoke mock worked. Separately, the same spec's entry-
+  creation test still queried `[role="dialog"]`, which W2 (D-217/D-228, 2026-09-08) had already
+  replaced with `EntryEditorPanel`'s `role="group"`/`aria-label="New entry"` — the same drift
+  `WorkspaceScreen.test.tsx` itself was fixed for in D-240. Both fixed: a language-choice click
+  added, and the selector updated. Two more assertions were found to now pass vacuously (the
+  "Assistant tab" text no longer exists anywhere post-W2, and "could not be built" isn't real
+  error text in the current code) — deliberately left as-is and filed as **P-70** rather than
+  expanding this session's own scope further. Whether the invoke-mock-bridge fix itself actually
+  works is still genuinely unknown — these two newly-found bugs would have produced the exact
+  same "project screen never appears" symptom on their own, so this run's failure doesn't confirm
+  or refute it either way. Still owed: the next real CI run.
 Templates: two company .xls files analysed; see reference/TEMPLATE_ANALYSIS.md
 Template geometry: VERIFIED 2026-08-01 against both .xls files. Five errors found and
   corrected in place — the largest was the column widths: the real split is 49.7/50.3, NOT
