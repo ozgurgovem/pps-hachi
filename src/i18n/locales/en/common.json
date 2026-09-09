@@ -1315,6 +1315,17 @@
       "confirmButton": "Switch template",
       "cancelButton": "Cancel"
     },
+    "updates": {
+      "heading": "Updates",
+      "checkButton": "Check for updates",
+      "checking": "Checking…",
+      "upToDate": "You're on the latest version.",
+      "available": "A new version is available: v{{version}} (current: v{{currentVersion}}).",
+      "installButton": "Download and restart",
+      "downloading": "Downloading and installing…",
+      "error": "Update check failed: {{reason}}",
+      "launchBannerTitle": "A new version is available: v{{version}}"
+    },
     "ai": {
       "providerName": "Vorion",
       "statusLoading": "Loading…",

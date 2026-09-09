@@ -22,6 +22,7 @@ import { resolveRedactionPolicy } from "../../../ai/redaction";
 import { useProjectStore } from "../../../state";
 import { errorMessage } from "../launch/errorMessage";
 import { previewTemplateSwitch, type TemplateSwitchDroppedEntry } from "./templateSwitch";
+import { useUpdateCheck } from "../../../updates/useUpdateCheck";
 import {
   getAiSettings,
   getCostSummary,
@@ -78,6 +79,7 @@ export function SettingsScreen() {
   const project = useProjectStore((s) => s.project);
   const dispatch = useProjectStore((s) => s.dispatch);
   const [templateSwitchState, setTemplateSwitchState] = useState<TemplateSwitchState | null>(null);
+  const updateCheck = useUpdateCheck();
   const [keyState, setKeyState] = useState<KeyState>({ status: "loading" });
   const [keyInput, setKeyInput] = useState("");
   const [keyActionError, setKeyActionError] = useState<string | null>(null);
@@ -498,6 +500,48 @@ export function SettingsScreen() {
           </div>
         ) : (
           <p className="font-body text-sm text-ink-muted">{t("settings.template.noProject")}</p>
+        )}
+      </section>
+
+      {/* M2/D-238: permanent — a manual check alongside `LaunchScreen`'s
+          silent on-launch check (same `useUpdateCheck` hook, its own
+          independent instance — no shared state between the two, per this
+          hook's own comment). */}
+      <section className="flex flex-col gap-3 rounded-control border border-border bg-surface-raised p-6">
+        <div className="flex items-center justify-between gap-4">
+          <h2 className="font-display text-lg text-ink">{t("settings.updates.heading")}</h2>
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => void updateCheck.checkNow()}
+            disabled={updateCheck.state.status === "checking" || updateCheck.state.status === "downloading"}
+          >
+            {updateCheck.state.status === "checking" ? t("settings.updates.checking") : t("settings.updates.checkButton")}
+          </Button>
+        </div>
+        {updateCheck.state.status === "upToDate" && (
+          <p className="font-body text-sm text-ink-muted">{t("settings.updates.upToDate")}</p>
+        )}
+        {updateCheck.state.status === "error" && (
+          <p role="alert" className="font-body text-sm text-danger">
+            {t("settings.updates.error", { reason: updateCheck.state.message })}
+          </p>
+        )}
+        {updateCheck.state.status === "available" && (
+          <div className="flex items-center justify-between gap-4">
+            <p className="font-body text-sm text-ink">
+              {t("settings.updates.available", {
+                version: updateCheck.state.version,
+                currentVersion: updateCheck.state.currentVersion,
+              })}
+            </p>
+            <Button size="sm" onClick={() => void updateCheck.installNow()}>
+              {t("settings.updates.installButton")}
+            </Button>
+          </div>
+        )}
+        {updateCheck.state.status === "downloading" && (
+          <p className="font-body text-sm text-ink-muted">{t("settings.updates.downloading")}</p>
         )}
       </section>
 

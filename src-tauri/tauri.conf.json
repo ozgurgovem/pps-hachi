@@ -40,6 +40,12 @@
     "publisher": "Farplas Otomotiv A.Ş.",
     "copyright": "Copyright © 2026 Farplas Otomotiv A.Ş.",
     "shortDescription": "Toyota 8-step Practical Problem Solving A3 report builder"
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDZCQTFDRTA4QkNENTlCNTgKUldSWW05VzhDTTZoYXpER3JkZExuQWkxc3BmQXNtUUxhVzZ5TE5IblNHRStscHdEbWFEZDl4MkEK",
+      "endpoints": ["https://github.com/ozgurgovem/pps-hachi/releases/latest/download/latest.json"]
+    }
   }
 }
 

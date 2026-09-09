@@ -1,0 +1,71 @@
+name: Release
+
+# M2/D-238: separate from ci.yml on purpose — D-44's own reasoning (published
+# once, per push/PR, is not wanted) still holds for the normal build; this
+# workflow triggers ONLY on a pushed `v*` git tag, matching AKIS.md §4's own
+# tag-then-ship discipline. Every push to `main` still only runs ci.yml.
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  release:
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "lts/*"
+          cache: "npm"
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo registry + target dir
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+          cache-on-failure: true
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      # D-238: `tauri-apps/tauri-action` is the tool D-44 deliberately avoided
+      # for the *normal* CI build (ci.yml's own plain-build reasoning is
+      # untouched) — here, gated behind a tag-only trigger, it is the right
+      # tool: it produces and uploads `latest.json` itself, matching exactly
+      # what `tauri.conf.json`'s `plugins.updater.endpoints` expects at
+      # `releases/latest/download/latest.json`. `--config
+      # release/tauri.release.conf.json` merges in `bundle.createUpdaterArtifacts:
+      # true` for THIS build only (see that file's own comment) — the regular
+      # ci.yml build never sets this, so its own empty
+      # `TAURI_SIGNING_PRIVATE_KEY` stays harmless there (verified against
+      # `tauri-utils`' real `Updater` config: `createUpdaterArtifacts`
+      # defaults to `false`).
+      - uses: tauri-apps/tauri-action@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Tauri's own minisign-based UPDATE-ARTIFACT signing key — entirely
+          # independent of OS code-signing (D-44/D-46/D-230/D-231's permanent
+          # unsigned decision, untouched by this). Signs the `.sig` files
+          # `tauri-plugin-updater` verifies at update-check time, nothing
+          # else. See `src-tauri/Cargo.toml`'s own comment on the
+          # `tauri-plugin-updater` dependency.
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        with:
+          tagName: ${{ github.ref_name }}
+          releaseName: "PPS Hachi ${{ github.ref_name }}"
+          releaseBody: "See the assets below to download and install this version."
+          releaseDraft: false
+          prerelease: false
+          args: --config release/tauri.release.conf.json

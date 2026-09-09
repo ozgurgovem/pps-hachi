@@ -9,6 +9,7 @@ import { errorMessage } from "./errorMessage";
 import { openProjectAtPath } from "./openProjectFlow";
 import { RecentProjectCard } from "./RecentProjectCard";
 import { useRecentProjects } from "./useRecentProjects";
+import { useUpdateCheck } from "../../../updates/useUpdateCheck";
 
 const PPSX_FILTER = [{ name: "PPS Hachi Project", extensions: ["ppsx"] }];
 
@@ -32,10 +33,24 @@ export function LaunchScreen() {
    * surface. Holds the already-picked save path while the user chooses.
    */
   const [pendingProjectPath, setPendingProjectPath] = useState<string | null>(null);
+  const updateCheck = useUpdateCheck();
 
   useEffect(() => {
     document.title = t("app.title");
   }, [t]);
+
+  /**
+   * M2/D-238: the "silent" half of the chosen UX — checks once, on mount,
+   * with no visible loading state; a banner appears only when
+   * `updateCheck.state.status === "available"` (below). A failed background
+   * check (offline, endpoint unreachable) deliberately shows nothing here —
+   * `SettingsScreen`'s own manual button is where a check failure is ever
+   * surfaced to the user.
+   */
+  useEffect(() => {
+    void updateCheck.checkNow();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- run exactly once per mount, not on every `updateCheck` identity change (checkNow/installNow are stable via useCallback, but re-triggering on their own re-creation would defeat the "once on launch" intent).
+  }, []);
 
   async function openAndNavigate(path: string) {
     setActionError(null);
@@ -143,6 +158,21 @@ export function LaunchScreen() {
         >
           {actionError}
         </p>
+      )}
+
+      {(updateCheck.state.status === "available" || updateCheck.state.status === "downloading") && (
+        <div className="flex items-center justify-between gap-4 rounded-control border border-accent bg-surface-raised p-3">
+          <p className="font-body text-sm text-ink">
+            {updateCheck.state.status === "available"
+              ? t("settings.updates.launchBannerTitle", { version: updateCheck.state.version })
+              : t("settings.updates.downloading")}
+          </p>
+          {updateCheck.state.status === "available" && (
+            <Button size="sm" onClick={() => void updateCheck.installNow()}>
+              {t("settings.updates.installButton")}
+            </Button>
+          )}
+        </div>
       )}
 
       <section className="flex flex-col gap-4">

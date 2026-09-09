@@ -1315,6 +1315,17 @@
       "confirmButton": "Şablonu değiştir",
       "cancelButton": "Vazgeç"
     },
+    "updates": {
+      "heading": "Güncellemeler",
+      "checkButton": "Güncellemeleri kontrol et",
+      "checking": "Kontrol ediliyor…",
+      "upToDate": "En güncel sürümü kullanıyorsunuz.",
+      "available": "Yeni sürüm var: v{{version}} (şu anki sürüm: v{{currentVersion}}).",
+      "installButton": "İndir ve yeniden başlat",
+      "downloading": "İndiriliyor ve kuruluyor…",
+      "error": "Güncelleme kontrolü başarısız oldu: {{reason}}",
+      "launchBannerTitle": "Yeni bir sürüm var: v{{version}}"
+    },
     "ai": {
       "providerName": "Vorion",
       "statusLoading": "Yükleniyor…",

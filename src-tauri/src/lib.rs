@@ -14,7 +14,18 @@ pub mod xlsx;
 pub fn run() {
     let builder = tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
-        .plugin(tauri_plugin_dialog::init());
+        .plugin(tauri_plugin_dialog::init())
+        // M2/D-238: registered unconditionally (this app never targets
+        // mobile — no iOS/Android build target exists anywhere in this
+        // repo — so the official docs' `#[cfg(desktop)]` guard inside
+        // `.setup()` would be dead weight here). `plugins.updater.pubkey`/
+        // `endpoints` in `tauri.conf.json` are what actually let this do
+        // anything at runtime.
+        .plugin(tauri_plugin_updater::Builder::new().build())
+        // M2/D-238: `relaunch()`, called after a downloaded update installs
+        // on macOS (Windows already exits the process itself inside
+        // `downloadAndInstall`, per that plugin's own docs).
+        .plugin(tauri_plugin_process::init());
 
     // Faz 8 Dilim 3 (D-20): WebdriverIO's execute/mock/log bridge and its
     // embedded WebDriver server, gated behind the `e2e-test` Cargo feature —
