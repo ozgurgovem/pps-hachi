@@ -110,7 +110,7 @@ kendi tutamacına sahip değil. **Solver'ın kendisi bunu ZATEN destekliyor** �
   yaklaşıma göre).
 - `elasticAllocation.test.ts` DOKUNULMAMALI — solver zaten doğru, yalnızca UI değişiyor.
 
-### 2.4 Sonuç — KAPANDI 2026-09-09 (D-231)
+### 2.4 Sonuç — KAPANDI 2026-09-09 (D-233)
 
 Barış'a düz metinle (bu ortamda `AskUserQuestion` aracı yoktu) Seçenek A/B sunuldu,
 **Seçenek B** seçildi (ajanın kendi önerisiyle örtüşüyor). `PinnedBlockSummary.tsx`, her
@@ -121,7 +121,7 @@ yolu). `elasticAllocation.test.ts` gerçekten dokunulmadı (§2.3'ün kendi uyar
 `BlockPinOverlay.test.tsx`'e yeni bir test EKLENMEDİ — mevcut 14 test zaten yeşil kaldı, çünkü
 `BlockPinOverlay.tsx`'in kendi davranışı değişmedi (yalnızca paylaşılan `elasticColumns.ts`'ten
 import etmeye geçti); asıl yeni davranış `PinnedBlockSummary.test.tsx`'in kendi 10 testinde
-(eski 3'ten) doğrulandı. Tam kayıt: `DECISIONS.md` D-231. `npm test` 1556/1556, `npm run lint`/
+(eski 3'ten) doğrulandı. Tam kayıt: `DECISIONS.md` D-233. `npm test` 1556/1556, `npm run lint`/
 `npx tsc --noEmit`/`npm run build` hepsi temiz, Rust dokunulmadı. Bu dosyanın §1 (P-63) ve §3
 (koyu-tema) bölümleri bu oturumda dokunulmadı — P-63 kendi ayrı dilimini/commit'ini zaten
 tamamladı.
