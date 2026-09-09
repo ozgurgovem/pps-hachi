@@ -190,7 +190,10 @@
       "summaryLabel": "Elle boyutlandırılmış adımlar",
       "pinnedChip": "ADIM {{step}}: {{rows}} satır",
       "resetToAutomatic": "Otomatiğe döndür",
-      "resetAriaLabel": "ADIM {{step}}'i otomatik boyutlandırmaya döndür"
+      "resetAriaLabel": "ADIM {{step}}'i otomatik boyutlandırmaya döndür",
+      "manualEntryGroupLabel": "Bir adımın boyutunu elle gir",
+      "manualEntryLabel": "ADIM {{step}}'in boyutunu ayarla",
+      "manualEntryApply": "Uygula"
     },
     "assistant": {
       "columnTitle": "AI Desteği",
