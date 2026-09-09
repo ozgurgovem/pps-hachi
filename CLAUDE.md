@@ -2403,6 +2403,23 @@ AI layer: Faz 8 fully done (keychain + Vorion connection/model-discovery + strea
   `scripts/gen-a3-fixture.ts` not re-run — this dilim touches neither `src/a3/` nor
   `src-tauri/src/xlsx/` at all (confirmed via `git status`). Full record: D-238 (D-44/D-46 rows
   updated in place).
+**A major side finding while watching M2's own commit run on real CI (P-69, 2026-09-09): CI has
+  been red continuously since Phase 5 (2026-08-03) — 35+ commits, 5+ weeks, not one green run.**
+  This is likely the first session to have ever actually checked `gh run list`/`gh run view`
+  rather than trusting local `npm test`/`cargo test` alone — those two claims are not the same
+  thing, and no prior session's "N/N passing" line was ever false, it just never meant "and CI
+  is green too." Two independent root causes, neither touched this session: (A) macOS `E2E test
+  (AI off happy path)` fails deterministically, every run, since the exact commit that
+  introduced it (Faz 8 Dilim 3, D-202) — the "New Project" flow never completes in the real
+  WebdriverIO environment, which lines up with **P-49**'s own long-standing "honestly
+  unverified" doubt about whether the mocked `save()` dialog actually intercepts a real UI
+  click's `invoke()` call. (B) Windows `Frontend tests` has been flaky since even earlier (first
+  red run is Phase 5 itself, before the E2E suite existed) — a different test times out or
+  mis-asserts on almost every run, consistent with a tight `testTimeout` margin under Windows CI
+  load rather than one deterministic bug. Full evidence (exact run IDs, exact failure logs) and
+  the next session's own first verification steps: `docs/oturumlar/CI-kirmizi-durum.md`. No code
+  changed for this — filed as its own future session, likely splitting into two independent
+  slices (D-114's own "one root cause per slice" logic) given how unrelated the two causes are.
 Templates: two company .xls files analysed; see reference/TEMPLATE_ANALYSIS.md
 Template geometry: VERIFIED 2026-08-01 against both .xls files. Five errors found and
   corrected in place — the largest was the column widths: the real split is 49.7/50.3, NOT

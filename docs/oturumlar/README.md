@@ -313,7 +313,7 @@ seçenekle (build / YAGNI-kapat / ertelensin), bir sonraki interaktif oturumda d
 `AskUserQuestion` ile çalıştırılmaya hazır. Tam kayıt: `DECISIONS.md` D-232, P-62'nin kendi
 "Update 2026-09-08" notu, yeni **P-66**.
 
-## Sıradaki iş — Faz 12 kapsam belirleme artık BİTTİ, üç bağımsız aday + dört yeni M-dilimi bekliyor
+## Sıradaki iş — Faz 12'nin dört M-dilimi TAMAMEN bitti; P-58, P-62 kapsam kararı, ve yeni CI kırmızı durumu bekliyor
 
 W3 ile D-217 girişimi (W1+W2+W3) ve Faz 11'in kendi üç dilimlik planı (L1+L2+L3a+L3b) ikisi de
 2026-09-08'de TAMAMEN kapandı. Aynı gün yazılan dört bağımsız adaydan biri — **Faz 12 kapsam
@@ -326,7 +326,8 @@ Kalan üç aday hâlâ başlamadı:
 | ~~P-62 kapsam belirleme~~ | ~~`docs/oturumlar/P62-kalan-sablonlar-kapsam.md`~~ | **§0 taraması + kanıt toplama BİTTİ (D-232, 2026-09-08) — kapsam kararının kendisi PENDING** (`AskUserQuestion` bu oturumun ortamında yoktu). Gerçek kanıt bulundu: `-en` gerçek bir geometri farkı (§9.5/§9.6), `-plus` gerçek bir iş-önceliği gerilimi. İki soru artık kanıtla keskinleştirilmiş, hazır — bkz. yukarıdaki "P-62 kapsam belirleme" bölümü | Kapsam belirleme TAMAMLANDI, KOD YOK — iki soru bir sonraki interaktif oturumda `AskUserQuestion` ile çalıştırılmaya hazır |
 | P-58 | `docs/oturumlar/P58-gorsel-dil-yayilmasi.md` | W1'in Farplas görsel dilini (D-218) `src/ui/`'nin 12 primitifine yayma — kendi filed notunda "yüksek patlama-yarıçapı" uyarısı | Gerçek kod, kendi ilk `AskUserQuestion` turuyla açılıyor |
 | Küçük açık maddeler | `docs/oturumlar/kucuk-acik-maddeler.md` | ~~P-63 (kpi-strip'in ADIM 7'de her zaman appendix'e düşmesi)~~ **P-63 CLOSED (D-234, 2026-09-09)** + ~~P-64 (bir kolonun son bloğunun kendi sürükleme tutamacı yok)~~ **P-64 CLOSED (D-233, 2026-09-09)** | İkisi de BİTTİ |
-| M1-M4 (Faz 12'nin kendi dilimleri) | `docs/oturumlar/M1-i18n-tarama.md` / `M2-auto-update.md` / `M3-paketleme-imza-kapanisi.md` / `M4-polish-kalite-tabani.md` | i18n taraması, auto-update, packaging/signing kapanışı, Quality floor denetimi — bkz. yukarıdaki "Faz 12" bölümü | Gerçek kod, M1/M4 bağımsız+paralel, M2 kendi tek onaylı ilk adımıyla (repo public), M3 M2'den bağımsız |
+| M1-M4 (Faz 12'nin kendi dilimleri) | `docs/oturumlar/M1-i18n-tarama.md` / `M2-auto-update.md` / `M3-paketleme-imza-kapanisi.md` / `M4-polish-kalite-tabani.md` | i18n taraması, auto-update, packaging/signing kapanışı, Quality floor denetimi — bkz. yukarıdaki "Faz 12" bölümü | **DÖRDÜ DE BİTTİ** (M1 D-235/D-236, M2 D-238, M3 D-231, M4 D-237) |
+| **CI kırmızı durumu (YENİ, 2026-09-09)** | `docs/oturumlar/CI-kirmizi-durum.md` | M2'nin (D-238) kendi commit'i gerçek CI'de izlenirken bulundu: **CI Faz 5'ten beri (2026-08-03) kesintisiz kırmızı, 35+ commit, tek yeşil run yok** — iki bağımsız kök neden (macOS E2E deterministik başarısızlık, muhtemelen P-49'un şüphesi; Windows flaky test timeout). Bkz. **P-69**. | Kapsam belirleme yazıldı, kod HENÜZ YOK — muhtemelen CI-A/CI-B olarak ikiye bölünür |
 
 **Paralel çalıştırma değerlendirmesi** (Barış'ın kendi sorusu, 2026-09-08): bu depo bugüne kadar
 HİÇBİR zaman worktree/branch-bazlı paralel oturum kullanmadı — her oturum doğrudan `main`'e
