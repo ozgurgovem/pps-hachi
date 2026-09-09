@@ -95,12 +95,18 @@ describe("WorkspaceScreen — Phase 3 done-condition", () => {
       await user.click(screen.getByRole("button", { name: new RegExp(`^Step ${stepId}:`) }));
       await addGenericTextEntry(user, `Step ${stepId} note A`);
       await addGenericTextEntry(user, `Step ${stepId} note B`);
-      // Phase 4's live A3 preview (RightPanel) can render the same entry
-      // title again — scope to the entries band so this stays a query about
-      // EntriesBand, not about the preview.
-      const main = within(screen.getByRole("main"));
-      expect(main.getByText(`Step ${stepId} note A`)).toBeTruthy();
-      expect(main.getByText(`Step ${stepId} note B`)).toBeTruthy();
+      // The live A3 preview (W3/D-229's `A3PreviewReservedBand`, itself inside
+      // `<main>` since D-217/W2) can render the same entry title again once
+      // its debounced rebuild catches up — this stayed latent locally/on fast
+      // CI (the debounce usually hasn't resolved yet when the assertion
+      // runs) but surfaced as a real "multiple elements found" failure on
+      // slower Windows CI runners (P-69/D-239). `within(screen.getByRole
+      // ("main"))` was too broad the moment W3 put a second copy of the same
+      // text inside that landmark — scope to EntriesBand's own `<section>`
+      // instead, matching D-102's own test-scoping lesson.
+      const entriesSection = within(screen.getByRole("heading", { name: /^Entries/ }).closest("section")!);
+      expect(entriesSection.getByText(`Step ${stepId} note A`)).toBeTruthy();
+      expect(entriesSection.getByText(`Step ${stepId} note B`)).toBeTruthy();
     }
   });
 
@@ -111,15 +117,19 @@ describe("WorkspaceScreen — Phase 3 done-condition", () => {
     await addGenericTextEntry(user, "First entry");
     await addGenericTextEntry(user, "Second entry");
 
-    const main = within(screen.getByRole("main"));
-    const entriesBefore = main.getAllByText(/^(First|Second) entry$/).map((el) => el.textContent);
+    // Same P-69/D-239 reasoning as the test above — scope to EntriesBand's
+    // own `<section>`, not the whole `<main>` (which also carries the live
+    // A3 preview, D-229), so a debounced preview rebuild on a slow runner
+    // can't add a second matching element and skew the array length.
+    const entriesSection = within(screen.getByRole("heading", { name: /^Entries/ }).closest("section")!);
+    const entriesBefore = entriesSection.getAllByText(/^(First|Second) entry$/).map((el) => el.textContent);
     expect(entriesBefore).toEqual(["First entry", "Second entry"]);
 
     const [firstMoveDown] = screen.getAllByRole("button", { name: "Move down" });
     if (!firstMoveDown) throw new Error("expected at least one Move down button");
     await user.click(firstMoveDown);
 
-    const entriesAfter = main.getAllByText(/^(First|Second) entry$/).map((el) => el.textContent);
+    const entriesAfter = entriesSection.getAllByText(/^(First|Second) entry$/).map((el) => el.textContent);
     expect(entriesAfter).toEqual(["Second entry", "First entry"]);
   });
 

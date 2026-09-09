@@ -2472,6 +2472,28 @@ AI layer: Faz 8 fully done (keychain + Vorion connection/model-discovery + strea
   proves the mechanism is architecturally sound, not that the real WKWebView/real Windows runner
   behave as predicted (the usual D-105/D-113/D-136/… class of gap, but this one is closable by
   watching the next real CI run rather than needing Barış's own `npm run tauri dev`).
+**D-239's own push was actually watched on real CI (D-240, 2026-09-10) — Anayasa Madde 8, don't
+  claim a fix worked without checking.** `gh run watch` on the resulting run found CI-B's own
+  original diagnosis wrong: `testTimeout: 15000` stopped the timeout, but the same Windows test
+  now failed with `getMultipleElementsFoundError` instead — a genuinely different bug, not a
+  symptom `testTimeout` was ever going to fix. Root cause, found by reading code: `StepPage.tsx`
+  puts both `EntriesBand` and W3's own live A3 preview (`A3PreviewReservedBand`, D-229) inside
+  the same `<main>` landmark, and the preview's 600ms debounce can genuinely complete during a
+  slow CI run's own DOM interactions, rendering the just-added entry title a second time — so
+  `within(screen.getByRole("main"))`'s broad scope in `WorkspaceScreen.test.tsx` matches both
+  copies. This explains both previously observed Windows symptom shapes (this run's "multiple
+  elements," and an earlier run's array-length mismatch) as one mechanism, not two. Fixed by
+  scoping both affected tests to `EntriesBand`'s own `<section>` instead (D-102's own test-
+  scoping lesson, applied again) — mutation-verified (the exact-string first attempt at the
+  heading query itself failed locally first, for a related reason: the `<h2>` gains an entry-
+  count suffix once entries exist, so an exact `"Entries"` match breaks; fixed with `/^Entries/`).
+  `testTimeout: 15000` was deliberately kept — it's no longer this run's root cause but is still
+  a reasonable, low-risk margin for a genuinely heavy test. CI-A's own status stayed genuinely
+  unknown from this run — the macOS job failed with the exact same pre-fix symptom, but since the
+  Windows job's own `WorkspaceScreen.test.tsx` failure could plausibly still have been building
+  from a stale checkout relative to this exact push in a way that isn't fully ruled out, this
+  entry deliberately does NOT claim CI-A is fixed — only that it needs re-checking on the next
+  push that includes this session's own test-scoping fix.
 Templates: two company .xls files analysed; see reference/TEMPLATE_ANALYSIS.md
 Template geometry: VERIFIED 2026-08-01 against both .xls files. Five errors found and
   corrected in place — the largest was the column widths: the real split is 49.7/50.3, NOT
