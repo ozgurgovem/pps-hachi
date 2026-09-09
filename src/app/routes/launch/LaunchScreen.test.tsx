@@ -161,4 +161,32 @@ describe("LaunchScreen", () => {
     expect(await screen.findByRole("alert")).toBeTruthy();
     expect(screen.getByRole("heading", { name: /PPS Hachi/ })).toBeTruthy();
   });
+
+  test("M4 polish audit: never lets a rejected save() dialog call escape as an unhandled rejection, and shows a visible error instead", async () => {
+    mockInvoke.mockResolvedValueOnce([]); // recent_list on mount
+    mockSaveDialog.mockRejectedValueOnce(new Error("dialog subsystem unavailable"));
+    const user = userEvent.setup();
+
+    renderLaunchScreen();
+    await waitFor(() => expect(screen.getByText(/No projects yet/)).toBeTruthy());
+    await user.click(screen.getByRole("button", { name: "New PPS Project" }));
+
+    expect((await screen.findByRole("alert")).textContent).toContain("dialog subsystem unavailable");
+    expect(screen.getByRole("heading", { name: /PPS Hachi/ })).toBeTruthy();
+    expect(mockGetVersion).not.toHaveBeenCalled();
+  });
+
+  test("M4 polish audit: never lets a rejected open() dialog call escape as an unhandled rejection, and shows a visible error instead", async () => {
+    mockInvoke.mockResolvedValueOnce([]); // recent_list on mount
+    mockOpenDialog.mockRejectedValueOnce(new Error("dialog subsystem unavailable"));
+    const user = userEvent.setup();
+
+    renderLaunchScreen();
+    await waitFor(() => expect(screen.getByText(/No projects yet/)).toBeTruthy());
+    await user.click(screen.getByRole("button", { name: "Open Existing Project" }));
+
+    expect((await screen.findByRole("alert")).textContent).toContain("dialog subsystem unavailable");
+    expect(screen.getByRole("heading", { name: /PPS Hachi/ })).toBeTruthy();
+    expect(mockInvoke).not.toHaveBeenCalledWith("ppsx_read", expect.anything());
+  });
 });

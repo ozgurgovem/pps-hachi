@@ -36,6 +36,22 @@ import type { DescriptorResult } from "./useA3PreviewSync";
  * loading placeholder on every keystroke would defeat the point of a "live"
  * preview. The waiting message only ever shows before the very first
  * successful build.
+ *
+ * M4 (2026-09-08, CLAUDE.md's own "no layout shift on load" quality-floor
+ * line): the outer container's height genuinely jumps once, from the fixed
+ * 96px placeholder to `rect.heightPx * scale`, the instant the first
+ * successful build lands — a real, mechanically-confirmed CLS source this
+ * component was flagged for by name (see P-66). `motion-safe:transition-
+ * [height]` below softens that snap into a smooth resize for users who don't
+ * mind motion, without changing anything for a `prefers-reduced-motion`
+ * viewer (who already got, and still gets, an instant change — never worse
+ * than before). It does not eliminate the shift itself: a true zero-shift
+ * fix needs either a per-step placeholder height computed ahead of the async
+ * build, or always reserving `MAX_PREVIEW_HEIGHT_PX` regardless of block
+ * size — the latter trades the jump for a fixed amount of whitespace under
+ * short blocks, a visible balance change that needs its own Block Visual
+ * Verification Loop round (CLAUDE.md's own process for exactly this kind of
+ * call), not a silent pick made here.
  */
 const MAX_PREVIEW_HEIGHT_PX = 420;
 
@@ -100,11 +116,12 @@ export function A3PreviewReservedBand({ stepId, descriptorResult }: A3PreviewRes
 
       <div
         ref={containerRef}
-        className="relative w-full overflow-hidden rounded-control border border-border bg-white"
+        className="relative w-full overflow-hidden rounded-control border border-border bg-white motion-safe:transition-[height] motion-safe:duration-300 motion-safe:ease-out"
         style={{ height: rect ? Math.max(1, Math.round(rect.heightPx * scale)) : 96 }}
       >
         {lastGoodDescriptor && rect ? (
           <div
+            className="motion-safe:transition-opacity motion-safe:duration-150 motion-safe:ease-out"
             style={{
               position: "absolute",
               top: 0,
@@ -112,7 +129,6 @@ export function A3PreviewReservedBand({ stepId, descriptorResult }: A3PreviewRes
               transform: `scale(${scale}) translate(${-rect.leftPx}px, ${-rect.topPx}px)`,
               transformOrigin: "0 0",
               opacity: isRefreshing ? 0.6 : 1,
-              transition: "opacity 150ms ease",
             }}
           >
             <HtmlA3Renderer descriptor={lastGoodDescriptor} mode="screen" />

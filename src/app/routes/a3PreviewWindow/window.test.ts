@@ -197,6 +197,41 @@ describe("the ready handshake", () => {
 
     expect(onDescriptor).toHaveBeenCalledWith({ templateId: "t" });
   });
+
+  /**
+   * M4 (2026-09-08): found while auditing every `void someAsync()`/un-awaited
+   * call in the codebase for CLAUDE.md's own "no unhandled promise
+   * rejections" quality-floor line — unlike its four siblings in this file,
+   * `listenForDescriptorPush` had no try/catch, and `A3PreviewWindow.tsx`'s
+   * mount effect calls it with no `await`/`.catch`
+   * (`const unlisten = listenForDescriptorPush(setDescriptor)`), so a
+   * rejected `listen()` would have escaped as a genuinely unhandled
+   * rejection. Same failure shape D-134/D-136 already fixed for this file's
+   * other exports — this was the one call those passes missed.
+   */
+  it("never lets a rejected listen call escape as an unhandled rejection, and returns a no-op unlisten instead", async () => {
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+    listenMock.mockRejectedValue(new Error("no Tauri runtime"));
+
+    const unlisten = await listenForDescriptorPush(vi.fn());
+
+    expect(consoleError).toHaveBeenCalled();
+    expect(emitMock).not.toHaveBeenCalled();
+    await expect(unlisten()).resolves.toBeUndefined();
+    consoleError.mockRestore();
+  });
+
+  it("never lets a rejected emit (readiness announcement) call escape as an unhandled rejection, and returns a no-op unlisten instead", async () => {
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+    listenMock.mockResolvedValue(vi.fn());
+    emitMock.mockRejectedValue(new Error("no Tauri runtime"));
+
+    const unlisten = await listenForDescriptorPush(vi.fn());
+
+    expect(consoleError).toHaveBeenCalled();
+    await expect(unlisten()).resolves.toBeUndefined();
+    consoleError.mockRestore();
+  });
 });
 
 describe("the block-pin request round trip (Faz 11/L3b, D-170)", () => {

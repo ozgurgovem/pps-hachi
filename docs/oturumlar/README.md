@@ -273,10 +273,12 @@ CLAUDE.md'nin hiç sistematik denetlenmemiş Quality floor listesini kapsar. Tam
 | M1 — i18n: TR/EN anahtar eşliği doğrulaması (zaten 957/957) + `kontrol-dil.sh`'ın bu proje için KAPSAM DIŞI olduğunun kaydı + bilinen-desen (D-219 sınıfı: `.toLocaleUpperCase`/tarih biçimlendirme/sıralama) sınırlı bir elle grep taraması | `docs/oturumlar/M1-i18n-tarama.md` | Başlanmadı. |
 | M2 — Auto-update: repo'yu public yapma (kendi onayıyla) + `tauri-plugin-updater` kurulumu + CI'ye release-publish adımı + Settings'e "check for updates" UI'si | `docs/oturumlar/M2-auto-update.md` | Başlanmadı. D-44'ün kendi "revisit once a real release process exists" tetikleyicisi burada çözülür. |
 | M3 — Packaging/signing kapanışı: D-44/D-46'yı "kalıcı imzasız, iç-kurumsal" durum olarak kapatan küçük bir kod+SÜREÇ dilimi (bundle metadata doğrulaması + sınırlı bir SmartScreen/Gatekeeper SÜREÇ yürüyüşü) | `docs/oturumlar/M3-paketleme-imza-kapanisi.md` | Başlanmadı. |
-| M4 — Polish: CLAUDE.md'nin kendi Quality floor listesinin (klavye nav, focus ring, WCAG AA kontrast, reduced motion, layout shift, unhandled rejection, console noise) proje çapında ilk sistematik denetimi | `docs/oturumlar/M4-polish-kalite-tabani.md` | Başlanmadı. |
+| M4 — Polish: CLAUDE.md'nin kendi Quality floor listesinin (klavye nav, focus ring, WCAG AA kontrast, reduced motion, layout shift, unhandled rejection, console noise) proje çapında ilk sistematik denetimi | `docs/oturumlar/M4-polish-kalite-tabani.md` | **BİTTİ (D-231, 2026-09-09).** Doğrulama+küçük-kapatma turu, hata avı değil — taban zaten sağlamdı. Asıl bulgu: `a3PreviewWindow/window.ts`'in `listenForDescriptorPush`'ı + `LaunchScreen.tsx`'in iki dialog çağrısı + `SettingsScreen.tsx`'in iki mount-effect'i, hepsi D-134/D-136'nın kendi unhandled-rejection bug sınıfının yeni örnekleri — hepsi düzeltildi, mutation-doğrulandı. Küçük bir reduced-motion ihlali (`A3PreviewReservedBand.tsx`) düzeltildi; aynı dosyada gerçek, mekanik doğrulanmış bir CLS kaynağı yalnızca yumuşatıldı (kökten çözüm BVVL bekliyor). Klavye-nav statik taraması sıfır yeni ihlal buldu. WCAG AA kontrast — gerçek, büyük bir ihlal (`--color-fp-*` token'ları, D-218/D-219) ayrı **P-66** olarak dosyalandı, bu dilime karıştırılmadı. Owed: gerçek klavye yürüyüşü, gerçek CLS DevTools ölçümü, P-66'nın kendi BVVL turu. |
 
 Filed, planlanmamış (Faz 12'nin dışında): **P-65** (yeni — PDF/PNG export, gerçek ihtiyaç
-doğmadan YAGNI), **P-58** (bilinçli olarak Faz 12'ye dahil edilmedi, kendi ayrı oturumu).
+doğmadan YAGNI), **P-58** (bilinçli olarak Faz 12'ye dahil edilmedi, kendi ayrı oturumu),
+**P-66** (yeni — M4'ün kendi denetiminde bulundu, `--color-fp-*` token'larının WCAG AA
+kontrast başarısızlığı, ışık VE koyu temada, birden fazla rolde — kendi BVVL turunu bekliyor).
 
 ## Sıradaki iş — Faz 12 kapsam belirleme artık BİTTİ, üç bağımsız aday + dört yeni M-dilimi bekliyor
 

@@ -2168,6 +2168,40 @@ AI layer: Faz 8 fully done (keychain + Vorion connection/model-discovery + strea
   session touched no `src/`/`src-tauri/src/` file, confirmed via `git status`. M1-M4's own
   launch prompts are written: `docs/oturumlar/M1-i18n-tarama.md`, `M2-auto-update.md`,
   `M3-paketleme-imza-kapanisi.md`, `M4-polish-kalite-tabani.md`.
+**Faz 12 — M4 (CLAUDE.md's own Quality floor checklist, first project-wide systematic audit):
+  DONE 2026-09-09 (D-231).** A verification-and-close pass, not a bug hunt — §0's own re-run
+  verification greps matched exactly (14 `focus-visible:` files, correct reduced-motion
+  direction, exactly 3 documented `console.*` files). **Primary finding**: the same
+  unhandled-promise-rejection bug class D-134/D-136/6c already fixed twice in
+  `a3PreviewWindow/window.ts` recurred a third time in that same file
+  (`listenForDescriptorPush`, called with no `await`/`.catch`) and, found by a targeted grep of
+  the rest of the app, twice more elsewhere — `LaunchScreen.tsx`'s `handleNewProject`/
+  `handleOpenProject` (native `save()`/`open()` dialog calls with no try/catch, unlike this
+  file's own `openAndNavigate`/`handleConfirmLanguage`) and `SettingsScreen.tsx`'s two
+  mount-effects (`getKeyStatus`/`getAiSettings`, `getCostSummary`, unlike this file's own
+  `handleSaveKey`/`handleRemoveKey`/`persistSettings`). All three fixed matching each file's own
+  established try/catch pattern, 6 new regression tests total, every one mutation-verified
+  (RED against the pre-fix code, GREEN after). A small real §1.3 reduced-motion violation
+  (`A3PreviewReservedBand.tsx`'s raw ungated inline `transition`) was fixed; a real, mechanically
+  confirmed §1.4 layout-shift source in the same file (a 96px placeholder jumping to up to 420px
+  the instant the first async layout build completes) was only softened
+  (`motion-safe:`-gated height transition), not structurally fixed — the real fix is a genuine
+  visual trade-off deferred to its own future Block Visual Verification Loop round. A static
+  keyboard-nav scan found zero new violations (two hits, both pre-existing documented D-86
+  exemptions). **A real, large WCAG AA contrast finding** — all seven `--color-fp-*` token pairs
+  (D-218/D-219, W1) actually used in `StepOverview.tsx`/`StepQuickJump.tsx` were computed against
+  the real WCAG formula: 6 of 7 fail in light theme, 3 of 7 fail in dark theme, the worst being
+  the filled active-step chip (white text on `--fp-teal`, 3.31:1 light / 2.08:1 dark, both far
+  under the required 4.5:1) — filed as **P-66** rather than silently picking new passing hex
+  values here, per this dilim's own §3 disposition rule (a large finding gets its own P-item,
+  not scope creep) and CLAUDE.md's own Block Visual Verification Loop requirement for any new
+  visual decision. `npm test` 1555/1555 (306 files, up from 1549/1549 — 6 new tests), exit code
+  0 (checked via a separate logfile, not piped through `tail`). `npm run lint`/`npx tsc --noEmit`/
+  `npm run build` all clean (same one pre-existing `ThemeProvider` warning and chunk-size
+  warning). Rust genuinely untouched — `git status src-tauri/` confirmed empty before and after,
+  `cargo test`/`clippy`/`fmt` not re-run. **Honestly left "owed"**: a real keyboard Tab/Shift+
+  Tab/Enter/Escape walkthrough and a real CLS DevTools measurement, both needing a real screen
+  this environment doesn't have — Barış's own `npm run tauri dev` turn. Full record: D-231/P-66.
 Templates: two company .xls files analysed; see reference/TEMPLATE_ANALYSIS.md
 Template geometry: VERIFIED 2026-08-01 against both .xls files. Five errors found and
   corrected in place — the largest was the column widths: the real split is 49.7/50.3, NOT
