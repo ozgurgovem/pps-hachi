@@ -2,6 +2,7 @@ import { useState, type KeyboardEvent as ReactKeyboardEvent, type PointerEvent a
 import { useTranslation } from "react-i18next";
 import type { StepId } from "../../domain/model";
 import type { A3LayoutDescriptor, ElasticBlockGeometry } from "../descriptor";
+import { canvasRowsOf, groupElasticBlocksByColumn } from "./elasticColumns";
 import { columnOffsetPx, columnWidthPx, rowHeightPx, rowOffsetPx } from "./gridGeometry";
 
 /**
@@ -59,25 +60,6 @@ interface DragState {
   readonly minimumCanvasRows: number;
   readonly rowHeightPxAtBlock: number;
   readonly deltaPx: number;
-}
-
-function columnGroupKey(block: ElasticBlockGeometry): string {
-  return `${block.contentColumns.first}:${block.contentColumns.last}`;
-}
-
-function canvasRowsOf(block: ElasticBlockGeometry): number {
-  return block.contentRows.end - block.contentRows.start + 1;
-}
-
-function groupByColumn(blocks: readonly ElasticBlockGeometry[]): ElasticBlockGeometry[][] {
-  const groups = new Map<string, ElasticBlockGeometry[]>();
-  for (const block of blocks) {
-    const key = columnGroupKey(block);
-    const list = groups.get(key) ?? [];
-    list.push(block);
-    groups.set(key, list);
-  }
-  return [...groups.values()];
 }
 
 export function BlockPinOverlay({ descriptor, mode, onPinBlock, dragScale = 1 }: BlockPinOverlayProps) {
@@ -168,7 +150,7 @@ export function BlockPinOverlay({ descriptor, mode, onPinBlock, dragScale = 1 }:
 
   return (
     <div style={{ position: "absolute", inset: 0, pointerEvents: "none" }}>
-      {groupByColumn(descriptor.elasticBlocks).flatMap((column) =>
+      {groupElasticBlocksByColumn(descriptor.elasticBlocks).flatMap((column) =>
         column.slice(0, -1).map((above) => {
           const stepId = above.stepIds[0];
           if (stepId === undefined) {

@@ -189,7 +189,7 @@ export function A3PreviewWindow() {
 
       {descriptor && (
         <div className="border-b border-border p-2">
-          <PinnedBlockSummary descriptor={descriptor} onResetBlock={(stepId) => handlePinBlock(stepId, null)} />
+          <PinnedBlockSummary descriptor={descriptor} onPinBlock={handlePinBlock} />
         </div>
       )}
 

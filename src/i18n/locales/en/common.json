@@ -190,7 +190,10 @@
       "summaryLabel": "Manually resized steps",
       "pinnedChip": "Step {{step}}: {{rows}} rows",
       "resetToAutomatic": "Reset to automatic",
-      "resetAriaLabel": "Reset Step {{step}} to automatic sizing"
+      "resetAriaLabel": "Reset Step {{step}} to automatic sizing",
+      "manualEntryGroupLabel": "Set a step's size manually",
+      "manualEntryLabel": "Set Step {{step}}'s size",
+      "manualEntryApply": "Apply"
     },
     "assistant": {
       "columnTitle": "AI support",
