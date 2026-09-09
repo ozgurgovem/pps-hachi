@@ -25,6 +25,7 @@ function buildSpec(payload: DistributionChartPayload, language: A3Language) {
       unit: payload.unit || undefined,
       values,
       binCount: Number.isFinite(binCount) && binCount > 0 ? binCount : undefined,
+      language,
     };
   }
   return {

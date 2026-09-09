@@ -57,6 +57,15 @@ export interface HistogramChartSpec {
   readonly values: readonly number[];
   /** Defaults to Sturges' rule when omitted — see `stats.ts`. */
   readonly binCount?: number;
+  /**
+   * D-231/P-66: the content language (`project.meta.language`, resolved via
+   * `resolveA3Language`) — NOT the UI's active i18next language, which
+   * would repeat the exact P-42 mis-source bug in a rasterized export
+   * component. Drives `computeHistogramBins`'s bin-range decimal separator
+   * (`,` for `tr`, `.` for `en`) via `Intl.NumberFormat`. Defaults to `"en"`
+   * when omitted, matching `resolveA3Language`'s own default.
+   */
+  readonly language?: "tr" | "en";
 }
 
 export interface ScatterChartSpec {
@@ -126,6 +135,13 @@ export interface KpiStripChartSpec {
    * (`KpiStripChart.tsx`'s own header band) is what keeps it visible.
    */
   readonly title: string;
+  /**
+   * D-232/P-67: the content language, same posture as `HistogramChartSpec.language`
+   * above — drives each tile's numeric value label (`formatValue` in
+   * `KpiStripChart.tsx`) via `Intl.NumberFormat`, never the UI's active
+   * i18next language. Defaults to `"en"` when omitted.
+   */
+  readonly language?: "tr" | "en";
 }
 
 export type ChartSpec =

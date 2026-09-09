@@ -50,6 +50,14 @@ const NO_RAG_SELECTED = "__none__";
 
 type KeyState = { status: "loading" } | { status: "unset" } | { status: "set"; masked: string };
 
+/** D-231/P-66: `locale` is the UI's active i18next language (`i18n.language`
+ * — this screen is UI-facing, unlike the export-side chart specs) — drives
+ * the decimal separator via `Intl.NumberFormat` in place of a locale-blind
+ * `.toFixed(4)`. */
+function formatCostUsd(costUsd: number, locale: string): string {
+  return new Intl.NumberFormat(locale, { minimumFractionDigits: 4, maximumFractionDigits: 4 }).format(costUsd);
+}
+
 /**
  * Faz 11/L2 §3.1: `null` = no switch pending. `previewTemplateSwitch`'s own
  * dry run decides whether this ever gets set — a target with nothing to
@@ -66,7 +74,7 @@ type TemplateSwitchState = { readonly targetTemplateId: string; readonly dropped
  * already open.
  */
 export function SettingsScreen() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const project = useProjectStore((s) => s.project);
   const dispatch = useProjectStore((s) => s.dispatch);
   const [templateSwitchState, setTemplateSwitchState] = useState<TemplateSwitchState | null>(null);
@@ -653,13 +661,13 @@ export function SettingsScreen() {
                 <>
                   <p className="font-body text-sm text-ink">
                     {t("settings.ai.costProjectTotal", {
-                      amount: costSummary.project.costUsd.toFixed(4),
+                      amount: formatCostUsd(costSummary.project.costUsd, i18n.language),
                       requests: costSummary.project.requestCount,
                     })}
                   </p>
                   <p className="font-body text-sm text-ink">
                     {t("settings.ai.costCurrentMonth", {
-                      amount: costSummary.currentMonth.costUsd.toFixed(4),
+                      amount: formatCostUsd(costSummary.currentMonth.costUsd, i18n.language),
                       requests: costSummary.currentMonth.requestCount,
                     })}
                   </p>

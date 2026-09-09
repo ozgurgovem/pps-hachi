@@ -27,7 +27,7 @@ export function DistributionChart({
 }
 
 function HistogramView({ spec, size }: { spec: HistogramChartSpec; size: A3ImageSize }) {
-  const bins = computeHistogramBins(spec.values, spec.binCount);
+  const bins = computeHistogramBins(spec.values, spec.binCount, spec.language ?? "en");
   return (
     <BarChart width={size.widthPx} height={size.heightPx} data={[...bins]} margin={{ top: 8, right: 24, bottom: 8, left: 8 }}>
       <CartesianGrid strokeDasharray="3 3" />

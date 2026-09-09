@@ -2231,6 +2231,56 @@ AI layer: Faz 8 fully done (keychain + Vorion connection/model-discovery + strea
   (status `PENDING`, this repo's own established marker for "raised, not yet decided"), P-62's
   own "Update 2026-09-08" note, new P-66, `docs/oturumlar/README.md`'s new "P-62 kapsam
   belirleme" section.
+**Faz 12 — M1 (i18n tarama tamamlama): FULLY DONE (D-235+D-236, 2026-09-08/09) — both halves
+  closed, P-66 answered and implemented.** Run in an isolated parallel-worktree sub-agent context
+  (one of six independent slices launched the same day) — `M1-i18n-tarama.md`'s own §0 pre-scan
+  re-verified against real code, matched exactly: TR/EN key parity still 957/957, zero drift;
+  `.toLocaleUpperCase` only in `StepPage.tsx` (D-219's own fix); `.toUpperCase`/`.toLowerCase` only
+  in `StepPage.tsx` (a comment) and `workspaceEffects.ts` (a keyboard-shortcut comparison,
+  locale-safe); all four `Intl.DateTimeFormat` call sites pass `i18n.language`/`locale` explicitly;
+  all seven `.sort()` calls are numeric; the same six `.toFixed()` call sites as before. **§2.1
+  (the mechanism protecting TR/EN key parity from future drift) DONE**: new
+  `src/i18n/localeParity.test.ts` flattens both `common.json` trees to leaf-key sets and diffs
+  them, naming any drifted key directly in the failure message; a second test guards against both
+  files going empty at once. Mutation-verified: a temporary key was added to `en/common.json`, the
+  test genuinely went RED naming that exact key, the file was reverted via `git checkout`, the test
+  went GREEN again.
+  **§2.2 (the `.toFixed()` non-locale-aware decimal-separator question) could not be asked by this
+  session's own tool surface** (an isolated sub-agent spawned by an orchestrating session as one of
+  six parallel slices, no `AskUserQuestion` tool, confirmed both from the initial tool list and via
+  `ToolSearch`) — filed verbatim as **P-67** instead of a self-made call, correctly declining
+  Anayasa Madde 9's "decide yourself" since this was a genuine product/UX call, not information
+  already in hand. **P-67 was then answered by Barış (relayed through the orchestrating
+  coordinator) and closed in a same-branch follow-up (D-236): "fix all six."** All six call sites
+  now use `Intl.NumberFormat(i18n.language, …)` in place of a locale-blind `.toFixed()`, each
+  preserving its own existing decimal-digit count (KPI strip/distribution chart 1, cost display 4,
+  file size 1). **D-43/P-42's content-language-vs-UI-language distinction was applied a second
+  time, deliberately**: the two export-side chart components (`kpiStrip/KpiStripChart.tsx`,
+  `distributionChart/{stats.ts,DistributionChart.tsx}`) read `project.meta.language` (via
+  `resolveA3Language`, a new optional `language?: "tr" | "en"` field added to
+  `HistogramChartSpec`/`KpiStripChartSpec` in `chartSpec.ts`, D-224/D-193's optional-field-no-
+  migration convention), never the UI's active i18next language — repeating P-42's `FishboneDiagram`
+  mis-source bug here would have been a direct regression of a lesson this project already paid
+  for. The two genuinely UI-facing components (`SettingsScreen.tsx`'s cost display via a new
+  `formatCostUsd` helper, `EntryProposalField.tsx`'s file-size display) use `useTranslation()`'s
+  `i18n.language` correctly, since they are UI, not export. `distributionChart/renderToA3.test.ts`'s
+  one whole-object `toEqual` assertion (histogram spec) was updated to include the new
+  `language: "en"` field; `kpiStrip/renderToA3.test.ts` (asserts only `.items`) and
+  `EntryProposalField.test.tsx` (test-env i18next language stays `"en"` throughout, so
+  `Intl.NumberFormat("en", …).format(20)` still reads "20.0") needed no changes, confirmed rather
+  than assumed.
+  `npm test` 1551/1551 (307 files, unchanged from D-235's own count — this follow-up updates
+  existing tests, adds none, per the coordinator's own efficiency request), exit code 0 (checked
+  via a separate logfile, not piped through `tail`). `npm run lint` clean (the one pre-existing
+  `ThemeProvider` warning). `npx tsc --noEmit` clean. `npm run build` green (same pre-existing
+  chunk-size warning). `cargo test`/`clippy`/`fmt` not run — Rust genuinely untouched
+  (`git status src-tauri/` empty, confirmed), this slice's changes are TS-only (8 files plus
+  `chartSpec.ts`, the latter already landed in an earlier WIP commit on this same branch).
+  D10.4-D10.9's remaining items stay deliberately out of scope, per Barış's own earlier choice
+  (D-230). **Faz 12's M1 slice (D-235+D-236) is now fully closed** — M2/M3/M4 still await their own
+  launch prompts. Committed to this session's own worktree branch only — not merged to main, not
+  pushed to origin/main, per this task's own instructions (parallel-slice merge is a human's later,
+  sequenced job).
 Templates: two company .xls files analysed; see reference/TEMPLATE_ANALYSIS.md
 Template geometry: VERIFIED 2026-08-01 against both .xls files. Five errors found and
   corrected in place — the largest was the column widths: the real split is 49.7/50.3, NOT
