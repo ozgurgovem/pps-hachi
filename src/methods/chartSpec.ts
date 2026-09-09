@@ -111,6 +111,21 @@ export interface KpiStripChartSpec {
   /** D-188/P-26: the footer legend's sustain/result labels, resolved by `renderToA3` — the chart component stays language-agnostic, same as every other spec-driven string. */
   readonly sustainLabel: string;
   readonly resultLabel: string;
+  /**
+   * P-63 fix: the entry's own title, rendered as the chart's own header line
+   * rather than as a separate `A3BlockContent.lines` entry. Before this, the
+   * block requested 1 title row + `image.rowSpan` (6) = 7 rows against
+   * `pps-8step-auto`'s exactly-6-row ADIM 7 canvas — every `kpi-strip` entry
+   * unconditionally overflowed to an appendix. `smartTarget`/`fiveN1K` both
+   * already drop the top-level `lines` array for their own zoned strips, but
+   * neither of their charts needed to swallow the title: `smartTarget` keeps
+   * it inside its own Zone A `lines`, and `fiveN1K`'s reference image has no
+   * heading at all. `KpiStripChart` renders no item labels resembling a
+   * title, so copying that pattern blindly would have silently dropped the
+   * entry's title from the exported sheet — moving it into the chart itself
+   * (`KpiStripChart.tsx`'s own header band) is what keeps it visible.
+   */
+  readonly title: string;
 }
 
 export type ChartSpec =
