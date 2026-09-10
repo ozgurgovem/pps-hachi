@@ -106,8 +106,20 @@ export function MethodBand({ stepId, activeEditor, onStartCreate, onCloseEditor 
         </div>
       )}
 
+      {/* Real gap found in Barış's own first trial run (2026-09-10): with no
+          `key`, clicking a second method's "Add entry" while the first
+          method's create panel was still open left React re-rendering the
+          SAME `EntryEditorPanel` instance with a new `plugin` prop instead
+          of remounting it — its own `useState(() => plugin.createEmptyPayload())`
+          initializer never re-ran, so the panel kept the FIRST method's
+          empty payload shape while now rendering through the SECOND
+          method's `Editor` (e.g. a field-form method's payload, with no
+          `rows` key at all, fed into `RowTableEditor`, which crashed on
+          `rows.map`). Keying by the active plugin's own id forces a real
+          remount on every method switch — the same fix shape W1/D-219
+          already applied one level up (`<StepPage key={activeStepId}>`). */}
       {activePlugin && (
-        <EntryEditorPanel stepId={stepId} plugin={activePlugin} mode={{ kind: "create" }} onClose={onCloseEditor} />
+        <EntryEditorPanel key={activePlugin.id} stepId={stepId} plugin={activePlugin} mode={{ kind: "create" }} onClose={onCloseEditor} />
       )}
     </section>
   );

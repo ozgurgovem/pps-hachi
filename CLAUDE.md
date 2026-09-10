@@ -2535,6 +2535,20 @@ AI layer: Faz 8 fully done (keychain + Vorion connection/model-discovery + strea
   affordance. All three verified via new/updated unit tests, `npm test` 1592/1592, lint/tsc/
   build all clean, Rust untouched. Honestly unverified until Barış's own trial run confirms it
   live: unit tests prove the mechanism, not the real WKWebView.
+**A fourth bug from the same trial run (D-243, 2026-09-10): clicking one Step 2 method's "Add
+  entry" then a different method's "Add entry" without closing the first crashed the whole app**
+  ("undefined is not an object (evaluating 'rows.map')", `RowTableEditor.tsx`). Root cause:
+  `MethodBand.tsx`'s create-mode `EntryEditorPanel` had no `key`, so React reused the same
+  component instance across the method switch instead of remounting it — its own
+  `useState(() => plugin.createEmptyPayload())` initializer never re-ran, so the panel kept the
+  first method's empty payload (no `rows` field, e.g. `msaGageRr`) while rendering through the
+  second method's `RowTableEditor` (`rows={payload.rows}`, now `undefined`). The same fix shape
+  W1/D-219 already applied one level up (`<StepPage key={activeStepId}>`) was missing at this
+  second mount site. Fixed with `key={activePlugin.id}`; `EntriesBand.tsx`'s own edit-mode panel
+  carries no equivalent risk (already scoped under each row's own `SortableEntryRow
+  key={entry.id}`). Mutation-verified: the fix was stashed, a new regression test (real
+  `msaGageRr`+`checkSheet` plugins, not stubs) genuinely failed with the identical crash,
+  restored and confirmed green. `npm test` 1593/1593, lint/tsc/build clean, Rust untouched.
 Templates: two company .xls files analysed; see reference/TEMPLATE_ANALYSIS.md
 Template geometry: VERIFIED 2026-08-01 against both .xls files. Five errors found and
   corrected in place — the largest was the column widths: the real split is 49.7/50.3, NOT

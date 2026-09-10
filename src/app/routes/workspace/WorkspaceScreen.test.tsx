@@ -169,6 +169,40 @@ describe("WorkspaceScreen — Phase 3 done-condition", () => {
     await waitFor(() => expect(screen.queryByText("Entry to delete")).toBeFalsy());
   });
 
+  // Real gap found in Barış's own first trial run (2026-09-10): clicking a
+  // second method's "Add entry" while the first method's create panel was
+  // still open crashed the whole app ("undefined is not an object
+  // (evaluating 'rows.map')") — `MethodBand.tsx`'s create-mode
+  // `EntryEditorPanel` had no `key`, so React reused the same instance
+  // across the switch instead of remounting it, leaving the FIRST method's
+  // empty payload (no `rows` field) rendered through the SECOND method's
+  // `RowTableEditor`. `msaGageRr` (a field-form method, no `rows` key at
+  // all) and `checkSheet` (a row-table method) are real Step 2 methods that
+  // reproduce this exactly — both "more"-tier, so the disclosure needs
+  // expanding first.
+  test("switching from one method's Add entry to another's does not crash and shows the new method's own fields", async () => {
+    const user = userEvent.setup();
+    renderWorkspace();
+    await user.click(screen.getByRole("button", { name: /^Step 2:/ }));
+
+    await user.click(screen.getByRole("button", { name: /other formats/i }));
+
+    const methodBand = screen.getByRole("heading", { name: "Add an entry" }).closest("section");
+    const msaCard = within(methodBand!).getByText("MSA / Gage R&R note").closest("div");
+    await user.click(within(msaCard!).getByRole("button", { name: "Add entry" }));
+
+    expect(await screen.findByLabelText("Method")).toBeTruthy();
+
+    const checkSheetCard = within(methodBand!).getByText("Check sheet").closest("div");
+    await user.click(within(checkSheetCard!).getByRole("button", { name: "Add entry" }));
+
+    // Would have thrown ("rows.map" on undefined) before the fix — the
+    // panel now shows Check sheet's own "Add row" control, not a crash, and
+    // MSA's own field is genuinely gone (a real remount, not a stale one).
+    expect(await screen.findByRole("button", { name: "Add row" })).toBeTruthy();
+    expect(screen.queryByLabelText("Method")).toBeFalsy();
+  });
+
   test("an unknown methodId entry renders as a restricted read-only placeholder (P-05)", async () => {
     const { manifest, project } = createNewProject({ title: "Legacy project", language: "en", appVersion: "0.1.0" });
     const withUnknownEntry = {
