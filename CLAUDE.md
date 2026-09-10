@@ -2594,6 +2594,46 @@ AI layer: Faz 8 fully done (keychain + Vorion connection/model-discovery + strea
   environment — a real multi-turn Vorion conversation actually continuing server-side via
   `conversation_id`, and the AI genuinely answering a question about real entered data, were
   never tried in a real window; Barış's own `npm run tauri dev` walkthrough is still owed.
+**A sixth real finding from the same trial run (D-247, 2026-09-10): once D-246 made the AI
+  genuinely read and critique the step's real entries, the old single "Accept" button — which
+  wrote the whole raw chat response as a disconnected `generic-text` entry, invisible in the A3
+  preview — became obviously wrong rather than just unused.** Barış's own request, explicitly
+  modeled on how he works with Claude itself: the AI should say its suggestion in the chat, ask
+  whether to apply it to the relevant entry, and on confirmation actually edit that entry. Two
+  real design questions went to `AskUserQuestion` before any code, both Barış's recommended
+  option: the AI itself identifies which existing entry a suggestion targets (never a manual
+  picker, and never trusted if it names an entry that doesn't exist); the old "write a
+  standalone note" behavior stays available as its own, clearly separate action rather than
+  being removed. New `src/app/routes/workspace/chatEntryEdit.ts` runs two structured calls in
+  sequence, both built on K1/K3's already-tested retry/protected-token primitives (G2, no new
+  mechanism invented) — `identifySuggestionTargetEntry` (schema-only retry-once, reusing
+  `proposeStructuredEntry`) picks a real entry id or `null` from the step's own
+  `summarizeEntryForAi` (K2) summaries; `proposeEntryEditFromSuggestion` (the same combined
+  schema/protected-token single-retry shape as `entryTranslation.ts`'s
+  `proposeEntryTranslation`) proposes a new title+payload validated against that entry's own
+  real Zod schema. The protected-token source here is deliberately the *suggestion's own new
+  values*, not the entry's old content (unlike translation, which must preserve everything) —
+  applying a suggestion is usually a replacement, so protecting the old value would wrongly
+  flag the very edit being asked for; what must survive is whatever new fact the AI's own
+  suggestion introduced. `AssistantPanel.tsx`'s "done" turns now show three actions — "Apply to
+  an entry" (the new flow, ending in an `EntryProposalField`/`EntryTranslateField`-style
+  Accept/Edit&Accept/Reject review using the target entry's own real `plugin.Editor`, writing
+  via a real `buildUpdateEntryCommand`), "Add as a new note" (the old behavior, renamed, kept
+  for genuinely new/standalone content), "Reject". Partial, deliberate improvement to P-51: both
+  new calls go through `completeStructured`, where D-205's redaction genuinely applies
+  (`resolveRedactionPolicy` passed through) — only the raw exploratory chat (D-245's
+  `completeStreaming`) still sends unredacted. Mutation-verified twice: `chatEntryEdit.ts`'s
+  hallucinated-id guard (broken, confirmed a fabricated id was wrongly trusted, restored) and
+  `AssistantPanel.tsx`'s real `buildUpdateEntryCommand` dispatch (entry id swapped to a
+  nonexistent one, confirmed a real `findEntryOrThrow` crash, restored). A real testing gotcha
+  found and worked around: mocking `attemptStructuredProposal` from outside cannot intercept
+  `proposeStructuredEntry`'s own same-file internal call to it (real ESM binding semantics) —
+  fixed by mocking `completeStructured` at the IPC boundary instead, the same precedent
+  `mockAudit.test.ts` already set. `npm test` 1619/1619 (314 files), exit code 0. `npm run
+  lint`/`npx tsc --noEmit`/`npm run build` all clean (same two pre-existing warnings). Rust
+  untouched this dilim. Honestly unverified, the usual class of gap: whether a real Vorion call
+  genuinely identifies the right target entry from real chat prose was never tried in a real
+  window; Barış's own `npm run tauri dev` walkthrough is still owed.
 Templates: two company .xls files analysed; see reference/TEMPLATE_ANALYSIS.md
 Template geometry: VERIFIED 2026-08-01 against both .xls files. Five errors found and
   corrected in place — the largest was the column widths: the real split is 49.7/50.3, NOT

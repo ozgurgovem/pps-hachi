@@ -1,13 +1,19 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
+import { z } from "zod";
 import { cancelCompletion, completeStreaming, type CompletionMeta, type StreamEvent } from "../../../ai/completionIpc";
-import { buildAddEntryCommand } from "../../../domain/commands";
+import { normalizedEditDistance } from "../../../ai/editDistance";
+import { getWholeProjectPromptFile } from "../../../ai/prompts/wholeProjectLibrary";
+import { resolveRedactionPolicy } from "../../../ai/redaction";
+import { buildAddEntryCommand, buildUpdateEntryCommand } from "../../../domain/commands";
 import type { Provenance, StepId } from "../../../domain/model";
+import { getMethodById } from "../../../methods";
 import { GENERIC_TEXT_METHOD_ID } from "../../../methods/genericText";
 import { getA3RendererMap } from "../../../methods/registry";
 import { useProjectStore } from "../../../state";
-import { Button, Textarea } from "../../../ui";
+import { Button, Input, Textarea } from "../../../ui";
+import { identifySuggestionTargetEntry, proposeEntryEditFromSuggestion } from "./chatEntryEdit";
 import { errorMessage } from "../launch/errorMessage";
 import { buildStepAssistantPrompt } from "./stepAiContext";
 
@@ -20,15 +26,40 @@ import { buildStepAssistantPrompt } from "./stepAiContext";
  * traceable back to "this dilim's bare-chat code path" rather than a lie.
  */
 const BARE_CHAT_PROMPT_VERSION = "bare-chat-v1";
+const IDENTIFY_TARGET_PROMPT_VERSION = "v1";
+const APPLY_SUGGESTION_PROMPT_VERSION = "v1";
+
+/**
+ * D-247 (Barış's own real-use report): once the AI's own review of the
+ * step's real entries produces a concrete suggestion, "Apply this to an
+ * entry" walks it through two structured calls (`chatEntryEdit.ts`) before
+ * anything ever reaches `ProjectModel` — this local sub-state tracks exactly
+ * where in that walk a given "done" turn currently is.
+ */
+type ApplyState =
+  | { readonly step: "locating" }
+  | { readonly step: "noMatch" }
+  | { readonly step: "proposing" }
+  | {
+      readonly step: "review";
+      readonly targetEntryId: string;
+      readonly methodId: string;
+      readonly aiTitle: string;
+      readonly aiPayload: unknown;
+      readonly draftTitle: string;
+      readonly draftPayload: unknown;
+    }
+  | { readonly step: "failed"; readonly rawText: string }
+  | { readonly step: "error"; readonly message: string };
 
 /**
  * D-245 (Barış's own real-use report): one entry in the conversation — each
  * `Send` appends a new turn rather than replacing a single shared `state`,
  * so a past turn stays visible (and, while still `"done"`, independently
- * Accept/Reject-able) after a follow-up question has already been sent.
- * `id` is a plain `crypto.randomUUID()` (the same UI-layer-id convention
- * every method `Editor` already uses) — purely a React key/lookup handle,
- * never written to `ProjectModel`.
+ * actionable) after a follow-up question has already been sent. `id` is a
+ * plain `crypto.randomUUID()` (the same UI-layer-id convention every method
+ * `Editor` already uses) — purely a React key/lookup handle, never written
+ * to `ProjectModel`.
  */
 type Turn =
   | {
@@ -48,6 +79,7 @@ type Turn =
       readonly editedText: string;
       readonly meta: CompletionMeta;
       readonly generatedAt: string;
+      readonly applyState?: ApplyState | undefined;
     }
   | {
       readonly id: string;
@@ -60,7 +92,7 @@ type Turn =
       readonly phase: "resolved";
       readonly prompt: string;
       readonly responseText: string;
-      readonly resolution: "accepted" | "rejected";
+      readonly resolution: "addedAsNote" | "appliedToEntry" | "rejected";
     };
 
 interface AssistantPanelProps {
@@ -82,9 +114,17 @@ interface AssistantPanelProps {
  * previous one), and each turn's own `conversationId` is forwarded into the
  * next `completeStreaming` call so Vorion itself continues that thread
  * server-side — the frontend never re-sends a growing transcript as plain
- * text. D-15/D-16 still apply in full, per turn: nothing reaches
- * `ProjectModel` before that turn's own explicit Accept, and a response is
- * always shown before it can be accepted, never auto-applied.
+ * text. D-247 replaced the old single "Accept" (which wrote the *whole raw
+ * chat response* as a disconnected `generic-text` entry, even when the
+ * response was clearly a suggested edit to one of the user's real entries)
+ * with two distinct actions once a response lands: "Apply to an entry"
+ * (identifies the real target entry, proposes a schema-validated edit to
+ * it, reviewed the same Accept/Edit&Accept/Reject way `EntryProposalField`/
+ * `EntryTranslateField` already work) and "Add as a new note" (the old
+ * behavior, for a genuinely new, standalone thought). D-15/D-16 still apply
+ * in full, per turn: nothing reaches `ProjectModel` before that turn's own
+ * explicit accept, and a proposal is always shown before it can be
+ * accepted, never auto-applied.
  */
 export function AssistantPanel({ stepId }: AssistantPanelProps) {
   const { t, i18n } = useTranslation();
@@ -104,6 +144,10 @@ export function AssistantPanel({ stepId }: AssistantPanelProps) {
 
   function updateTurn(turnId: string, update: (turn: Turn) => Turn) {
     setTurns((prev) => prev.map((turn) => (turn.id === turnId ? update(turn) : turn)));
+  }
+
+  function updateApplyState(turnId: string, applyState: ApplyState | undefined) {
+    updateTurn(turnId, (turn) => (turn.phase === "done" ? { ...turn, applyState } : turn));
   }
 
   async function handleSend() {
@@ -199,7 +243,7 @@ export function AssistantPanel({ stepId }: AssistantPanelProps) {
     }
   }
 
-  function handleAccept(turnId: string) {
+  function handleAddAsNote(turnId: string) {
     const turn = turns.find((candidate) => candidate.id === turnId);
     if (!turn || turn.phase !== "done" || !project) {
       return;
@@ -234,7 +278,7 @@ export function AssistantPanel({ stepId }: AssistantPanelProps) {
       phase: "resolved",
       prompt: turn.prompt,
       responseText: turn.editedText,
-      resolution: "accepted",
+      resolution: "addedAsNote",
     }));
   }
 
@@ -254,6 +298,171 @@ export function AssistantPanel({ stepId }: AssistantPanelProps) {
 
   function handleEditedTextChange(turnId: string, value: string) {
     updateTurn(turnId, (turn) => (turn.phase === "done" ? { ...turn, editedText: value } : turn));
+  }
+
+  /**
+   * D-247: step 1 of "Apply to an entry" — identify which real entry (if
+   * any) this turn's own response is suggesting an edit for.
+   */
+  async function handleStartApply(turnId: string) {
+    const turn = turns.find((candidate) => candidate.id === turnId);
+    if (!turn || turn.phase !== "done" || !project || !modelId) {
+      return;
+    }
+    const step = project.steps[stepId];
+    const entries = step?.entries ?? [];
+
+    updateApplyState(turnId, { step: "locating" });
+
+    const identifyPromptFile = getWholeProjectPromptFile("identify-suggestion-target", IDENTIFY_TARGET_PROMPT_VERSION);
+    if (!identifyPromptFile) {
+      updateApplyState(turnId, { step: "error", message: t("workspace.assistant.missingPromptFile") });
+      return;
+    }
+
+    const redaction = resolveRedactionPolicy(project.meta.ai.redaction);
+    const rendererMap = getA3RendererMap();
+
+    let identifyResult;
+    try {
+      identifyResult = await identifySuggestionTargetEntry({
+        promptBody: identifyPromptFile.body,
+        suggestionText: turn.editedText,
+        entries,
+        project,
+        rendererMap,
+        modelId,
+        redaction,
+        projectId: project.id,
+      });
+    } catch (error) {
+      updateApplyState(turnId, { step: "error", message: errorMessage(error) });
+      return;
+    }
+
+    if (identifyResult.outcome === "failed") {
+      updateApplyState(turnId, { step: "failed", rawText: identifyResult.rawText });
+      return;
+    }
+    if (identifyResult.outcome === "noMatch") {
+      updateApplyState(turnId, { step: "noMatch" });
+      return;
+    }
+
+    const targetEntry = entries.find((entry) => entry.id === identifyResult.targetEntryId);
+    const plugin = targetEntry ? getMethodById(targetEntry.methodId) : undefined;
+    if (!targetEntry || !plugin) {
+      updateApplyState(turnId, { step: "noMatch" });
+      return;
+    }
+
+    updateApplyState(turnId, { step: "proposing" });
+
+    const applyPromptFile = getWholeProjectPromptFile("apply-suggestion", APPLY_SUGGESTION_PROMPT_VERSION);
+    if (!applyPromptFile) {
+      updateApplyState(turnId, { step: "error", message: t("workspace.assistant.missingPromptFile") });
+      return;
+    }
+
+    let editResult;
+    try {
+      editResult = await proposeEntryEditFromSuggestion({
+        promptBody: applyPromptFile.body,
+        suggestionText: turn.editedText,
+        title: targetEntry.title,
+        payload: targetEntry.payload,
+        modelId,
+        zodSchema: z.object({ title: z.string(), payload: plugin.schema }),
+        redaction,
+        projectId: project.id,
+        promptVersion: `apply-suggestion.${APPLY_SUGGESTION_PROMPT_VERSION}`,
+      });
+    } catch (error) {
+      updateApplyState(turnId, { step: "error", message: errorMessage(error) });
+      return;
+    }
+
+    if (editResult.outcome === "failed") {
+      updateApplyState(turnId, { step: "failed", rawText: editResult.rawText });
+      return;
+    }
+
+    updateApplyState(turnId, {
+      step: "review",
+      targetEntryId: targetEntry.id,
+      methodId: targetEntry.methodId,
+      aiTitle: editResult.title,
+      aiPayload: editResult.payload,
+      draftTitle: editResult.title,
+      draftPayload: editResult.payload,
+    });
+  }
+
+  function handleCancelApply(turnId: string) {
+    updateApplyState(turnId, undefined);
+  }
+
+  function handleApplyDraftTitleChange(turnId: string, nextTitle: string) {
+    updateTurn(turnId, (turn) =>
+      turn.phase === "done" && turn.applyState?.step === "review"
+        ? { ...turn, applyState: { ...turn.applyState, draftTitle: nextTitle } }
+        : turn,
+    );
+  }
+
+  function handleApplyDraftPayloadChange(turnId: string, nextPayload: unknown) {
+    updateTurn(turnId, (turn) =>
+      turn.phase === "done" && turn.applyState?.step === "review"
+        ? { ...turn, applyState: { ...turn.applyState, draftPayload: nextPayload } }
+        : turn,
+    );
+  }
+
+  function handleAcceptEntryEdit(turnId: string) {
+    const turn = turns.find((candidate) => candidate.id === turnId);
+    if (!turn || turn.phase !== "done" || !turn.applyState || turn.applyState.step !== "review" || !project) {
+      return;
+    }
+    const step = project.steps[stepId];
+    if (!step) {
+      return;
+    }
+    const { targetEntryId, aiTitle, aiPayload, draftTitle, draftPayload } = turn.applyState;
+    const aiJson = JSON.stringify({ title: aiTitle, payload: aiPayload });
+    const draftJson = JSON.stringify({ title: draftTitle, payload: draftPayload });
+    const wasEdited = draftJson !== aiJson;
+    const generatedAt = new Date().toISOString();
+    const provenance: Provenance = {
+      origin: wasEdited ? "ai-edited" : "ai-accepted",
+      model: {
+        providerId: "vorion",
+        modelId: modelId ?? "",
+        promptVersion: `apply-suggestion.${APPLY_SUGGESTION_PROMPT_VERSION}`,
+      },
+      generatedAt,
+      acceptedBy: project.meta.owner.name,
+      acceptedAt: generatedAt,
+      editDistance: normalizedEditDistance(aiJson, draftJson),
+    };
+    dispatch(
+      buildUpdateEntryCommand(step, stepId, targetEntryId, {
+        title: draftTitle,
+        payload: draftPayload,
+        now: generatedAt,
+        provenance,
+      }),
+    );
+    updateTurn(turnId, () => ({
+      id: turnId,
+      phase: "resolved",
+      prompt: turn.prompt,
+      responseText: turn.editedText,
+      resolution: "appliedToEntry",
+    }));
+  }
+
+  function handleRejectEntryEdit(turnId: string) {
+    updateApplyState(turnId, undefined);
   }
 
   if (!modelId) {
@@ -296,19 +505,107 @@ export function AssistantPanel({ stepId }: AssistantPanelProps) {
 
           {turn.phase === "done" && (
             <div className="flex flex-col gap-2">
-              <Textarea
-                value={turn.editedText}
-                onChange={(event) => handleEditedTextChange(turn.id, event.target.value)}
-                aria-label={t("workspace.assistant.responseLabel")}
-              />
-              <div className="flex gap-2">
-                <Button onClick={() => handleAccept(turn.id)} disabled={!turn.editedText.trim()}>
-                  {t("workspace.assistant.accept")}
-                </Button>
-                <Button variant="ghost" onClick={() => handleReject(turn.id)}>
-                  {t("workspace.assistant.reject")}
-                </Button>
-              </div>
+              {!turn.applyState && (
+                <>
+                  <Textarea
+                    value={turn.editedText}
+                    onChange={(event) => handleEditedTextChange(turn.id, event.target.value)}
+                    aria-label={t("workspace.assistant.responseLabel")}
+                  />
+                  <div className="flex flex-wrap gap-2">
+                    <Button
+                      onClick={() => void handleStartApply(turn.id)}
+                      disabled={!turn.editedText.trim()}
+                    >
+                      {t("workspace.assistant.applyToEntry")}
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      onClick={() => handleAddAsNote(turn.id)}
+                      disabled={!turn.editedText.trim()}
+                    >
+                      {t("workspace.assistant.addAsNote")}
+                    </Button>
+                    <Button variant="ghost" onClick={() => handleReject(turn.id)}>
+                      {t("workspace.assistant.reject")}
+                    </Button>
+                  </div>
+                </>
+              )}
+
+              {turn.applyState?.step === "locating" && (
+                <p className="font-body text-sm text-ink-muted">{t("workspace.assistant.locatingEntry")}</p>
+              )}
+
+              {turn.applyState?.step === "proposing" && (
+                <p className="font-body text-sm text-ink-muted">{t("workspace.assistant.proposingEdit")}</p>
+              )}
+
+              {turn.applyState?.step === "noMatch" && (
+                <div className="flex flex-col gap-2">
+                  <p className="font-body text-sm text-ink-muted">{t("workspace.assistant.noEntryMatch")}</p>
+                  <Button variant="ghost" onClick={() => handleCancelApply(turn.id)}>
+                    {t("workspace.assistant.back")}
+                  </Button>
+                </div>
+              )}
+
+              {turn.applyState?.step === "failed" && (
+                <div className="flex flex-col gap-2">
+                  <p role="alert" className="font-body text-sm text-danger">
+                    {t("workspace.assistant.applyFailed")}
+                  </p>
+                  <pre className="max-h-40 overflow-y-auto whitespace-pre-wrap rounded-control border border-border bg-surface p-2 font-mono text-2xs text-ink-muted">
+                    {turn.applyState.rawText}
+                  </pre>
+                  <Button variant="ghost" onClick={() => handleCancelApply(turn.id)}>
+                    {t("workspace.assistant.back")}
+                  </Button>
+                </div>
+              )}
+
+              {turn.applyState?.step === "error" && (
+                <div className="flex flex-col gap-2">
+                  <p role="alert" className="font-body text-sm text-danger">
+                    {turn.applyState.message}
+                  </p>
+                  <Button variant="ghost" onClick={() => handleCancelApply(turn.id)}>
+                    {t("workspace.assistant.back")}
+                  </Button>
+                </div>
+              )}
+
+              {turn.applyState?.step === "review" &&
+                (() => {
+                  const applyState = turn.applyState;
+                  const plugin = getMethodById(applyState.methodId);
+                  if (!plugin) {
+                    return null;
+                  }
+                  const Editor = plugin.Editor;
+                  return (
+                    <div className="flex flex-col gap-2 rounded-control border border-border bg-surface p-3">
+                      <p className="font-body text-sm text-ink-muted">{t("workspace.assistant.reviewEntryEditHint")}</p>
+                      <Input
+                        aria-label={t("workspace.assistant.draftTitleLabel")}
+                        value={applyState.draftTitle}
+                        onChange={(event) => handleApplyDraftTitleChange(turn.id, event.target.value)}
+                      />
+                      <Editor
+                        payload={applyState.draftPayload}
+                        onChange={(nextPayload) => handleApplyDraftPayloadChange(turn.id, nextPayload)}
+                      />
+                      <div className="flex gap-2">
+                        <Button onClick={() => handleAcceptEntryEdit(turn.id)}>
+                          {t("workspace.assistant.acceptEntryEdit")}
+                        </Button>
+                        <Button variant="ghost" onClick={() => handleRejectEntryEdit(turn.id)}>
+                          {t("workspace.assistant.reject")}
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                })()}
             </div>
           )}
 
@@ -316,9 +613,9 @@ export function AssistantPanel({ stepId }: AssistantPanelProps) {
             <div className="flex flex-col gap-1 rounded-control border border-border bg-surface p-3">
               <p className="whitespace-pre-wrap font-body text-sm text-ink-muted">{turn.responseText}</p>
               <span className="font-mono text-2xs uppercase tracking-wide text-ink-muted">
-                {turn.resolution === "accepted"
-                  ? t("workspace.assistant.turnAccepted")
-                  : t("workspace.assistant.turnRejected")}
+                {turn.resolution === "addedAsNote" && t("workspace.assistant.turnAddedAsNote")}
+                {turn.resolution === "appliedToEntry" && t("workspace.assistant.turnAppliedToEntry")}
+                {turn.resolution === "rejected" && t("workspace.assistant.turnRejected")}
               </span>
             </div>
           )}

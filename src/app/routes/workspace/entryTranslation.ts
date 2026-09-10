@@ -27,8 +27,14 @@ export function otherLanguage(language: ReportLanguage): ReportLanguage {
 // Field-level translation (§2.1/§2.2)
 // ---------------------------------------------------------------------------
 
-/** Every string value anywhere inside `value`, walked recursively — payloads nest (row tables, field-form records), so this has to be generic rather than field-aware. */
-function collectAllStrings(value: unknown): readonly string[] {
+/**
+ * Every string value anywhere inside `value`, walked recursively — payloads
+ * nest (row tables, field-form records), so this has to be generic rather
+ * than field-aware. Exported so `chatEntryEdit.ts` (D-247) can reuse the same
+ * flattening for its own protected-token check rather than a second copy
+ * (Anayasa Madde 2/G2).
+ */
+export function collectAllStrings(value: unknown): readonly string[] {
   if (typeof value === "string") {
     return [value];
   }
@@ -41,7 +47,7 @@ function collectAllStrings(value: unknown): readonly string[] {
   return [];
 }
 
-function combineTitleAndPayload(title: string, payload: unknown): string {
+export function combineTitleAndPayload(title: string, payload: unknown): string {
   return [title, ...collectAllStrings(payload)].join("\n");
 }
 

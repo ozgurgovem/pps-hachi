@@ -46,10 +46,32 @@ describe("getWholeProjectPromptFile", () => {
     expect(file?.body.length).toBeGreaterThan(0);
   });
 
+  /** D-247: identifying which existing entry a chat suggestion targets — see `chatEntryEdit.ts`. */
+  it("finds the real identify-suggestion-target.v1 prompt file", () => {
+    const file = getWholeProjectPromptFile("identify-suggestion-target", "v1");
+
+    expect(file).toBeDefined();
+    expect(file?.frontMatter.mode).toBe("draft");
+    expect(file?.frontMatter.outputSchema).toBe("identify-suggestion-target");
+    expect(file?.body.length).toBeGreaterThan(0);
+  });
+
+  /** D-247: applying a confirmed chat suggestion to a specific entry — see `chatEntryEdit.ts`. */
+  it("finds the real apply-suggestion.v1 prompt file", () => {
+    const file = getWholeProjectPromptFile("apply-suggestion", "v1");
+
+    expect(file).toBeDefined();
+    expect(file?.frontMatter.mode).toBe("draft");
+    expect(file?.frontMatter.outputSchema).toBe("apply-suggestion");
+    expect(file?.body.length).toBeGreaterThan(0);
+  });
+
   it("returns undefined for a purpose/version with no prompt file", () => {
     expect(getWholeProjectPromptFile("layout-review", "v2-does-not-exist")).toBeUndefined();
     expect(getWholeProjectPromptFile("mock-audit", "v2-does-not-exist")).toBeUndefined();
     expect(getWholeProjectPromptFile("translate-entry", "v2-does-not-exist")).toBeUndefined();
     expect(getWholeProjectPromptFile("translate-report", "v2-does-not-exist")).toBeUndefined();
+    expect(getWholeProjectPromptFile("identify-suggestion-target", "v2-does-not-exist")).toBeUndefined();
+    expect(getWholeProjectPromptFile("apply-suggestion", "v2-does-not-exist")).toBeUndefined();
   });
 });
