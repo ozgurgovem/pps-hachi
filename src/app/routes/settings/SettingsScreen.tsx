@@ -17,6 +17,7 @@ import {
 } from "../../../ui";
 import { buildSetAiMetaCommand, buildSetProjectInfoCommand, buildSetTemplateIdCommand } from "../../../domain/commands";
 import { PROJECT_PRIORITY_OPTIONS, type GeneralRag, type RedactionMode } from "../../../domain/model";
+import { UiLanguageToggle } from "../../../i18n/UiLanguageToggle";
 import { listTemplates } from "../../../a3/templates/registry";
 import { resolveRedactionPolicy } from "../../../ai/redaction";
 import { useProjectStore } from "../../../state";
@@ -399,8 +400,18 @@ export function SettingsScreen() {
   return (
     <main className="mx-auto flex min-h-screen max-w-3xl flex-col gap-8 p-10">
       <div className="flex items-center gap-4 border-b border-line pb-6">
-        <Link to="/" className="font-mono text-2xs uppercase tracking-wide text-ink-muted hover:text-ink">
-          ← {t("settings.backToLaunch")}
+        {/* Real gap found in Barış's own first trial run (2026-09-10): this
+            already-correct copy ("Back to workspace" / "Çalışma alanına
+            dön") was wired to `to="/"` — the launch/project-list screen —
+            instead of back into the open project. `SettingsScreen` can only
+            ever be reached from an already-open workspace (`WorkspaceTopBar`'s
+            gear icon, D-200's own §2.1), so `/project` is always correct
+            here; `WorkspaceScreen.tsx`'s own `isOpened` check now also
+            accepts an already-loaded store project (not just fresh router
+            state), so returning here with no `location.state` renders the
+            real workspace instead of the "no project loaded" placeholder. */}
+        <Link to="/project" className="font-mono text-2xs uppercase tracking-wide text-ink-muted hover:text-ink">
+          ← {t("settings.backToWorkspace")}
         </Link>
         <h1 className="font-display text-2xl font-semibold uppercase tracking-wide text-ink">
           {t("settings.title")}
@@ -474,6 +485,16 @@ export function SettingsScreen() {
         ) : (
           <p className="font-body text-sm text-ink-muted">{t("settings.projectInfo.noProject")}</p>
         )}
+      </section>
+
+      {/* SPEC.md §2.1's own "language toggle (TR / EN)" line — permanent,
+          independent of `project.meta.language`/the Template section below.
+          See `src/i18n/uiLanguage.ts`'s own header comment for why this
+          exists (Barış's own first trial run, 2026-09-10). */}
+      <section className="flex flex-col gap-3 rounded-control border border-border bg-surface-raised p-6">
+        <h2 className="font-display text-lg text-ink">{t("settings.uiLanguage.heading")}</h2>
+        <p className="font-body text-sm text-ink-muted">{t("settings.uiLanguage.description")}</p>
+        <UiLanguageToggle />
       </section>
 
       {/* Faz 11/L2: permanent — SPEC.md §6's own Faz 11 done-condition

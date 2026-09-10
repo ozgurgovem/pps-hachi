@@ -239,3 +239,35 @@ describe("WorkspaceScreen — Phase 3 done-condition", () => {
     expect(addEntryButtons.every((button) => button.disabled)).toBe(true);
   });
 });
+
+// Real gap found in Barış's own first trial run (2026-09-10): returning to
+// `/project` from `SettingsScreen`'s own back link (or anywhere else that
+// doesn't carry a fresh `location.state`) fell through to the "no project
+// loaded" placeholder even though `useProjectStore` still held the real,
+// already-open project — see WorkspaceScreen.tsx's own header comment.
+describe("WorkspaceScreen — reached with no location.state", () => {
+  function renderWithoutState() {
+    return render(
+      <MemoryRouter initialEntries={["/project"]}>
+        <Routes>
+          <Route path="/project" element={<WorkspaceScreen />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+  }
+
+  test("shows the 'no project loaded' placeholder when the store is also empty", async () => {
+    renderWithoutState();
+    expect(await screen.findByText("No project loaded.")).toBeTruthy();
+  });
+
+  test("renders the real workspace when the store already has a project loaded", async () => {
+    const { project } = createNewProject({ title: "Şişli Hattı", language: "en", appVersion: "0.1.0" });
+    useProjectStore.setState({ ...initialStoreState, project, path: "/tmp/test.ppsx", otherEntries: [], readOnly: false }, true);
+
+    renderWithoutState();
+
+    expect(await screen.findByRole("heading", { name: "Şişli Hattı" })).toBeTruthy();
+    expect(screen.queryByText("No project loaded.")).toBeFalsy();
+  });
+});

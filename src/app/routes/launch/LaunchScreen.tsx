@@ -4,6 +4,7 @@ import { useNavigate } from "react-router";
 import { getVersion } from "@tauri-apps/api/app";
 import { open, save } from "@tauri-apps/plugin-dialog";
 import { Button, DialogContent, DialogRoot } from "../../../ui";
+import { UiLanguageToggle } from "../../../i18n/UiLanguageToggle";
 import { createProjectAtPath } from "./createProjectFlow";
 import { errorMessage } from "./errorMessage";
 import { openProjectAtPath } from "./openProjectFlow";
@@ -150,6 +151,13 @@ export function LaunchScreen() {
           </Button>
         </div>
       </section>
+
+      {/* SPEC.md §2.1's own "Secondary: ... language toggle (TR / EN) ..." row
+          — deferred at Phase 2 (2026-08-02), never built until this real gap
+          surfaced in Barış's own first trial run (2026-09-10). */}
+      <div className="flex justify-end">
+        <UiLanguageToggle />
+      </div>
 
       {actionError && (
         <p

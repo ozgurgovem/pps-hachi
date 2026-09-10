@@ -2,6 +2,11 @@
   "app": {
     "title": "PPS Hachi"
   },
+  "uiLanguage": {
+    "groupLabel": "Interface language",
+    "turkish": "Türkçe",
+    "english": "English"
+  },
   "launch": {
     "newProject": "New PPS Project",
     "openProject": "Open Existing Project",
@@ -1279,7 +1284,7 @@
     "waiting": "Waiting for the main window…"
   },
   "settings": {
-    "backToLaunch": "Back to workspace",
+    "backToWorkspace": "Back to workspace",
     "title": "Settings",
     "projectInfo": {
       "heading": "Project Info",
@@ -1300,6 +1305,10 @@
       "generalRagRed": "Red",
       "generalRagAmber": "Amber",
       "generalRagGreen": "Green"
+    },
+    "uiLanguage": {
+      "heading": "Interface language",
+      "description": "Which language the app's own screens are shown in — independent of a project's content language."
     },
     "template": {
       "heading": "Template",

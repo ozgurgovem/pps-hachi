@@ -2512,6 +2512,29 @@ AI layer: Faz 8 fully done (keychain + Vorion connection/model-discovery + strea
   works is still genuinely unknown — these two newly-found bugs would have produced the exact
   same "project screen never appears" symptom on their own, so this run's failure doesn't confirm
   or refute it either way. Still owed: the next real CI run.
+**Barış's own first real trial run found three genuine bugs (D-242, 2026-09-10) — the exact
+  kind of thing code review alone never catches.** (1) The UI's own display language could
+  never be changed — Barış picked Turkish in the "Project language" dialog and the interface
+  stayed English. Root cause: `src/i18n/index.ts` hardcoded `lng: "en"` and nothing anywhere
+  ever called `i18n.changeLanguage(...)` — not a regression, a feature `SPEC.md` §2.1 asked
+  for back at Phase 2 (2026-08-02) and that was deferred and never picked back up across 40+
+  sessions since. Fixed with a real, persisted UI language toggle (`src/i18n/uiLanguage.ts` +
+  shared `UiLanguageToggle.tsx`, on both `LaunchScreen` and `SettingsScreen`), deliberately
+  independent of `project.meta.language` (Barış's own confirmed choice — the two answer
+  different questions). (2) `SettingsScreen`'s own back link always returned to the launch
+  screen instead of the open project — its own copy already said "Back to workspace" but was
+  wired to `to="/"` instead of `to="/project"`; a deeper cause sat underneath too:
+  `WorkspaceScreen.tsx`'s `isOpened` check only ever trusted fresh `location.state`, never the
+  project `useProjectStore` already held in memory, so returning with no state fell through to
+  the "no project loaded" placeholder. Both fixed. (3) The AI model picker's `Select` dropdown
+  (Barış's own screenshot: dozens of real Vorion-listed models) had no height cap at all and
+  spilled off both edges of the screen with no way to scroll — `SelectContent` never consumed
+  Radix's own `--radix-select-content-available-height` CSS variable (confirmed by reading
+  `@radix-ui/react-select`'s real source, not guessed), so the popup just grew to fit every
+  item. Fixed with a real `max-height` plus Radix's own `ScrollUpButton`/`ScrollDownButton`
+  affordance. All three verified via new/updated unit tests, `npm test` 1592/1592, lint/tsc/
+  build all clean, Rust untouched. Honestly unverified until Barış's own trial run confirms it
+  live: unit tests prove the mechanism, not the real WKWebView.
 Templates: two company .xls files analysed; see reference/TEMPLATE_ANALYSIS.md
 Template geometry: VERIFIED 2026-08-01 against both .xls files. Five errors found and
   corrected in place — the largest was the column widths: the real split is 49.7/50.3, NOT

@@ -29,4 +29,31 @@ describe("Select", () => {
 
     expect(screen.getByRole("combobox").textContent).toContain("PPS 8-step (auto)");
   });
+
+  // Real gap found in Barış's own first trial run (2026-09-10): a dropdown
+  // with many items (dozens of real Vorion-listed models) had no height
+  // cap and spilled off-screen with nothing to scroll it into view — see
+  // Select.tsx's own comment on `SelectContent` for the full root cause.
+  it("caps the open listbox's own height so a long item list can scroll instead of spilling off-screen", async () => {
+    const user = userEvent.setup();
+    render(
+      <SelectRoot>
+        <SelectTrigger>
+          <SelectValue placeholder="Choose a model" />
+        </SelectTrigger>
+        <SelectContent>
+          {Array.from({ length: 40 }, (_, index) => (
+            <SelectItem key={index} value={`model-${index}`}>
+              {`Model ${index}`}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </SelectRoot>,
+    );
+
+    await user.click(screen.getByRole("combobox"));
+    const listbox = await screen.findByRole("listbox");
+
+    expect(listbox.className).toContain("max-h-[var(--radix-select-content-available-height)]");
+  });
 });

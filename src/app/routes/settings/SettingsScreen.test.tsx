@@ -34,6 +34,21 @@ afterEach(() => {
 });
 
 describe("SettingsScreen", () => {
+  // Real gap found in Barış's own first trial run (2026-09-10): this link's
+  // own copy already said "Back to workspace" but was wired to "/" (the
+  // launch/project-list screen) instead — Settings can only ever be reached
+  // from an already-open workspace, so "/project" is always correct here.
+  test("the back link returns to the workspace, not the launch screen", async () => {
+    mocked.getKeyStatus.mockResolvedValueOnce(null);
+    mocked.getAiSettings.mockResolvedValueOnce(EMPTY_SETTINGS);
+
+    renderSettingsScreen();
+    await screen.findByText("Not connected");
+
+    const backLink = screen.getByRole("link", { name: "← Back to workspace" });
+    expect(backLink.getAttribute("href")).toBe("/project");
+  });
+
   test("shows the not-connected state and an API key field when no key is configured", async () => {
     mocked.getKeyStatus.mockResolvedValueOnce(null);
     mocked.getAiSettings.mockResolvedValueOnce(EMPTY_SETTINGS);
