@@ -213,8 +213,7 @@
       "cancelling": "Cancelling…",
       "responseLabel": "Response",
       "reject": "Reject",
-      "applyToEntry": "Apply to an entry",
-      "addAsNote": "Add as a new note",
+      "applySuggestion": "Apply the suggestion",
       "locatingEntry": "Finding the entry this is about…",
       "proposingEdit": "Working out the change…",
       "noEntryMatch": "This suggestion doesn't seem to target one specific existing entry.",
@@ -224,7 +223,6 @@
       "draftTitleLabel": "Entry title",
       "acceptEntryEdit": "Apply this change",
       "missingPromptFile": "This feature's prompt file is missing.",
-      "turnAddedAsNote": "Added as a new note",
       "turnAppliedToEntry": "Applied to entry",
       "turnRejected": "Rejected"
     },

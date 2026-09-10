@@ -48,15 +48,28 @@ export function WorkspaceTopBar({ descriptorResult }: WorkspaceTopBarProps) {
   );
 }
 
+/**
+ * D-250 (Barış's own real-use report): the original icon here was a circle
+ * with eight straight radiating lines and no teeth — structurally a sun
+ * glyph, not a gear, which is exactly why it read as a theme/lighting
+ * control rather than Settings. Replaced with a real cog shape (rounded
+ * teeth around the rim, not straight rays) so it reads as Settings at a
+ * glance — the path is Feather Icons' own `settings` glyph (MIT-licensed,
+ * the same real, widely-recognized "gear" shape this project's own D-48
+ * license-clean posture already applies to fonts), used at its native
+ * 24×24 viewBox rather than hand-derived, since a hand-rolled tooth shape
+ * risks looking wrong at this icon's small size.
+ */
 function GearIcon() {
   return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-      <circle cx="8" cy="8" r="2.5" stroke="currentColor" strokeWidth="1.3" />
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2" />
       <path
-        d="M8 1.5v1.6M8 12.9v1.6M14.5 8h-1.6M3.1 8H1.5M12.36 3.64l-1.13 1.13M4.77 11.23l-1.13 1.13M12.36 12.36l-1.13-1.13M4.77 4.77 3.64 3.64"
+        d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"
         stroke="currentColor"
-        strokeWidth="1.3"
+        strokeWidth="2"
         strokeLinecap="round"
+        strokeLinejoin="round"
       />
     </svg>
   );

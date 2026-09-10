@@ -6,10 +6,9 @@ import { cancelCompletion, completeStreaming, type CompletionMeta, type StreamEv
 import { normalizedEditDistance } from "../../../ai/editDistance";
 import { getWholeProjectPromptFile } from "../../../ai/prompts/wholeProjectLibrary";
 import { resolveRedactionPolicy } from "../../../ai/redaction";
-import { buildAddEntryCommand, buildUpdateEntryCommand } from "../../../domain/commands";
+import { buildUpdateEntryCommand } from "../../../domain/commands";
 import type { Provenance, StepId } from "../../../domain/model";
 import { getMethodById } from "../../../methods";
-import { GENERIC_TEXT_METHOD_ID } from "../../../methods/genericText";
 import { getA3RendererMap } from "../../../methods/registry";
 import { useProjectStore } from "../../../state";
 import { Button, Input, Textarea } from "../../../ui";
@@ -17,24 +16,24 @@ import { identifySuggestionTargetEntry, proposeEntryEditFromSuggestion } from ".
 import { errorMessage } from "../launch/errorMessage";
 import { buildStepAssistantPrompt } from "./stepAiContext";
 
-/**
- * D-201/§8.7: this dilim's bare chat box has no schema, no step context and
- * no versioned prompt file (`src/ai/prompts/{step}/{methodId}.{version}.md`
- * is a Faz 9 concern) — the raw prompt goes straight to Vorion. This literal
- * stands in for a real `promptVersion` so `Provenance.model.promptVersion`
- * (required whenever `model` is present, D-18) still records *something*
- * traceable back to "this dilim's bare-chat code path" rather than a lie.
- */
-const BARE_CHAT_PROMPT_VERSION = "bare-chat-v1";
 const IDENTIFY_TARGET_PROMPT_VERSION = "v1";
 const APPLY_SUGGESTION_PROMPT_VERSION = "v1";
 
 /**
+ * D-250 (Barış's own real-use report): D-247's "Add as a new note" action —
+ * writing the AI's whole raw chat response as a disconnected `generic-text`
+ * entry — was removed outright rather than kept as a fallback. Barış's own
+ * call: it produced entries that didn't fit anywhere meaningful in the real
+ * report (visible sitting among real 5W2H/gap-statement entries in his own
+ * screenshot) and the feature has no real use once "Apply the suggestion"
+ * covers the actual need. "Reject" (discard, nothing written) is the only
+ * other action now besides applying the suggestion to a real entry.
+ *
  * D-247 (Barış's own real-use report): once the AI's own review of the
- * step's real entries produces a concrete suggestion, "Apply this to an
- * entry" walks it through two structured calls (`chatEntryEdit.ts`) before
- * anything ever reaches `ProjectModel` — this local sub-state tracks exactly
- * where in that walk a given "done" turn currently is.
+ * step's real entries produces a concrete suggestion, "Apply the
+ * suggestion" walks it through two structured calls (`chatEntryEdit.ts`)
+ * before anything ever reaches `ProjectModel` — this local sub-state tracks
+ * exactly where in that walk a given "done" turn currently is.
  */
 type ApplyState =
   | { readonly step: "locating" }
@@ -92,7 +91,7 @@ type Turn =
       readonly phase: "resolved";
       readonly prompt: string;
       readonly responseText: string;
-      readonly resolution: "addedAsNote" | "appliedToEntry" | "rejected";
+      readonly resolution: "appliedToEntry" | "rejected";
     };
 
 interface AssistantPanelProps {
@@ -114,17 +113,17 @@ interface AssistantPanelProps {
  * previous one), and each turn's own `conversationId` is forwarded into the
  * next `completeStreaming` call so Vorion itself continues that thread
  * server-side — the frontend never re-sends a growing transcript as plain
- * text. D-247 replaced the old single "Accept" (which wrote the *whole raw
- * chat response* as a disconnected `generic-text` entry, even when the
- * response was clearly a suggested edit to one of the user's real entries)
- * with two distinct actions once a response lands: "Apply to an entry"
- * (identifies the real target entry, proposes a schema-validated edit to
- * it, reviewed the same Accept/Edit&Accept/Reject way `EntryProposalField`/
- * `EntryTranslateField` already work) and "Add as a new note" (the old
- * behavior, for a genuinely new, standalone thought). D-15/D-16 still apply
- * in full, per turn: nothing reaches `ProjectModel` before that turn's own
- * explicit accept, and a proposal is always shown before it can be
- * accepted, never auto-applied.
+ * text. D-247/D-250: once a response lands, the only two actions are "Apply
+ * the suggestion" (identifies the real target entry, proposes a schema-
+ * validated edit to it, reviewed the same Accept/Edit&Accept/Reject way
+ * `EntryProposalField`/`EntryTranslateField` already work) and "Reject"
+ * (discard, nothing written). D-15/D-16 still apply in full, per turn:
+ * nothing reaches `ProjectModel` before that turn's own explicit accept, a
+ * proposal is always shown before it can be accepted, never auto-applied —
+ * and accepting one dispatches through the exact same `buildUpdateEntryCommand`/
+ * `dispatch` path every other edit in the app uses, so it is undoable the
+ * same way (the workspace's own Undo button/Cmd-Z, D-192's own precedent
+ * for every command builder defaulting to `undoable: true`).
  */
 export function AssistantPanel({ stepId }: AssistantPanelProps) {
   const { t, i18n } = useTranslation();
@@ -241,45 +240,6 @@ export function AssistantPanel({ stepId }: AssistantPanelProps) {
       // Best-effort — the in-flight `complete()` call settles on its own
       // once Vorion actually closes the stream.
     }
-  }
-
-  function handleAddAsNote(turnId: string) {
-    const turn = turns.find((candidate) => candidate.id === turnId);
-    if (!turn || turn.phase !== "done" || !project) {
-      return;
-    }
-    const step = project.steps[stepId];
-    const wasEdited = turn.editedText !== turn.originalText;
-    const provenance: Provenance = {
-      origin: wasEdited ? "ai-edited" : "ai-accepted",
-      model: {
-        providerId: "vorion",
-        modelId: modelId ?? "",
-        promptVersion: BARE_CHAT_PROMPT_VERSION,
-      },
-      generatedAt: turn.generatedAt,
-      acceptedBy: project.meta.owner.name,
-      acceptedAt: new Date().toISOString(),
-    };
-    dispatch(
-      buildAddEntryCommand(step, stepId, {
-        methodId: GENERIC_TEXT_METHOD_ID,
-        // The prompt becomes the title, the response becomes the body — the
-        // entries list reads as a Q&A pair rather than a title that's just a
-        // truncated copy of its own body.
-        title: turn.prompt.length > 120 ? `${turn.prompt.slice(0, 117)}…` : turn.prompt,
-        payload: { text: turn.editedText },
-        now: new Date().toISOString(),
-        provenance,
-      }),
-    );
-    updateTurn(turnId, () => ({
-      id: turnId,
-      phase: "resolved",
-      prompt: turn.prompt,
-      responseText: turn.editedText,
-      resolution: "addedAsNote",
-    }));
   }
 
   function handleReject(turnId: string) {
@@ -526,17 +486,13 @@ export function AssistantPanel({ stepId }: AssistantPanelProps) {
                     onClick={() => void handleStartApply(turn.id)}
                     disabled={!turn.editedText.trim()}
                   >
-                    {t("workspace.assistant.applyToEntry")}
+                    {t("workspace.assistant.applySuggestion")}
                   </Button>
-                  <Button
-                    className="w-full"
-                    variant="secondary"
-                    onClick={() => handleAddAsNote(turn.id)}
-                    disabled={!turn.editedText.trim()}
-                  >
-                    {t("workspace.assistant.addAsNote")}
-                  </Button>
-                  <Button className="w-full" variant="ghost" onClick={() => handleReject(turn.id)}>
+                  {/* D-249/D-250: `secondary` (a visible border at rest), not `ghost` —
+                      Barış's own real-use report found `ghost`'s borderless-until-hover
+                      style reads as plain text, not a button, once it's the only other
+                      action in the row. */}
+                  <Button className="w-full" variant="secondary" onClick={() => handleReject(turn.id)}>
                     {t("workspace.assistant.reject")}
                   </Button>
                 </div>
@@ -553,7 +509,7 @@ export function AssistantPanel({ stepId }: AssistantPanelProps) {
               {turn.applyState?.step === "noMatch" && (
                 <div className="flex flex-col gap-2">
                   <p className="font-body text-sm text-ink-muted">{t("workspace.assistant.noEntryMatch")}</p>
-                  <Button variant="ghost" onClick={() => handleCancelApply(turn.id)}>
+                  <Button variant="secondary" onClick={() => handleCancelApply(turn.id)}>
                     {t("workspace.assistant.back")}
                   </Button>
                 </div>
@@ -567,7 +523,7 @@ export function AssistantPanel({ stepId }: AssistantPanelProps) {
                   <pre className="max-h-40 overflow-y-auto whitespace-pre-wrap rounded-control border border-border bg-surface p-2 font-mono text-2xs text-ink-muted">
                     {turn.applyState.rawText}
                   </pre>
-                  <Button variant="ghost" onClick={() => handleCancelApply(turn.id)}>
+                  <Button variant="secondary" onClick={() => handleCancelApply(turn.id)}>
                     {t("workspace.assistant.back")}
                   </Button>
                 </div>
@@ -578,7 +534,7 @@ export function AssistantPanel({ stepId }: AssistantPanelProps) {
                   <p role="alert" className="font-body text-sm text-danger">
                     {turn.applyState.message}
                   </p>
-                  <Button variant="ghost" onClick={() => handleCancelApply(turn.id)}>
+                  <Button variant="secondary" onClick={() => handleCancelApply(turn.id)}>
                     {t("workspace.assistant.back")}
                   </Button>
                 </div>
@@ -608,7 +564,7 @@ export function AssistantPanel({ stepId }: AssistantPanelProps) {
                         <Button onClick={() => handleAcceptEntryEdit(turn.id)}>
                           {t("workspace.assistant.acceptEntryEdit")}
                         </Button>
-                        <Button variant="ghost" onClick={() => handleRejectEntryEdit(turn.id)}>
+                        <Button variant="secondary" onClick={() => handleRejectEntryEdit(turn.id)}>
                           {t("workspace.assistant.reject")}
                         </Button>
                       </div>
@@ -622,7 +578,6 @@ export function AssistantPanel({ stepId }: AssistantPanelProps) {
             <div className="flex flex-col gap-1 rounded-control border border-border bg-surface p-3">
               <p className="whitespace-pre-wrap font-body text-sm text-ink-muted">{turn.responseText}</p>
               <span className="font-mono text-2xs uppercase tracking-wide text-ink-muted">
-                {turn.resolution === "addedAsNote" && t("workspace.assistant.turnAddedAsNote")}
                 {turn.resolution === "appliedToEntry" && t("workspace.assistant.turnAppliedToEntry")}
                 {turn.resolution === "rejected" && t("workspace.assistant.turnRejected")}
               </span>

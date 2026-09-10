@@ -5,8 +5,7 @@ import { MemoryRouter } from "react-router";
 import "../../../i18n";
 import { createNewProject } from "../../../domain/model";
 import type { AiMeta, Entry, ProjectModel, StepId } from "../../../domain/model";
-import { GENERIC_TEXT_METHOD_ID } from "../../../methods/genericText";
-import { useProjectStore } from "../../../state";
+import { selectCanUndo, useProjectStore } from "../../../state";
 import { AssistantPanel } from "./AssistantPanel";
 import { getCoachingMarkdown } from "./coachContent";
 import * as completionIpc from "../../../ai/completionIpc";
@@ -86,7 +85,7 @@ async function sendAndResolve(
     resolveCompletion({ conversationId: "c1", streamId: "s1", messageId: "m1" });
     await Promise.resolve();
   });
-  await screen.findByRole("button", { name: "Apply to an entry" });
+  await screen.findByRole("button", { name: "Apply the suggestion" });
 }
 
 afterEach(() => {
@@ -177,7 +176,9 @@ describe("AssistantPanel", () => {
     expect(mocked.cancelCompletion).toHaveBeenCalledWith("c1", "s1");
   });
 
-  it("shows an editable response plus three actions once the stream completes (D-247)", async () => {
+  // D-250: Barış removed "Add as a new note" outright — the only two actions
+  // once a response lands are applying it to a real entry, or discarding it.
+  it("shows an editable response plus two actions once the stream completes (D-250)", async () => {
     const user = userEvent.setup();
     seedProject();
 
@@ -185,52 +186,9 @@ describe("AssistantPanel", () => {
     await sendAndResolve(user, "The answer");
 
     expect(screen.getByLabelText("Response")).toHaveProperty("value", "The answer");
-    expect(screen.getByRole("button", { name: "Apply to an entry" })).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Add as a new note" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Apply the suggestion" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Reject" })).toBeTruthy();
-  });
-
-  it("Add as a new note writes a generic-text entry with ai-accepted provenance (D-15/D-18)", async () => {
-    const user = userEvent.setup();
-    seedProject();
-
-    renderPanel();
-    await sendAndResolve(user, "The answer");
-    await user.click(screen.getByRole("button", { name: "Add as a new note" }));
-
-    const entries = useProjectStore.getState().project?.steps[1]?.entries ?? [];
-    expect(entries).toHaveLength(1);
-    expect(entries[0]).toMatchObject({
-      methodId: GENERIC_TEXT_METHOD_ID,
-      // The original prompt becomes the title, the response the body — a
-      // Q&A pair, not a title that's just a copy of its own body.
-      title: "hi",
-      payload: { text: "The answer" },
-      provenance: {
-        origin: "ai-accepted",
-        model: { providerId: "vorion", modelId: "openai/gpt-4o", promptVersion: "bare-chat-v1" },
-        acceptedBy: "Ada",
-      },
-    });
-    expect(entries[0]?.provenance.generatedAt).toBeTruthy();
-    expect(entries[0]?.provenance.acceptedAt).toBeTruthy();
-    // Nothing reaches ProjectModel before this action — the entry only exists post-click.
-    expect(screen.queryByRole("button", { name: "Add as a new note" })).toBeNull();
-  });
-
-  it("Add as a new note with edited text writes ai-edited provenance instead", async () => {
-    const user = userEvent.setup();
-    seedProject();
-
-    renderPanel();
-    await sendAndResolve(user, "The answer");
-    const responseBox = screen.getByLabelText("Response");
-    await user.type(responseBox, " — edited by a human");
-    await user.click(screen.getByRole("button", { name: "Add as a new note" }));
-
-    const entries = useProjectStore.getState().project?.steps[1]?.entries ?? [];
-    expect(entries[0]?.provenance.origin).toBe("ai-edited");
-    expect((entries[0]?.payload as { text: string }).text).toBe("The answer — edited by a human");
+    expect(screen.queryByRole("button", { name: /add as a new note/i })).toBeNull();
   });
 
   it("Reject discards the response without dispatching any command", async () => {
@@ -242,7 +200,8 @@ describe("AssistantPanel", () => {
     await user.click(screen.getByRole("button", { name: "Reject" }));
 
     expect(useProjectStore.getState().project?.steps[1]?.entries).toHaveLength(0);
-    expect(screen.queryByRole("button", { name: "Apply to an entry" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Apply the suggestion" })).toBeNull();
+    expect(screen.getByText("Rejected")).toBeTruthy();
     // Back to the prompt box, ready for another question.
     expect(screen.getByLabelText("Ask the assistant")).toBeTruthy();
   });
@@ -305,7 +264,7 @@ describe("AssistantPanel", () => {
     // discarded just because a second question was sent.
     expect(screen.getByText("first question")).toBeTruthy();
     expect(screen.getByText("a follow-up question")).toBeTruthy();
-    expect(screen.getAllByRole("button", { name: "Apply to an entry" })).toHaveLength(1);
+    expect(screen.getAllByRole("button", { name: "Apply the suggestion" })).toHaveLength(1);
   });
 
   it("D-245: a follow-up's completeStreaming call carries the previous turn's own conversationId", async () => {
@@ -322,7 +281,7 @@ describe("AssistantPanel", () => {
     expect(mocked.completeStreaming).toHaveBeenLastCalledWith(expect.any(String), "openai/gpt-4o", expect.any(Function), "c1");
   });
 
-  it("D-245: resolving one turn (Add as a new note) leaves a later, still-pending turn untouched", async () => {
+  it("D-245: resolving one turn (Reject) leaves a later, still-pending turn untouched", async () => {
     const user = userEvent.setup();
     seedProject();
 
@@ -343,18 +302,17 @@ describe("AssistantPanel", () => {
       await Promise.resolve();
     });
 
-    const [firstAddAsNote] = screen.getAllByRole("button", { name: "Add as a new note" });
-    await user.click(firstAddAsNote!);
+    const [firstReject] = screen.getAllByRole("button", { name: "Reject" });
+    await user.click(firstReject!);
 
-    expect(useProjectStore.getState().project?.steps[1]?.entries).toHaveLength(1);
     // The first turn now shows as resolved history; the second is still
     // awaiting its own action, completely unaffected by the first.
-    expect(screen.getByText("Added as a new note")).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Apply to an entry" })).toBeTruthy();
+    expect(screen.getByText("Rejected")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Apply the suggestion" })).toBeTruthy();
     expect(screen.getByLabelText("Response")).toHaveProperty("value", "Second answer");
   });
 
-  describe("D-247: Apply to an entry", () => {
+  describe("D-247/D-250: Apply the suggestion", () => {
     it("D-248: the response stays visible (only dimmed, never hidden) while a flow is in progress", async () => {
       const user = userEvent.setup();
       seedProject({}, [makeEntry({ id: "entry-1" })]);
@@ -364,7 +322,7 @@ describe("AssistantPanel", () => {
 
       renderPanel();
       await sendAndResolve(user, "A real suggestion the user can still read.");
-      await user.click(screen.getByRole("button", { name: "Apply to an entry" }));
+      await user.click(screen.getByRole("button", { name: "Apply the suggestion" }));
       await screen.findByText("Finding the entry this is about…");
 
       const response = screen.getByLabelText("Response");
@@ -389,7 +347,7 @@ describe("AssistantPanel", () => {
 
       renderPanel();
       await sendAndResolve(user, "You should update the old entry.");
-      await user.click(screen.getByRole("button", { name: "Apply to an entry" }));
+      await user.click(screen.getByRole("button", { name: "Apply the suggestion" }));
 
       expect(await screen.findByRole("button", { name: "Apply this change" })).toBeTruthy();
       expect(screen.getByLabelText("Entry title")).toHaveProperty("value", "New title");
@@ -404,7 +362,7 @@ describe("AssistantPanel", () => {
 
       renderPanel();
       await sendAndResolve(user, "A suggestion.");
-      await user.click(screen.getByRole("button", { name: "Apply to an entry" }));
+      await user.click(screen.getByRole("button", { name: "Apply the suggestion" }));
       await screen.findByText("This suggestion doesn't seem to target one specific existing entry.");
 
       expect(mockedChatEntryEdit.identifySuggestionTargetEntry).toHaveBeenCalledWith(
@@ -416,7 +374,7 @@ describe("AssistantPanel", () => {
       );
     });
 
-    it("Apply this change dispatches a real entry update and marks the turn resolved", async () => {
+    it("Apply this change dispatches a real, undoable entry update and marks the turn resolved (D-15/D-16)", async () => {
       const user = userEvent.setup();
       const existing = makeEntry({ id: "entry-1", title: "Old title", payload: { text: "old body" } });
       seedProject({}, [existing]);
@@ -432,7 +390,7 @@ describe("AssistantPanel", () => {
 
       renderPanel();
       await sendAndResolve(user, "You should update the old entry.");
-      await user.click(screen.getByRole("button", { name: "Apply to an entry" }));
+      await user.click(screen.getByRole("button", { name: "Apply the suggestion" }));
       await user.click(await screen.findByRole("button", { name: "Apply this change" }));
 
       const entries = useProjectStore.getState().project?.steps[1]?.entries ?? [];
@@ -444,6 +402,10 @@ describe("AssistantPanel", () => {
         provenance: { origin: "ai-accepted" },
       });
       expect(screen.getByText("Applied to entry")).toBeTruthy();
+      // The edit went through the store's own dispatch — the exact same
+      // path every other edit in the app uses — so it lands on the real
+      // undo stack, reachable via the workspace's own Undo button/Cmd-Z.
+      expect(selectCanUndo(useProjectStore.getState())).toBe(true);
     });
 
     it("shows a no-match message, with a way back, when the suggestion targets no existing entry", async () => {
@@ -453,13 +415,13 @@ describe("AssistantPanel", () => {
 
       renderPanel();
       await sendAndResolve(user, "A general comment, not about any one entry.");
-      await user.click(screen.getByRole("button", { name: "Apply to an entry" }));
+      await user.click(screen.getByRole("button", { name: "Apply the suggestion" }));
 
       expect(await screen.findByText("This suggestion doesn't seem to target one specific existing entry.")).toBeTruthy();
       await user.click(screen.getByRole("button", { name: "Back" }));
 
-      expect(screen.getByRole("button", { name: "Apply to an entry" })).toBeTruthy();
-      expect(screen.getByRole("button", { name: "Add as a new note" })).toBeTruthy();
+      expect(screen.getByRole("button", { name: "Apply the suggestion" })).toBeTruthy();
+      expect(screen.getByRole("button", { name: "Reject" })).toBeTruthy();
     });
 
     it("shows a failure message when the structured edit proposal fails", async () => {
@@ -476,7 +438,7 @@ describe("AssistantPanel", () => {
 
       renderPanel();
       await sendAndResolve(user, "Update this entry.");
-      await user.click(screen.getByRole("button", { name: "Apply to an entry" }));
+      await user.click(screen.getByRole("button", { name: "Apply the suggestion" }));
 
       expect(await screen.findByRole("alert")).toHaveProperty("textContent", "Couldn't work out a valid change for that entry.");
       expect(screen.getByText("not valid json")).toBeTruthy();
@@ -499,12 +461,12 @@ describe("AssistantPanel", () => {
 
       renderPanel();
       await sendAndResolve(user, "Update this entry.");
-      await user.click(screen.getByRole("button", { name: "Apply to an entry" }));
+      await user.click(screen.getByRole("button", { name: "Apply the suggestion" }));
       await screen.findByRole("button", { name: "Apply this change" });
       const rejectButtons = screen.getAllByRole("button", { name: "Reject" });
       await user.click(rejectButtons[rejectButtons.length - 1]!);
 
-      expect(screen.getByRole("button", { name: "Apply to an entry" })).toBeTruthy();
+      expect(screen.getByRole("button", { name: "Apply the suggestion" })).toBeTruthy();
       expect(useProjectStore.getState().project?.steps[1]?.entries).toEqual([existing]);
     });
   });

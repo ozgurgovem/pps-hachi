@@ -2695,6 +2695,49 @@ AI layer: Faz 8 fully done (keychain + Vorion connection/model-discovery + strea
   `npm test` 1619/1619 (314 files), exit code 0. `npm run lint`/`npx tsc --noEmit`/`npm run
   build` all clean (CSS bundle byte-identical). Rust untouched. Temporary Playwright install
   fully removed after use.
+**A sixth finding from the same trial run (D-250, 2026-09-10): five more points, bundled in one
+  message with two annotated screenshots — a flat-out removal request, a rename, a verification
+  question, and two more visual-affordance reports.** (1) "Reddet" still read as plain text with
+  no button chrome; "Add as a new note"'s hover now showed the hand cursor (D-249's fix) but no
+  color change; "Apply to an entry"'s own hover color change was barely perceptible. (2) Barış
+  explicitly reversed his own D-247 decision ("Evet, ayrı bir seçenek olarak kalsın") — "Bence bu
+  fonksiyonu komple kaldıralım. Fonksiyonel değil": "Add as a new note" removed entirely, not
+  just improved. `AssistantPanel.tsx`'s `handleAddAsNote` handler, the now-unused
+  `buildAddEntryCommand`/`GENERIC_TEXT_METHOD_ID`/`BARE_CHAT_PROMPT_VERSION` imports, and the
+  middle button were all deleted; `Turn["resolution"]`'s `"addedAsNote"` value removed (now only
+  `"appliedToEntry" | "rejected"`); the `addAsNote`/`turnAddedAsNote` i18n keys dropped from both
+  locales. (3) "Bir girişe uygula" renamed to "Öneriyi uygula"/"Apply the suggestion" — the i18n
+  key `applyToEntry` became `applySuggestion`, the underlying `handleStartApply`/`ApplyState`
+  mechanism untouched. (4) Barış asked whether an applied suggestion-edit can be undone via the
+  top-bar Undo button or Cmd/Ctrl+Z — answered by reading real code, no new mechanism needed:
+  `dispatch()` (`projectStore.ts`) pushes every command onto `undoStack` unconditionally (never
+  filtering by an `undoable` flag), every `build*Command` (including `buildUpdateEntryCommand`)
+  hardcodes `undoable: true`, and `invertCommand`'s `entry.update` case swaps `before`/`after` to
+  restore the exact prior state including provenance — so Accept-applying a suggestion already
+  goes through the same undo/redo path every other edit in the app uses. Locked down with a new
+  regression test (`selectCanUndo(useProjectStore.getState())` asserted `true` after an apply),
+  mutation-verified via a temporary `sed` flip to `false` (confirmed RED) then restored (GREEN).
+  (1) and (4) share a root cause worth naming: the visual flatness was `variant="ghost"` on
+  "Reject" and the now-removed "Add as a new note" — `ghost` is borderless at rest by design (a
+  real, working mechanism, just easy to miss, per D-249's own finding), which is why it read as
+  plain text. Fixed by switching "Reject" and every `ApplyState` sub-view's "Back"/"Reject"
+  button from `variant="ghost"` to `variant="secondary"` (a visible border at rest, already
+  proven elsewhere in the app) — scoped to just this panel's own button calls, deliberately not
+  touching `Button.tsx`'s shared `ghost` variant itself, which is exactly the kind of app-wide
+  design-system change P-58 already flags as high-blast-radius and out of this session's budget.
+  (5) The Settings icon in the top bar looked like a sun (a circle with eight straight radiating
+  lines, no teeth) rather than a gear, which is exactly why Barış couldn't initially tell it was
+  Settings. `WorkspaceTopBar.tsx`'s `GearIcon` was replaced with Feather Icons' own MIT-licensed
+  `settings` glyph (real rounded teeth, not straight rays; used at its native 24×24 viewBox rather
+  than hand-derived, to avoid a small-size rendering risk) — the same license-clean posture D-48
+  already established for fonts. `WorkspaceTopBar.tsx` has no test file, so this pure visual
+  change opened no coverage gap. `npm test`/`npm run lint`/`npx tsc --noEmit`/`npm run build` all
+  clean; `git status --short` showed exactly the five expected files
+  (`AssistantPanel.tsx`/`.test.tsx`, `WorkspaceTopBar.tsx`, `en/common.json`, `tr/common.json`).
+  Rust untouched. Honestly unverified, the usual class of gap: whether "Apply the suggestion"'s
+  own primary-button hover color is now perceptible enough, and whether the ghost→secondary swap
+  genuinely reads as a clear button in real use, both still need Barış's own next
+  `npm run tauri dev` trial to confirm.
 Templates: two company .xls files analysed; see reference/TEMPLATE_ANALYSIS.md
 Template geometry: VERIFIED 2026-08-01 against both .xls files. Five errors found and
   corrected in place — the largest was the column widths: the real split is 49.7/50.3, NOT

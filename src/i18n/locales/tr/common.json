@@ -213,8 +213,7 @@
       "cancelling": "İptal ediliyor…",
       "responseLabel": "Yanıt",
       "reject": "Reddet",
-      "applyToEntry": "Bir girişe uygula",
-      "addAsNote": "Yeni not olarak ekle",
+      "applySuggestion": "Öneriyi uygula",
       "locatingEntry": "Bunun hangi girişle ilgili olduğu bulunuyor…",
       "proposingEdit": "Değişiklik hazırlanıyor…",
       "noEntryMatch": "Bu öneri belirli bir mevcut girişi hedeflemiyor gibi görünüyor.",
@@ -224,7 +223,6 @@
       "draftTitleLabel": "Giriş başlığı",
       "acceptEntryEdit": "Bu değişikliği uygula",
       "missingPromptFile": "Bu özelliğin prompt dosyası eksik.",
-      "turnAddedAsNote": "Yeni not olarak eklendi",
       "turnAppliedToEntry": "Girişe uygulandı",
       "turnRejected": "Reddedildi"
     },
