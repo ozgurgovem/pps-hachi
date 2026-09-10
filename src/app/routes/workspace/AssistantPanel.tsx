@@ -505,32 +505,41 @@ export function AssistantPanel({ stepId }: AssistantPanelProps) {
 
           {turn.phase === "done" && (
             <div className="flex flex-col gap-2">
+              {/* D-248 (Barış's own real-use report): the response stays visible and
+                  readable through every step of "Apply to an entry" — it used to
+                  disappear the instant that flow started, losing the AI's own
+                  suggestion right when the user most needed to see it while
+                  reviewing/waiting. Locked (`disabled`, dimmed) rather than editable
+                  once a flow is under way, so it reads as "this is what's being
+                  acted on" without inviting an edit that flow no longer reflects. */}
+              <Textarea
+                value={turn.editedText}
+                onChange={(event) => handleEditedTextChange(turn.id, event.target.value)}
+                aria-label={t("workspace.assistant.responseLabel")}
+                disabled={Boolean(turn.applyState)}
+              />
+
               {!turn.applyState && (
-                <>
-                  <Textarea
-                    value={turn.editedText}
-                    onChange={(event) => handleEditedTextChange(turn.id, event.target.value)}
-                    aria-label={t("workspace.assistant.responseLabel")}
-                  />
-                  <div className="flex flex-wrap gap-2">
-                    <Button
-                      onClick={() => void handleStartApply(turn.id)}
-                      disabled={!turn.editedText.trim()}
-                    >
-                      {t("workspace.assistant.applyToEntry")}
-                    </Button>
-                    <Button
-                      variant="secondary"
-                      onClick={() => handleAddAsNote(turn.id)}
-                      disabled={!turn.editedText.trim()}
-                    >
-                      {t("workspace.assistant.addAsNote")}
-                    </Button>
-                    <Button variant="ghost" onClick={() => handleReject(turn.id)}>
-                      {t("workspace.assistant.reject")}
-                    </Button>
-                  </div>
-                </>
+                <div className="flex flex-col gap-2">
+                  <Button
+                    className="w-full"
+                    onClick={() => void handleStartApply(turn.id)}
+                    disabled={!turn.editedText.trim()}
+                  >
+                    {t("workspace.assistant.applyToEntry")}
+                  </Button>
+                  <Button
+                    className="w-full"
+                    variant="secondary"
+                    onClick={() => handleAddAsNote(turn.id)}
+                    disabled={!turn.editedText.trim()}
+                  >
+                    {t("workspace.assistant.addAsNote")}
+                  </Button>
+                  <Button className="w-full" variant="ghost" onClick={() => handleReject(turn.id)}>
+                    {t("workspace.assistant.reject")}
+                  </Button>
+                </div>
               )}
 
               {turn.applyState?.step === "locating" && (

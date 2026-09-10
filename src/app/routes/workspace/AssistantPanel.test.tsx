@@ -355,6 +355,24 @@ describe("AssistantPanel", () => {
   });
 
   describe("D-247: Apply to an entry", () => {
+    it("D-248: the response stays visible (only dimmed, never hidden) while a flow is in progress", async () => {
+      const user = userEvent.setup();
+      seedProject({}, [makeEntry({ id: "entry-1" })]);
+      // Never resolves — freezes the turn at "locating" so the response's
+      // own visibility during that phase can be checked directly.
+      mockedChatEntryEdit.identifySuggestionTargetEntry.mockImplementationOnce(() => new Promise(() => {}));
+
+      renderPanel();
+      await sendAndResolve(user, "A real suggestion the user can still read.");
+      await user.click(screen.getByRole("button", { name: "Apply to an entry" }));
+      await screen.findByText("Finding the entry this is about…");
+
+      const response = screen.getByLabelText("Response");
+      expect(response).toBeTruthy();
+      expect(response).toHaveProperty("value", "A real suggestion the user can still read.");
+      expect(response).toHaveProperty("disabled", true);
+    });
+
     it("identifies a target entry and shows a review using that entry's own plugin Editor", async () => {
       const user = userEvent.setup();
       const existing = makeEntry({ id: "entry-1", title: "Old title", payload: { text: "old body" } });

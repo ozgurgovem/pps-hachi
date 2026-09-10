@@ -2634,6 +2634,28 @@ AI layer: Faz 8 fully done (keychain + Vorion connection/model-discovery + strea
   untouched this dilim. Honestly unverified, the usual class of gap: whether a real Vorion call
   genuinely identifies the right target entry from real chat prose was never tried in a real
   window; Barış's own `npm run tauri dev` walkthrough is still owed.
+**D-247's own first real trial run (D-248, 2026-09-10): two findings, one root cause.** (1) The
+  three action buttons didn't read as clickable — no hover cursor change, orphaned/wrapped
+  layout in the narrow 340px AI column. (2) Clicking "Add as a new note" appeared to trigger
+  "Apply to an entry" instead — the chat vanished, a "Preparing change…" message appeared, then
+  a JSON error unrelated to note-taking. Investigated by reading real code before touching
+  anything: `handleAddAsNote`/`handleStartApply` are wired to two genuinely separate buttons,
+  no cross-triggering in the code; `Button.tsx` (used unmodified everywhere else in the app,
+  never complained about before) has a real native `<button type="button">` with no `cursor`
+  override anywhere, confirmed clean — so the shared component was left untouched rather than
+  guessed at. The far more likely explanation, tying both findings together: the unclear button
+  layout led to pressing "Apply to an entry" while believing it was "Add as a new note" — the
+  same root cause producing both symptoms. Fixed in `AssistantPanel.tsx` only (no shared-
+  component blast radius): the three actions are now full-width, vertically stacked rows
+  instead of a wrapping row that orphaned "Reject" alone; and — a real, independent bug found
+  along the way, worth fixing regardless of which button was actually pressed — the AI's own
+  response text used to be hidden entirely the instant "Apply to an entry" started (wrapped
+  inside the same conditional as the action buttons). It now always renders, only dimmed
+  (`disabled`) while a flow is in progress, so the suggestion being acted on is never lost from
+  view. Mutation-verified (the `disabled` wiring temporarily broken, confirmed genuinely RED,
+  restored). `npm test` 1620/1620 (314 files), exit code 0. `npm run lint`/`npx tsc --noEmit`/
+  `npm run build` all clean. Rust untouched. Honestly unverified: whether the clearer layout
+  actually prevents the misclick in real use is still owed from Barış's own next trial.
 Templates: two company .xls files analysed; see reference/TEMPLATE_ANALYSIS.md
 Template geometry: VERIFIED 2026-08-01 against both .xls files. Five errors found and
   corrected in place — the largest was the column widths: the real split is 49.7/50.3, NOT
