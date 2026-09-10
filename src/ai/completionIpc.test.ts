@@ -28,6 +28,22 @@ describe("completionIpc", () => {
     );
   });
 
+  test("completeStreaming sends conversationId: null when not continuing a thread", async () => {
+    mockInvoke.mockResolvedValueOnce({ conversationId: "c1", streamId: "s1", messageId: "m1" });
+
+    await completeStreaming("hello", "openai/gpt-4o", () => {});
+
+    expect(mockInvoke).toHaveBeenCalledWith("ai_complete", expect.objectContaining({ conversationId: null }));
+  });
+
+  test("completeStreaming forwards a given conversationId to continue a thread server-side (D-245)", async () => {
+    mockInvoke.mockResolvedValueOnce({ conversationId: "c1", streamId: "s1", messageId: "m1" });
+
+    await completeStreaming("follow-up", "openai/gpt-4o", () => {}, "c1");
+
+    expect(mockInvoke).toHaveBeenCalledWith("ai_complete", expect.objectContaining({ conversationId: "c1" }));
+  });
+
   test("completeStreaming resolves with the final CompletionMeta", async () => {
     mockInvoke.mockResolvedValueOnce({ conversationId: "c1", streamId: "s1", messageId: "m1" });
 

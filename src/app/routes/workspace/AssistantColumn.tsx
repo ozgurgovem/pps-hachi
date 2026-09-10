@@ -17,7 +17,7 @@ interface AssistantColumnProps {
  * `RightPanel`'s own collapse affordance so nothing about that interaction
  * pattern is new to relearn.
  *
- * D-242 (Barış's own real-use report): the step's own coaching guide used to
+ * D-244 (Barış's own real-use report): the step's own coaching guide used to
  * render a second time here (`AssistantGuideCard`), byte-identical to what
  * `CoachBand` already shows in the main column — pure duplication eating the
  * narrow 340px column's own limited space with zero new information. Removed;

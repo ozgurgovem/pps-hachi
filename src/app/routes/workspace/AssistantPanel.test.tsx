@@ -78,7 +78,12 @@ describe("AssistantPanel", () => {
     await user.type(screen.getByLabelText("Ask the assistant"), "What is 5 Why?");
     await user.click(screen.getByRole("button", { name: "Send" }));
 
-    expect(mocked.completeStreaming).toHaveBeenCalledWith(expect.any(String), "openai/gpt-4o", expect.any(Function));
+    expect(mocked.completeStreaming).toHaveBeenCalledWith(
+      expect.any(String),
+      "openai/gpt-4o",
+      expect.any(Function),
+      null,
+    );
     const [sentPrompt] = mocked.completeStreaming.mock.calls[0]!;
     expect(sentPrompt).toContain("What is 5 Why?");
     expect(sentPrompt).toContain(getCoachingMarkdown("en", 1).trim());
@@ -256,6 +261,113 @@ describe("AssistantPanel", () => {
     await user.click(screen.getByRole("button", { name: "Send" }));
 
     expect(await screen.findByRole("alert")).toHaveProperty("textContent", "429: quota exceeded");
+  });
+
+  it("D-245: a follow-up question can be sent while the previous response is still awaiting Accept/Reject", async () => {
+    const user = userEvent.setup();
+    seedProject();
+    let resolveFirst: (meta: CompletionMeta) => void = () => {};
+    mocked.completeStreaming.mockImplementationOnce((_prompt, _modelId, onEvent) => {
+      onEvent({ type: "chunk", text: "First answer" });
+      return new Promise<CompletionMeta>((resolve) => {
+        resolveFirst = resolve;
+      });
+    });
+
+    renderPanel();
+    await user.type(screen.getByLabelText("Ask the assistant"), "first question");
+    await user.click(screen.getByRole("button", { name: "Send" }));
+    await act(async () => {
+      resolveFirst({ conversationId: "c1", streamId: "s1", messageId: "m1" });
+      await Promise.resolve();
+    });
+
+    // The first turn is "done" (awaiting Accept/Reject) — the prompt box is
+    // still there and usable, unlike the old single-shot design where the
+    // screen showed only the response editor + Accept/Reject.
+    expect(await screen.findByRole("button", { name: "Accept" })).toBeTruthy();
+    const promptBox = screen.getByLabelText("Ask the assistant");
+    expect(promptBox).toBeTruthy();
+
+    mocked.completeStreaming.mockImplementationOnce(pendingCompletion);
+    await user.type(promptBox, "a follow-up question");
+    await user.click(screen.getByRole("button", { name: "Send" }));
+
+    // Both turns are visible at once — the first question's answer was not
+    // discarded just because a second question was sent.
+    expect(screen.getByText("first question")).toBeTruthy();
+    expect(screen.getByText("a follow-up question")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Accept" })).toBeTruthy();
+  });
+
+  it("D-245: a follow-up's completeStreaming call carries the previous turn's own conversationId", async () => {
+    const user = userEvent.setup();
+    seedProject();
+    let resolveFirst: (meta: CompletionMeta) => void = () => {};
+    mocked.completeStreaming.mockImplementationOnce((_prompt, _modelId, onEvent) => {
+      onEvent({ type: "chunk", text: "First answer" });
+      return new Promise<CompletionMeta>((resolve) => {
+        resolveFirst = resolve;
+      });
+    });
+
+    renderPanel();
+    await user.type(screen.getByLabelText("Ask the assistant"), "first question");
+    await user.click(screen.getByRole("button", { name: "Send" }));
+    await act(async () => {
+      resolveFirst({ conversationId: "c1", streamId: "s1", messageId: "m1" });
+      await Promise.resolve();
+    });
+
+    mocked.completeStreaming.mockImplementationOnce(pendingCompletion);
+    await user.type(screen.getByLabelText("Ask the assistant"), "follow-up");
+    await user.click(screen.getByRole("button", { name: "Send" }));
+
+    expect(mocked.completeStreaming).toHaveBeenLastCalledWith(expect.any(String), "openai/gpt-4o", expect.any(Function), "c1");
+  });
+
+  it("D-245: accepting one turn leaves a later, still-pending turn untouched", async () => {
+    const user = userEvent.setup();
+    seedProject();
+    let resolveFirst: (meta: CompletionMeta) => void = () => {};
+    mocked.completeStreaming.mockImplementationOnce((_prompt, _modelId, onEvent) => {
+      onEvent({ type: "chunk", text: "First answer" });
+      return new Promise<CompletionMeta>((resolve) => {
+        resolveFirst = resolve;
+      });
+    });
+
+    renderPanel();
+    await user.type(screen.getByLabelText("Ask the assistant"), "first question");
+    await user.click(screen.getByRole("button", { name: "Send" }));
+    await act(async () => {
+      resolveFirst({ conversationId: "c1", streamId: "s1", messageId: "m1" });
+      await Promise.resolve();
+    });
+
+    let resolveSecond: (meta: CompletionMeta) => void = () => {};
+    mocked.completeStreaming.mockImplementationOnce((_prompt, _modelId, onEvent) => {
+      onEvent({ type: "chunk", text: "Second answer" });
+      return new Promise<CompletionMeta>((resolve) => {
+        resolveSecond = resolve;
+      });
+    });
+    await user.type(screen.getByLabelText("Ask the assistant"), "second question");
+    await user.click(screen.getByRole("button", { name: "Send" }));
+    await act(async () => {
+      resolveSecond({ conversationId: "c1", streamId: "s2", messageId: "m2" });
+      await Promise.resolve();
+    });
+
+    const [firstAccept] = screen.getAllByRole("button", { name: "Accept" });
+    await user.click(firstAccept!);
+
+    expect(useProjectStore.getState().project?.steps[1]?.entries).toHaveLength(1);
+    // The first turn now shows as resolved history; the second is still
+    // awaiting its own Accept/Reject, completely unaffected by the first.
+    expect(screen.getByText("Added as an entry")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Accept" })).toBeTruthy();
+    expect(screen.getByLabelText("Response")).toHaveProperty("value", "Second answer");
   });
 
   it("a cancelled stream's rejection resets to idle silently, without an error message", async () => {

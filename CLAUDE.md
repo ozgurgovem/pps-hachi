@@ -2549,6 +2549,51 @@ AI layer: Faz 8 fully done (keychain + Vorion connection/model-discovery + strea
   key={entry.id}`). Mutation-verified: the fix was stashed, a new regression test (real
   `msaGageRr`+`checkSheet` plugins, not stubs) genuinely failed with the identical crash,
   restored and confirmed green. `npm test` 1593/1593, lint/tsc/build clean, Rust untouched.
+**A fifth real finding from the same trial run (D-244/D-245/D-246, 2026-09-10): two annotated
+  screenshots of the step page's AI support column — "the AI tool isn't working efficiently,
+  it's not serving its purpose" — bundled three distinct, code-verified problems in one message.**
+  All three were investigated by reading real code (never guessed) before any fix, and the two
+  real design decisions among them went through `AskUserQuestion` before writing code, matching
+  this session's own established discipline. **(1, D-244) Duplicated coaching content**: the AI
+  column's `AssistantGuideCard` rendered the step's coaching guide a second time, byte-identical
+  to what `CoachBand` already shows in the main column — pure waste in the narrow 340px sidebar.
+  Simple enough to fix directly (no design ambiguity): removed entirely, dead
+  `workspace.assistant.guideEyebrow` i18n key (TR+EN) dropped. **(2, D-245) No follow-up
+  messages**: once a response landed, the screen showed only an editable copy of it plus
+  Accept/Reject — no way to ask a new question without resolving that one first, and no
+  transcript of earlier turns. Barış chose the more thorough of two offered options: a real
+  multi-turn conversation. `AssistantPanel.tsx` was rewritten around a `Turn[]` list (each turn
+  independently `streaming`/`done`/`error`/`resolved`, its own Accept/Reject) instead of one
+  shared `state`; the prompt box stays visible and usable at all times (Send disables only while
+  a stream is actually in flight). The real fix needed a Rust change too: Vorion's own
+  Synchronous Prediction request body already documents an optional `conversation_id` field
+  (confirmed back in D-200's own screenshot session — not a new doc round), but nothing in this
+  app ever sent it. `CompletionRequest`/`PredictionRequest` (`provider.rs`/`vorion.rs`) and the
+  `ai_complete` command gained `conversation_id: Option<String>` — `None` for a thread's first
+  message, `Some(previous turn's own conversationId)` for a follow-up, so Vorion itself
+  continues the conversation server-side instead of the frontend re-sending a growing transcript
+  as plain text. **(3, D-246) No visibility into the step's own data**: `buildStepAssistantPrompt`
+  sent only coaching content + the method list — never the user's actual entries — which is
+  exactly why the AI's own response (visible in Barış's second screenshot) asked him to paste
+  data it could already have read. Barış chose the smaller of two options: reuse K2's own
+  already-tested `summarizeEntryForAi` (G2 — no new summarization mechanism) for every entry in
+  the step, rendered in `project.meta.language` (content language, D-43) rather than the prompt's
+  own UI-language parameter — a direct instance of the exact mis-source class P-42 already
+  caught once, proven with a dedicated regression test. An empty step now tells the model so
+  explicitly ("No entries have been added to this step yet.") rather than silently omitting the
+  section. Known, accepted gap carried forward unchanged: **P-51** — this free-form chat
+  (`ai_complete`) still never redacts, so an entry's real content crosses to Vorion unmasked, the
+  same as the user's own typed question already did; stated to Barış in the `AskUserQuestion`
+  option text before building this, not silently reused. All three mutation-verified (D-245's
+  `conversationId`-forwarding and D-246's entry-inclusion each temporarily broken, confirmed
+  genuinely RED, restored, confirmed GREEN). `npm test` 1601/1601 (313 files), exit code 0.
+  `npm run lint`/`npx tsc --noEmit`/`npm run build` all clean (same two pre-existing warnings).
+  `cargo test` 195 lib + 2 fixture + 8 xlsx = 205 (up from 203 — 2 new `conversation_id`
+  serialization tests), `cargo clippy --all-targets -- -D warnings`/`cargo fmt -- --check` both
+  clean. Honestly unverified, the usual class of gap: no display/Tauri runtime in this
+  environment — a real multi-turn Vorion conversation actually continuing server-side via
+  `conversation_id`, and the AI genuinely answering a question about real entered data, were
+  never tried in a real window; Barış's own `npm run tauri dev` walkthrough is still owed.
 Templates: two company .xls files analysed; see reference/TEMPLATE_ANALYSIS.md
 Template geometry: VERIFIED 2026-08-01 against both .xls files. Five errors found and
   corrected in place — the largest was the column widths: the real split is 49.7/50.3, NOT

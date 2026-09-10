@@ -55,6 +55,13 @@ struct PredictionRequest {
     llm_name: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     llm_group_name: Option<String>,
+    /// D-200/D-245: documented, optional — confirmed present on the real
+    /// Synchronous Prediction request body (Barış's authenticated session,
+    /// 2026-08-30). `None` on the first message of a thread and on every
+    /// `test_connection`/`complete_structured` call (neither is part of a
+    /// multi-turn conversation).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    conversation_id: Option<String>,
 }
 
 /// Only the fields this adapter actually reads from `GET /llm/api/v1/llms` —
@@ -409,6 +416,7 @@ impl LlmProvider for VorionProvider {
             },
             llm_name,
             llm_group_name,
+            conversation_id: None,
         };
         let data = serde_json::to_string(&request)?;
         let form = reqwest::multipart::Form::new().text("data", data);
@@ -462,6 +470,7 @@ impl LlmProvider for VorionProvider {
             prompt: PredictionPrompt { text: req.prompt },
             llm_name,
             llm_group_name,
+            conversation_id: req.conversation_id,
         };
         let data = serde_json::to_string(&request)?;
         let form = reqwest::multipart::Form::new().text("data", data);
@@ -582,6 +591,7 @@ impl LlmProvider for VorionProvider {
             },
             llm_name,
             llm_group_name,
+            conversation_id: None,
         };
         let data = serde_json::to_string(&request)?;
         let form = reqwest::multipart::Form::new().text("data", data);
@@ -644,6 +654,7 @@ mod tests {
             },
             llm_name: "openai".to_string(),
             llm_group_name: Some("gpt-4o".to_string()),
+            conversation_id: None,
         };
 
         let json = serde_json::to_value(&request).unwrap();
@@ -661,11 +672,44 @@ mod tests {
             },
             llm_name: "vorion".to_string(),
             llm_group_name: None,
+            conversation_id: None,
         };
 
         let json = serde_json::to_value(&request).unwrap();
 
         assert!(!json.as_object().unwrap().contains_key("llm_group_name"));
+    }
+
+    #[test]
+    fn prediction_request_sends_conversation_id_when_continuing_a_thread() {
+        let request = PredictionRequest {
+            prompt: PredictionPrompt {
+                text: "follow-up".to_string(),
+            },
+            llm_name: "openai".to_string(),
+            llm_group_name: Some("gpt-4o".to_string()),
+            conversation_id: Some("conv-123".to_string()),
+        };
+
+        let json = serde_json::to_value(&request).unwrap();
+
+        assert_eq!(json["conversation_id"], "conv-123");
+    }
+
+    #[test]
+    fn prediction_request_omits_conversation_id_when_absent_rather_than_sending_null() {
+        let request = PredictionRequest {
+            prompt: PredictionPrompt {
+                text: "first message".to_string(),
+            },
+            llm_name: "vorion".to_string(),
+            llm_group_name: None,
+            conversation_id: None,
+        };
+
+        let json = serde_json::to_value(&request).unwrap();
+
+        assert!(!json.as_object().unwrap().contains_key("conversation_id"));
     }
 
     #[test]

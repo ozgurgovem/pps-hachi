@@ -213,7 +213,9 @@
       "cancelling": "Cancelling…",
       "responseLabel": "Response",
       "accept": "Accept",
-      "reject": "Reject"
+      "reject": "Reject",
+      "turnAccepted": "Added as an entry",
+      "turnRejected": "Rejected"
     },
     "entryDialog": {
       "createTitle": "New entry",

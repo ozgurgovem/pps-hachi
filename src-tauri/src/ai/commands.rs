@@ -91,10 +91,16 @@ pub async fn ai_list_models() -> Result<Vec<ModelInfo>, String> {
 /// back before its promise resolves. Never touches `ProjectModel` — D-15's
 /// LOCKED rule means only an explicit Accept in the frontend can do that;
 /// this command's only job is to get Vorion's tokens onto the wire.
+///
+/// D-245: `conversation_id` is new — `None` for the first message of a
+/// thread, `Some(...)` (the previous turn's own returned id) for a
+/// follow-up, letting Vorion itself continue the same conversation
+/// server-side rather than the frontend re-sending a growing transcript.
 #[tauri::command]
 pub async fn ai_complete(
     prompt: String,
     model_id: String,
+    conversation_id: Option<String>,
     channel: Channel<StreamEvent>,
 ) -> Result<CompletionMeta, String> {
     let api_key = KeyringSecretStore
@@ -102,7 +108,14 @@ pub async fn ai_complete(
         .map_err(|e| e.to_string())?
         .ok_or_else(|| AiError::NoKeyConfigured.to_string())?;
     VorionProvider::new(api_key)
-        .complete(CompletionRequest { prompt, model_id }, channel)
+        .complete(
+            CompletionRequest {
+                prompt,
+                model_id,
+                conversation_id,
+            },
+            channel,
+        )
         .await
         .map_err(|e| e.to_string())
 }

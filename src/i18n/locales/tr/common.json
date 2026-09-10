@@ -213,7 +213,9 @@
       "cancelling": "İptal ediliyor…",
       "responseLabel": "Yanıt",
       "accept": "Kabul et",
-      "reject": "Reddet"
+      "reject": "Reddet",
+      "turnAccepted": "Girdi olarak eklendi",
+      "turnRejected": "Reddedildi"
     },
     "entryDialog": {
       "createTitle": "Yeni giriş",

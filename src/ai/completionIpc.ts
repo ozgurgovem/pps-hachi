@@ -32,15 +32,26 @@ export type StreamEvent =
  * once the whole stream completes (or rejects, per SPEC.md §8.14's "partial
  * content is discarded, not half-written into a proposal"); `onEvent` is how
  * the caller sees progress before that.
+ *
+ * D-245: `conversationId` is new — pass the previous turn's own
+ * `CompletionMeta.conversationId` to continue that same conversation
+ * server-side (Vorion keeps the context, not the frontend); omit it (or
+ * `null`) for the first message of a thread.
  */
 export function completeStreaming(
   prompt: string,
   modelId: string,
   onEvent: (event: StreamEvent) => void,
+  conversationId?: string | null,
 ): Promise<CompletionMeta> {
   const channel = new Channel<StreamEvent>();
   channel.onmessage = onEvent;
-  return invoke<CompletionMeta>("ai_complete", { prompt, modelId, channel });
+  return invoke<CompletionMeta>("ai_complete", {
+    prompt,
+    modelId,
+    conversationId: conversationId ?? null,
+    channel,
+  });
 }
 
 /** SPEC.md §8.14 "Stream interrupted mid-response" — call with the ids captured off `StreamEvent`'s `started` event. */

@@ -35,11 +35,18 @@ pub struct ConnectionStatus {
 /// has no step context, no mode selector, no schema — free text in, free
 /// text streamed back out. `model_id` is the same `"{llm_name}/
 /// {llm_group_name}"` shape `test_connection`/`ModelInfo::id` already use.
+///
+/// D-245: `conversation_id` is `None` for the first message in a thread and
+/// `Some(...)` (the previous turn's own `CompletionMeta.conversation_id`)
+/// for every follow-up — this is what lets Vorion itself continue the same
+/// conversation server-side rather than the frontend re-sending a growing
+/// transcript as plain text on every turn.
 #[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CompletionRequest {
     pub prompt: String,
     pub model_id: String,
+    pub conversation_id: Option<String>,
 }
 
 /// What crosses the Tauri `Channel` as a Streaming Prediction progresses —
