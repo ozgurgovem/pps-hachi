@@ -32,3 +32,7 @@ Rules:
 - Never drop, rename, or add a field the schema doesn't have, and never change the JSON's
   overall structure beyond what the suggestion itself calls for (for example, adding a row to a
   row-table field when the suggestion asked for a new row).
+- If the suggestion itself contains a placeholder for a value you were never given (for example
+  "%X" or "[hedef değeri]" standing in for a number the user still needs to supply), write the
+  field using whatever concrete information the suggestion DOES give, and carry the placeholder
+  through literally rather than inventing a plausible-looking number to fill the gap.

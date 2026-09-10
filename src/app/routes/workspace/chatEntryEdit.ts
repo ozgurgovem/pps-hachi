@@ -2,9 +2,7 @@ import { z, type ZodType } from "zod";
 import type { A3EntryRendererMap } from "../../../a3/methodContract";
 import type { Entry, ProjectModel } from "../../../domain/model";
 import type { ResolvedRedactionPolicy } from "../../../ai/redaction";
-import { attemptStructuredProposal, buildProposalPrompt, proposeStructuredEntry } from "./entryProposal";
-import { combineTitleAndPayload } from "./entryTranslation";
-import { findMissingProtectedTokens } from "./layoutReview";
+import { proposeStructuredEntry } from "./entryProposal";
 import { summarizeEntryForAi } from "./entrySummary";
 
 /**
@@ -32,15 +30,31 @@ import { summarizeEntryForAi } from "./entrySummary";
  *    ask the model to apply the suggestion to that entry's own current
  *    title+payload, validated against the entry's own real Zod schema (the
  *    caller wraps `plugin.schema`, the same `EntryTranslateField`/K3
- *    pattern) — a mistranslated enum or a dropped required field fails Zod
- *    validation and triggers the retry automatically. Protected-token check
- *    here is deliberately scoped to the SUGGESTION's own text, not the
- *    entry's original content (unlike translation, which must preserve
- *    everything) — applying a suggestion often means *replacing* an old
- *    value with a new one, so protecting the old value would wrongly flag
- *    the very edit the user asked for. What must survive is whatever new
- *    fact the AI's own suggestion introduced — dropping that on apply would
- *    be worse than not applying anything.
+ *    pattern) via `proposeStructuredEntry`'s own schema-only retry-once — a
+ *    mistranslated enum or a dropped required field fails Zod validation
+ *    and triggers the retry automatically.
+ *
+ *    D-249 (Barış's own real-use report): this originally also ran K1/K3's
+ *    combined protected-token check (the suggestion's own new values must
+ *    survive into the result) — and it made the feature fail almost every
+ *    time. Root-caused by reading the real regex, not guessed: `suggestionText`
+ *    here is the AI's own raw chat *response* — full markdown, headers,
+ *    alternate phrasings, parenthetical notes — not a clean single fact like
+ *    K1's condensation target or K3's translation source. `NAME_PATTERN`
+ *    (`layoutReview.ts`'s "two-or-more-capitalized-words" heuristic) matches
+ *    a chat response's own section headers just as readily as a real
+ *    person's name — a markdown line like "### İyileştirme Önerisi (Nasıl
+ *    Olmalı?)" gets "İyileştirme Önerisi" and "Nasıl Olmalı" both flagged as
+ *    "protected," and neither will ever legitimately appear inside a
+ *    structured entry field, so the check failed on nearly every real
+ *    response regardless of whether the actual edit was correct. Removed —
+ *    the real safety net for this flow is what it already always was: the
+ *    human reviews the proposed title+payload via the target entry's own
+ *    labeled `plugin.Editor` (Accept/Edit&Accept/Reject) before anything
+ *    ever reaches `ProjectModel` (D-15/D-16), the same review depth K1/K3
+ *    give a translated paragraph or a diff line — arguably a *better*-
+ *    reviewed surface, since a small labeled form is easier to check at a
+ *    glance than a long paragraph.
  */
 
 const IdentifySuggestionTargetResultSchema = z.object({ targetEntryId: z.string().nullable() });
@@ -133,96 +147,21 @@ function buildEntryEditUserInput(suggestionText: string, title: string, payload:
 export async function proposeEntryEditFromSuggestion(
   params: ProposeEntryEditFromSuggestionParams,
 ): Promise<EntryEditFromSuggestionOutcome> {
-  const jsonSchema = z.toJSONSchema(params.zodSchema, { target: "draft-2020-12" });
   const userInput = buildEntryEditUserInput(params.suggestionText, params.title, params.payload);
-  const firstPrompt = buildProposalPrompt(params.promptBody, userInput);
 
-  const first = await attemptStructuredProposal(
-    firstPrompt,
-    jsonSchema,
-    params.modelId,
-    params.zodSchema,
-    params.redaction,
-    params.projectId,
-    params.promptVersion,
-  );
-
-  if (!first.success) {
-    return retryEntryEditFromSuggestion(params, jsonSchema, userInput, first.rawText, first.errorSummary, []);
-  }
-
-  const value = first.value as EntryEditValue;
-  const missing = findMissingProtectedTokens(params.suggestionText, combineTitleAndPayload(value.title, value.payload));
-  if (missing.length === 0) {
-    return { outcome: "success", title: value.title, payload: value.payload };
-  }
-
-  return retryEntryEditFromSuggestion(
-    params,
-    jsonSchema,
+  const result = await proposeStructuredEntry({
+    promptBody: params.promptBody,
     userInput,
-    JSON.stringify(value, null, 2),
-    undefined,
-    missing,
-  );
-}
+    modelId: params.modelId,
+    zodSchema: params.zodSchema,
+    redaction: params.redaction,
+    projectId: params.projectId,
+    promptVersion: params.promptVersion,
+  });
 
-function buildEntryEditRetryPrompt(
-  promptBody: string,
-  userInput: string,
-  previousRawText: string,
-  schemaErrorSummary: string | undefined,
-  missingTokens: readonly string[],
-): string {
-  const parts = [
-    buildProposalPrompt(promptBody, userInput),
-    `\n\n---\n\n## Your previous attempt was invalid\n\nYour previous response:\n${previousRawText}`,
-  ];
-  if (schemaErrorSummary) {
-    parts.push(`\n\nValidation errors:\n${schemaErrorSummary}`);
+  if (result.outcome === "failed") {
+    return { outcome: "failed", rawText: result.rawText };
   }
-  if (missingTokens.length > 0) {
-    parts.push(
-      `\n\nYour applied edit dropped or altered value(s) your own suggestion introduced: ${missingTokens.map((t) => `"${t}"`).join(", ")}. Include them in the result exactly as you originally proposed.`,
-    );
-  }
-  parts.push(
-    "\n\nCorrect these issues and respond again with ONLY valid JSON matching the schema — no prose, no markdown code fences.",
-  );
-  return parts.join("");
-}
-
-async function retryEntryEditFromSuggestion(
-  params: ProposeEntryEditFromSuggestionParams,
-  jsonSchema: object,
-  userInput: string,
-  previousRawText: string,
-  schemaErrorSummary: string | undefined,
-  missingTokens: readonly string[],
-): Promise<EntryEditFromSuggestionOutcome> {
-  const retryPrompt = buildEntryEditRetryPrompt(
-    params.promptBody,
-    userInput,
-    previousRawText,
-    schemaErrorSummary,
-    missingTokens,
-  );
-  const second = await attemptStructuredProposal(
-    retryPrompt,
-    jsonSchema,
-    params.modelId,
-    params.zodSchema,
-    params.redaction,
-    params.projectId,
-    params.promptVersion,
-  );
-  if (!second.success) {
-    return { outcome: "failed", rawText: second.rawText };
-  }
-  const value = second.value as EntryEditValue;
-  const stillMissing = findMissingProtectedTokens(params.suggestionText, combineTitleAndPayload(value.title, value.payload));
-  if (stillMissing.length > 0) {
-    return { outcome: "failed", rawText: JSON.stringify(value, null, 2) };
-  }
+  const value = result.value as EntryEditValue;
   return { outcome: "success", title: value.title, payload: value.payload };
 }

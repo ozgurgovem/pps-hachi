@@ -2656,6 +2656,45 @@ AI layer: Faz 8 fully done (keychain + Vorion connection/model-discovery + strea
   restored). `npm test` 1620/1620 (314 files), exit code 0. `npm run lint`/`npx tsc --noEmit`/
   `npm run build` all clean. Rust untouched. Honestly unverified: whether the clearer layout
   actually prevents the misclick in real use is still owed from Barış's own next trial.
+**D-248's own second real trial run (D-249, 2026-09-10): two more findings, both investigated
+  with real evidence rather than guessed.** (1) The chat no longer vanishes (D-248 confirmed),
+  but "Apply to an entry" still failed with an error every time. (2) Every button except "Apply
+  to an entry" still showed zero hover/cursor feedback. **(2) — a real, app-wide finding**:
+  connected Playwright directly to Barış's own live `npm run tauri dev` server (port 1420,
+  D-113/D-136/D-220's "install temporarily, then delete" practice) and measured real buttons on
+  `/gallery` — every button, including primary, computed `cursor: "default"`. Tailwind v4's
+  Preflight does not add `cursor: pointer` to buttons (a deliberate upstream removal), and this
+  project never added it either — a genuine, app-wide gap, not new to this session. The
+  `hover:bg-surface-raised` "does nothing" impression turned out to be **wrong** — real CDP/
+  `getComputedStyle` inspection proved the CSS variable resolves and the selector genuinely
+  matches; the first measurement simply read computed style before the 150ms `transition-colors`
+  had settled. Fixed the real finding: `cursor-pointer` added to the shared `Button.tsx` (small,
+  safe, additive — the compiled CSS bundle didn't even grow, since `.cursor-pointer` was already
+  emitted for other uses). The secondary/ghost hover contrast (vellum `#e7e8e2` → vellum-raised
+  `#f1f1ec`, a real but subtle ~10-unit shift) is left untouched, deliberately — a design-system-
+  wide color decision is exactly what P-58 already flags as its own high-blast-radius session.
+  **(1) — the real functional bug, root-caused by reading the actual regex**: `proposeEntryEdit
+  FromSuggestion`'s protected-token check used the AI's *entire raw markdown chat response*
+  (headers, bold emphasis, parenthetical notes) as the "must survive" source text.
+  `layoutReview.ts`'s `NAME_PATTERN` (two-or-more-capitalized-words) matches a markdown header
+  like "### İyileştirme Önerisi (Nasıl Olmalı?)" exactly as readily as a real person's name —
+  "İyileştirme Önerisi" and "Nasıl Olmalı" both got flagged as "protected," and neither could
+  ever legitimately appear inside a structured entry field, so the check failed on nearly every
+  real, well-formatted AI response regardless of whether the actual edit was correct. Confirmed
+  by literally running the real regex against the real suggestion text from Barış's own
+  screenshot in Python before touching any code. Fixed by dropping the check entirely —
+  `proposeEntryEditFromSuggestion` now calls `proposeStructuredEntry` directly (schema-
+  validation retry-once only, the same simple path `identifySuggestionTargetEntry` already
+  uses). This doesn't weaken D-15/D-16: the real safety net was always the human review step
+  (Accept/Edit&Accept/Reject over the target entry's own labeled `plugin.Editor`) before
+  anything writes — arguably an easier surface to review than K1's diff list or K3's translated
+  paragraph. `apply-suggestion.v1.md` also gained a rule for a real, separate scenario found
+  along the way: when a suggestion itself contains an unresolved placeholder (like "%X"), carry
+  it through literally rather than inventing a plausible number. A new regression test reproduces
+  the exact real failing suggestion text and confirms it now succeeds on the first attempt.
+  `npm test` 1619/1619 (314 files), exit code 0. `npm run lint`/`npx tsc --noEmit`/`npm run
+  build` all clean (CSS bundle byte-identical). Rust untouched. Temporary Playwright install
+  fully removed after use.
 Templates: two company .xls files analysed; see reference/TEMPLATE_ANALYSIS.md
 Template geometry: VERIFIED 2026-08-01 against both .xls files. Five errors found and
   corrected in place — the largest was the column widths: the real split is 49.7/50.3, NOT

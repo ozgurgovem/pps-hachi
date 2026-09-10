@@ -4,30 +4,21 @@ import type { A3EntryRendererMap } from "../../../a3/methodContract";
 import type { ResolvedRedactionPolicy } from "../../../ai/redaction";
 import { createNewProject } from "../../../domain/model";
 import type { Entry, ProjectModel } from "../../../domain/model";
-import * as entryProposal from "./entryProposal";
 import * as structuredIpc from "../../../ai/structuredIpc";
 import { identifySuggestionTargetEntry, proposeEntryEditFromSuggestion } from "./chatEntryEdit";
 
-// `identifySuggestionTargetEntry` goes through `proposeStructuredEntry`,
-// whose own internal call to `attemptStructuredProposal` is a same-module
-// reference (`entryProposal.ts` calling its own function) — mocking that
-// export from the outside cannot intercept it (a real ESM binding, not a
-// spy-able property). Mocking `completeStructured` instead — the one true
-// IPC boundary both `proposeStructuredEntry` and the direct
-// `attemptStructuredProposal` calls below eventually reach — catches both
-// call shapes uniformly, the same precedent `mockAudit.test.ts` already set.
+// Both `identifySuggestionTargetEntry` and `proposeEntryEditFromSuggestion`
+// go through `proposeStructuredEntry`, whose own internal call to
+// `attemptStructuredProposal` is a same-module reference (`entryProposal.ts`
+// calling its own function) — mocking that export from the outside cannot
+// intercept it (a real ESM binding, not a spy-able property). Mocking
+// `completeStructured` instead — the one true IPC boundary every path
+// eventually reaches — catches it uniformly, the same precedent
+// `mockAudit.test.ts` already set.
 vi.mock("../../../ai/structuredIpc", () => ({ completeStructured: vi.fn() }));
 const mockedCompleteStructured = vi.mocked(structuredIpc.completeStructured);
 
-vi.mock("./entryProposal", async () => {
-  const actual = await vi.importActual<typeof import("./entryProposal")>("./entryProposal");
-  return { ...actual, attemptStructuredProposal: vi.fn() };
-});
-
-const mockedAttempt = vi.mocked(entryProposal.attemptStructuredProposal);
-
 beforeEach(() => {
-  mockedAttempt.mockReset();
   mockedCompleteStructured.mockReset();
 });
 
@@ -137,8 +128,8 @@ describe("identifySuggestionTargetEntry", () => {
   it("returns failed after the schema retry is exhausted", async () => {
     // Neither response is valid against `{targetEntryId: string | null}` —
     // this exercises the real `proposeStructuredEntry` schema-retry-once
-    // path (through the real `attemptStructuredProposal`, not the mock
-    // above, since `proposeStructuredEntry` calls it internally).
+    // path (through the real `attemptStructuredProposal`, not mocked
+    // directly, since `proposeStructuredEntry` calls it internally).
     mockedCompleteStructured.mockResolvedValueOnce({ targetEntryId: 123 }).mockResolvedValueOnce({ targetEntryId: 456 });
 
     const result = await identifySuggestionTargetEntry({
@@ -161,10 +152,7 @@ describe("proposeEntryEditFromSuggestion", () => {
   const zodSchema = z.object({ title: z.string(), payload: z.object({ text: z.string() }) });
 
   it("returns the edited title and payload on the first successful attempt", async () => {
-    mockedAttempt.mockResolvedValueOnce({
-      success: true,
-      value: { title: "Updated title", payload: { text: "Updated body" } },
-    });
+    mockedCompleteStructured.mockResolvedValueOnce({ title: "Updated title", payload: { text: "Updated body" } });
 
     const result = await proposeEntryEditFromSuggestion({
       promptBody: "Apply the suggestion.",
@@ -179,13 +167,13 @@ describe("proposeEntryEditFromSuggestion", () => {
     });
 
     expect(result).toEqual({ outcome: "success", title: "Updated title", payload: { text: "Updated body" } });
-    expect(mockedAttempt).toHaveBeenCalledTimes(1);
+    expect(mockedCompleteStructured).toHaveBeenCalledTimes(1);
   });
 
   it("retries once on a schema failure and succeeds on the second attempt", async () => {
-    mockedAttempt
-      .mockResolvedValueOnce({ success: false, rawText: "bad json", errorSummary: "invalid" })
-      .mockResolvedValueOnce({ success: true, value: { title: "Fixed title", payload: { text: "Fixed body" } } });
+    mockedCompleteStructured
+      .mockResolvedValueOnce({ title: 123, payload: { text: "bad shape" } }) // title must be a string
+      .mockResolvedValueOnce({ title: "Fixed title", payload: { text: "Fixed body" } });
 
     const result = await proposeEntryEditFromSuggestion({
       promptBody: "Apply the suggestion.",
@@ -200,48 +188,17 @@ describe("proposeEntryEditFromSuggestion", () => {
     });
 
     expect(result).toEqual({ outcome: "success", title: "Fixed title", payload: { text: "Fixed body" } });
-    expect(mockedAttempt).toHaveBeenCalledTimes(2);
+    expect(mockedCompleteStructured).toHaveBeenCalledTimes(2);
   });
 
-  it("retries once when the suggestion's own new value is missing from the result, and succeeds", async () => {
-    mockedAttempt
-      .mockResolvedValueOnce({
-        success: true,
-        value: { title: "Original title", payload: { text: "Original body, no target added" } },
-      })
-      .mockResolvedValueOnce({
-        success: true,
-        value: { title: "Original title", payload: { text: "Original body, target set to %2,0" } },
-      });
+  it("fails after the schema retry is exhausted", async () => {
+    mockedCompleteStructured
+      .mockResolvedValueOnce({ title: 123, payload: { text: "still bad" } })
+      .mockResolvedValueOnce({ title: 456, payload: { text: "still bad again" } });
 
     const result = await proposeEntryEditFromSuggestion({
       promptBody: "Apply the suggestion.",
-      suggestionText: "Set the target to %2,0.",
-      title: "Original title",
-      payload: { text: "Original body" },
-      modelId: "vorion/gpt-4o",
-      zodSchema,
-      redaction: OFF,
-      projectId: "proj-1",
-      promptVersion: "apply-suggestion.v1",
-    });
-
-    expect(result).toEqual({
-      outcome: "success",
-      title: "Original title",
-      payload: { text: "Original body, target set to %2,0" },
-    });
-    expect(mockedAttempt).toHaveBeenCalledTimes(2);
-  });
-
-  it("fails when the second attempt still drops the suggestion's own new value", async () => {
-    mockedAttempt
-      .mockResolvedValueOnce({ success: true, value: { title: "T", payload: { text: "no target here" } } })
-      .mockResolvedValueOnce({ success: true, value: { title: "T", payload: { text: "still no target" } } });
-
-    const result = await proposeEntryEditFromSuggestion({
-      promptBody: "Apply the suggestion.",
-      suggestionText: "Set the target to %2,0.",
+      suggestionText: "Add the target value.",
       title: "Original title",
       payload: { text: "Original body" },
       modelId: "vorion/gpt-4o",
@@ -252,23 +209,44 @@ describe("proposeEntryEditFromSuggestion", () => {
     });
 
     expect(result.outcome).toBe("failed");
+    expect(mockedCompleteStructured).toHaveBeenCalledTimes(2);
   });
 
-  it("does not flag content that was already in the original entry, only the suggestion's own new values", async () => {
-    // The original entry already contains "%8,3" — the suggestion doesn't
-    // mention it at all, so its absence from the result must not trigger a
-    // retry (unlike translation, applying a suggestion can legitimately
-    // replace old values).
-    mockedAttempt.mockResolvedValueOnce({
-      success: true,
-      value: { title: "T", payload: { text: "Updated: target now %2,0" } },
+  // D-249: this reproduces the exact real bug — a verbose, markdown-formatted
+  // chat suggestion (headers, bold emphasis, a parenthetical note) whose own
+  // section-header phrases ("İyileştirme Önerisi", "Nasıl Olmalı") would have
+  // been wrongly flagged as "protected names" by the old, now-removed
+  // protected-token check (`layoutReview.ts`'s `NAME_PATTERN` matches any
+  // two-or-more-capitalized-word run, headers included), causing the whole
+  // feature to fail on nearly every real AI response regardless of whether
+  // the actual edit was correct. A single successful structured response
+  // must now be accepted outright, with no token-survival check at all.
+  it("succeeds on the first attempt for a verbose, markdown-formatted real suggestion (regression)", async () => {
+    const suggestionText = [
+      "### 2. İyileştirme Önerisi (Nasıl Olmalı?)",
+      "",
+      "Metnini kurallara tam uyumlu, altı ay sonra okuyan birinin durumu hemen",
+      "anlayabileceği **tek cümlelik ideal bir problem tanımı** haline getirelim:",
+      "",
+      "> **Güncellenmiş Öneri Metni:**",
+      '> "BJ Projesi enjeksiyon kalıplarındaki fire oranı W46\'da **%8,3** seviyesine',
+      "yükselmiştir (Hedef/Standart: **%X** veya Önceki dönem ortalaması: **%Y**).\"",
+      "",
+      '*(Not: %8,3 oranının ne ile kıyaslandığını — örneğin şirket hedefi %2,0 ise —',
+      'parantez içinde belirtmeniz, aradaki "boşluk"u (gap) net olarak ortaya',
+      "koyacaktır.)*",
+    ].join("\n");
+
+    mockedCompleteStructured.mockResolvedValueOnce({
+      title: "Yüksek Fire Oranı",
+      payload: { text: "BJ Projesi enjeksiyon kalıplarındaki fire oranı W46'da %8,3 seviyesine yükselmiştir." },
     });
 
     const result = await proposeEntryEditFromSuggestion({
       promptBody: "Apply the suggestion.",
-      suggestionText: "Set the target to %2,0.",
-      title: "T",
-      payload: { text: "Current rate %8,3" },
+      suggestionText,
+      title: "Yüksek Fire Oranı",
+      payload: { text: "old text" },
       modelId: "vorion/gpt-4o",
       zodSchema,
       redaction: OFF,
@@ -276,7 +254,7 @@ describe("proposeEntryEditFromSuggestion", () => {
       promptVersion: "apply-suggestion.v1",
     });
 
-    expect(result).toEqual({ outcome: "success", title: "T", payload: { text: "Updated: target now %2,0" } });
-    expect(mockedAttempt).toHaveBeenCalledTimes(1);
+    expect(result.outcome).toBe("success");
+    expect(mockedCompleteStructured).toHaveBeenCalledTimes(1);
   });
 });
