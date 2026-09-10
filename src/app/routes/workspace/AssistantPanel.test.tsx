@@ -5,7 +5,7 @@ import { MemoryRouter } from "react-router";
 import "../../../i18n";
 import { createNewProject } from "../../../domain/model";
 import type { AiMeta, Entry, ProjectModel, StepId } from "../../../domain/model";
-import { selectCanUndo, useProjectStore } from "../../../state";
+import { selectCanUndo, useAssistantChatStore, useProjectStore } from "../../../state";
 import { AssistantPanel } from "./AssistantPanel";
 import { getCoachingMarkdown } from "./coachContent";
 import * as completionIpc from "../../../ai/completionIpc";
@@ -18,6 +18,7 @@ vi.mock("./chatEntryEdit");
 const mocked = vi.mocked(completionIpc);
 const mockedChatEntryEdit = vi.mocked(chatEntryEdit);
 const initialStoreState = useProjectStore.getState();
+const initialChatStoreState = useAssistantChatStore.getState();
 
 function makeEntry(overrides: Partial<Entry> = {}): Entry {
   const now = new Date().toISOString();
@@ -91,6 +92,11 @@ async function sendAndResolve(
 afterEach(() => {
   vi.clearAllMocks();
   useProjectStore.setState(initialStoreState, true);
+  // D-251: `syncProject` already clears this incidentally whenever
+  // `seedProject`'s own fresh `crypto.randomUUID()` project id differs from
+  // the previous test's — reset explicitly anyway rather than rely on that,
+  // matching `useProjectStore`'s own reset immediately above.
+  useAssistantChatStore.setState(initialChatStoreState, true);
 });
 
 describe("AssistantPanel", () => {
@@ -189,6 +195,26 @@ describe("AssistantPanel", () => {
     expect(screen.getByRole("button", { name: "Apply the suggestion" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Reject" })).toBeTruthy();
     expect(screen.queryByRole("button", { name: /add as a new note/i })).toBeNull();
+  });
+
+  // D-251 (Barış's own real-use report): "switching to any different page,
+  // e.g. Settings, loses the whole AI chat conversation." Reproduces the
+  // exact shape of that bug — unmount (what a route change to /settings
+  // really does to this component, not just a re-render) and remount —
+  // and proves the conversation survives it.
+  it("a conversation survives this panel unmounting and remounting for the same step (D-251)", async () => {
+    const user = userEvent.setup();
+    seedProject();
+
+    const firstMount = renderPanel(1);
+    await sendAndResolve(user, "The answer");
+    firstMount.unmount();
+
+    renderPanel(1);
+
+    expect(screen.getByText("hi")).toBeTruthy();
+    expect(screen.getByLabelText("Response")).toHaveProperty("value", "The answer");
+    expect(screen.getByRole("button", { name: "Apply the suggestion" })).toBeTruthy();
   });
 
   it("Reject discards the response without dispatching any command", async () => {

@@ -2738,6 +2738,39 @@ AI layer: Faz 8 fully done (keychain + Vorion connection/model-discovery + strea
   own primary-button hover color is now perceptible enough, and whether the ghost→secondary swap
   genuinely reads as a clear button in real use, both still need Barış's own next
   `npm run tauri dev` trial to confirm.
+**A seventh finding, same trial run (D-251, 2026-09-10): "switching to any different page, e.g.
+  Settings, loses the whole AI chat conversation — everything's gone, I have to type it all
+  again."** Root cause confirmed by reading real code, not guessed: `AssistantPanel`'s
+  conversation (`turns`/`promptText`/`lastConversationId`) lived in a plain `useState`, and
+  `/project` and `/settings` are two fully separate top-level routes (`router.tsx`) — navigating
+  between them unmounts the entire workspace element tree, which is a harder failure than a
+  re-render: the component holding that state stops existing. Fixed by moving the conversation
+  out of the component into a new, dedicated Zustand store (`src/state/assistantChatStore.ts`,
+  `useAssistantChatStore`) — an external store outside the React tree, the same shape
+  `useProjectStore` itself already is, so it genuinely survives the exact kind of unmount/remount
+  that was losing it. Keyed by `StepId` (`chatsByStep: Partial<Record<StepId, StepChatState>>`),
+  which also fixed an un-reported bonus case for free: switching between steps
+  (`<StepPage key={activeStepId}>`, D-219/W1) always remounted `AssistantPanel` too and used to
+  reset that step's conversation as well — each step's chat now lives at its own key instead of
+  in the remounted component's local state. One deliberate defensive addition beyond the literal
+  report: a store outside the component tree also outlives switching to a genuinely *different*
+  project within the same running session (close project A, open project B without quitting the
+  app) — without a guard, project B's step pages would keep showing project A's stale
+  conversation, both misleading and a P-51-adjacent content-leak concern. `syncProject(projectId)`
+  clears `chatsByStep` when the incoming id differs from the one the store already has, and is a
+  no-op otherwise (safe to call unconditionally); `AssistantPanel` calls it from a
+  `useLayoutEffect` (runs before paint, so a genuine project switch never flashes stale text).
+  Two new regression tests, both mutation-verified: `assistantChatStore.test.ts`'s own
+  `syncProject` clearing test (RED confirmed by temporarily reducing `syncProject` to an
+  unconditional `set`, then restored), and `AssistantPanel.test.tsx`'s "a conversation survives
+  this panel unmounting and remounting for the same step (D-251)" (RED confirmed by temporarily
+  stashing the component's own fix back to the old `useState` code, then restored). `npm test`
+  1622/1622 (315 files, up from 1619/1619 — the D-250 batch's own count plus this dilim's 5 new
+  tests: `assistantChatStore.test.ts`'s 4 and `AssistantPanel.test.tsx`'s 1), exit code 0. `npm
+  run lint` clean (the one pre-existing `ThemeProvider` warning). `npx tsc --noEmit` clean. `npm
+  run build` green (same pre-existing chunk-size warning). Rust untouched. Honestly unverified,
+  the usual class of gap: Barış's own next `npm run tauri dev` trial — navigate to Settings and
+  back, confirm the conversation is genuinely still there — is what closes this for real.
 Templates: two company .xls files analysed; see reference/TEMPLATE_ANALYSIS.md
 Template geometry: VERIFIED 2026-08-01 against both .xls files. Five errors found and
   corrected in place — the largest was the column widths: the real split is 49.7/50.3, NOT

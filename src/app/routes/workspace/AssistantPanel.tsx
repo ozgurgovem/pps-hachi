@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useLayoutEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
 import { z } from "zod";
-import { cancelCompletion, completeStreaming, type CompletionMeta, type StreamEvent } from "../../../ai/completionIpc";
+import { cancelCompletion, completeStreaming, type StreamEvent } from "../../../ai/completionIpc";
 import { normalizedEditDistance } from "../../../ai/editDistance";
 import { getWholeProjectPromptFile } from "../../../ai/prompts/wholeProjectLibrary";
 import { resolveRedactionPolicy } from "../../../ai/redaction";
@@ -10,7 +10,7 @@ import { buildUpdateEntryCommand } from "../../../domain/commands";
 import type { Provenance, StepId } from "../../../domain/model";
 import { getMethodById } from "../../../methods";
 import { getA3RendererMap } from "../../../methods/registry";
-import { useProjectStore } from "../../../state";
+import { selectStepChat, useAssistantChatStore, useProjectStore, type ApplyState, type Turn } from "../../../state";
 import { Button, Input, Textarea } from "../../../ui";
 import { identifySuggestionTargetEntry, proposeEntryEditFromSuggestion } from "./chatEntryEdit";
 import { errorMessage } from "../launch/errorMessage";
@@ -18,81 +18,6 @@ import { buildStepAssistantPrompt } from "./stepAiContext";
 
 const IDENTIFY_TARGET_PROMPT_VERSION = "v1";
 const APPLY_SUGGESTION_PROMPT_VERSION = "v1";
-
-/**
- * D-250 (Barış's own real-use report): D-247's "Add as a new note" action —
- * writing the AI's whole raw chat response as a disconnected `generic-text`
- * entry — was removed outright rather than kept as a fallback. Barış's own
- * call: it produced entries that didn't fit anywhere meaningful in the real
- * report (visible sitting among real 5W2H/gap-statement entries in his own
- * screenshot) and the feature has no real use once "Apply the suggestion"
- * covers the actual need. "Reject" (discard, nothing written) is the only
- * other action now besides applying the suggestion to a real entry.
- *
- * D-247 (Barış's own real-use report): once the AI's own review of the
- * step's real entries produces a concrete suggestion, "Apply the
- * suggestion" walks it through two structured calls (`chatEntryEdit.ts`)
- * before anything ever reaches `ProjectModel` — this local sub-state tracks
- * exactly where in that walk a given "done" turn currently is.
- */
-type ApplyState =
-  | { readonly step: "locating" }
-  | { readonly step: "noMatch" }
-  | { readonly step: "proposing" }
-  | {
-      readonly step: "review";
-      readonly targetEntryId: string;
-      readonly methodId: string;
-      readonly aiTitle: string;
-      readonly aiPayload: unknown;
-      readonly draftTitle: string;
-      readonly draftPayload: unknown;
-    }
-  | { readonly step: "failed"; readonly rawText: string }
-  | { readonly step: "error"; readonly message: string };
-
-/**
- * D-245 (Barış's own real-use report): one entry in the conversation — each
- * `Send` appends a new turn rather than replacing a single shared `state`,
- * so a past turn stays visible (and, while still `"done"`, independently
- * actionable) after a follow-up question has already been sent. `id` is a
- * plain `crypto.randomUUID()` (the same UI-layer-id convention every method
- * `Editor` already uses) — purely a React key/lookup handle, never written
- * to `ProjectModel`.
- */
-type Turn =
-  | {
-      readonly id: string;
-      readonly phase: "streaming";
-      readonly prompt: string;
-      readonly text: string;
-      readonly conversationId: string | null;
-      readonly streamId: string | null;
-      readonly cancelling: boolean;
-    }
-  | {
-      readonly id: string;
-      readonly phase: "done";
-      readonly prompt: string;
-      readonly originalText: string;
-      readonly editedText: string;
-      readonly meta: CompletionMeta;
-      readonly generatedAt: string;
-      readonly applyState?: ApplyState | undefined;
-    }
-  | {
-      readonly id: string;
-      readonly phase: "error";
-      readonly prompt: string;
-      readonly message: string;
-    }
-  | {
-      readonly id: string;
-      readonly phase: "resolved";
-      readonly prompt: string;
-      readonly responseText: string;
-      readonly resolution: "appliedToEntry" | "rejected";
-    };
 
 interface AssistantPanelProps {
   /**
@@ -130,9 +55,26 @@ export function AssistantPanel({ stepId }: AssistantPanelProps) {
   const project = useProjectStore((s) => s.project);
   const dispatch = useProjectStore((s) => s.dispatch);
 
-  const [promptText, setPromptText] = useState("");
-  const [turns, setTurns] = useState<readonly Turn[]>([]);
-  const [lastConversationId, setLastConversationId] = useState<string | null>(null);
+  // D-251: chat state now lives in a store outside this component's own
+  // lifetime — see `assistantChatStore.ts`'s own doc comment for why (this
+  // panel remounts every time the app navigates to a different top-level
+  // route, e.g. Settings, and used to lose the whole conversation with it).
+  const { promptText, turns, lastConversationId } = useAssistantChatStore(selectStepChat(stepId));
+  const setPromptText = useAssistantChatStore((s) => s.setPromptText);
+  const setTurns = useAssistantChatStore((s) => s.setTurns);
+  const setLastConversationId = useAssistantChatStore((s) => s.setLastConversationId);
+  const syncProject = useAssistantChatStore((s) => s.syncProject);
+
+  // `useLayoutEffect`, not `useEffect`: runs before the browser paints, so a
+  // genuine project switch (close project A, open project B in the same
+  // running session) never flashes project A's stale conversation text
+  // before this clears it. A no-op on every other render (`syncProject` is
+  // idempotent when the id hasn't changed) — see its own doc comment.
+  useLayoutEffect(() => {
+    if (project) {
+      syncProject(project.id);
+    }
+  }, [project, syncProject]);
 
   if (!project) {
     return null;
@@ -142,7 +84,7 @@ export function AssistantPanel({ stepId }: AssistantPanelProps) {
   const isStreaming = turns.some((turn) => turn.phase === "streaming");
 
   function updateTurn(turnId: string, update: (turn: Turn) => Turn) {
-    setTurns((prev) => prev.map((turn) => (turn.id === turnId ? update(turn) : turn)));
+    setTurns(stepId, (prev) => prev.map((turn) => (turn.id === turnId ? update(turn) : turn)));
   }
 
   function updateApplyState(turnId: string, applyState: ApplyState | undefined) {
@@ -157,10 +99,10 @@ export function AssistantPanel({ stepId }: AssistantPanelProps) {
     if (!trimmed || !modelId || isStreaming || !project) {
       return;
     }
-    setPromptText("");
+    setPromptText(stepId, "");
     const turnId = crypto.randomUUID();
     const conversationIdForThisTurn = lastConversationId;
-    setTurns((prev) => [
+    setTurns(stepId, (prev) => [
       ...prev,
       {
         id: turnId,
@@ -182,7 +124,7 @@ export function AssistantPanel({ stepId }: AssistantPanelProps) {
         modelId,
         (event: StreamEvent) => {
           if (event.type === "started") {
-            setLastConversationId(event.conversationId);
+            setLastConversationId(stepId, event.conversationId);
           }
           updateTurn(turnId, (turn) => {
             if (turn.phase !== "streaming") {
@@ -201,13 +143,13 @@ export function AssistantPanel({ stepId }: AssistantPanelProps) {
         conversationIdForThisTurn,
       );
       const generatedAt = new Date().toISOString();
-      setLastConversationId(meta.conversationId);
+      setLastConversationId(stepId, meta.conversationId);
       updateTurn(turnId, (turn) => {
         const text = turn.phase === "streaming" ? turn.text : "";
         return { id: turnId, phase: "done", prompt: turn.prompt, originalText: text, editedText: text, meta, generatedAt };
       });
     } catch (error) {
-      setTurns((prev) => {
+      setTurns(stepId, (prev) => {
         const turn = prev.find((candidate) => candidate.id === turnId);
         // SPEC.md §8.14: a stream the user cancelled ends the same way a
         // genuinely failed one does (the connection just closes) — only the
@@ -589,7 +531,7 @@ export function AssistantPanel({ stepId }: AssistantPanelProps) {
       <div className="flex flex-col gap-2">
         <Textarea
           value={promptText}
-          onChange={(event) => setPromptText(event.target.value)}
+          onChange={(event) => setPromptText(stepId, event.target.value)}
           placeholder={t("workspace.assistant.promptPlaceholder")}
           aria-label={t("workspace.assistant.promptLabel")}
         />
