@@ -5,10 +5,11 @@ interface CoachingBlocksProps {
 }
 
 /**
- * Extracted before a third repetition (D-127's own discipline): `CoachBand`
- * had this heading/list/paragraph rendering inline; W2's `AssistantGuideCard`
- * needs the exact same rendering of the exact same coaching content, so the
- * JSX moved here rather than being copy-pasted a second time.
+ * Extracted out of `CoachBand`'s own inline heading/list/paragraph rendering
+ * during W2 (D-217/D-228), when the step's AI column briefly rendered this
+ * same coaching content a second time (`AssistantGuideCard`). D-242 removed
+ * that duplicate — `CoachBand` is the one caller again — but the extraction
+ * stays: it is still the one place this rendering logic lives.
  */
 export function CoachingBlocks({ blocks }: CoachingBlocksProps) {
   return (

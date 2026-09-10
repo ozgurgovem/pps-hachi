@@ -203,7 +203,6 @@
     },
     "assistant": {
       "columnTitle": "AI support",
-      "guideEyebrow": "Guide for this step",
       "noModelConfigured": "No model is chosen for this project yet.",
       "goToSettings": "Go to Settings",
       "promptLabel": "Ask the assistant",

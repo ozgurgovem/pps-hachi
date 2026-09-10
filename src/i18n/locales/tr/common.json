@@ -203,7 +203,6 @@
     },
     "assistant": {
       "columnTitle": "AI Desteği",
-      "guideEyebrow": "Bu adım için rehber",
       "noModelConfigured": "Bu proje için henüz bir model seçilmedi.",
       "goToSettings": "Ayarlara git",
       "promptLabel": "Asistana sor",

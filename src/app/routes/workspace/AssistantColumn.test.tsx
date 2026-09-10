@@ -6,7 +6,6 @@ import "../../../i18n";
 import { createNewProject } from "../../../domain/model";
 import { useProjectStore } from "../../../state";
 import { AssistantColumn } from "./AssistantColumn";
-import { getCoachingMarkdown } from "./coachContent";
 
 vi.mock("../../../ai/completionIpc");
 
@@ -30,16 +29,7 @@ afterEach(() => {
 });
 
 describe("AssistantColumn", () => {
-  it("shows an automatic guide card built from this step's real coaching content, without any model call (D-218)", () => {
-    renderColumn();
-
-    expect(screen.getByText("Guide for this step")).toBeTruthy();
-    const coaching = getCoachingMarkdown("en", 4);
-    const firstLine = coaching.split("\n").find((line) => line.trim().length > 0 && !line.startsWith("#"));
-    expect(screen.getByText(firstLine!.trim())).toBeTruthy();
-  });
-
-  it("renders the chat interface underneath the guide card", () => {
+  it("renders the chat interface", () => {
     renderColumn();
 
     expect(screen.getByLabelText("Ask the assistant")).toBeTruthy();
@@ -51,11 +41,11 @@ describe("AssistantColumn", () => {
 
     await user.click(screen.getByRole("button", { name: "Collapse panel" }));
 
-    expect(screen.queryByText("Guide for this step")).toBeNull();
+    expect(screen.queryByLabelText("Ask the assistant")).toBeNull();
     expect(screen.getByRole("button", { name: "Expand panel" })).toBeTruthy();
 
     await user.click(screen.getByRole("button", { name: "Expand panel" }));
 
-    expect(screen.getByText("Guide for this step")).toBeTruthy();
+    expect(screen.getByLabelText("Ask the assistant")).toBeTruthy();
   });
 });

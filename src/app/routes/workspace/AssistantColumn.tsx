@@ -3,9 +3,6 @@ import { useTranslation } from "react-i18next";
 import type { StepId } from "../../../domain/model";
 import { Button } from "../../../ui";
 import { AssistantPanel } from "./AssistantPanel";
-import { getCoachingMarkdown } from "./coachContent";
-import { CoachingBlocks } from "./CoachingBlocks";
-import { parseCoachingMarkdown } from "./coachingMarkdown";
 
 interface AssistantColumnProps {
   stepId: StepId;
@@ -19,6 +16,12 @@ interface AssistantColumnProps {
  * the right instead, see DECISIONS.md). Collapsible, matching the old
  * `RightPanel`'s own collapse affordance so nothing about that interaction
  * pattern is new to relearn.
+ *
+ * D-242 (Barış's own real-use report): the step's own coaching guide used to
+ * render a second time here (`AssistantGuideCard`), byte-identical to what
+ * `CoachBand` already shows in the main column — pure duplication eating the
+ * narrow 340px column's own limited space with zero new information. Removed;
+ * `CoachBand` stays the one place that content renders.
  */
 export function AssistantColumn({ stepId }: AssistantColumnProps) {
   const { t } = useTranslation();
@@ -53,33 +56,8 @@ export function AssistantColumn({ stepId }: AssistantColumnProps) {
         </Button>
       </div>
       <div className="flex flex-1 flex-col gap-3 overflow-y-auto p-3">
-        <AssistantGuideCard stepId={stepId} />
         <AssistantPanel stepId={stepId} />
       </div>
     </aside>
-  );
-}
-
-/**
- * D-218's "otomatik giriş rehberi" — shown the moment the column mounts, no
- * button, no model call. Reuses `CoachBand`'s exact own content
- * (`getCoachingMarkdown`/`parseCoachingMarkdown`/`CoachingBlocks`) rather
- * than a hand-picked excerpt — D-218's own rule is "derived from existing
- * coaching content, never independently AI-generated," and the full,
- * already-written file satisfies that without a second, fragile
- * section-picking heuristic.
- */
-function AssistantGuideCard({ stepId }: { stepId: StepId }) {
-  const { t, i18n } = useTranslation();
-  const language = i18n.language === "tr" ? "tr" : "en";
-  const blocks = parseCoachingMarkdown(getCoachingMarkdown(language, stepId));
-
-  return (
-    <div className="flex flex-col gap-2 rounded-control border border-dashed border-border bg-surface p-3">
-      <span className="font-mono text-2xs uppercase tracking-wide text-ink-muted">
-        {t("workspace.assistant.guideEyebrow")}
-      </span>
-      <CoachingBlocks blocks={blocks} />
-    </div>
   );
 }
