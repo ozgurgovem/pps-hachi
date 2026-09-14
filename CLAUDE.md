@@ -2771,6 +2771,47 @@ AI layer: Faz 8 fully done (keychain + Vorion connection/model-discovery + strea
   run build` green (same pre-existing chunk-size warning). Rust untouched. Honestly unverified,
   the usual class of gap: Barış's own next `npm run tauri dev` trial — navigate to Settings and
   back, confirm the conversation is genuinely still there — is what closes this for real.
+**P-69's real CI-A root cause found and fixed (D-252, 2026-09-14) — D-239/D-240/D-241 were all
+  chasing symptoms of two real bugs, neither previously root-caused correctly.**
+  `CI-kirmizi-durum-devam-2.md`'s own §0 finding ("only the Export A3 click fails") was itself
+  re-checked against the real CI log (`gh run view 34471682592 --log-failed`, read in full this
+  time, not just the tail) and found **wrong** — the true summary is `2 passing, 4 failing`, and
+  the first real failure is `"creates a new project"` itself (`h1*=e2e-test-project` never
+  appears within 15s); everything after cascades from that. The same pattern was confirmed
+  identical on two earlier runs too (967d58d, 6e0cebb) — D-241 had never actually closed.
+  **Bug 1**: `LaunchScreen.tsx`'s `<UiLanguageToggle/>` (D-242) renders its own "English" button
+  from the very first frame — byte-identical text to the language-choice dialog's own "English"
+  button. A bare `$("button=English")` matched the WRONG one (DOM order favors the toggle),
+  leaving `pendingProjectPath` untouched forever. Fixed by scoping the query to the dialog's own
+  `[role="dialog"]`. **Bug 2, far deeper**: real Tauri v2 defines `window.__TAURI_INTERNALS__.
+  invoke` — and the `__TAURI_INTERNALS__` object reference on `window` itself — as
+  `writable: false, configurable: false`. `e2eInvokeMockBridge.ts`'s (D-239) `internals.invoke =
+  wrapperFn` assignment throws a TypeError in strict-mode ES-module code; that throw died
+  silently inside an unguarded `setTimeout`/dynamic-import chain, so the whole bridge had never
+  actually worked, on any prior run, ever — confirmed directly in a real local macOS build+run
+  (a real native save dialog genuinely opened once, by accident, mid-investigation — a stray
+  `deneme2.ppsx` landed in Barış's own Documents folder and was cleaned up — then
+  `Object.getOwnPropertyDescriptor` proved the property truly locked, and a retry loop moved to
+  `main.tsx` died at the exact same throw). **Fix, architectural**: `e2eInvokeMockBridge.ts`
+  deleted outright; new `src/testing/nativeDialogs.ts` wraps `@tauri-apps/plugin-dialog`'s
+  `save`/`open` and checks a plain, fully-writable `window.__e2e_dialog_mocks__` property this
+  app itself owns — never touching anything Tauri locks. `LaunchScreen.tsx`/`ProjectToolsBar.tsx`
+  now import `save`/`open` from there instead of directly from the plugin (their own unit tests
+  updated to match); the E2E spec sets the mock via a plain `browser.execute()` instead of
+  `browser.tauri.mock()`. **P-70 closed in the same session**: the "could not be built" check
+  (dead text — `A3PreviewReservedBand.tsx` has carried no error-text branch since D-229, verified
+  by reading the current code — removed, the Export-A3-becomes-enabled wait already proves "no
+  error") and the "Assistant tab" check (W2 removed tabs entirely; the real gate is
+  `WorkspaceShell.tsx`'s `{project.meta.ai.enabled && <AssistantColumn/>}`, so the check now
+  looks for the column's own `"AI support"` title instead of a `button*=Assistant` that no longer
+  exists anywhere). **Verified locally, not just assumed**: `npm run test:e2e:build && npm run
+  test:e2e` run three separate times in a row, **6/6 passing every time (~1.8s each)** — a stark
+  contrast to every prior run's ~80s timeout-laden failure chain. `npm test` 1621/1621 (315
+  files), exit 0; `npm run lint`/`npx tsc --noEmit`/`npm run build` clean; the real production
+  bundle greps to zero occurrences of `wdio`/`__e2e_dialog_mocks__` (dead-code-elimination
+  reconfirmed). Rust untouched (`git status src-tauri/` empty). Still owed, honestly: the actual
+  `git push` + `gh run watch` against real CI — this fix is proven locally, real-CI confirmation
+  is the next, separate step, per this project's own "don't claim 'probably fixed'" discipline.
 Templates: two company .xls files analysed; see reference/TEMPLATE_ANALYSIS.md
 Template geometry: VERIFIED 2026-08-01 against both .xls files. Five errors found and
   corrected in place — the largest was the column widths: the real split is 49.7/50.3, NOT

@@ -4,7 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router";
 import { invoke } from "@tauri-apps/api/core";
 import { getVersion } from "@tauri-apps/api/app";
-import { open, save } from "@tauri-apps/plugin-dialog";
+import { open, save } from "../../../testing/nativeDialogs";
 import "../../../i18n";
 import { LaunchScreen } from "./LaunchScreen";
 import { WorkspaceScreen } from "../workspace/WorkspaceScreen";
@@ -12,7 +12,7 @@ import { createNewProject } from "../../../domain/model";
 
 vi.mock("@tauri-apps/api/core", () => ({ invoke: vi.fn() }));
 vi.mock("@tauri-apps/api/app", () => ({ getVersion: vi.fn() }));
-vi.mock("@tauri-apps/plugin-dialog", () => ({ open: vi.fn(), save: vi.fn() }));
+vi.mock("../../../testing/nativeDialogs", () => ({ open: vi.fn(), save: vi.fn() }));
 
 const mockInvoke = vi.mocked(invoke);
 const mockGetVersion = vi.mocked(getVersion);

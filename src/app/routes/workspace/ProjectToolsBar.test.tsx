@@ -8,7 +8,7 @@ import { useProjectStore } from "../../../state";
 import { ProjectToolsBar } from "./ProjectToolsBar";
 import type { DescriptorResult } from "./useA3PreviewSync";
 
-vi.mock("@tauri-apps/plugin-dialog", () => ({ save: vi.fn() }));
+vi.mock("../../../testing/nativeDialogs", () => ({ save: vi.fn() }));
 vi.mock("../a3PreviewWindow/window", () => ({
   openOrFocusA3PreviewWindow: vi.fn(),
   pushDescriptorToPreviewWindow: vi.fn(),

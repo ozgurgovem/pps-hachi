@@ -43,23 +43,35 @@ describe("AI kapalı mutlu yol (D-20)", () => {
 
   it("creates a new project with no AI step in the way", async () => {
     // The native "Save As" dialog `save()` opens is outside the webview — no
-    // WebDriver protocol can drive it. `plugin:dialog|save`'s exact IPC
-    // command string was confirmed by reading
-    // node_modules/@tauri-apps/plugin-dialog/dist-js/index.js directly, not
-    // assumed. Everything downstream of this one mocked call (project
-    // creation, ppsx_write, the whole rest of this spec) runs for real.
+    // WebDriver protocol can drive it. Everything downstream of this one
+    // mocked call (project creation, ppsx_write, the whole rest of this
+    // spec) runs for real.
     //
-    // P-49/D-239/D-240: this app calls `invoke()` via the `@tauri-apps/api/
-    // core` ESM import, which forwards to `window.__TAURI_INTERNALS__.invoke`
-    // directly — NOT via the `window.__TAURI__` property `@wdio/tauri-
-    // plugin`'s own mock interception actually patches (confirmed by reading
-    // both packages' real source, not assumed). `src/testing/
-    // e2eInvokeMockBridge.ts` (e2e-mode-only, dead-code-eliminated from every
-    // real build) bridges that gap by patching `window.__TAURI_INTERNALS__.
-    // invoke` itself to consult the same `window.__wdio_mocks__` registry
-    // `browser.tauri.mock()` already writes into.
-    const saveDialogMock = await browser.tauri.mock("plugin:dialog|save");
-    await saveDialogMock.mockResolvedValueOnce(projectPath);
+    // P-49/D-239/D-240 tried patching `window.__TAURI_INTERNALS__.invoke`
+    // itself (this app's real `invoke()`, from `@tauri-apps/api/core`, reads
+    // that property directly — NOT `window.__TAURI__.core.invoke`, the only
+    // thing `@wdio/tauri-plugin`'s own `browser.tauri.mock()` actually
+    // patches in native/embedded mode, confirmed by reading both packages'
+    // source). CI-kirmizi-durum-devam-2.md (2026-09-14) found that approach
+    // was never actually reachable: real Tauri v2 defines
+    // `window.__TAURI_INTERNALS__.invoke` — and the `__TAURI_INTERNALS__`
+    // object reference on `window` itself — as non-writable AND
+    // non-configurable (confirmed directly via
+    // `Object.getOwnPropertyDescriptor` in a real webview), so no JS-side
+    // patch of either can ever succeed; the previous bridge's plain
+    // assignment threw inside an unguarded callback and silently died,
+    // leaving `save()` un-mocked on every real run since D-239 shipped.
+    // `src/testing/nativeDialogs.ts` replaces that approach entirely:
+    // `LaunchScreen.tsx`/`ProjectToolsBar.tsx` now import `save`/`open` from
+    // there instead of directly from `@tauri-apps/plugin-dialog`, and that
+    // wrapper checks a plain, ordinary, fully writable `window` property
+    // this app itself owns (`window.__e2e_dialog_mocks__`) before falling
+    // through to the real dialog — never touching anything Tauri defines.
+    await browser.execute((mockedPath: string) => {
+      (window as unknown as { __e2e_dialog_mocks__?: Record<string, unknown> }).__e2e_dialog_mocks__ = {
+        save: () => Promise.resolve(mockedPath),
+      };
+    }, projectPath);
 
     await (await $("button*=New PPS Project")).click();
 
@@ -70,7 +82,30 @@ describe("AI kapalı mutlu yol (D-20)", () => {
     // completed once this dialog shipped (found via P-69/D-240's own real-CI
     // re-verification, not guessed). Pick English so the rest of this spec's
     // own English-language selectors stay valid.
-    const englishOption = await $("button=English");
+    //
+    // CI-kirmizi-durum-devam-2.md (2026-09-14): a bare, unscoped
+    // `$("button=English")` is ambiguous and picks the WRONG element —
+    // `LaunchScreen.tsx` also renders `<UiLanguageToggle />` (D-242,
+    // 2026-09-10) right on the launch screen, and its own button's text
+    // (`uiLanguage.english`) is the identical self-referential "English"
+    // string, present on screen from the very first frame, before "New PPS
+    // Project" is even clicked. In DOM document order that toggle's button
+    // sits inside `<main>`, ahead of this dialog's own `Radix Portal`
+    // content — so a plain `$()` always resolved to the UI-language toggle
+    // instead, which only calls `i18n.changeLanguage("en")` and leaves
+    // `pendingProjectPath` untouched, so the dialog never closed and the
+    // project was never created. This was never really fixed by D-241's own
+    // "add an English click" change — it just clicked the wrong button, 100%
+    // reproducibly, on every run since D-242 shipped (confirmed against two
+    // separate real CI runs, both platforms, both showing the exact same
+    // "creates a new project" timeout — CI-kirmizi-durum-devam-2.md's own
+    // claim that this step already passed was a misread of the log, not a
+    // real prior state). Scoping to the dialog's own `role="dialog"`
+    // (Radix's default a11y role, the same one every other `DialogContent`
+    // in this app already carries) makes the query unambiguous.
+    const languageDialog = await $('[role="dialog"]');
+    await languageDialog.waitForDisplayed({ timeout: 15000 });
+    const englishOption = await languageDialog.$("button=English");
     await englishOption.waitForDisplayed({ timeout: 15000 });
     await englishOption.click();
 
@@ -114,9 +149,19 @@ describe("AI kapalı mutlu yol (D-20)", () => {
   });
 
   it("renders the A3 preview without error", async () => {
-    const errorText = await $("*=could not be built");
-    await expect(errorText).not.toBeExisting();
-
+    // P-70 (CI-kirmizi-durum-devam.md §1, 2026-09-14): the old
+    // `"*=could not be built"` check was vacuous — that text hasn't existed
+    // anywhere in the app since W3 (D-229) rewrote `A3PreviewReservedBand.tsx`.
+    // Confirmed by reading the current code, not guessed: that component (and
+    // `useA3PreviewSync`'s own `DescriptorResult`) has no branch that renders
+    // ANY text for `status === "error"` today — it only distinguishes "ok"
+    // (renders the live crop) from "not ok yet" (a plain "waiting" message,
+    // used for both "loading" and "error" alike). So a real descriptor-build
+    // failure has no dedicated error text to assert against right now. The
+    // wait below is the real, meaningful proof of "no error": `ProjectToolsBar`'s
+    // Export A3 button is only ever enabled once `descriptorResult.status ===
+    // "ok"` (`disabled={descriptorResult.status !== "ok" || isExporting}`) —
+    // reaching "ok" is exactly what "without error" means here.
     const exportButton = await $("button*=Export A3");
     await browser.waitUntil(async () => exportButton.isEnabled(), {
       timeout: 30000,
@@ -125,8 +170,11 @@ describe("AI kapalı mutlu yol (D-20)", () => {
   });
 
   it("exports a real .xlsx file to disk", async () => {
-    const saveDialogMock = await browser.tauri.mock("plugin:dialog|save");
-    await saveDialogMock.mockResolvedValueOnce(exportPath);
+    await browser.execute((mockedPath: string) => {
+      (window as unknown as { __e2e_dialog_mocks__?: Record<string, unknown> }).__e2e_dialog_mocks__ = {
+        save: () => Promise.resolve(mockedPath),
+      };
+    }, exportPath);
 
     await (await $("button*=Export A3")).click();
 
@@ -147,8 +195,17 @@ describe("AI kapalı mutlu yol (D-20)", () => {
     await expect(alert).not.toBeExisting();
   });
 
-  it("never shows the Assistant tab — meta.ai.enabled stays false", async () => {
-    const assistantTab = await $("button*=Assistant");
-    await expect(assistantTab).not.toBeExisting();
+  it("never shows the AI support column — meta.ai.enabled stays false", async () => {
+    // P-70 (CI-kirmizi-durum-devam.md §1, 2026-09-14): the old
+    // `button*=Assistant` check was vacuous — W2 (D-217/D-228, 2026-09-08)
+    // removed `RightPanel` (and its Assistant tab) entirely; there is no
+    // element containing the word "Assistant" anywhere in this app's UI any
+    // more (`workspace.assistant.columnTitle` reads "AI support"), so the old
+    // assertion passed for the wrong reason. The real, current gate is
+    // `WorkspaceShell.tsx`'s own `{project.meta.ai.enabled && <AssistantColumn
+    // .../>}` — confirmed by reading that file — so the column's own title is
+    // what must stay absent.
+    const assistantColumnTitle = await $("*=AI support");
+    await expect(assistantColumnTitle).not.toBeExisting();
   });
 });

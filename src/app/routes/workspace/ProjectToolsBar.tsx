@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { save } from "@tauri-apps/plugin-dialog";
 import { useProjectStore } from "../../../state";
 import { Button, DialogContent, DialogRoot } from "../../../ui";
+import { save } from "../../../testing/nativeDialogs";
 import { openOrFocusA3PreviewWindow } from "../a3PreviewWindow/window";
 import { errorMessage } from "../launch/errorMessage";
 import { LayoutReviewPanel } from "./LayoutReviewPanel";
