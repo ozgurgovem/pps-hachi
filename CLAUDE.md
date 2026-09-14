@@ -2809,9 +2809,12 @@ AI layer: Faz 8 fully done (keychain + Vorion connection/model-discovery + strea
   contrast to every prior run's ~80s timeout-laden failure chain. `npm test` 1621/1621 (315
   files), exit 0; `npm run lint`/`npx tsc --noEmit`/`npm run build` clean; the real production
   bundle greps to zero occurrences of `wdio`/`__e2e_dialog_mocks__` (dead-code-elimination
-  reconfirmed). Rust untouched (`git status src-tauri/` empty). Still owed, honestly: the actual
-  `git push` + `gh run watch` against real CI — this fix is proven locally, real-CI confirmation
-  is the next, separate step, per this project's own "don't claim 'probably fixed'" discipline.
+  reconfirmed). Rust untouched (`git status src-tauri/` empty). **Real CI watched, not assumed**:
+  `git push` (`e43a797`) then `gh run watch 34888950619 --exit-status` to completion — the run's
+  own `conclusion: "success"`, both `build (macos-latest)` and `build (windows-latest)` jobs
+  green on every single step, `E2E test build`/`E2E test` included. **P-69 (CI-A) is now really,
+  verifiably closed — this is the first fully green CI run since Phase 5 (2026-08-03, 5+ weeks,
+  35+ commits, none of them green until now).**
 Templates: two company .xls files analysed; see reference/TEMPLATE_ANALYSIS.md
 Template geometry: VERIFIED 2026-08-01 against both .xls files. Five errors found and
   corrected in place — the largest was the column widths: the real split is 49.7/50.3, NOT
