@@ -20,6 +20,21 @@ import { z } from "zod";
 export const EntryReferenceSchema = z.looseObject({
   role: z.string(),
   targetEntryId: z.string(),
+  /**
+   * D-185/P-39: optionally narrows a reference to one node inside the
+   * target entry's own tree-shaped payload (today only `whyWhyTree`'s
+   * `nodes[]`, D-176) rather than the entry as a whole — a confirmed root
+   * cause is one leaf, not the whole tree. Not named after `whyWhyTree`
+   * specifically: a future tree-shaped payload could reuse it unchanged.
+   * `undefined` (the default, and every reference before this field
+   * existed) means the reference targets the entry as a whole — still a
+   * fully valid choice, drilling down is never required (D-51's optional-
+   * field-no-migration posture: every pre-existing `.ppsx` parses
+   * unchanged). Points at a node's own `id`, never at its derived KN{N}
+   * number (D-71: KN{N} is computed, never stored, so it cannot be a
+   * stable address).
+   */
+  targetNodeId: z.string().optional(),
 });
 
 export type EntryReference = z.infer<typeof EntryReferenceSchema>;

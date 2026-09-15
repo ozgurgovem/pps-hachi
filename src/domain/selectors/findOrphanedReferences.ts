@@ -1,4 +1,4 @@
-import { STEP_IDS, type EntryReference, type ProjectModel, type StepId } from "../model";
+import { STEP_IDS, type Entry, type EntryReference, type ProjectModel, type StepId } from "../model";
 
 /**
  * D-117: orphans are **derived, never stored**. Deleting a referenced entry
@@ -32,25 +32,58 @@ export interface ReferenceableEntry {
   readonly methodId: string;
 }
 
-function collectEntryIds(project: ProjectModel): ReadonlySet<string> {
-  const ids = new Set<string>();
+function collectEntriesById(project: ProjectModel): ReadonlyMap<string, Entry> {
+  const byId = new Map<string, Entry>();
   for (const stepId of STEP_IDS) {
     for (const entry of project.steps[stepId].entries) {
-      ids.add(entry.id);
+      byId.set(entry.id, entry);
     }
   }
-  return ids;
+  return byId;
 }
 
-/** Every reference in the project whose `targetEntryId` matches no entry. */
+/**
+ * D-185/P-39: `whyWhyTree`'s payload is `z.unknown()` at the domain-model
+ * level (D-52), and this selector lives under `src/domain`, which never
+ * imports `src/methods` (G1's own boundary, D-196's precedent one layer
+ * over) — so a node's existence is checked by shape, not by importing the
+ * real `WhyWhyTreePayloadSchema`. Defensive, not type-safe, the same
+ * posture `RowTableEditor.tsx`'s `?? ""` fix already established (C1/D-180)
+ * one level up from a bare payload read.
+ */
+function targetNodeExists(payload: unknown, nodeId: string): boolean {
+  if (typeof payload !== "object" || payload === null || !("nodes" in payload)) {
+    return false;
+  }
+  const nodes = (payload as { nodes: unknown }).nodes;
+  if (!Array.isArray(nodes)) {
+    return false;
+  }
+  return nodes.some(
+    (node) => typeof node === "object" && node !== null && (node as { id?: unknown }).id === nodeId,
+  );
+}
+
+/**
+ * Every reference in the project whose `targetEntryId` matches no entry, or
+ * whose `targetNodeId` (D-185/P-39) names a node no longer present inside
+ * the target entry's own payload. A reference with no `targetNodeId` is
+ * never node-orphaned by that check alone — it targets the whole entry,
+ * which the first check already covers.
+ */
 export function findOrphanedReferences(project: ProjectModel): readonly OrphanedReference[] {
-  const known = collectEntryIds(project);
+  const entriesById = collectEntriesById(project);
   const orphans: OrphanedReference[] = [];
 
   for (const stepId of STEP_IDS) {
     for (const entry of project.steps[stepId].entries) {
       for (const reference of entry.references ?? []) {
-        if (!known.has(reference.targetEntryId)) {
+        const target = entriesById.get(reference.targetEntryId);
+        if (!target) {
+          orphans.push({ stepId, entryId: entry.id, entryTitle: entry.title, reference });
+          continue;
+        }
+        if (reference.targetNodeId !== undefined && !targetNodeExists(target.payload, reference.targetNodeId)) {
           orphans.push({ stepId, entryId: entry.id, entryTitle: entry.title, reference });
         }
       }

@@ -337,7 +337,11 @@
       "noMatches": "No entry matches that filter.",
       "missing": "Referenced entry no longer exists ({{id}})",
       "remove": "Unlink \"{{title}}\"",
-      "removeShort": "Unlink"
+      "removeShort": "Unlink",
+      "nodeLabel": "Which node?",
+      "nodeNone": "No specific node",
+      "nodeUntitled": "Untitled node",
+      "nodeMissing": "Node no longer exists"
     },
     "entryImages": {
       "pickDialogTitle": "Choose a photo",

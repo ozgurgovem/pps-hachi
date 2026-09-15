@@ -42,6 +42,32 @@ fn every_checked_in_fixture_opens_through_the_real_reader() {
     }
 }
 
+/**
+ * D-185/P-39: `references[].targetNodeId` is a plain string field the TS
+ * schema added — Rust never parses `references[]` at all, it stays opaque
+ * JSON through `write_ppsx`/`read_ppsx` (`project.json` is bytes to this
+ * crate). This is what turns "the new field survives the real container
+ * round-trip" into an observation rather than an assumption; no file under
+ * `src-tauri/src/ppsx/` was touched to make it work.
+ */
+#[test]
+fn fully_populated_fixture_round_trips_a_target_node_id_carrying_reference_unchanged() {
+    let dir = fixtures_dir();
+    let contents =
+        read_ppsx(&dir.join("fully-populated.ppsx")).expect("fully-populated.ppsx opens");
+    let references = &contents.project["steps"]["5"]["entries"][0]["references"];
+
+    assert_eq!(
+        references[2],
+        serde_json::json!({
+            "role": "rootCause",
+            "targetEntryId": "entry-whywhytree",
+            "targetNodeId": "n-deleted",
+        }),
+        "the third reference must round-trip with targetNodeId intact"
+    );
+}
+
 #[test]
 fn fixture_corpus_has_not_shrunk() {
     // A minimal guard against someone quietly deleting a fixture instead of

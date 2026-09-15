@@ -37,6 +37,15 @@ function entry(id: string, title: string): Entry {
   };
 }
 
+/** D-185/P-39: a `why-why-tree` candidate, so the field's second level (node picking) renders. */
+function whyWhyTreeEntry(
+  id: string,
+  title: string,
+  nodes: readonly { id: string; parentId: string | null; text: string; outcome?: string }[],
+): Entry {
+  return { ...entry(id, title), methodId: "why-why-tree", payload: { nodes } };
+}
+
 function projectWith(entriesByStep: Partial<Record<StepId, readonly Entry[]>>): ProjectModel {
   const { project } = createNewProject({ title: "T", language: "en", appVersion: "0.0.0" });
   const steps = { ...project.steps };
@@ -201,5 +210,114 @@ describe("EntryReferenceField", () => {
     render(<Controlled project={projectWith({})} onChange={vi.fn()} />);
 
     expect(screen.getByText(/Nothing to link to yet/)).toBeTruthy();
+  });
+});
+
+/**
+ * D-185/P-39: once a reference targets a `why-why-tree` entry, a second
+ * level narrows it to one of that entry's own nodes — `targetNodeId`.
+ */
+describe("EntryReferenceField — why-why-tree node picker (D-185/P-39)", () => {
+  it("shows no node picker for an ordinary (non-tree) target", async () => {
+    const user = userEvent.setup();
+    const project = projectWith({ 4: [entry("rc-1", "Die wear")] });
+
+    render(<Controlled project={project} onChange={vi.fn()} />);
+    await user.click(screen.getByRole("button", { name: /Die wear/ }));
+
+    expect(screen.queryByText("Which node?")).toBeNull();
+  });
+
+  it("opens a node picker once a why-why-tree entry is targeted", async () => {
+    const user = userEvent.setup();
+    const project = projectWith({
+      4: [whyWhyTreeEntry("tree-1", "Fire on cavity 2", [{ id: "n1", parentId: null, text: "Die worn" }])],
+    });
+
+    render(<Controlled project={project} onChange={vi.fn()} />);
+    await user.click(screen.getByRole("button", { name: /Fire on cavity 2/ }));
+
+    expect(screen.getByText("Which node?")).toBeTruthy();
+    expect(screen.getByText("No specific node")).toBeTruthy();
+  });
+
+  it("dispatches an updated reference carrying targetNodeId when a node is picked", async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    const project = projectWith({
+      4: [whyWhyTreeEntry("tree-1", "Fire on cavity 2", [{ id: "n1", parentId: null, text: "Die worn" }])],
+    });
+
+    render(<Controlled project={project} onChange={onChange} />);
+    await user.click(screen.getByRole("button", { name: /Fire on cavity 2/ }));
+    await user.click(screen.getByLabelText("Which node?"));
+    await user.click(screen.getByRole("option", { name: "Die worn" }));
+
+    expect(lastArg(onChange)).toEqual([{ role: "rootCause", targetEntryId: "tree-1", targetNodeId: "n1" }]);
+  });
+
+  it("labels a confirmed-root-cause leaf with its KN{N} number, matching outcome.ts's own derivation", async () => {
+    const user = userEvent.setup();
+    const project = projectWith({
+      4: [
+        whyWhyTreeEntry("tree-1", "Fire on cavity 2", [
+          { id: "n1", parentId: null, text: "Die worn", outcome: "confirmedRootCause" },
+        ]),
+      ],
+    });
+
+    render(<Controlled project={project} onChange={vi.fn()} />);
+    await user.click(screen.getByRole("button", { name: /Fire on cavity 2/ }));
+    await user.click(screen.getByLabelText("Which node?"));
+
+    expect(screen.getByRole("option", { name: "Die worn (KN1)" })).toBeTruthy();
+  });
+
+  it("clears targetNodeId, leaving a whole-entry reference, when 'no specific node' is picked", async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    const project = projectWith({
+      4: [whyWhyTreeEntry("tree-1", "Fire on cavity 2", [{ id: "n1", parentId: null, text: "Die worn" }])],
+    });
+
+    render(
+      <Controlled
+        project={project}
+        initial={[{ role: "rootCause", targetEntryId: "tree-1", targetNodeId: "n1" }]}
+        onChange={onChange}
+      />,
+    );
+    await user.click(screen.getByLabelText("Which node?"));
+    await user.click(screen.getByRole("option", { name: "No specific node" }));
+
+    expect(lastArg(onChange)).toEqual([{ role: "rootCause", targetEntryId: "tree-1" }]);
+  });
+
+  it("shows a targetNodeId whose node was deleted as its own honest option, per D-117", async () => {
+    const user = userEvent.setup();
+    const project = projectWith({
+      4: [whyWhyTreeEntry("tree-1", "Fire on cavity 2", [{ id: "n1", parentId: null, text: "Die worn" }])],
+    });
+
+    render(
+      <Controlled
+        project={project}
+        initial={[{ role: "rootCause", targetEntryId: "tree-1", targetNodeId: "n-gone" }]}
+        onChange={vi.fn()}
+      />,
+    );
+    await user.click(screen.getByLabelText("Which node?"));
+
+    expect(screen.getByRole("option", { name: "Node no longer exists" })).toBeTruthy();
+  });
+
+  it("renders no node picker for a why-why-tree target that has no nodes yet", async () => {
+    const user = userEvent.setup();
+    const project = projectWith({ 4: [whyWhyTreeEntry("tree-1", "Fire on cavity 2", [])] });
+
+    render(<Controlled project={project} onChange={vi.fn()} />);
+    await user.click(screen.getByRole("button", { name: /Fire on cavity 2/ }));
+
+    expect(screen.queryByText("Which node?")).toBeNull();
   });
 });

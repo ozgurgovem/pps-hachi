@@ -110,6 +110,56 @@ describe("findOrphanedReferences", () => {
     expect(findOrphanedReferences(afterDelete)).toHaveLength(1);
     expect(findOrphanedReferences(withTarget)).toEqual([]);
   });
+
+  /**
+   * D-185/P-39: a `targetNodeId` narrows a reference to one node inside the
+   * target's own tree-shaped payload — duck-typed here (`{ nodes: [...] }`),
+   * never imported from `whyWhyTree`'s own schema (this file lives under
+   * `src/domain`, which never imports `src/methods`).
+   */
+  it("does not treat a reference carrying a targetNodeId that resolves as orphaned", () => {
+    const project = projectWith({
+      4: [
+        entry("tree-1", { payload: { nodes: [{ id: "n1", parentId: null, text: "Why?" }] } }),
+        entry("rc-1", {
+          references: [{ role: "pointOfCause", targetEntryId: "tree-1", targetNodeId: "n1" }],
+        }),
+      ],
+    });
+
+    expect(findOrphanedReferences(project)).toEqual([]);
+  });
+
+  it("treats a reference whose targetNodeId names a node no longer in the tree as orphaned", () => {
+    const project = projectWith({
+      4: [
+        entry("tree-1", { payload: { nodes: [{ id: "n1", parentId: null, text: "Why?" }] } }),
+        entry("rc-1", {
+          references: [{ role: "pointOfCause", targetEntryId: "tree-1", targetNodeId: "n-deleted" }],
+        }),
+      ],
+    });
+
+    expect(findOrphanedReferences(project)).toEqual([
+      {
+        stepId: 4,
+        entryId: "rc-1",
+        entryTitle: "Entry rc-1",
+        reference: { role: "pointOfCause", targetEntryId: "tree-1", targetNodeId: "n-deleted" },
+      },
+    ]);
+  });
+
+  it("stays clean when a reference to a tree-shaped entry carries no targetNodeId at all", () => {
+    const project = projectWith({
+      4: [
+        entry("tree-1", { payload: { nodes: [] } }),
+        entry("rc-1", { references: [{ role: "pointOfCause", targetEntryId: "tree-1" }] }),
+      ],
+    });
+
+    expect(findOrphanedReferences(project)).toEqual([]);
+  });
 });
 
 describe("findReferencesTo", () => {
@@ -122,6 +172,26 @@ describe("findReferencesTo", () => {
 
     expect(findReferencesTo(project, "poc-1").map((r) => r.entryId)).toEqual(["rc-1"]);
     expect(findReferencesTo(project, "cm-1")).toEqual([]);
+  });
+
+  /** D-185/P-39: the full reference object — `targetNodeId` included — flows through unchanged. */
+  it("carries a reference's targetNodeId through to the caller", () => {
+    const project = projectWith({
+      4: [
+        entry("tree-1", { payload: { nodes: [{ id: "n1", parentId: null, text: "Why?" }] } }),
+        entry("rc-1", {
+          references: [{ role: "pointOfCause", targetEntryId: "tree-1", targetNodeId: "n1" }],
+        }),
+      ],
+    });
+
+    expect(findReferencesTo(project, "tree-1")).toEqual([
+      {
+        stepId: 4,
+        entryId: "rc-1",
+        reference: { role: "pointOfCause", targetEntryId: "tree-1", targetNodeId: "n1" },
+      },
+    ]);
   });
 });
 

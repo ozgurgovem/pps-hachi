@@ -337,7 +337,11 @@
       "noMatches": "Bu filtreye uyan kayıt yok.",
       "missing": "Bağlanan kayıt artık mevcut değil ({{id}})",
       "remove": "\"{{title}}\" bağını kaldır",
-      "removeShort": "Bağı kaldır"
+      "removeShort": "Bağı kaldır",
+      "nodeLabel": "Hangi düğüm?",
+      "nodeNone": "Belirli bir düğüm yok",
+      "nodeUntitled": "Adsız düğüm",
+      "nodeMissing": "Düğüm artık mevcut değil"
     },
     "entryImages": {
       "pickDialogTitle": "Bir fotoğraf seçin",

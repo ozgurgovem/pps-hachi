@@ -51,7 +51,7 @@ describe("ppsx fixture corpus (D-62)", () => {
   test("fully-populated.ppsx round-trips its entries, sign-off and round history", () => {
     const project = ProjectModelSchema.parse(loadFixtureProject("fully-populated.ppsx"));
     expect(project.steps[1].entries).toHaveLength(1);
-    expect(project.steps[4].entries).toHaveLength(1);
+    expect(project.steps[4].entries).toHaveLength(2);
     expect(project.signOff.approvedBy?.name).toBe("C. Demir");
     expect(project.rounds).toHaveLength(1);
   });
@@ -70,6 +70,7 @@ describe("ppsx fixture corpus (D-62)", () => {
     expect(countermeasure?.references).toEqual([
       { role: "rootCause", targetEntryId: "entry-step4" },
       { role: "rootCause", targetEntryId: "entry-deleted-long-ago" },
+      { role: "rootCause", targetEntryId: "entry-whywhytree", targetNodeId: "n-deleted" },
     ]);
   });
 
@@ -89,11 +90,28 @@ describe("ppsx fixture corpus (D-62)", () => {
     const project = ProjectModelSchema.parse(loadFixtureProject("fully-populated.ppsx"));
     const orphans = findOrphanedReferences(project);
 
-    expect(orphans).toHaveLength(1);
+    expect(orphans).toHaveLength(2);
     expect(orphans[0]).toMatchObject({
       stepId: 5,
       entryId: "entry-step5-countermeasure",
       reference: { role: "rootCause", targetEntryId: "entry-deleted-long-ago" },
+    });
+  });
+
+  /**
+   * D-185/P-39: the third reference's target *entry* (`entry-whywhytree`)
+   * exists and opens cleanly, but its `targetNodeId` names a node no longer
+   * present in that entry's own `nodes[]` — a node-level dangle, distinct
+   * from (and caught alongside) the whole-entry dangle above.
+   */
+  test("a reference whose targetNodeId names a deleted node is surfaced as its own orphan", () => {
+    const project = ProjectModelSchema.parse(loadFixtureProject("fully-populated.ppsx"));
+    const orphans = findOrphanedReferences(project);
+
+    expect(orphans[1]).toMatchObject({
+      stepId: 5,
+      entryId: "entry-step5-countermeasure",
+      reference: { role: "rootCause", targetEntryId: "entry-whywhytree", targetNodeId: "n-deleted" },
     });
   });
 

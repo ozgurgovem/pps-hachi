@@ -42,6 +42,25 @@ describe("EntryReferenceSchema", () => {
   it("rejects a reference with no target", () => {
     expect(EntryReferenceSchema.safeParse({ role: "rootCause" }).success).toBe(false);
   });
+
+  /**
+   * D-185/P-39: `targetNodeId` is optional and its absence is the default —
+   * every reference written before this field existed must still parse, and
+   * still mean "targets the whole entry" (D-51's optional-field-no-migration
+   * posture).
+   */
+  it("parses a reference with no targetNodeId, unchanged from before P-39", () => {
+    const parsed = EntryReferenceSchema.parse({ role: "rootCause", targetEntryId: "t" });
+
+    expect(parsed).toEqual({ role: "rootCause", targetEntryId: "t" });
+    expect(parsed.targetNodeId).toBeUndefined();
+  });
+
+  it("accepts and round-trips an explicit targetNodeId", () => {
+    const parsed = EntryReferenceSchema.parse({ role: "pointOfCause", targetEntryId: "tree-1", targetNodeId: "n1" });
+
+    expect(parsed).toEqual({ role: "pointOfCause", targetEntryId: "tree-1", targetNodeId: "n1" });
+  });
 });
 
 describe("EntrySchema with references", () => {

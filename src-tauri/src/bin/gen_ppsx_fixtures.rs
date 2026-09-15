@@ -95,6 +95,31 @@ fn fully_populated_project(id: &str) -> Value {
     // written before its target was deleted must still open cleanly through
     // both the real Rust reader and Zod. Baking it into the corpus makes that
     // promise permanent rather than something a future phase can quietly drop.
+    //
+    // D-185/P-39: a third reference narrows to a `why-why-tree` node via
+    // `targetNodeId` — the *entry* it targets exists, but the node id names
+    // no node in that entry's own `nodes[]` (the node was deleted). Rust
+    // never parses `references[]` at all — it is opaque JSON to
+    // `write_ppsx`/`read_ppsx` — so this is what turns "the new field
+    // survives the real container round-trip" into an observation rather
+    // than an assumption.
+    let why_why_tree = json!({
+        "id": "entry-whywhytree",
+        "methodId": "why-why-tree",
+        "title": "Neden-neden ağacı — fikstür arızası",
+        "order": 1,
+        "a3Visibility": "primary",
+        "payload": {
+            "nodes": [
+                { "id": "n1", "parentId": Value::Null, "text": "Fikstür sensörü neden çalışmadı?", "outcome": "confirmedRootCause" }
+            ]
+        },
+        "images": [],
+        "createdAt": now,
+        "updatedAt": now,
+        "provenance": { "origin": "human" }
+    });
+
     let countermeasure = json!({
         "id": "entry-step5-countermeasure",
         "methodId": "countermeasure",
@@ -114,7 +139,8 @@ fn fully_populated_project(id: &str) -> Value {
         "provenance": { "origin": "human" },
         "references": [
             { "role": "rootCause", "targetEntryId": "entry-step4" },
-            { "role": "rootCause", "targetEntryId": "entry-deleted-long-ago" }
+            { "role": "rootCause", "targetEntryId": "entry-deleted-long-ago" },
+            { "role": "rootCause", "targetEntryId": "entry-whywhytree", "targetNodeId": "n-deleted" }
         ]
     });
 
@@ -145,7 +171,7 @@ fn fully_populated_project(id: &str) -> Value {
             "1": {"entries": [entry("step1")], "notes": "Photo board complete"},
             "2": {"entries": [entry("step2")]},
             "3": {"entries": []},
-            "4": {"entries": [entry("step4")]},
+            "4": {"entries": [entry("step4"), why_why_tree]},
             "5": {"entries": [countermeasure]},
             "6": {"entries": []},
             "7": {"entries": []},
