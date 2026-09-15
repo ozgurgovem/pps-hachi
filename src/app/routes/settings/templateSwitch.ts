@@ -1,7 +1,7 @@
 import { buildA3Layout } from "../../../a3/buildA3Layout";
 import { getTemplateById } from "../../../a3/templates/registry";
 import type { ProjectModel, StepId } from "../../../domain/model";
-import { getA3RendererMap } from "../../../methods/registry";
+import { getA3BlockAggregateImageMap, getA3RendererMap } from "../../../methods/registry";
 import { buildEntryLookup } from "../workspace/layoutReview";
 
 export interface TemplateSwitchDroppedEntry {
@@ -28,7 +28,8 @@ export interface TemplateSwitchPreview {
 export function previewTemplateSwitch(project: ProjectModel, targetTemplateId: string): TemplateSwitchPreview {
   const targetTemplate = getTemplateById(targetTemplateId);
   const rendererMap = getA3RendererMap();
-  const { descriptor } = buildA3Layout(project, targetTemplate, { rendererMap });
+  const aggregateImageMap = getA3BlockAggregateImageMap();
+  const { descriptor } = buildA3Layout(project, targetTemplate, { rendererMap, aggregateImageMap });
   const lookup = buildEntryLookup(project);
 
   const droppedIds = new Set<string>();

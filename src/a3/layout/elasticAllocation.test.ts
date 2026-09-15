@@ -84,6 +84,28 @@ describe("estimateBlockRowDemand", () => {
   it("stays 0 for a methodId with no registered renderer (falls back to a bare title line, but only when the fallback is actually reached)", () => {
     expect(estimateBlockRowDemand([fixtureEntry({ title: "" })], wideColumns, {}, "en")).toBe(0);
   });
+
+  it("P-22/D-270: adds an aggregate declaration's rowSpan once per distinct declaring methodId, on top of every entry's own line count", () => {
+    const rendererMap: A3EntryRendererMap = { "action-item": () => ({ lines: linesOf(1) }) };
+    const entries = [
+      fixtureEntry({ id: "a1", methodId: "action-item" }),
+      fixtureEntry({ id: "a2", methodId: "action-item" }),
+    ];
+    const aggregateImageMap = { "action-item": { kind: "action-gantt-chart" as const, rowSpan: 6, buildSpec: () => ({}) } };
+    // 2 entries x 1 line each = 2, plus ONE chart reservation (6) — not per-entry.
+    expect(estimateBlockRowDemand(entries, wideColumns, rendererMap, "en", aggregateImageMap)).toBe(8);
+  });
+
+  it("P-22/D-270: ignores an aggregate declaration for a methodId no entry in this block actually uses", () => {
+    const rendererMap: A3EntryRendererMap = { fixture: () => ({ lines: linesOf(2) }) };
+    const aggregateImageMap = { "action-item": { kind: "action-gantt-chart" as const, rowSpan: 6, buildSpec: () => ({}) } };
+    expect(estimateBlockRowDemand([fixtureEntry()], wideColumns, rendererMap, "en", aggregateImageMap)).toBe(2);
+  });
+
+  it("P-22/D-270: defaults to no aggregate reservation at all when the map is omitted, reproducing the pre-P-22 estimate", () => {
+    const rendererMap: A3EntryRendererMap = { "action-item": () => ({ lines: linesOf(1) }) };
+    expect(estimateBlockRowDemand([fixtureEntry({ methodId: "action-item" })], wideColumns, rendererMap, "en")).toBe(1);
+  });
 });
 
 /** A minimal 3-block elastic column, using pps-8step-auto's own real left-column numbers (D-158/D-160). */
@@ -209,6 +231,38 @@ describe("resolveElasticBlocks", () => {
     expect(adim3!.contentRows.end - adim3!.contentRows.start + 1).toBe(3); // floor, not 0
     // ADIM 2 absorbs exactly what its two neighbours gave up (2 + 3 = 5), never more.
     expect(adim2!.contentRows.end - adim2!.contentRows.start + 1).toBe(31);
+  });
+
+  it("P-22/D-270: an aggregate-image-bearing block's demand includes the chart's own rowSpan — enough to push a block from 'fits within its own default, no growth needed' into 'must grow, neighbours give up slack', where text demand alone would not", () => {
+    const rendererMap: A3EntryRendererMap = {
+      empty: () => ({ lines: [] }),
+      "action-item": () => ({ lines: linesOf(22) }),
+    };
+    const aggregateImageMap = { "action-item": { kind: "action-gantt-chart" as const, rowSpan: 6, buildSpec: () => ({}) } };
+    const template = fixtureElasticTemplate(leftColumnBlocks());
+    const entries = [
+      entryWithStep(1, { id: "e1", methodId: "empty" }),
+      entryWithStep(2, { id: "e2", methodId: "action-item" }),
+      entryWithStep(3, { id: "e3", methodId: "empty" }),
+    ];
+
+    // Without the aggregate map: 22 lines of text alone fits inside ADIM 2's
+    // own 26-row default — nobody's demand exceeds any default anywhere in
+    // the column, so nothing redistributes and every block simply keeps its
+    // own default (not its smaller "natural" size — the solver only shrinks
+    // a block when some other block's demand actually needs the room).
+    const withoutAggregate = resolveElasticBlocks(template, entries, rendererMap, "en");
+    const [adim1Before, adim2Before] = withoutAggregate;
+    expect(adim2Before!.contentRows.end - adim2Before!.contentRows.start + 1).toBe(26); // default, untouched
+    expect(adim1Before!.contentRows.end - adim1Before!.contentRows.start + 1).toBe(12); // default, untouched
+
+    // With it: 22 lines + 6 chart rows = 28, past ADIM 2's own 26-row default
+    // — ADIM 1 gives up its 2 rows of slack (12 → its own 10-row floor) to
+    // cover exactly the gap the chart's reservation created.
+    const withAggregate = resolveElasticBlocks(template, entries, rendererMap, "en", undefined, aggregateImageMap);
+    const [adim1After, adim2After] = withAggregate;
+    expect(adim2After!.contentRows.end - adim2After!.contentRows.start + 1).toBe(28);
+    expect(adim1After!.contentRows.end - adim1After!.contentRows.start + 1).toBe(10); // shrunk to floor
   });
 
   it("gives an unbounded-demand block (no rowSpan/zonesRowSpan) all of a column's freed surplus", () => {

@@ -77,7 +77,13 @@ export type A3ImageKind =
    * `spaghetti-diagram` and `value-stream-map` — only one of the three
    * registers the renderer in `getA3ImageRendererMap()` (C2's precedent).
    */
-  | "annotated-photo";
+  | "annotated-photo"
+  /**
+   * P-22/D-270: `action-item`'s block-level Gantt — see
+   * `A3BlockAggregateImage`'s own doc comment for why this is the one
+   * `A3ImageKind` built from more than one entry's payload at once.
+   */
+  | "action-gantt-chart";
 
 /**
  * The explicit pixel box a method's chart/diagram must draw itself into.
@@ -217,6 +223,47 @@ export function resolveA3Language(entry: A3EntrySummary): A3Language {
 export function resolveA3Images(entry: A3EntrySummary): readonly A3EntryImageRef[] {
   return entry.images ?? [];
 }
+
+/**
+ * P-22/D-270: the minimal per-entry data a `blockAggregateImage.buildSpec`
+ * needs — `payload` stays `unknown` here (opaque at this pure layer, D-52),
+ * the *real* payload type is only recovered inside the declaring method's
+ * own file (`MethodPlugin<TPayload>.blockAggregateImage`, `src/methods/
+ * types.ts`), the same erasure boundary `A3EntryRenderer` already crosses
+ * for `renderToA3`.
+ */
+export interface A3AggregateEntryInput {
+  readonly id: string;
+  readonly title: string;
+  readonly payload: unknown;
+}
+
+/**
+ * P-22/D-270: unlike every other `A3ImageKind` producer, whose `renderToA3`
+ * sees only its own entry's payload (`place.ts`'s per-entry loop, D-102),
+ * `action-item`'s Gantt genuinely needs ALL of a block's `action-item`
+ * entries at once to draw one shared timeline — no existing contract shape
+ * could express that. `buildA3Layout.ts`'s block loop is the one place that
+ * already computes a block's full entry list before placing any of them
+ * (`entriesForBlock`), so this is evaluated there, once per block, rather
+ * than by `place.ts`'s per-entry pass — `rowSpan` rows are reserved at the
+ * top of the block's content band *before* `placeBlockContent` runs on
+ * whatever rows remain, and `buildSpec` is called only on the entries that
+ * actually survive that placement (so a chart never shows a bar for an
+ * action whose own text row overflowed to an appendix — the chart and the
+ * text list always agree on which actions are visible on this printed
+ * block). `kind` is resolved through the same `A3ImageRendererMap`
+ * (`getA3ImageRendererMap`) a per-entry `image` request already uses — no
+ * second rasterize-dispatch mechanism.
+ */
+export interface A3BlockAggregateImage {
+  readonly kind: A3ImageKind;
+  readonly rowSpan: number;
+  readonly buildSpec: (entries: readonly A3AggregateEntryInput[]) => unknown;
+}
+
+/** Keyed by `methodId` — at most one aggregate declaration per method. */
+export type A3BlockAggregateImageMap = Readonly<Record<string, A3BlockAggregateImage>>;
 
 export type A3EntryRenderer = (payload: unknown, entry: A3EntrySummary) => A3BlockContent;
 

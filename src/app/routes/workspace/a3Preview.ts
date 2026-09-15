@@ -8,7 +8,7 @@ import {
 } from "../../../a3/render/resolveAssetImages";
 import { getTemplateById } from "../../../a3/templates/registry";
 import type { ProjectModel } from "../../../domain/model";
-import { getA3ImageRendererMap, getA3RendererMap } from "../../../methods/registry";
+import { getA3BlockAggregateImageMap, getA3ImageRendererMap, getA3RendererMap } from "../../../methods/registry";
 
 /**
  * The composition root wiring `src/methods`' React-bearing plugin registry
@@ -37,8 +37,9 @@ export async function buildProjectA3Layout(
   otherEntries: readonly AssetEntryBytes[] = [],
 ): Promise<A3LayoutDescriptor> {
   const rendererMap = getA3RendererMap();
+  const aggregateImageMap = getA3BlockAggregateImageMap();
   const template = getTemplateById(project.templateId);
-  const first = buildA3Layout(project, template, { rendererMap });
+  const first = buildA3Layout(project, template, { rendererMap, aggregateImageMap });
 
   if (first.pendingImages.length === 0) {
     return first.descriptor;
@@ -57,5 +58,5 @@ export async function buildProjectA3Layout(
   const assetImages = resolveAssetImagePlacements(assetSlots, project, otherEntries);
   const images: readonly ImagePlacement[] = [...rasterized, ...assetImages];
 
-  return buildA3Layout(project, template, { rendererMap, images }).descriptor;
+  return buildA3Layout(project, template, { rendererMap, images, aggregateImageMap }).descriptor;
 }

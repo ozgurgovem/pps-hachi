@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import type { A3EntryRendererMap, A3ImageKind, A3ImageSize } from "../a3/methodContract";
+import type { A3BlockAggregateImageMap, A3EntryRendererMap, A3ImageKind, A3ImageSize } from "../a3/methodContract";
 import type { StepId } from "../domain/model";
 import { actionItemMethod } from "./actionItem";
 import { beforeAfterPhotosMethod } from "./beforeAfterPhotos";
@@ -191,6 +191,20 @@ export function getA3ImageRendererMap(): Readonly<
       renderImage: (spec: unknown, size: A3ImageSize) => ReactNode;
     } => plugin.imageKind !== undefined && plugin.renderImage !== undefined,
   ).map((plugin) => [plugin.imageKind, plugin.renderImage] as const);
+
+  return Object.fromEntries(entries);
+}
+
+/**
+ * P-22/D-270: the same dependency-injection shape as `getA3ImageRendererMap`,
+ * for `buildA3Layout.ts`'s own block-level aggregate image mechanism —
+ * `src/a3` still never imports `src/methods` directly (D-43/D-94).
+ */
+export function getA3BlockAggregateImageMap(): A3BlockAggregateImageMap {
+  const entries = METHOD_REGISTRY.filter(
+    (plugin): plugin is ErasedMethodPlugin & { blockAggregateImage: A3BlockAggregateImageMap[string] } =>
+      plugin.blockAggregateImage !== undefined,
+  ).map((plugin) => [plugin.id, plugin.blockAggregateImage] as const);
 
   return Object.fromEntries(entries);
 }

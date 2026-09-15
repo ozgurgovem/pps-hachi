@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { ProjectModel, StepState } from "../domain/model";
 import { buildA3Layout } from "./buildA3Layout";
-import type { A3EntryRendererMap } from "./methodContract";
+import type { A3BlockAggregateImageMap, A3EntryRendererMap } from "./methodContract";
 import { farplas7StepTr } from "./templates/farplas-7step-tr";
 import { pps8StepAuto } from "./templates/pps-8step-auto";
 
@@ -461,5 +461,121 @@ describe("buildA3Layout — pps-8step-auto manual block pins (Faz 11/L3b)", () =
       rendererMap,
     });
     expect(descriptor.elasticBlocks).toEqual([]);
+  });
+});
+
+/**
+ * P-22/D-270: `farplas-7step-tr`'s own real Step 5+6 merged block
+ * ("P22:AB22" header, `contentRows: { start: 23, end: 35 }`, 13 rows) —
+ * `action-item` is a literal methodId string here (the same "domain/a3 stay
+ * React-free, duck-type instead of importing `src/methods`" posture
+ * `evaluateReadiness.ts`'s own G1 comment already established, D-196), and
+ * the renderer/aggregate declaration are hand-built fixtures rather than
+ * the real `actionItem` plugin — this suite is testing the MECHANISM
+ * `buildA3Layout.ts` now runs, not `action-item`'s own real chart sizing.
+ */
+describe("buildA3Layout — block-level aggregate images (P-22/D-270)", () => {
+  const actionItemRenderer: A3EntryRendererMap = {
+    ...rendererMap,
+    "action-item": (_payload, entry) => ({ lines: [{ text: entry.title }] }),
+  };
+
+  function fixtureAggregateMap(rowSpan: number): A3BlockAggregateImageMap {
+    return {
+      "action-item": {
+        kind: "action-gantt-chart",
+        rowSpan,
+        buildSpec: (entries) => ({
+          kind: "gantt-chart",
+          items: entries.map((entry) => ({ id: entry.id, label: entry.title, startDate: "", dueDate: "" })),
+        }),
+      },
+    };
+  }
+
+  function projectWithActionItems(entries: readonly Record<string, unknown>[]): ProjectModel {
+    return fixtureProject({
+      steps: {
+        ...fixtureProject().steps,
+        6: { entries: entries.map((overrides) => fixtureEntry({ methodId: "action-item", ...overrides })) },
+      },
+    });
+  }
+
+  it("reserves rowSpan rows at the block's own top row and pushes every entry's own text below it", () => {
+    const project = projectWithActionItems([
+      { id: "a1", order: 0, title: "Kalıp bakımı" },
+      { id: "a2", order: 1, title: "Operatör eğitimi" },
+    ]);
+    const { pendingImages, descriptor } = buildA3Layout(project, farplas7StepTr, {
+      rendererMap: actionItemRenderer,
+      aggregateImageMap: fixtureAggregateMap(3),
+    });
+
+    const ganttSlots = pendingImages.filter((slot) => slot.kind === "action-gantt-chart");
+    expect(ganttSlots).toHaveLength(1);
+    expect(ganttSlots[0]!.anchorCell).toBe("P23"); // block's own top content row, unshifted
+    expect(ganttSlots[0]!.spec).toEqual({
+      kind: "gantt-chart",
+      items: [
+        { id: "a1", label: "Kalıp bakımı", startDate: "", dueDate: "" },
+        { id: "a2", label: "Operatör eğitimi", startDate: "", dueDate: "" },
+      ],
+    });
+
+    // Both entries' own text rows start 3 rows below the block's top (23 + 3 = 26), not at 23.
+    const cellRefs = descriptor.sheets.a3.cells.map((cell) => cell.ref);
+    expect(cellRefs).toContain("P26");
+    expect(cellRefs).toContain("P27");
+    expect(cellRefs).not.toContain("P23");
+    expect(cellRefs).not.toContain("P24");
+    expect(cellRefs).not.toContain("P25");
+  });
+
+  it("emits no aggregate image at all when aggregateImageMap is omitted — pre-P-22 callers (e.g. scripts/gen-a3-fixture.ts) are unaffected", () => {
+    const project = projectWithActionItems([{ id: "a1", order: 0, title: "Kalıp bakımı" }]);
+    const { pendingImages, descriptor } = buildA3Layout(project, farplas7StepTr, {
+      rendererMap: actionItemRenderer,
+    });
+
+    expect(pendingImages.some((slot) => slot.kind === "action-gantt-chart")).toBe(false);
+    // No rows reserved — the entry's own text lands right at the block's top row.
+    expect(descriptor.sheets.a3.cells.some((cell) => cell.ref === "P23" && cell.value === "Kalıp bakımı")).toBe(
+      true,
+    );
+  });
+
+  it("never emits an aggregate image for a block with zero entries of the declaring methodId, even though the map covers it", () => {
+    const project = fixtureProject(); // every step empty
+    const { pendingImages } = buildA3Layout(project, farplas7StepTr, {
+      rendererMap: actionItemRenderer,
+      aggregateImageMap: fixtureAggregateMap(3),
+    });
+    expect(pendingImages.some((slot) => slot.kind === "action-gantt-chart")).toBe(false);
+  });
+
+  it("builds the chart's spec only from entries that actually survived placement — an entry dropped to the appendix never gets a bar", () => {
+    // rowSpan 12 of the block's 13 content rows leaves exactly 1 row for
+    // text: the first (lowest `order`) one-line action fits, the second
+    // overflows to its own appendix sheet (D-100).
+    const project = projectWithActionItems([
+      { id: "a1", order: 0, title: "Fits" },
+      { id: "a2", order: 1, title: "Overflows" },
+    ]);
+    const { pendingImages, descriptor } = buildA3Layout(project, farplas7StepTr, {
+      rendererMap: actionItemRenderer,
+      aggregateImageMap: fixtureAggregateMap(12),
+    });
+
+    const ganttSlot = pendingImages.find((slot) => slot.kind === "action-gantt-chart");
+    expect(ganttSlot?.spec).toEqual({
+      kind: "gantt-chart",
+      items: [{ id: "a1", label: "Fits", startDate: "", dueDate: "" }],
+    });
+
+    expect(descriptor.overflowWarnings.some((warning) => warning.droppedEntryIds.includes("a2"))).toBe(true);
+    expect(descriptor.sheets.appendices.some((sheet) => sheet.cells.some((cell) => cell.value === "Overflows"))).toBe(
+      true,
+    );
   });
 });

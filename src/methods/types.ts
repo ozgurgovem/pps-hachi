@@ -135,6 +135,24 @@ export interface MethodPlugin<TPayload> {
    * picker or image uploader.
    */
   readonly aiProposal?: { readonly promptVersion: string } | undefined;
+  /**
+   * P-22/D-270: this method's own block-level aggregate image (today, only
+   * `action-item`'s Gantt) — see `A3BlockAggregateImage`'s own doc comment
+   * in `src/a3/methodContract.ts` for why this needs a block's WHOLE entry
+   * list rather than just one entry's payload, unlike `imageKind`/
+   * `renderImage` above. `buildSpec`'s own `entries` parameter is typed
+   * against this plugin's real `TPayload`, not `unknown` — the erasure
+   * happens the same way `renderToA3`'s does, at `registerMethod`'s cast.
+   */
+  readonly blockAggregateImage?:
+    | {
+        readonly kind: A3ImageKind;
+        readonly rowSpan: number;
+        readonly buildSpec: (
+          entries: readonly { readonly id: string; readonly title: string; readonly payload: TPayload }[],
+        ) => unknown;
+      }
+    | undefined;
 }
 
 /**

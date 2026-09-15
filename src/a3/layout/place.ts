@@ -41,7 +41,8 @@ interface WrappedLine {
   readonly fillStyleId: string | undefined;
 }
 
-function heightOfRows(contentRows: readonly RowDef[], startRow: number, rowSpan: number): number {
+/** P-22/D-270: exported so `buildA3Layout.ts`'s block-aggregate-image reservation can size its own anchor the same way a per-entry image already does — one height-summing implementation, never two. */
+export function heightOfRows(contentRows: readonly RowDef[], startRow: number, rowSpan: number): number {
   const endRow = startRow + rowSpan - 1;
   return contentRows
     .filter((row) => row.index >= startRow && row.index <= endRow)

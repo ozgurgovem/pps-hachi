@@ -174,6 +174,32 @@ export interface ImpactEffortChartSpec {
   readonly yLabel: string;
 }
 
+/**
+ * P-22/D-270: `action-item`'s block-level Gantt — Barış's own choice
+ * (2026-09-15, `docs/oturumlar/P22-action-plan-gantt.md`) of a genuine
+ * cross-entry aggregation (Seçenek B) over a single-entry mini-strip or
+ * dropping the chart entirely. Unlike every other spec in this file, this
+ * one is built from MULTIPLE entries at once (`A3BlockAggregateImage`,
+ * `src/a3/methodContract.ts`) — one bar per `action-item` entry that
+ * survived placement in its block, scaled to a shared `startDate`→`dueDate`
+ * timeline. `startDate`/`dueDate` stay plain strings (the raw
+ * `type: "date"` field values, `yyyy-mm-dd` when set) — `GanttChart.tsx`
+ * parses them defensively and simply omits a bar it can't parse, the same
+ * "skip, don't guess" posture the AI prompt library already applies to a
+ * missing/malformed value.
+ */
+export interface GanttChartItem {
+  readonly id: string;
+  readonly label: string;
+  readonly startDate: string;
+  readonly dueDate: string;
+}
+
+export interface GanttChartSpec {
+  readonly kind: "gantt-chart";
+  readonly items: readonly GanttChartItem[];
+}
+
 export type ChartSpec =
   | ParetoChartSpec
   | TrendChartSpec
@@ -182,4 +208,5 @@ export type ChartSpec =
   | ScatterChartSpec
   | BoxPlotChartSpec
   | KpiStripChartSpec
-  | ImpactEffortChartSpec;
+  | ImpactEffortChartSpec
+  | GanttChartSpec;

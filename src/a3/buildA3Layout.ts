@@ -22,10 +22,16 @@ import {
 } from "./layout/entriesByBlock";
 import { computeOverflowWarning } from "./layout/overflow";
 import { computeProvisionalBlockMarker } from "./layout/provisional";
-import { placeBlockContent, type PendingImageSlot } from "./layout/place";
-import { resolveEntryContent, type A3BlockContent, type A3EntryRendererMap, type A3TextLine } from "./methodContract";
+import { heightOfRows, placeBlockContent, type PendingImageSlot } from "./layout/place";
+import {
+  resolveEntryContent,
+  type A3BlockAggregateImageMap,
+  type A3BlockContent,
+  type A3EntryRendererMap,
+  type A3TextLine,
+} from "./methodContract";
 import { columnLetterToIndex, parseRange } from "./cellRef";
-import type { A3Template } from "./templates/types";
+import type { A3Template, TemplateBlock } from "./templates/types";
 
 export interface BuildA3LayoutOptions {
   readonly rendererMap: A3EntryRendererMap;
@@ -37,6 +43,13 @@ export interface BuildA3LayoutOptions {
    * job, done before this is invoked. Empty by default.
    */
   readonly images?: readonly ImagePlacement[];
+  /**
+   * P-22/D-270: which methods declare a block-level aggregate image
+   * (`action-item`'s Gantt today) — see `A3BlockAggregateImage`'s own doc
+   * comment. Optional, defaults to `{}` — a caller that never heard of this
+   * (any pre-P-22 test fixture) gets the exact same block layout as before.
+   */
+  readonly aggregateImageMap?: A3BlockAggregateImageMap;
 }
 
 export interface BuildA3LayoutResult {
@@ -119,12 +132,14 @@ export function buildA3Layout(
   const pinnedCanvasRowsByStepId = new Map<StepId, number>(
     Object.entries(project.blockPins ?? {}).map(([stepId, rows]) => [Number(stepId) as StepId, rows]),
   );
+  const aggregateImageMap = options.aggregateImageMap ?? {};
   const resolvedBlocks = resolveElasticBlocks(
     template,
     allEntries,
     options.rendererMap,
     project.meta.language,
     pinnedCanvasRowsByStepId,
+    aggregateImageMap,
   );
 
   for (const block of resolvedBlocks) {
@@ -161,10 +176,33 @@ export function buildA3Layout(
       block.contentColumns.first,
       block.contentColumns.last,
     );
-    const contentRows = rowsInBlockRange(template, block);
+
+    // P-22/D-270: a block-level aggregate image (`action-item`'s Gantt)
+    // reserves `rowSpan` rows at the TOP of the block's content band —
+    // Barış's own choice (`AskUserQuestion`, this session): the chart and
+    // each action's own text row coexist, the chart on top. One row
+    // reservation per distinct aggregate-declaring methodId actually present
+    // in this block, stacked in registry order — today that's always exactly
+    // one (`action-item`), but nothing here assumes only one ever will be.
+    const aggregateMethodIds = [...new Set(blockEntries.map((entry) => entry.methodId))].filter(
+      (methodId) => aggregateImageMap[methodId] !== undefined,
+    );
+    const aggregateReservedRows = aggregateMethodIds.reduce(
+      (sum, methodId) => sum + aggregateImageMap[methodId]!.rowSpan,
+      0,
+    );
+    const placementBlock: TemplateBlock =
+      aggregateReservedRows > 0
+        ? {
+            ...block,
+            contentRows: { start: block.contentRows.start + aggregateReservedRows, end: block.contentRows.end },
+          }
+        : block;
+
+    const contentRows = rowsInBlockRange(template, placementBlock);
     const placement = placeBlockContent(
       blockEntries,
-      block,
+      placementBlock,
       contentRows,
       contentColumnWidths,
       options.rendererMap,
@@ -174,6 +212,34 @@ export function buildA3Layout(
     cells.push(...placement.cells);
     dynamicMerges.push(...placement.merges);
     pendingImages.push(...placement.pendingImages);
+
+    // The chart is built from whichever of this block's aggregate-declaring
+    // entries actually survived placement above — an action dropped to the
+    // appendix (its own text row didn't fit) never gets a bar either, so the
+    // chart and the printed text list can never disagree about what's shown
+    // on this block. Anchored at the block's own top row; each declared
+    // group stacks below the previous one, in the same order rows were
+    // reserved for them.
+    let aggregateAnchorRow = block.contentRows.start;
+    for (const methodId of aggregateMethodIds) {
+      const declaration = aggregateImageMap[methodId]!;
+      const placedEntries = blockEntries.filter(
+        (entry) => entry.methodId === methodId && placement.placedEntryIds.includes(entry.id),
+      );
+      if (placedEntries.length > 0) {
+        pendingImages.push({
+          entryId: `${block.contentColumns.first}${block.contentRows.start}-aggregate-${methodId}`,
+          kind: declaration.kind,
+          spec: declaration.buildSpec(
+            placedEntries.map((entry) => ({ id: entry.id, title: entry.title, payload: entry.payload })),
+          ),
+          anchorCell: `${block.contentColumns.first}${aggregateAnchorRow}`,
+          widthPt: contentColumnWidths.reduce((sum, column) => sum + column.widthPt, 0),
+          heightPt: heightOfRows(rowsInBlockRange(template, block), aggregateAnchorRow, declaration.rowSpan),
+        });
+      }
+      aggregateAnchorRow += declaration.rowSpan;
+    }
 
     const budget = computeBlockBudget(template, block);
     const warning = computeOverflowWarning(block, budget, placement);

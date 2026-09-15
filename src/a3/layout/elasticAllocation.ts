@@ -1,6 +1,6 @@
 import type { Entry, ProjectModel, StepId } from "../../domain/model";
 import { parseRange } from "../cellRef";
-import { resolveEntryContent, type A3EntryRendererMap } from "../methodContract";
+import { resolveEntryContent, type A3BlockAggregateImageMap, type A3EntryRendererMap } from "../methodContract";
 import type { A3Template, TemplateBlock } from "../templates/types";
 import { entriesForBlock, columnWidthsInRange, type EntryWithStep } from "./entriesByBlock";
 import { ENTRY_CONTENT_FONT_PT, type ColumnWidth } from "./contentStyle";
@@ -22,18 +22,32 @@ import { estimateCharsPerLine, wrapText } from "./measure";
  * size to report, so the demand is `Number.POSITIVE_INFINITY`: this block
  * always wants the rest of its column, exactly like it does today under the
  * static budget.
+ *
+ * P-22/D-270: `aggregateImageMap` mirrors `buildA3Layout.ts`'s own block-
+ * aggregate-image reservation — a block hosting `action-item` entries needs
+ * its Gantt chart's `rowSpan` counted here too, or the elastic solver would
+ * under-provision it relative to what real placement later reserves,
+ * producing avoidable overflow on an otherwise-empty column. Defaults to
+ * `{}` so every pre-P-22 call site (none of which know this map exists)
+ * reproduces its old estimate unchanged.
  */
 export function estimateBlockRowDemand(
   entries: readonly Entry[],
   contentColumnWidths: readonly ColumnWidth[],
   rendererMap: A3EntryRendererMap,
   language: ProjectModel["meta"]["language"],
+  aggregateImageMap: A3BlockAggregateImageMap = {},
 ): number {
   const blockWidthPt = contentColumnWidths.reduce((sum, column) => sum + column.widthPt, 0);
   const maxCharsPerLine = estimateCharsPerLine(blockWidthPt, ENTRY_CONTENT_FONT_PT);
 
   let total = 0;
+  const aggregateMethodIds = new Set<string>();
   for (const entry of entries) {
+    if (aggregateImageMap[entry.methodId] !== undefined) {
+      aggregateMethodIds.add(entry.methodId);
+    }
+
     const content = resolveEntryContent(
       entry.methodId,
       entry.payload,
@@ -64,6 +78,11 @@ export function estimateBlockRowDemand(
 
     total += lineCount;
   }
+
+  for (const methodId of aggregateMethodIds) {
+    total += aggregateImageMap[methodId]!.rowSpan;
+  }
+
   return total;
 }
 
@@ -271,6 +290,10 @@ function columnGroupKey(block: TemplateBlock): string {
  * whose own `appSteps[0]` has no entry in the map (including every
  * `farplas-7step-tr` block, and any project with no pins at all) resolves
  * exactly as it did before D-170.
+ *
+ * `aggregateImageMap` (P-22/D-270) is forwarded to `estimateBlockRowDemand`
+ * unchanged — optional, defaults to `{}` inside that function, so this
+ * stays a pure no-op addition for any caller that doesn't pass one.
  */
 export function resolveElasticBlocks(
   template: A3Template,
@@ -278,6 +301,7 @@ export function resolveElasticBlocks(
   rendererMap: A3EntryRendererMap,
   language: ProjectModel["meta"]["language"],
   pinnedCanvasRowsByStepId?: ReadonlyMap<StepId, number>,
+  aggregateImageMap?: A3BlockAggregateImageMap,
 ): readonly TemplateBlock[] {
   const groups = new Map<string, number[]>();
   template.blocks.forEach((block, index) => {
@@ -302,7 +326,13 @@ export function resolveElasticBlocks(
         block.contentColumns.first,
         block.contentColumns.last,
       );
-      const demandRows = estimateBlockRowDemand(blockEntries, contentColumnWidths, rendererMap, language);
+      const demandRows = estimateBlockRowDemand(
+        blockEntries,
+        contentColumnWidths,
+        rendererMap,
+        language,
+        aggregateImageMap,
+      );
       const stepId = block.appSteps[0];
       const pinnedRows = stepId === undefined ? undefined : pinnedCanvasRowsByStepId?.get(stepId);
       return {
