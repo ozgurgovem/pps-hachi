@@ -1,14 +1,18 @@
 # OTURUM P-62 — `farplas-7step-plus`/`farplas-7step-en` kapsam belirleme
 
-> **DURUM (2026-09-08, D-232): §0'ın gerçek-koda-karşı doğrulaması yapıldı, gerçek kanıt
-> toplandı, §2.1 aşağıda kanıtla keskinleştirildi — ama bu oturumun ortamında (izole git
-> worktree, arka-plan/paralel ajan) `AskUserQuestion` aracı HİÇ mevcut değildi, `ToolSearch`
-> ile arandı ve bulunamadı. Barış'a gerçek zamanlı soru sorulamadı — kapsam kararı PENDING,
-> fabrik edilmiş bir "Barış'ın seçimi" YOK.** Aşağıdaki §2.1, bir sonraki interaktif oturumda
-> (ya da Barış'ın kendisiyle doğrudan) çalıştırılmaya hazır, kanıtla desteklenmiş iki soru
-> hâline getirildi — üçüncü madde (BenefitCase/gerçek-ihtiyaç sorusu) zaten bu iki sorunun
-> içine gömülü. Tam kayıt: `DECISIONS.md` D-232, P-62'nin kendi satırındaki "Update
-> 2026-09-08" notu.
+> **DURUM (2026-09-14, D-253): KAPANDI — kod yazılmadı, karar kalıcı.** D-232'nin PENDING
+> bıraktığı §2.1'in iki sorusu bu kez gerçekten `AskUserQuestion` ile Barış'a soruldu.
+> Barış'ın cevabı ikisi için de aynıydı: tek şablon `reference/
+> PPS_A3_Problem_Solving_Template_Rev00.xlsx` olmalı, başka şablon olmamalı — ve bu zaten
+> `pps-8step-auto` olarak inşa edilmiş durumda (D-150/D-157/Faz 11/L1). Sonuç: `-en` ve
+> `-plus` hiçbir zaman inşa edilmeyecek, kalıcı olarak YAGNI. Tam kayıt: `DECISIONS.md`
+> D-253; `SPEC.md` §3.0/§6 buna göre düzeltildi. Aşağıdaki §0-§4, artık yalnızca bu kararın
+> nasıl verildiğinin tarihsel kaydı — yeniden açılmaz.
+>
+> **Önceki durum (2026-09-08, D-232, artık kapalı): §0'ın gerçek-koda-karşı doğrulaması
+> yapıldı, gerçek kanıt toplandı, §2.1 aşağıda kanıtla keskinleştirildi — ama o oturumun
+> ortamında (izole git worktree, arka-plan/paralel ajan) `AskUserQuestion` aracı hiç mevcut
+> değildi, kapsam kararı o zaman PENDING bırakılmıştı.**
 
 > Faz 11'in orijinal `SPEC.md` §6 lafzı üç yeni şablon sayıyordu: `farplas-7step-plus`,
 > `farplas-7step-en`, `pps-8step-auto`. D-223'ün kendi kapsam-belirleme oturumunda (2026-09-06)

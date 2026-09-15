@@ -20,6 +20,10 @@ interface DialogContentProps {
  * off-screen with no way to reach them. No caller had content tall enough to
  * hit this until Phase 6b's tree/graph methods — found walking the real app
  * (Anayasa §3b: "yürütülmemiş yol").
+ *
+ * Farplas görsel diline taşındı (P-58/D-25x, Grup 2) — `rounded-2xl`
+ * (StepOverview'un kartlarıyla aynı, D-218), sınır `fp-gray-dark` (işlevsel,
+ * P-68 fix). `max-h-[85vh]`/`shrink-0`/`overflow-y-auto` DOKUNULMADI.
  */
 export function DialogContent({ className, children, title, description }: DialogContentProps) {
   return (
@@ -28,15 +32,15 @@ export function DialogContent({ className, children, title, description }: Dialo
       <DialogPrimitive.Content
         className={cn(
           "fixed left-1/2 top-1/2 z-50 flex max-h-[85vh] w-full max-w-md -translate-x-1/2 -translate-y-1/2",
-          "flex-col rounded-control border border-border bg-surface p-6 shadow-lg",
+          "flex-col rounded-2xl border border-fp-gray-dark bg-surface p-6 shadow-lg",
           className,
         )}
       >
-        <DialogPrimitive.Title className="shrink-0 font-display text-xl font-semibold tracking-wide text-ink">
+        <DialogPrimitive.Title className="shrink-0 font-display text-xl font-semibold tracking-wide text-fp-charcoal">
           {title}
         </DialogPrimitive.Title>
         {description ? (
-          <DialogPrimitive.Description className="mt-1 shrink-0 font-body text-sm text-ink-muted">
+          <DialogPrimitive.Description className="mt-1 shrink-0 font-body text-sm text-fp-gray-dark">
             {description}
           </DialogPrimitive.Description>
         ) : null}

@@ -288,18 +288,24 @@ authoritative for all geometry. Two things follow that change the rest of this s
 "implement" into one block. The app's `ProjectModel` stays 8-step regardless; a template is
 a *projection* of the model onto a sheet. Never collapse the model to fit a template.
 
-**Templates are data.** Four ship at launch — `farplas-7step-tr`, `farplas-7step-en`,
-`farplas-7step-plus` (seven printed blocks, eight disciplines, via sub-bands inside the
-STEP 5 box) and `pps-8step-auto` (the extended automotive variant, Template B). Default is
-`farplas-7step-tr` until the fidelity test passes, then `farplas-7step-plus`. The user picks
-one per project and can switch later without losing content. See the analysis document §6b,
-§7 and §8; the `A3Template` type is defined in §8.
+**Templates are data. Two ship, not four (P-62, D-253, 2026-09-14, LOCKED — corrects this
+paragraph's original four-template plan).** `farplas-7step-tr` (legacy-compatibility, D-157 —
+existing 7-step `.ppsx` files still open and export) and `pps-8step-auto` (the default,
+transcribed cell-for-cell from `reference/PPS_A3_Problem_Solving_Template_Rev00.xlsx`, D-150/
+Faz 11/L1). `farplas-7step-plus` and `farplas-7step-en` were filed as P-62 pending their own
+scope-definition session (D-232, 2026-09-08) and then closed outright by Barış: Rev00 is the
+one and only template going forward, and `pps-8step-auto` already **is** Rev00 built — a
+separate `-plus` (sub-banding disciplines into the old 7-block Farplas form) or `-en`
+(a bespoke bilingual variant of that same old form) would only reintroduce the geometry
+`pps-8step-auto` was built to replace. `pps-8step-auto`'s own TR/EN dual-language export
+(D-188/L1/D-224) already covers what `-en` would have provided. See the analysis document
+§12 (the real page contract) and D-149's four scope-definition sessions (Oturum A/B1-B3/
+C1-C6/D1-D2b); the `A3Template` type is defined in `src/a3/templates/types.ts`.
 
 The block count on the sheet and the step count in the method are **separate decisions**.
-The model is always eight steps. `farplas-7step-plus` exists because merging app-steps 5
-and 6 has a measurable cost — in the supplied form the combined block gets 390 pt while
-results get 540 pt, so deciding and doing together occupy less space than checking — and
-sub-bands fix that without asking the organisation to re-approve its form.
+The model is always eight steps; `pps-8step-auto`'s own eight blocks map 1:1 to it, which is
+the other reason `-plus`'s "eight disciplines via sub-bands in a seven-block form" compromise
+no longer earns its own template — a real eight-block form is now the default.
 
 Two corrections to §1.3 that come from the supplied files:
 
@@ -578,7 +584,7 @@ Ship something runnable at the end of every phase. Do not build the whole thing 
 | 8 | **AI foundation**: provider abstraction, keychain storage, Settings tab, connection test, model discovery, streaming chat panel, provenance plumbing | All three providers answer a trivial prompt through the same interface; keys are provably absent from disk, logs and the webview |
 | 9 | **AI structured generation**: `generateStructured` per provider, per-step prompt library, proposal→accept/edit/reject flow, file & image ingestion, redaction layer | The assistant can propose a valid Pareto entry from an uploaded xlsx and the user can accept it into the project with correct provenance |
 | 10 | **AI review & layout**: A3 placement optimizer, condensation to cell budget, mock-auditor review, TR↔EN translation, cost meter | Assistant rewrites an overflowing A3 into budget without losing meaning, and flags a weak root cause on a deliberately-bad project |
-| 11 | Remaining templates (`farplas-7step-plus`, `farplas-7step-en`, `pps-8step-auto`), template switching, `BenefitCase` and the `Onay formu` calculator | Switching a project between all four templates preserves every entry and warns before anything moves to an appendix |
+| 11 | `pps-8step-auto`'s static geometry + template switching (`farplas-7step-plus`/`farplas-7step-en` closed as P-62, D-253 — Rev00/`pps-8step-auto` is the only template family going forward), `BenefitCase` and the `Onay formu` calculator | Switching a project between `farplas-7step-tr` and `pps-8step-auto` preserves every entry and warns before anything moves to an appendix — DONE, D-225 |
 | 12 | Polish, i18n TR/EN complete, PDF/PNG export, packaging, signing, auto-update | Signed installers for both platforms |
 
 Phases 8–10 are additive. Everything before them must remain fully functional with AI

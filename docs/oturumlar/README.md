@@ -313,7 +313,64 @@ seçenekle (build / YAGNI-kapat / ertelensin), bir sonraki interaktif oturumda d
 `AskUserQuestion` ile çalıştırılmaya hazır. Tam kayıt: `DECISIONS.md` D-232, P-62'nin kendi
 "Update 2026-09-08" notu, yeni **P-66**.
 
-## Sıradaki iş — Faz 12'nin dört M-dilimi TAMAMEN bitti; P-58, P-62 kapsam kararı, ve yeni CI kırmızı durumu bekliyor
+**P-62 KAPANDI 2026-09-14 (D-253), kod yazılmadı.** İki soru bu kez gerçekten
+`AskUserQuestion` ile Barış'a soruldu (araç bu oturumun ortamında mevcuttu). Barış'ın cevabı
+ikisi için de aynıydı ve sunulan üç seçeneğin hiçbirinin literal metnine birebir uymuyordu —
+kendi sözleriyle: "şablon bu olmalı: `reference/PPS_A3_Problem_Solving_Template_Rev00.xlsx`,
+başka bir şablon olmamalı." Bu, zaten `pps-8step-auto` olarak inşa edilmiş dosya (`pps-8step-
+auto.ts`'in kendi başlık yorumu: "Source: `reference/PPS_A3_Problem_Solving_Template_Rev00.
+xlsx`, D-150 LOCKED") — yani Barış'ın işaret ettiği tek-şablon zaten var. Sonuç: `-en` ve
+`-plus` kalıcı olarak YAGNI, hiçbir yeni şablon dosyası yazılmadı. `SPEC.md` §3.0/§6 düzeltildi
+(dört-şablon lafzı → iki şablon: `farplas-7step-tr` legacy + `pps-8step-auto` default), P-62'nin
+kendi satırı ve bu README'nin "Sıradaki iş" tablosu güncellendi. P-66 (tpmLossTaxonomy'nin
+kategori-sayısı boşluğu) bu kararla ilgisiz, hâlâ açık. Tam kayıt: `DECISIONS.md` D-253.
+
+## P-58 — Farplas görsel dilinin `src/ui/`'ye yayılması
+
+`docs/oturumlar/P58-gorsel-dil-yayilmasi.md` — W1'in (D-218/D-219/D-220) yalnızca iki yüzeye
+(iniş görünümü, adım sayfası çerçevesi) taşıdığı Farplas kurumsal kimliğinin `src/ui/`'nin
+12 primitifine (Input/Select/Checkbox/Textarea/Label/Badge/Tooltip/Dialog/StepTick/
+ThemeToggle/Tabs/Button) yayılması. Kendi filed notunun "yüksek patlama-yarıçapı" uyarısı
+gereği, önerilen sıralamaya uyularak diğer üç aday (Faz 12, P-62, küçük açık maddeler)
+TAMAMEN bittikten sonra, TEK BAŞINA çalıştırıldı.
+
+**KAPANDI 2026-09-15 (D-254/D-255/D-256).** §0'ın kendi doğrulaması gerçek koda karşı
+çalıştırıldı: yalnızca `StepOverview.tsx`/`StepQuickJump.tsx` gerçekten `-fp-` sınıfı
+kullanıyordu, `src/ui/`'nin 12 bileşeninin hiçbiri kullanmıyordu. §2.1'in dört sorusu bir
+`AskUserQuestion` turunda soruldu, **dördü de Barış'ın önerilen seçeneği**: tam görsel dil
+(renk+font+radius/gölge), bileşen bileşen elle taşıma (token yönlendirme değil), D-114
+disiplinine göre üç grup (form kontrolleri / geri bildirim / bağımsız), D-220'nin owed
+dark-mode onayı bu turla birleştirilsin. Kod okunurken beklenmedik, load-bearing bir bulgu
+çıktı: **P-68** (D-237/M4) zaten dosyalanmıştı — bugünkü yedi `--color-fp-*` token'ı WCAG
+AA'yı ışıkta 6/7, koyuda 3/7 rolde geçmiyordu. Beşinci bir soruyla Barış'a soruldu, "aynı
+BVVL turunda düzelt" seçildi.
+
+**Palet v2**: gerçek WCAG formülüyle hesaplanan, marka yönünü (teal/kırmızı/antrasit/gri)
+DEĞİŞTİRMEYEN, yalnızca tonları AA eşiğini geçecek şekilde ayarlayan bir revizyon — roller
+netleştirildi (`fp-teal` = sınır/hover/odak, `fp-teal-deep` = metin, `fp-gray-dark` = ikincil
+metin + işlevsel sınır, `fp-gray-mid` = artık metin değil, `fp-gray-light` = salt dekoratif),
+`--accent`/`--accent-ink`'in aynı deseninin Farplas karşılığı olan yeni bir
+`--fp-accent-fill`/`--fp-accent-fill-ink` çifti eklendi (dolu yüzeyler için).
+
+**Üç Block Visual Verification Loop turu**, hepsi aynı Claude Artifact URL'sine eklenerek
+(D-165/W1'in "artifact tek kullanımlık, dokümanlar kalıcı kayıt" disiplini): Tur 1 (palet
+v1→v2 karşılaştırması + Grup 1 — form kontrolleri, gerçek Adım-2/Stratifikasyon sahnesi,
+"OK gayet iyi"), Tur 2 (Grup 2 — Badge/Tooltip/Dialog, gerçek girişi-sil onay diyaloğu, "OK
+uygun"), Tur 3 (Grup 3 — StepTick/ThemeToggle/Tabs/Button, "evet uygun") — üçü de revizyonsuz,
+önerilen sonuçla onaylandı. Her grup onaylandıkça hemen koda uygulandı, `npm test`
+(1621/1621)/`npm run lint`/`npx tsc --noEmit`/`npm run build` her seferinde çalıştırıldı,
+hiçbiri kırılmadı (davranış testleri hiç değişmedi, yalnızca üç dosyanın renk/sınıf
+doğrulaması D-242'nin kendi sınıflarını — `max-h-[85vh]`, `max-h-[var(--radix-select-
+content-available-height)]` — korudu). Rust hiç dokunulmadı (üç grup da TS/CSS-only).
+
+**Kapsam dışı bırakılan, bilerek**: `src/app`'ın `src/ui/` primitiflerinin ARKASINDAN değil
+DOĞRUDAN kullandığı eski token sınıfları (~38 dosya, `StepPage.tsx`'in kendi çerçevesi dahil)
+— P-58'in kapsamı yalnızca 12 primitifti, sayfa-seviyesi doğrudan Tailwind kullanımı ayrı,
+gelecekteki bir kapsam kararını bekliyor. `src/ui/`'nin bileşen API'si hiç değişmedi. Tam
+kayıt: `DECISIONS.md` D-254 (Grup 1 + palet v2 tasarımı + P-68 kapanışı), D-255 (Grup 2),
+D-256 (Grup 3 + toplam kapanış).
+
+## Sıradaki iş — Faz 12'nin dört M-dilimi, P-62 ve P-58 TAMAMEN bitti; yalnızca CI push+watch (D-252) bekliyor
 
 W3 ile D-217 girişimi (W1+W2+W3) ve Faz 11'in kendi üç dilimlik planı (L1+L2+L3a+L3b) ikisi de
 2026-09-08'de TAMAMEN kapandı. Aynı gün yazılan dört bağımsız adaydan biri — **Faz 12 kapsam
@@ -323,8 +380,8 @@ Kalan üç aday hâlâ başlamadı:
 | Aday | Prompt | Ne | Kod mu, kapsam mı |
 |---|---|---|---|
 | ~~Faz 12 kapsam belirleme~~ | ~~`docs/oturumlar/faz12-kapsam-belirleme.md`~~ | **BİTTİ (D-230, 2026-09-08)** — bkz. yukarıdaki "Faz 12" bölümü, M1-M4 | Kapsam belirleme TAMAMLANDI, KOD YOK — dört yeni launch prompt yazıldı |
-| ~~P-62 kapsam belirleme~~ | ~~`docs/oturumlar/P62-kalan-sablonlar-kapsam.md`~~ | **§0 taraması + kanıt toplama BİTTİ (D-232, 2026-09-08) — kapsam kararının kendisi PENDING** (`AskUserQuestion` bu oturumun ortamında yoktu). Gerçek kanıt bulundu: `-en` gerçek bir geometri farkı (§9.5/§9.6), `-plus` gerçek bir iş-önceliği gerilimi. İki soru artık kanıtla keskinleştirilmiş, hazır — bkz. yukarıdaki "P-62 kapsam belirleme" bölümü | Kapsam belirleme TAMAMLANDI, KOD YOK — iki soru bir sonraki interaktif oturumda `AskUserQuestion` ile çalıştırılmaya hazır |
-| P-58 | `docs/oturumlar/P58-gorsel-dil-yayilmasi.md` | W1'in Farplas görsel dilini (D-218) `src/ui/`'nin 12 primitifine yayma — kendi filed notunda "yüksek patlama-yarıçapı" uyarısı | Gerçek kod, kendi ilk `AskUserQuestion` turuyla açılıyor |
+| ~~P-62 kapsam belirleme~~ | ~~`docs/oturumlar/P62-kalan-sablonlar-kapsam.md`~~ | **KAPANDI (D-253, 2026-09-14) — Barış'a gerçekten `AskUserQuestion` ile soruldu, cevap: tek şablon Rev00/`pps-8step-auto`, `-en`/`-plus` hiç inşa edilmeyecek.** Kod yazılmadı; `SPEC.md`/`DECISIONS.md` düzeltildi. | Kapandı — kalıcı YAGNI, yeniden açılmaz |
+| ~~P-58~~ | ~~`docs/oturumlar/P58-gorsel-dil-yayilmasi.md`~~ | **KAPANDI (D-254/D-255/D-256, 2026-09-15) — Farplas görsel dili `src/ui/`'nin 12 primitifine yayıldı, P-68 (WCAG AA) kapandı, D-220'nin owed dark-mode onayı kapandı.** Bkz. aşağıdaki "P-58" bölümü. | Kapandı — 12/12 bileşen, üç BVVL turu, hepsi onaylandı |
 | Küçük açık maddeler | `docs/oturumlar/kucuk-acik-maddeler.md` | ~~P-63 (kpi-strip'in ADIM 7'de her zaman appendix'e düşmesi)~~ **P-63 CLOSED (D-234, 2026-09-09)** + ~~P-64 (bir kolonun son bloğunun kendi sürükleme tutamacı yok)~~ **P-64 CLOSED (D-233, 2026-09-09)** | İkisi de BİTTİ |
 | M1-M4 (Faz 12'nin kendi dilimleri) | `docs/oturumlar/M1-i18n-tarama.md` / `M2-auto-update.md` / `M3-paketleme-imza-kapanisi.md` / `M4-polish-kalite-tabani.md` | i18n taraması, auto-update, packaging/signing kapanışı, Quality floor denetimi — bkz. yukarıdaki "Faz 12" bölümü | **DÖRDÜ DE BİTTİ** (M1 D-235/D-236, M2 D-238, M3 D-231, M4 D-237) |
 | ~~CI kırmızı durumu (P-69/CI-A)~~ | ~~`docs/oturumlar/CI-kirmizi-durum-devam-2.md`~~ | **KOD BİTTİ (D-252, 2026-09-14) — yerel doğrulama tamam, gerçek CI push+watch owed.** `CI-kirmizi-durum-devam-2.md`'nin kendi §0 bulgusu YANLIŞ çıktı — gerçek log yeniden okunduğunda asıl ilk başarısızlık "creates a new project" testinin kendisiydi. İki gerçek, bağımsız kök neden bulundu: (1) `UiLanguageToggle`'ın (D-242) kendi "English" düğmesiyle dil-dialogunun "English" düğmesi metin çakışması — seçici dialogun `role="dialog"`'ına kapsandı; (2) çok daha derin — gerçek Tauri v2'de `window.__TAURI_INTERNALS__.invoke` (ve nesnenin kendisi) `writable:false, configurable:false` — `e2eInvokeMockBridge.ts`'in (D-239) atama denemesi hiçbir zaman çalışmamıştı, sessizce throw ediyordu. `e2eInvokeMockBridge.ts` silindi, yerine kilitli hiçbir property'ye dokunmayan `src/testing/nativeDialogs.ts` (düz, yazılabilir `window.__e2e_dialog_mocks__`) geldi. P-70 da aynı oturumda kapatıldı. Üç ayrı gerçek yerel `npm run test:e2e` çalıştırmasında **6/6 passing**. | Kod BİTTİ, yerel 6/6 doğrulandı — `git push` + `gh run watch` ile gerçek CI sonucu bu oturumun kendi son adımı |
@@ -339,19 +396,15 @@ kodu seviyesinde dosya çakışma riski:
 
 - **Faz 12 kapsam belirleme + P-62 kapsam belirleme**: DÜŞÜK risk, paralel çalıştırılabilir —
   ikisi de "kod yok," yalnızca kendi yeni dosyalarını + DECISIONS.md/README.md'nin sonunu
-  değiştiriyor. **İkisi de artık BİTTİ** (Faz 12: D-230, tam kapandı; P-62: D-232, §0+kanıt
-  bitti ama kapsam kararı kendisi `AskUserQuestion`'ın bu ortamda yokluğu nedeniyle PENDING).
+  değiştiriyor. **İkisi de artık TAMAMEN BİTTİ** (Faz 12: D-230, tam kapandı; P-62: D-253,
+  2026-09-14 — Barış'a gerçekten soruldu, kalıcı YAGNI).
 - **Küçük açık maddeler**: DÜŞÜK risk, yukarıdaki ikisiyle VE kendi içinde paralel çalıştırılabilir
   — `src/methods/kpiStrip/` (P-63) ve `src/a3/render/BlockPinOverlay.tsx` (P-64) tamamen ayrı
   dosyalar, ikisi de Faz 12/P-62'nin dokunduğu hiçbir dosyaya değmiyor.
-- **P-58**: YÜKSEK risk — kendi filed notunun "yüksek patlama-yarıçapı" uyarısı tam olarak bunu
-  söylüyor: `src/ui/`'nin 12 primitifi uygulamanın HER yerinde kullanılıyor. Diğer üçüyle aynı anda
-  çalıştırmak dosya-seviyesinde doğrudan çakışmasa bile (P-58 `src/ui/`'ye, diğerleri oraya
-  dokunmuyor), SEMANTİK risk var — P-58 devam ederken başka bir oturumun `src/ui/` primitiflerini
-  KULLANAN yeni bir bileşen eklemesi (örn. Faz 12'nin polish işi), P-58'in henüz bitmemiş görsel
-  geçişiyle tutarsız bir sonuç doğurabilir. **Önerilen sıralama: P-58 YALNIZ çalıştırılsın —
-  ya ilk (temiz bir zeminde) ya da diğer üçü bittikten sonra (artık değişmeyen bir uygulamanın
-  üzerine son bir görsel geçiş olarak).**
+- ~~**P-58**: YÜKSEK risk~~ — **artık geçmiş zaman: P-58 tek başına, diğer adaylar (Faz 12/P-62/
+  küçük açık maddeler) TAMAMEN bittikten sonra çalıştırıldı ve KAPANDI (D-254/D-255/D-256,
+  2026-09-15)** — bu bölümün kendi önerdiği sıralama ("diğer üçü bittikten sonra, artık
+  değişmeyen bir uygulamanın üzerine son bir görsel geçiş olarak") tam olarak izlendi.
 - **M1-M4 (Faz 12'nin kendi dilimleri, 2026-09-08'de eklendi)**: M1 (i18n grep) ve M4 (Quality
   floor denetimi) DÜŞÜK risk — ikisi de küçük, dosya-seviyesinde P-62/küçük-açık-maddeler'le
   çakışmıyor, birbirleriyle de paralel çalıştırılabilir. **M2 kendi başına yürünmeli** — ilk

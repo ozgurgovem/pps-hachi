@@ -10,19 +10,20 @@ type TooltipContentProps = ComponentPropsWithoutRef<typeof TooltipPrimitive.Cont
   children: ReactNode;
 };
 
+/** Farplas görsel diline taşındı (P-58/D-25x, Grup 2) — bkz. Input.tsx'in kendi notu. */
 export function TooltipContent({ className, children, sideOffset = 6, ...rest }: TooltipContentProps) {
   return (
     <TooltipPrimitive.Portal>
       <TooltipPrimitive.Content
         sideOffset={sideOffset}
         className={cn(
-          "z-50 rounded-instrument border border-border bg-surface-raised px-2 py-1 font-mono text-2xs text-ink shadow-lg",
+          "z-50 rounded-md border border-fp-gray-dark bg-surface-raised px-2 py-1 font-mono text-2xs text-fp-charcoal shadow-lg",
           className,
         )}
         {...rest}
       >
         {children}
-        <TooltipPrimitive.Arrow className="fill-border" />
+        <TooltipPrimitive.Arrow className="fill-fp-gray-dark" />
       </TooltipPrimitive.Content>
     </TooltipPrimitive.Portal>
   );

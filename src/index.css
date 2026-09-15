@@ -74,14 +74,33 @@
    * layer'a (@layer theme) sardığı için ayrı, unlayered bir [data-theme="dark"]
    * override'ı üretim build'inde teorik olarak kazanır ama gerçek bir dev-server
    * ortamında (farklı CSS enjeksiyon sırası) kazanmadı — Barış'ın ekran
-   * görüntüsü bunu kanıtladı (D-219 sonrası bulgu). */
-  --fp-teal: #2e9aae;
-  --fp-teal-deep: #22808f;
-  --fp-red: #da2032;
+   * görüntüsü bunu kanıtladı (D-219 sonrası bulgu).
+   *
+   * v2 paleti (P-58/P-68, D-25x) — ışık temadaki altı değer D-237/M4'ün bulduğu
+   * gerçek WCAG AA başarısızlıklarını (7 çiftten 6'sı metin/sınır eşiğini
+   * geçmiyordu) kapatmak için koyulaştırıldı; marka yönü (teal/kırmızı/antrasit/
+   * gri aile) DEĞİŞMEDİ, yalnızca tonlar. Rol tanımları netleştirildi:
+   * fp-teal = sınır/hover/odak halkası (metin DEĞİL, >=3:1 yeter);
+   * fp-teal-deep = metin/eyebrow etiketi (>=4.5:1);
+   * fp-gray-dark = ikincil gövde metni VE işlevsel (etkileşimli) sınır (>=4.5:1,
+   *   otomatik olarak >=3:1'i de kapsar);
+   * fp-gray-mid = ARTIK METİN DEĞİL, yalnızca işlevsel-sınır-güvenli dekoratif
+   *   ton (>=3:1, StepOverview'un küçük altyazıları artık fp-gray-dark kullanır);
+   * fp-gray-light = SALT dekoratif kılcal çizgi — etkileşimli/anlamlı bir sınırda
+   *   ASLA kullanılmaz (AA gerektirmez, WCAG 1.4.11'in kendi istisnası).
+   * fp-accent-fill/fp-accent-fill-ink = --accent/--accent-ink'in aynı deseni,
+   *   dolu yüzeyler (birincil düğme, aktif çip, işaretli checkbox) için — ışıkta
+   *   koyu teal zemin + beyaz metin, koyuda parlak teal zemin + graphite mürekkep
+   *   (WCAG: ışıkta 6.60:1, koyuda 7.58:1). */
+  --fp-teal: #1f8598;
+  --fp-teal-deep: #166673;
+  --fp-red: #c31b2c;
   --fp-charcoal: #3b3d42;
-  --fp-gray-dark: #808080;
-  --fp-gray-mid: #b0b0b0;
+  --fp-gray-dark: #63666a;
+  --fp-gray-mid: #84878a;
   --fp-gray-light: #d9d9d9;
+  --fp-accent-fill: #166673;
+  --fp-accent-fill-ink: #ffffff;
 }
 
 [data-theme="dark"] {
@@ -96,15 +115,20 @@
   --muted: #c9be9e;
   --danger: #e08a93;
 
-  /* Yine görsel olarak DOĞRULANMADI (D-218'in kendi notu) — yalnızca
-   * okunabilirlik için, koyu arkaplan üzerinde açık tonlar. */
+  /* v2 paleti (P-58/P-68) — koyu temadaki dört değer (gray-mid/gray-light + iki
+   * yeni accent-fill primitifi) ışık taraftaki gibi WCAG için ayarlandı;
+   * geri kalanı zaten geçiyordu (D-237/M4'ün ölçümü), değişmedi. Görsel olarak
+   * Barış'a P-58'in BVVL turunda gösterildi (D-25x) — artık yalnızca
+   * "okunabilirlik-öncelikli, doğrulanmamış" değil. */
   --fp-teal: #59c2d6;
   --fp-teal-deep: #3fa8bd;
   --fp-red: #ef6b78;
   --fp-charcoal: #e4e5e9;
   --fp-gray-dark: #9a9a9e;
-  --fp-gray-mid: #808084;
-  --fp-gray-light: #4a4b4f;
+  --fp-gray-mid: #8e9094;
+  --fp-gray-light: #7c7e82;
+  --fp-accent-fill: #59c2d6;
+  --fp-accent-fill-ink: #20241f;
 }
 
 @theme {
@@ -151,11 +175,11 @@
   --radius-instrument: 2px;
   --radius-control: 6px;
 
-  /* Farplas kurumsal kimliği — YALNIZCA StepOverview/StepQuickJump/StepPage
-   * başlığı kullanır (D-218/W1). Uygulamanın geri kalanı hâlâ yukarıdaki
-   * --color-accent/vb.'yi kullanır — bu kasıtlı, geçici bir ikili durum
-   * (P-58 kapanana kadar). `var()` ile yukarıdaki --fp-* primitive'lerine
-   * işaret eder — DOĞRUDAN hex değer YAZMAYIN, dark-mode override'ı yukarıdaki
+  /* Farplas kurumsal kimliği (D-218/W1) — P-58 (D-25x) ile StepOverview/
+   * StepQuickJump/StepPage'in ötesinde src/ui/'nin form kontrollerine
+   * (Input/Select/Checkbox/Textarea/Label) de yayıldı; Grup 2/3 tamamlandıkça
+   * bu not genişleyecek. `var()` ile yukarıdaki --fp-* primitive'lerine işaret
+   * eder — DOĞRUDAN hex değer YAZMAYIN, dark-mode override'ı yukarıdaki
    * [data-theme="dark"] bloğunda yaşıyor (bir önceki sürüm bunları doğrudan
    * @theme içine yazmıştı, ki @theme kendi cascade layer'ına sarıldığı için
    * dark-mode override'ı gerçek bir dev-server'da sessizce kaybediyordu). */
@@ -166,6 +190,8 @@
   --color-fp-gray-dark: var(--fp-gray-dark);
   --color-fp-gray-mid: var(--fp-gray-mid);
   --color-fp-gray-light: var(--fp-gray-light);
+  --color-fp-accent-fill: var(--fp-accent-fill);
+  --color-fp-accent-fill-ink: var(--fp-accent-fill-ink);
 
   --font-fp-display: "Source Sans 3", sans-serif;
 }

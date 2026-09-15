@@ -5,6 +5,7 @@ interface ThemeToggleProps {
   className?: string;
 }
 
+/** Farplas görsel diline taşındı (P-58/D-25x, Grup 3) — bkz. Input.tsx'in kendi notu. */
 export function ThemeToggle({ className }: ThemeToggleProps) {
   const { theme, toggleTheme } = useTheme();
   const isDark = theme === "dark";
@@ -17,8 +18,8 @@ export function ThemeToggle({ className }: ThemeToggleProps) {
       aria-label={isDark ? "Switch to light theme" : "Switch to dark theme"}
       onClick={toggleTheme}
       className={cn(
-        "inline-flex h-8 w-8 items-center justify-center rounded-control border border-border text-ink",
-        "hover:bg-surface-raised focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent",
+        "inline-flex h-8 w-8 items-center justify-center rounded-lg border border-fp-gray-dark text-fp-charcoal",
+        "hover:bg-surface-raised focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fp-teal",
         "focus-visible:ring-offset-2 focus-visible:ring-offset-surface",
         className,
       )}

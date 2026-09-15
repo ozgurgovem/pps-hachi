@@ -2815,6 +2815,58 @@ AI layer: Faz 8 fully done (keychain + Vorion connection/model-discovery + strea
   green on every single step, `E2E test build`/`E2E test` included. **P-69 (CI-A) is now really,
   verifiably closed — this is the first fully green CI run since Phase 5 (2026-08-03, 5+ weeks,
   35+ commits, none of them green until now).**
+**P-58 (Farplas görsel dilinin `src/ui/`'ye yayılması): FULLY DONE (D-254/D-255/D-256,
+  2026-09-15) — all 12 `src/ui/` primitives (Input/Select/Checkbox/Textarea/Label/Badge/
+  Tooltip/Dialog/StepTick/ThemeToggle/Tabs/Button) moved to the Farplas visual language,
+  P-68 (WCAG AA contrast failure in the shipped `--color-fp-*` tokens) closed in the same
+  session, D-220's owed dark-mode visual sign-off closed alongside it.** Run alone, after
+  Faz 12/P-62/the small open items had all closed, per the launch prompt's own high-blast-
+  radius warning and the README's own recommended sequencing. A five-question
+  `AskUserQuestion` round (four from the launch prompt + one raised mid-session) all landed
+  on the recommended option: full visual language (color+font+radius/shadow, not just
+  color/font — `StepOverview.tsx`'s own already-shipped `rounded-2xl`/`shadow-sm`/`shadow-lg`
+  was itself evidence D-218's approval already covered this); component-by-component manual
+  migration (not a one-line token redirect, which would have silently changed every
+  `src/ui/` consumer Barış never reviewed); split into three D-114-sized groups (form
+  controls; feedback; independents); D-220's dark-mode sign-off folded into the same round;
+  and — a real, load-bearing finding surfaced while reading the code, not anticipated by the
+  launch prompt — P-68 (already filed by D-237/M4: the seven `--color-fp-*` tokens fail WCAG
+  AA in 6/7 light-theme roles and 3/7 dark-theme roles) fixed in the same round rather than
+  propagated to 12 more surfaces first.
+  **Palette v2**: every value recomputed with the real WCAG contrast formula
+  (sRGB→linear→relative luminance→`(L1+0.05)/(L2+0.05)`), keeping the brand direction
+  (teal/red/charcoal/gray family) unchanged and only darkening/lightening tones past their
+  real AA thresholds. Roles were clarified in the process: `fp-teal` narrowed to border/
+  hover/focus-ring only (never text); `fp-teal-deep` for text/eyebrow labels; `fp-gray-dark`
+  now serves both secondary body text AND functional/interactive borders (passing 4.5:1
+  automatically covers 3:1); `fp-gray-mid` is **no longer a text color** — StepOverview's
+  small captions moved to `fp-gray-dark`, hierarchy now comes from size/weight, not color
+  (a text-hierarchy application of D-41's own "color never carries meaning alone" rule);
+  `fp-gray-light` is declared **purely decorative**, never a functional boundary again (the
+  WCAG 1.4.11 exemption, used deliberately rather than by omission). A new
+  `--fp-accent-fill`/`--fp-accent-fill-ink` pair mirrors `--accent`/`--accent-ink`'s (D-49)
+  own established pattern for filled surfaces (primary buttons, the active-step chip, a
+  checked checkbox) — light theme pairs a dark teal fill with white ink, dark theme pairs a
+  bright teal fill with the theme-invariant `--graphite` ink, closing P-68's worst violation
+  (the active-step chip's white-on-teal text, 3.31:1 light / 2.08:1 dark) to 6.60:1 / 7.58:1.
+  **Three BVVL rounds, one cumulative artifact** (D-165/W1's own "artifact is disposable,
+  the docs are the record" discipline, republished to the same URL each round): Round 1
+  (palette v1→v2 comparison + Group 1 — Input/Select/Checkbox/Textarea/Label, a real Step-2
+  Stratification-Matrix scene) approved unrevised ("OK gayet iyi"); Round 2 (Group 2 —
+  Badge/Tooltip/Dialog, a real delete-entry confirmation dialog) approved unrevised ("OK
+  uygun"); Round 3 (Group 3 — StepTick/ThemeToggle/Tabs/Button) approved unrevised ("evet
+  uygun") — all three landed on the first try, no revision round needed. Each group's code
+  was applied and verified (`npm test`/`npm run lint`/`npx tsc --noEmit`/`npm run build`)
+  immediately after its own approval, before the next group's mockup was even built — `npm
+  test` stayed 1621/1621 throughout (no test asserted on a specific color/class beyond
+  D-242's own `max-h-[85vh]`/`max-h-[var(--radix-select-content-available-height)]`, both
+  left untouched). Rust untouched throughout (TS/CSS-only). Deliberately out of scope,
+  named up front: the ~38 files under `src/app` that use D-49's old token classes (`bg-
+  surface`, `text-ink`, `bg-accent`) *directly* rather than through a `src/ui/` primitive —
+  including `StepPage.tsx`'s own chrome — stay as they were; `src/ui/`'s component API
+  (props, variant names) never changed, only its token usage. Full record: `DECISIONS.md`
+  D-254 (Group 1 + the v2 palette design + P-68's own closure), D-255 (Group 2), D-256
+  (Group 3 + the overall closure); `docs/oturumlar/README.md`'s own new "P-58" section.
 Templates: two company .xls files analysed; see reference/TEMPLATE_ANALYSIS.md
 Template geometry: VERIFIED 2026-08-01 against both .xls files. Five errors found and
   corrected in place — the largest was the column widths: the real split is 49.7/50.3, NOT

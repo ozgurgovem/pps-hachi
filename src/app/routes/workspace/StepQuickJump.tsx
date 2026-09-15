@@ -42,7 +42,7 @@ export function StepQuickJump({ project, activeStepId, onNavigate, onBackToOverv
         type="button"
         onClick={onBackToOverview}
         aria-label={t("workspace.quickJump.backToOverviewAriaLabel")}
-        className="rounded-control border border-fp-gray-light px-3 py-1.5 font-body text-sm text-fp-charcoal transition-colors hover:border-fp-teal hover:text-fp-teal-deep focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fp-teal"
+        className="rounded-control border border-fp-gray-dark px-3 py-1.5 font-body text-sm text-fp-charcoal transition-colors hover:border-fp-teal hover:text-fp-teal-deep focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fp-teal"
       >
         {t("workspace.quickJump.backToOverview")}
       </button>
@@ -64,7 +64,7 @@ export function StepQuickJump({ project, activeStepId, onNavigate, onBackToOverv
                 "flex items-center gap-1.5 rounded-control border px-2.5 py-1.5 font-mono text-xs transition-colors",
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fp-teal",
                 isActive
-                  ? "border-fp-teal bg-fp-teal text-white"
+                  ? "border-fp-accent-fill bg-fp-accent-fill text-fp-accent-fill-ink"
                   : "border-border text-ink-muted hover:border-fp-teal hover:text-fp-teal-deep",
               )}
             >

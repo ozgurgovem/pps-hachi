@@ -12,6 +12,10 @@ interface StepTickProps {
 /**
  * A ruler/gauge-style progress indicator — filled and unfilled ticks in a row,
  * not a percentage bar or dots. See DECISIONS.md D-48 (Phase 1 layout concept).
+ *
+ * Farplas görsel diline taşındı (P-58/D-25x, Grup 3) — dolu çubuk
+ * `fp-accent-fill`, boş çubuk salt dekoratif (`fp-gray-light`, WCAG gerektirmez —
+ * `role="img"`'in kendi `aria-label`'ı zaten metin karşılığını taşıyor).
  */
 export function StepTick({ total, current, className, "aria-label": ariaLabel }: StepTickProps) {
   const ticks = Array.from({ length: total }, (_, index) => index < current);
@@ -26,7 +30,7 @@ export function StepTick({ total, current, className, "aria-label": ariaLabel }:
         <span
           key={index}
           aria-hidden="true"
-          className={cn("h-3 w-[3px]", filled ? "bg-accent" : "bg-border/30")}
+          className={cn("h-3 w-[3px]", filled ? "bg-fp-accent-fill" : "bg-fp-gray-light")}
         />
       ))}
     </div>

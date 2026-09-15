@@ -7,13 +7,14 @@ export const SelectValue = SelectPrimitive.Value;
 
 type SelectTriggerProps = ComponentPropsWithoutRef<typeof SelectPrimitive.Trigger>;
 
+/** Farplas görsel diline taşındı (P-58/D-25x, Grup 1) — bkz. Input.tsx'in kendi notu. */
 export function SelectTrigger({ className, children, ...rest }: SelectTriggerProps) {
   return (
     <SelectPrimitive.Trigger
       className={cn(
-        "flex h-9 w-full items-center justify-between gap-2 rounded-control border border-border",
-        "bg-surface px-3 font-body text-sm text-ink data-[placeholder]:text-ink-muted",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface",
+        "flex h-9 w-full items-center justify-between gap-2 rounded-lg border border-fp-gray-dark",
+        "bg-surface px-3 font-body text-sm text-fp-charcoal data-[placeholder]:text-fp-gray-dark",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fp-teal focus-visible:ring-offset-2 focus-visible:ring-offset-surface",
         "disabled:pointer-events-none disabled:opacity-50",
         className,
       )}
@@ -46,20 +47,22 @@ type SelectContentProps = ComponentPropsWithoutRef<typeof SelectPrimitive.Conten
  * pattern that Radix intentionally applies here (Viewport's default CSS
  * hides the native scrollbar), giving no visual hint that scrolling works.
  */
+/** Farplas görsel diline taşındı (P-58/D-25x, Grup 1) — bkz. Input.tsx'in kendi notu.
+ * `max-h-[var(--radix-select-content-available-height)]` (D-242) korunuyor, dokunulmadı. */
 export function SelectContent({ children, ...rest }: SelectContentProps) {
   return (
     <SelectPrimitive.Portal>
       <SelectPrimitive.Content
-        className="z-50 max-h-[var(--radix-select-content-available-height)] overflow-hidden rounded-control border border-border bg-surface-raised text-ink shadow-lg"
+        className="z-50 max-h-[var(--radix-select-content-available-height)] overflow-hidden rounded-lg border border-fp-gray-dark bg-surface-raised text-fp-charcoal shadow-lg"
         position="popper"
         sideOffset={4}
         {...rest}
       >
-        <SelectPrimitive.ScrollUpButton className="flex h-6 cursor-default items-center justify-center bg-surface-raised text-ink-muted">
+        <SelectPrimitive.ScrollUpButton className="flex h-6 cursor-default items-center justify-center bg-surface-raised text-fp-gray-dark">
           <ChevronIcon direction="up" />
         </SelectPrimitive.ScrollUpButton>
         <SelectPrimitive.Viewport className="p-1">{children}</SelectPrimitive.Viewport>
-        <SelectPrimitive.ScrollDownButton className="flex h-6 cursor-default items-center justify-center bg-surface-raised text-ink-muted">
+        <SelectPrimitive.ScrollDownButton className="flex h-6 cursor-default items-center justify-center bg-surface-raised text-fp-gray-dark">
           <ChevronIcon direction="down" />
         </SelectPrimitive.ScrollDownButton>
       </SelectPrimitive.Content>
@@ -74,8 +77,8 @@ export function SelectItem({ value, children, className, ...rest }: SelectItemPr
     <SelectPrimitive.Item
       value={value}
       className={cn(
-        "relative flex h-8 cursor-pointer select-none items-center rounded-instrument px-3 font-body text-sm",
-        "outline-none data-[highlighted]:bg-accent data-[highlighted]:text-accent-ink",
+        "relative flex h-8 cursor-pointer select-none items-center rounded-md px-3 font-body text-sm text-fp-charcoal",
+        "outline-none data-[highlighted]:bg-fp-accent-fill data-[highlighted]:text-fp-accent-fill-ink",
         className,
       )}
       {...rest}

@@ -64,7 +64,7 @@ export function StepOverview({ project, onNavigate }: StepOverviewProps) {
               onClick={() => onNavigate(stepId)}
               aria-label={t("workspace.stepAriaLabel", { step: stepId, name: stepName })}
               className={cn(
-                "flex flex-col gap-3 rounded-2xl border border-fp-gray-light bg-surface-raised p-5 text-left shadow-sm",
+                "flex flex-col gap-3 rounded-2xl border border-fp-gray-dark bg-surface-raised p-5 text-left shadow-sm",
                 "transition-colors hover:border-fp-teal hover:shadow-lg",
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fp-teal",
               )}
@@ -77,8 +77,8 @@ export function StepOverview({ project, onNavigate }: StepOverviewProps) {
               </div>
               <h2 className="font-fp-display text-lg font-semibold text-fp-charcoal">{stepName}</h2>
               <p className="font-body text-sm text-fp-gray-dark">{t(`workspace.steps.${stepId}.cardPurpose`)}</p>
-              <p className="font-body text-xs text-fp-gray-mid">{t(`workspace.steps.${stepId}.cardHowTo`)}</p>
-              <span className="font-mono text-2xs text-fp-gray-mid">
+              <p className="font-body text-xs text-fp-gray-dark">{t(`workspace.steps.${stepId}.cardHowTo`)}</p>
+              <span className="font-mono text-2xs text-fp-gray-dark">
                 {t("workspace.entriesBand.entryCount", { count: step.entries.length })}
               </span>
             </button>
