@@ -2887,14 +2887,22 @@ AI layer: Faz 8 fully done (keychain + Vorion connection/model-discovery + strea
   gained `request_id`, a new `AiAcceptanceEntry` + `ai_mark_accepted` command appends a
   separate, append-only line sharing that id; TS: `attemptStructuredProposal` generates one
   `crypto.randomUUID()` per call, `settingsIpc.ts::markAccepted` reports it) and wired
-  end-to-end in ONE reference call site, `EntryProposalField`. K1's `LayoutReviewPanel` diff
-  lines, K3's `TranslateReportPanel`/`EntryTranslateField` translation lines, and D-247's
-  `AssistantPanel` chat-entry-edit flow all already receive a real `requestId` from the shared
-  primitive but don't yet call `markAccepted` — filed as **P-71**, its own future wiring pass
-  (K2's mock-audit findings are read-only by design and permanently out of scope). Every piece
-  mutation-verified. `npm test` 1648/1648 (315 files), `npm run lint`/`npx tsc --noEmit`/
-  `npm run build` all clean. `cargo test` 199/199 lib, `cargo clippy --all-targets -- -D
-  warnings`/`cargo fmt -- --check` both clean.
+  end-to-end in ONE reference call site, `EntryProposalField`. **Same-day correction**: the
+  first-written closing note here claimed K1/K3/D-247's own wrapper functions "already receive
+  a `requestId`" — checked and found FALSE: only `entryProposal.ts::proposeStructuredEntry`
+  (what `EntryProposalField` calls) actually surfaces `Attempt.requestId` in its own return
+  value; `layoutReview.ts::proposeLayoutReviewDiff`, `entryTranslation.ts`'s three functions,
+  and `chatEntryEdit.ts`'s two functions all call the same shared `attemptStructuredProposal`
+  but never read its `requestId` back out. Filed as **P-71**, with a real launch prompt written
+  (`docs/oturumlar/P71-cost-log-korelasyon-kablolama.md`) — its own first job is threading
+  `requestId` through those six functions' own return types (mirroring `proposeStructuredEntry`'s
+  now-shipped pattern) before any UI wiring, plus two genuine design questions (what "accepted"
+  means for a diff/translation with several independently-selectable lines sharing one
+  `requestId`; which of D-247's two chained calls the correlation belongs to). K2's mock-audit
+  findings are read-only by design and permanently out of scope. Every piece in this session's
+  own shipped mechanism mutation-verified. `npm test` 1648/1648 (315 files), `npm run lint`/
+  `npx tsc --noEmit`/`npm run build` all clean. `cargo test` 199/199 lib, `cargo clippy
+  --all-targets -- -D warnings`/`cargo fmt -- --check` both clean.
 Templates: two company .xls files analysed; see reference/TEMPLATE_ANALYSIS.md
 Template geometry: VERIFIED 2026-08-01 against both .xls files. Five errors found and
   corrected in place — the largest was the column widths: the real split is 49.7/50.3, NOT
