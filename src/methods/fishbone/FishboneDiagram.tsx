@@ -1,8 +1,8 @@
 import "@xyflow/react/dist/style.css";
 import { Background, ReactFlow, ReactFlowProvider, type NodeChange } from "@xyflow/react";
 import { useTranslation } from "react-i18next";
-import type { A3ImageSize } from "../../a3/methodContract";
-import { categoryLabelKey } from "./categories";
+import type { A3ImageSize, A3Language } from "../../a3/methodContract";
+import { CATEGORY_EXPORT_LABELS, categoryLabelKey } from "./categories";
 import { computeFishboneLayout, type FishboneNode } from "./layout";
 import type { FishbonePayload } from "./schema";
 
@@ -25,11 +25,26 @@ interface FishboneDiagramProps {
    * must never rely on inherited layout — see `src/a3/render/rasterize.ts`.
    */
   readonly size?: A3ImageSize;
+  /**
+   * P-42: when set (rasterizer mode, `renderFishboneToA3.ts`'s own
+   * `resolveA3Language(entry)`), category labels resolve against this
+   * static, `project.meta.language`-driven dictionary instead of the
+   * editor's live `t()` — the two can diverge (UI in Turkish, project
+   * content in English) and the exported diagram must follow the latter,
+   * same as every other method D-188 already covers. Omitted in the
+   * interactive Editor, where the live UI language is exactly what should
+   * show.
+   */
+  readonly language?: A3Language;
 }
 
-function nodeLabel(node: FishboneNode, translate: (key: string) => string): string {
+function nodeLabel(node: FishboneNode, translate: (key: string) => string, language: A3Language | undefined): string {
   if (node.data.kind === "category") {
-    return translate(categoryLabelKey(node.data.label ?? ""));
+    const categoryId = node.data.label ?? "";
+    if (language) {
+      return CATEGORY_EXPORT_LABELS[categoryId]?.[language] ?? categoryId;
+    }
+    return translate(categoryLabelKey(categoryId));
   }
   if (node.data.kind === "effect" && (node.data.label ?? "").trim().length === 0) {
     return translate("methods.fishbone.effectPlaceholder");
@@ -49,13 +64,14 @@ export function FishboneDiagram({
   onCausePositionChange,
   effectLabel,
   size,
+  language,
 }: FishboneDiagramProps) {
   const { t } = useTranslation();
   const layout = computeFishboneLayout(payload, effectLabel ?? "");
 
   const nodes = layout.nodes.map((node) => ({
     ...node,
-    data: { ...node.data, label: nodeLabel(node, t) },
+    data: { ...node.data, label: nodeLabel(node, t, language) },
     draggable: interactive && node.data.kind === "cause",
   }));
 

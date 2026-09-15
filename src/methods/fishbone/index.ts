@@ -21,8 +21,8 @@ export const fishboneMethod: MethodPlugin<FishbonePayload> = {
   renderToA3: renderFishboneToA3,
   imageKind: "fishbone-diagram",
   renderImage: (spec, size) => {
-    const { payload, effectLabel } = spec as FishboneImageSpec;
-    return createElement(FishboneDiagram, { payload, effectLabel, size });
+    const { payload, effectLabel, language } = spec as FishboneImageSpec;
+    return createElement(FishboneDiagram, { payload, effectLabel, size, language });
   },
   aiProposal: { promptVersion: "v1" },
 };

@@ -1,9 +1,10 @@
 import type { A3BlockContent, A3EntrySummary } from "../../a3/methodContract";
+import { resolveA3Language } from "../../a3/methodContract";
 import type { FishboneImageSpec } from "./layout";
 import type { FishbonePayload } from "./schema";
 
 export function renderFishboneToA3(payload: FishbonePayload, entry: A3EntrySummary): A3BlockContent {
-  const spec: FishboneImageSpec = { payload, effectLabel: entry.title };
+  const spec: FishboneImageSpec = { payload, effectLabel: entry.title, language: resolveA3Language(entry) };
 
   return {
     lines: [{ text: entry.title, bold: true }],

@@ -1,4 +1,5 @@
 import type { Edge, Node } from "@xyflow/react";
+import type { A3Language } from "../../a3/methodContract";
 import { FISHBONE_CATEGORY_IDS } from "./categories";
 import type { FishboneCause, FishbonePayload } from "./schema";
 
@@ -31,10 +32,17 @@ export interface FishboneLayout {
   readonly edges: readonly FishboneEdge[];
 }
 
-/** What `renderFishboneToA3.ts` hands to the off-screen rasterizer (D-102) — the payload plus the block's own problem statement for the new terminal effect node (P-34). */
+/**
+ * What `renderFishboneToA3.ts` hands to the off-screen rasterizer (D-102) —
+ * the payload, the block's own problem statement for the new terminal
+ * effect node (P-34), and (P-42) the entry's `project.meta.language` so
+ * category labels export in the right language regardless of the editor's
+ * own live UI language.
+ */
 export interface FishboneImageSpec {
   readonly payload: FishbonePayload;
   readonly effectLabel: string;
+  readonly language: A3Language;
 }
 
 function causesInCategory(causes: readonly FishboneCause[], categoryId: string): readonly FishboneCause[] {
