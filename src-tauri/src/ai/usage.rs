@@ -26,9 +26,23 @@ const AI_LOG_EXTENSION: &str = ".jsonl";
 const AI_USAGE_FILE_NAME: &str = "ai-usage.json";
 
 /// One `complete_structured` request — SPEC.md §8.13's own field list.
+///
+/// P-60 (ai-katmani-temizligi.md §4): `request_id` is new — TS generates one
+/// `crypto.randomUUID()` per logical propose call (shared across its own
+/// first-attempt-then-retry pair, so both physical Rust calls a single
+/// retry-once flow can produce share one id) and passes it in as a plain
+/// input parameter, the same posture `project_id`/`prompt_version` already
+/// have — never returned from `ai_complete_structured` itself (K1/K2/K3/
+/// D-247's `Result<serde_json::Value, String>` return shape stays exactly
+/// as K4/D-221 fixed it). The old `accepted: Option<bool>` field (always
+/// `None`, dead weight) is gone — Barış's own chosen mechanism (see
+/// `AiAcceptanceEntry` below) records a later Accept/Reject as a SEPARATE,
+/// append-only log line sharing this same `request_id`, never a rewrite of
+/// this line.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct AiLogEntry {
+    pub request_id: String,
     pub timestamp: String,
     pub provider: String,
     pub model_id: String,
@@ -36,18 +50,11 @@ pub struct AiLogEntry {
     pub input_tokens: Option<u64>,
     pub output_tokens: Option<u64>,
     pub cost_usd: Option<f64>,
-    /// Always `None` at write time — `ai_complete_structured` has no return
-    /// channel back into TS beyond the parsed value itself (§2.1's chosen
-    /// plumbing), so nothing here yet correlates a logged request with the
-    /// human's later Accept/Reject decision. A real correlation mechanism
-    /// (a log-entry id round-tripped back to TS, then reported on Accept/
-    /// Reject) is a second mechanism this dilim's own budget doesn't cover —
-    /// filed as its own gap rather than half-built.
-    pub accepted: Option<bool>,
 }
 
 impl AiLogEntry {
     pub fn new(
+        request_id: impl Into<String>,
         provider: impl Into<String>,
         model_id: impl Into<String>,
         prompt_version: Option<String>,
@@ -55,6 +62,7 @@ impl AiLogEntry {
         now: DateTime<Utc>,
     ) -> Self {
         Self {
+            request_id: request_id.into(),
             timestamp: now.to_rfc3339(),
             provider: provider.into(),
             model_id: model_id.into(),
@@ -62,9 +70,27 @@ impl AiLogEntry {
             input_tokens: usage.input_tokens,
             output_tokens: usage.output_tokens,
             cost_usd: usage.cost_usd,
-            accepted: None,
         }
     }
+}
+
+/// P-60: a later Accept/Reject decision, correlated back to the
+/// `AiLogEntry` (or pair of entries, across a retry) sharing the same
+/// `request_id` — a genuinely separate JSONL line, appended, never a
+/// rewrite of the original (Barış's own choice, `AskUserQuestion`:
+/// append-only stays simple and avoids a read-modify-write race; the
+/// original entry's own fields — provider/model/cost — are already
+/// complete without this, so there is nothing to merge). `read_project_totals`
+/// never counts this shape: it lacks `AiLogEntry`'s required `provider`/
+/// `modelId` fields, so `serde_json::from_str::<AiLogEntry>` fails on it and
+/// the line is skipped, the same "one malformed line never hides the rest"
+/// tolerance every reader of this file already has.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub struct AiAcceptanceEntry {
+    pub request_id: String,
+    pub accepted: bool,
+    pub timestamp: String,
 }
 
 fn ai_log_path(app_local_data_dir: &Path, project_id: &str) -> Result<PathBuf, AiError> {
@@ -74,6 +100,28 @@ fn ai_log_path(app_local_data_dir: &Path, project_id: &str) -> Result<PathBuf, A
     Ok(app_local_data_dir
         .join(AI_LOG_DIR_NAME)
         .join(format!("{project_id}{AI_LOG_EXTENSION}")))
+}
+
+/// Shared by `append_log_entry`/`append_acceptance_entry` — both write one
+/// more line to the same per-project sidecar, only the line's own shape
+/// differs (a completion entry vs. a later acceptance event, P-60).
+fn append_json_line(
+    app_local_data_dir: &Path,
+    project_id: &str,
+    value: &impl Serialize,
+) -> Result<(), AiError> {
+    let path = ai_log_path(app_local_data_dir, project_id)?;
+    if let Some(parent) = path.parent() {
+        std::fs::create_dir_all(parent)?;
+    }
+    let mut line = serde_json::to_string(value)?;
+    line.push('\n');
+    let mut file = std::fs::OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(&path)?;
+    file.write_all(line.as_bytes())?;
+    Ok(())
 }
 
 /// Best-effort by design at the call site (`ai::commands::ai_complete_structured`
@@ -86,18 +134,23 @@ pub fn append_log_entry(
     project_id: &str,
     entry: &AiLogEntry,
 ) -> Result<(), AiError> {
-    let path = ai_log_path(app_local_data_dir, project_id)?;
-    if let Some(parent) = path.parent() {
-        std::fs::create_dir_all(parent)?;
-    }
-    let mut line = serde_json::to_string(entry)?;
-    line.push('\n');
-    let mut file = std::fs::OpenOptions::new()
-        .create(true)
-        .append(true)
-        .open(&path)?;
-    file.write_all(line.as_bytes())?;
-    Ok(())
+    append_json_line(app_local_data_dir, project_id, entry)
+}
+
+/// P-60: appends a separate `AiAcceptanceEntry` line sharing `entry.request_id`
+/// with whatever `AiLogEntry` line(s) it correlates to — never a rewrite of
+/// those lines (Barış's own chosen, append-only mechanism). Unlike
+/// `append_log_entry`, the caller (`ai::commands::ai_mark_accepted`)
+/// propagates a failure here as a real error rather than swallowing it —
+/// this call has no other side effect to protect (no in-flight AI response
+/// depends on it succeeding), so a real error is more honest than a silent
+/// no-op the human would never learn about.
+pub fn append_acceptance_entry(
+    app_local_data_dir: &Path,
+    project_id: &str,
+    entry: &AiAcceptanceEntry,
+) -> Result<(), AiError> {
+    append_json_line(app_local_data_dir, project_id, entry)
 }
 
 /// A running total — summed fresh from the log every time, never cached.
@@ -236,7 +289,14 @@ mod tests {
     #[test]
     fn append_log_entry_rejects_a_project_id_that_looks_like_path_traversal() {
         let dir = ScratchDir::new("ai_usage_log_traversal");
-        let entry = AiLogEntry::new("vorion", "openai/gpt-4o", None, sample_usage(), Utc::now());
+        let entry = AiLogEntry::new(
+            "req-1",
+            "vorion",
+            "openai/gpt-4o",
+            None,
+            sample_usage(),
+            Utc::now(),
+        );
 
         let err = append_log_entry(dir.path(), "../../../etc", &entry).unwrap_err();
 
@@ -257,6 +317,7 @@ mod tests {
     fn append_then_read_project_totals_sums_every_entry() {
         let dir = ScratchDir::new("ai_usage_project_totals_roundtrip");
         let entry_a = AiLogEntry::new(
+            "req-a",
             "vorion",
             "openai/gpt-4o",
             Some("pareto.v1".to_string()),
@@ -264,6 +325,7 @@ mod tests {
             Utc::now(),
         );
         let entry_b = AiLogEntry::new(
+            "req-b",
             "vorion",
             "openai/gpt-4o",
             Some("layout-review.v1".to_string()),
@@ -289,7 +351,14 @@ mod tests {
     #[test]
     fn append_log_entry_never_leaks_a_previous_project_s_entries_into_a_different_project_s_log() {
         let dir = ScratchDir::new("ai_usage_project_isolation");
-        let entry = AiLogEntry::new("vorion", "openai/gpt-4o", None, sample_usage(), Utc::now());
+        let entry = AiLogEntry::new(
+            "req-1",
+            "vorion",
+            "openai/gpt-4o",
+            None,
+            sample_usage(),
+            Utc::now(),
+        );
 
         append_log_entry(dir.path(), "proj-a", &entry).unwrap();
 
@@ -302,7 +371,14 @@ mod tests {
     #[test]
     fn read_project_totals_skips_a_malformed_line_rather_than_returning_nothing() {
         let dir = ScratchDir::new("ai_usage_project_totals_corrupt_line");
-        let entry = AiLogEntry::new("vorion", "openai/gpt-4o", None, sample_usage(), Utc::now());
+        let entry = AiLogEntry::new(
+            "req-1",
+            "vorion",
+            "openai/gpt-4o",
+            None,
+            sample_usage(),
+            Utc::now(),
+        );
         append_log_entry(dir.path(), "proj-1", &entry).unwrap();
         // Plant one genuinely malformed line in the middle of the file.
         let path = dir.path().join("ai-log").join("proj-1.jsonl");
@@ -386,12 +462,13 @@ mod tests {
     }
 
     #[test]
-    fn ai_log_entry_new_stamps_a_real_rfc3339_timestamp_and_leaves_accepted_unknown() {
+    fn ai_log_entry_new_stamps_a_real_rfc3339_timestamp_and_carries_the_given_request_id() {
         let now = DateTime::parse_from_rfc3339("2026-09-06T12:00:00Z")
             .unwrap()
             .with_timezone(&Utc);
 
         let entry = AiLogEntry::new(
+            "req-42",
             "vorion",
             "openai/gpt-4o",
             Some("pareto.v1".to_string()),
@@ -400,7 +477,63 @@ mod tests {
         );
 
         assert_eq!(entry.timestamp, "2026-09-06T12:00:00+00:00");
-        assert_eq!(entry.accepted, None);
+        assert_eq!(entry.request_id, "req-42");
         assert_eq!(entry.provider, "vorion");
+    }
+
+    /// P-60 (ai-katmani-temizligi.md §4.4): the new correlation mechanism —
+    /// appends an `AiAcceptanceEntry` sharing `request_id` with a real
+    /// `AiLogEntry`, both lines in the same file, and confirms the
+    /// acceptance line is NOT counted by `read_project_totals` (it lacks
+    /// `AiLogEntry`'s required `provider`/`modelId` fields, so it fails to
+    /// deserialize as one and is skipped, the same tolerance every
+    /// malformed/foreign line already gets).
+    #[test]
+    fn append_acceptance_entry_writes_a_separate_line_never_counted_as_a_completion() {
+        let dir = ScratchDir::new("ai_usage_acceptance_entry");
+        let completion = AiLogEntry::new(
+            "req-99",
+            "vorion",
+            "openai/gpt-4o",
+            None,
+            sample_usage(),
+            Utc::now(),
+        );
+        append_log_entry(dir.path(), "proj-1", &completion).unwrap();
+
+        let acceptance = AiAcceptanceEntry {
+            request_id: "req-99".to_string(),
+            accepted: true,
+            timestamp: Utc::now().to_rfc3339(),
+        };
+        append_acceptance_entry(dir.path(), "proj-1", &acceptance).unwrap();
+
+        let totals = read_project_totals(dir.path(), "proj-1");
+        assert_eq!(
+            totals.request_count, 1,
+            "the acceptance line must not be double-counted as a completion"
+        );
+
+        let path = dir.path().join("ai-log").join("proj-1.jsonl");
+        let contents = std::fs::read_to_string(&path).unwrap();
+        assert_eq!(
+            contents.lines().count(),
+            2,
+            "both lines must be present in the append-only file"
+        );
+    }
+
+    #[test]
+    fn append_acceptance_entry_rejects_a_project_id_that_looks_like_path_traversal() {
+        let dir = ScratchDir::new("ai_usage_acceptance_traversal");
+        let acceptance = AiAcceptanceEntry {
+            request_id: "req-1".to_string(),
+            accepted: false,
+            timestamp: Utc::now().to_rfc3339(),
+        };
+
+        let err = append_acceptance_entry(dir.path(), "../../../etc", &acceptance).unwrap_err();
+
+        assert!(matches!(err, AiError::UnsafeEntryName(_)), "{err:?}");
     }
 }

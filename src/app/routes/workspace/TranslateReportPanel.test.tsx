@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router";
@@ -8,15 +8,21 @@ import type { AiMeta, Entry, ProjectModel } from "../../../domain/model";
 import { useProjectStore } from "../../../state";
 import { TranslateReportPanel } from "./TranslateReportPanel";
 import * as entryTranslation from "./entryTranslation";
-import type { WholeReportTranslationDiff } from "./entryTranslation";
+import type { MetaHeaderTranslationLine, WholeReportTranslationDiff } from "./entryTranslation";
 
 vi.mock("./entryTranslation", async () => {
   const actual = await vi.importActual<typeof import("./entryTranslation")>("./entryTranslation");
-  return { ...actual, buildWholeReportTranslationContext: vi.fn(), proposeWholeReportTranslation: vi.fn() };
+  return {
+    ...actual,
+    buildWholeReportTranslationContext: vi.fn(),
+    proposeWholeReportTranslation: vi.fn(),
+    proposeMetaHeaderTranslation: vi.fn(),
+  };
 });
 
 const mockedBuildContext = vi.mocked(entryTranslation.buildWholeReportTranslationContext);
 const mockedPropose = vi.mocked(entryTranslation.proposeWholeReportTranslation);
+const mockedProposeMetaHeader = vi.mocked(entryTranslation.proposeMetaHeaderTranslation);
 
 const initialStoreState = useProjectStore.getState();
 
@@ -63,6 +69,13 @@ function renderPanel() {
     </MemoryRouter>,
   );
 }
+
+beforeEach(() => {
+  // Default: nothing to translate in the project header, so existing
+  // report-only tests (written before P-56) don't need to know this second,
+  // independent call even exists.
+  mockedProposeMetaHeader.mockResolvedValue({ outcome: "empty" });
+});
 
 afterEach(() => {
   vi.clearAllMocks();
@@ -189,6 +202,69 @@ describe("TranslateReportPanel", () => {
     const updatedEntry = updated?.steps[1]?.entries[0];
     expect((updatedEntry?.payload as { text: string }).text).toBe("y".repeat(200));
     expect(updatedEntry?.title).toBe(entry.title);
+  });
+
+  it("shows the project header mini-panel and applies a selected field via meta.header.set (P-56)", async () => {
+    const user = userEvent.setup();
+    const project = seedProject();
+    const withHeader: ProjectModel = { ...project, meta: { ...project.meta, title: "Original title", customer: "Acme" } };
+    useProjectStore.setState({ ...initialStoreState, project: withHeader });
+    mockedBuildContext.mockReturnValueOnce({ contextText: "ctx", droppedNotes: [] });
+    mockedPropose.mockResolvedValueOnce({ outcome: "success", diff: { lines: [] }, droppedNotes: [] });
+    const metaLines: readonly MetaHeaderTranslationLine[] = [
+      { field: "title", originalText: "Original title", translatedText: "Çevrilmiş başlık" },
+      { field: "customer", originalText: "Acme", translatedText: "Acme" },
+    ];
+    mockedProposeMetaHeader.mockResolvedValueOnce({ outcome: "success", lines: metaLines, droppedNotes: [] });
+
+    renderPanel();
+    await user.click(screen.getByRole("button", { name: "Translate whole report to Turkish" }));
+
+    expect(await screen.findByText("Project header")).toBeTruthy();
+    expect(screen.getByText("Çevrilmiş başlık")).toBeTruthy();
+    const checkboxes = screen.getAllByRole("checkbox");
+    expect(checkboxes).toHaveLength(2); // title + customer, both checked by default
+
+    // uncheck "customer" (the second meta-header checkbox)
+    await user.click(checkboxes[1]!);
+    await user.click(screen.getByRole("button", { name: "Apply selected" }));
+
+    const updated = useProjectStore.getState().project;
+    expect(updated?.meta.title).toBe("Çevrilmiş başlık");
+    expect(updated?.meta.customer).toBe("Acme"); // unchecked, left as its current live value
+    expect(await screen.findByText("Applied 1 translated field(s).")).toBeTruthy();
+  });
+
+  it("shows a notice and no section when the project header has nothing to translate", async () => {
+    const user = userEvent.setup();
+    seedProject();
+    mockedBuildContext.mockReturnValueOnce({ contextText: "ctx", droppedNotes: [] });
+    mockedPropose.mockResolvedValueOnce({ outcome: "success", diff: { lines: [] }, droppedNotes: [] });
+    mockedProposeMetaHeader.mockResolvedValueOnce({ outcome: "empty" });
+
+    renderPanel();
+    await user.click(screen.getByRole("button", { name: "Translate whole report to Turkish" }));
+
+    expect(await screen.findByText("Nothing to translate.")).toBeTruthy();
+    expect(screen.queryByText("Project header")).toBeNull();
+  });
+
+  it("shows a notice but still succeeds when only the project header translation fails", async () => {
+    const user = userEvent.setup();
+    seedProject();
+    mockedBuildContext.mockReturnValueOnce({ contextText: "ctx", droppedNotes: [] });
+    mockedPropose.mockResolvedValueOnce({ outcome: "success", diff: { lines: [] }, droppedNotes: [] });
+    mockedProposeMetaHeader.mockResolvedValueOnce({ outcome: "failed", rawText: "bad" });
+
+    renderPanel();
+    await user.click(screen.getByRole("button", { name: "Translate whole report to Turkish" }));
+
+    expect(
+      await screen.findByText(
+        "The project header (title/customer/part name) could not be translated this time — the report's own entries were still translated.",
+      ),
+    ).toBeTruthy();
+    expect(screen.queryByText("Project header")).toBeNull();
   });
 
   it("rejecting the whole diff returns to idle, applying nothing", async () => {

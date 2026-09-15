@@ -4,6 +4,8 @@ import {
   type BlockPinsSetCommand,
   type Command,
   type MetaAiSetCommand,
+  type MetaHeaderSetCommand,
+  type MetaLanguageSetCommand,
   type MetaProjectInfoSetCommand,
   type RoundsSetCommand,
   type SignOffSetCommand,
@@ -19,6 +21,8 @@ type StepScopedCommand = Exclude<
   | MetaProjectInfoSetCommand
   | TemplateIdSetCommand
   | BlockPinsSetCommand
+  | MetaLanguageSetCommand
+  | MetaHeaderSetCommand
 >;
 
 type ProjectScopedCommand =
@@ -27,7 +31,9 @@ type ProjectScopedCommand =
   | MetaAiSetCommand
   | MetaProjectInfoSetCommand
   | TemplateIdSetCommand
-  | BlockPinsSetCommand;
+  | BlockPinsSetCommand
+  | MetaLanguageSetCommand
+  | MetaHeaderSetCommand;
 
 /** D-71: array position is authoritative; every mutation ends by re-sequencing `order` to match it. */
 function resequence(entries: Entry[]): Entry[] {
@@ -123,6 +129,10 @@ function applyToProject(project: ProjectModel, command: ProjectScopedCommand): P
       return { ...project, templateId: command.after };
     case "blockPins.set":
       return { ...project, blockPins: command.after };
+    case "meta.language.set":
+      return { ...project, meta: { ...project.meta, language: command.after } };
+    case "meta.header.set":
+      return { ...project, meta: { ...project.meta, ...command.after } };
   }
 }
 
@@ -139,7 +149,9 @@ export function applyCommand(project: ProjectModel, command: Command): ProjectMo
     command.type === "meta.ai.set" ||
     command.type === "meta.projectInfo.set" ||
     command.type === "templateId.set" ||
-    command.type === "blockPins.set"
+    command.type === "blockPins.set" ||
+    command.type === "meta.language.set" ||
+    command.type === "meta.header.set"
   ) {
     return applyToProject(project, command);
   }

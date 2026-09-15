@@ -238,7 +238,7 @@ describe("buildLayoutReviewContext", () => {
 const SCHEMA_VALID_EMPTY_DIFF: LayoutReviewDiff = { visibilityChanges: [], textCondensations: [] };
 
 function successAttempt(value: unknown) {
-  return { success: true as const, value };
+  return { success: true as const, value, requestId: "req-1" };
 }
 
 function failedAttempt(rawText: string, errorSummary: string) {

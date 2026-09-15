@@ -10,6 +10,8 @@ import {
   buildSetA3VisibilityCommand,
   buildSetAiMetaCommand,
   buildSetBlockPinsCommand,
+  buildSetMetaHeaderCommand,
+  buildSetMetaLanguageCommand,
   buildSetProjectInfoCommand,
   buildSetSignOffCommand,
   buildSetTemplateIdCommand,
@@ -445,6 +447,36 @@ describe("buildSetTemplateIdCommand (Faz 11/L2)", () => {
       type: "templateId.set",
       before: project.templateId,
       after: "farplas-7step-tr",
+      undoable: true,
+    });
+  });
+});
+
+describe("buildSetMetaLanguageCommand (P-57, ai-katmani-temizligi.md §3)", () => {
+  it("captures the project's current meta.language as before and the given language as after", () => {
+    const project = makeProject();
+
+    const command = buildSetMetaLanguageCommand(project, "tr");
+
+    expect(command).toEqual({
+      type: "meta.language.set",
+      before: "en",
+      after: "tr",
+      undoable: true,
+    });
+  });
+});
+
+describe("buildSetMetaHeaderCommand (P-56, ai-katmani-temizligi.md §2)", () => {
+  it("captures the project's current title/customer/partName as before and the given fields as after", () => {
+    const project = makeProject();
+
+    const command = buildSetMetaHeaderCommand(project, { title: "Translated title", customer: "Acme", partName: undefined });
+
+    expect(command).toEqual({
+      type: "meta.header.set",
+      before: { title: project.meta.title, customer: undefined, partName: undefined },
+      after: { title: "Translated title", customer: "Acme", partName: undefined },
       undoable: true,
     });
   });

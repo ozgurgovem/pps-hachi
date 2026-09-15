@@ -333,6 +333,23 @@ describe("invertCommand", () => {
     };
     expect(invertCommand(command)).toEqual({ ...command, before: { 2: 25 }, after: {} });
   });
+
+  it("meta.language.set inverts by swapping before/after (P-57)", () => {
+    const command: Command = {
+      type: "meta.language.set",
+      before: "en",
+      after: "tr",
+      undoable: true,
+    };
+    expect(invertCommand(command)).toEqual({ ...command, before: "tr", after: "en" });
+  });
+
+  it("meta.header.set inverts by swapping before/after (P-56)", () => {
+    const before = { title: "Original", customer: undefined, partName: undefined };
+    const after = { title: "Translated", customer: "Acme", partName: undefined };
+    const command: Command = { type: "meta.header.set", before, after, undoable: true };
+    expect(invertCommand(command)).toEqual({ ...command, before: after, after: before });
+  });
 });
 
 describe("applyCommand — rounds.set", () => {
@@ -492,6 +509,78 @@ describe("applyCommand — blockPins.set (Faz 11/L3b, D-170)", () => {
       type: "blockPins.set",
       before: {},
       after: { 2: 25 },
+      undoable: true,
+    };
+
+    applyCommand(project, command);
+
+    expect(project).toEqual(before);
+  });
+});
+
+describe("applyCommand — meta.language.set (P-57)", () => {
+  it("replaces project.meta.language with the command's after value, leaving the rest of meta untouched", () => {
+    const project = makeProject([]);
+    const command: Command = {
+      type: "meta.language.set",
+      before: project.meta.language,
+      after: "tr",
+      undoable: true,
+    };
+
+    const next = applyCommand(project, command);
+
+    expect(next.meta.language).toBe("tr");
+    expect(next.meta.title).toBe(project.meta.title);
+  });
+
+  it("does not mutate the original project", () => {
+    const project = makeProject([]);
+    const before = JSON.parse(JSON.stringify(project));
+    const command: Command = {
+      type: "meta.language.set",
+      before: project.meta.language,
+      after: "tr",
+      undoable: true,
+    };
+
+    applyCommand(project, command);
+
+    expect(project).toEqual(before);
+  });
+
+  it("leaves meta.language unchanged when no meta.language.set command is dispatched (mutation guard)", () => {
+    const project = makeProject([]);
+
+    expect(project.meta.language).toBe("en");
+  });
+});
+
+describe("applyCommand — meta.header.set (P-56)", () => {
+  it("replaces title/customer/partName with the command's after value, leaving the rest of meta untouched", () => {
+    const project = makeProject([]);
+    const command: Command = {
+      type: "meta.header.set",
+      before: { title: project.meta.title, customer: undefined, partName: undefined },
+      after: { title: "Translated title", customer: "Acme", partName: "Widget X" },
+      undoable: true,
+    };
+
+    const next = applyCommand(project, command);
+
+    expect(next.meta.title).toBe("Translated title");
+    expect(next.meta.customer).toBe("Acme");
+    expect(next.meta.partName).toBe("Widget X");
+    expect(next.meta.language).toBe(project.meta.language);
+  });
+
+  it("does not mutate the original project", () => {
+    const project = makeProject([]);
+    const before = JSON.parse(JSON.stringify(project));
+    const command: Command = {
+      type: "meta.header.set",
+      before: { title: project.meta.title, customer: undefined, partName: undefined },
+      after: { title: "Translated title", customer: "Acme", partName: "Widget X" },
       undoable: true,
     };
 

@@ -88,3 +88,17 @@ export function setAiSettings(settings: AiSettings): Promise<void> {
 export function getCostSummary(projectId: string): Promise<CostSummary> {
   return invoke<CostSummary>("ai_get_cost_summary", { projectId });
 }
+
+/**
+ * P-60 (ai-katmani-temizligi.md §4): appends a separate, append-only
+ * `AiAcceptanceEntry` log line correlated back to a `complete_structured`
+ * call via `requestId` (the same id `attemptStructuredProposal` generated
+ * and passed into `completeStructured`) — never a rewrite of the original
+ * logged completion. Reference call site: `EntryProposalField.tsx`'s own
+ * Accept/Reject. Best-effort from the caller's own perspective (a failure
+ * here should never block or alarm the user over an audit-log nicety) —
+ * callers are expected to `.catch()` and log, not surface it as an error.
+ */
+export function markAccepted(projectId: string, requestId: string, accepted: boolean): Promise<void> {
+  return invoke<void>("ai_mark_accepted", { projectId, requestId, accepted });
+}

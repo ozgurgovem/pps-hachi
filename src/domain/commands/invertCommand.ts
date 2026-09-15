@@ -29,5 +29,9 @@ export function invertCommand(command: Command): Command {
       return { ...command, before: command.after, after: command.before };
     case "blockPins.set":
       return { ...command, before: command.after, after: command.before };
+    case "meta.language.set":
+      return { ...command, before: command.after, after: command.before };
+    case "meta.header.set":
+      return { ...command, before: command.after, after: command.before };
   }
 }

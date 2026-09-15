@@ -15,7 +15,12 @@ import {
   SelectValue,
   Textarea,
 } from "../../../ui";
-import { buildSetAiMetaCommand, buildSetProjectInfoCommand, buildSetTemplateIdCommand } from "../../../domain/commands";
+import {
+  buildSetAiMetaCommand,
+  buildSetMetaLanguageCommand,
+  buildSetProjectInfoCommand,
+  buildSetTemplateIdCommand,
+} from "../../../domain/commands";
 import { PROJECT_PRIORITY_OPTIONS, type GeneralRag, type RedactionMode } from "../../../domain/model";
 import { UiLanguageToggle } from "../../../i18n/UiLanguageToggle";
 import { listTemplates } from "../../../a3/templates/registry";
@@ -342,6 +347,23 @@ export function SettingsScreen() {
   }
 
   /**
+   * P-57 (ai-katmani-temizligi.md §3): the missing counterpart to K3's
+   * translation Accept, which deliberately never writes `meta.language`
+   * (D-15/D-213, LOCKED, unchanged by this). Barış's own choice: a plain,
+   * silent `SelectRoot` — no confirmation dialog — matching
+   * `handleSelectTemplate`'s own no-warning path when nothing is at stake,
+   * not `templateId.set`'s dropped-entry confirmation (nothing is ever lost
+   * by changing a language, only which label set the next export/preview
+   * reads, D-188/`resolveA3Language`).
+   */
+  function handleChangeContentLanguage(language: string) {
+    if (!project || (language !== "tr" && language !== "en") || language === project.meta.language) {
+      return;
+    }
+    dispatch(buildSetMetaLanguageCommand(project, language));
+  }
+
+  /**
    * D-201: temporary debug control — §8.5's real New Project AI step (enable/
    * provider/model/redaction choice at project creation) doesn't exist yet,
    * so this is the only way to get `project.meta.ai.enabled` to `true` and
@@ -495,6 +517,33 @@ export function SettingsScreen() {
         <h2 className="font-display text-lg text-ink">{t("settings.uiLanguage.heading")}</h2>
         <p className="font-body text-sm text-ink-muted">{t("settings.uiLanguage.description")}</p>
         <UiLanguageToggle />
+      </section>
+
+      {/* P-57 (ai-katmani-temizligi.md §3): permanent — the missing
+          counterpart to K3's translation Accept, which never writes this
+          field itself (D-15/D-213, LOCKED). Independent of the interface-
+          language toggle above: this drives which language every export
+          label reads (D-188/`resolveA3Language`), not which language the
+          app's own screens render in. */}
+      <section className="flex flex-col gap-3 rounded-control border border-border bg-surface-raised p-6">
+        <h2 className="font-display text-lg text-ink">{t("settings.contentLanguage.heading")}</h2>
+        <p className="font-body text-sm text-ink-muted">{t("settings.contentLanguage.description")}</p>
+        {project ? (
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="project-content-language">{t("settings.contentLanguage.label")}</Label>
+            <SelectRoot value={project.meta.language} onValueChange={handleChangeContentLanguage}>
+              <SelectTrigger id="project-content-language">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="tr">{t("settings.contentLanguage.turkish")}</SelectItem>
+                <SelectItem value="en">{t("settings.contentLanguage.english")}</SelectItem>
+              </SelectContent>
+            </SelectRoot>
+          </div>
+        ) : (
+          <p className="font-body text-sm text-ink-muted">{t("settings.contentLanguage.noProject")}</p>
+        )}
       </section>
 
       {/* Faz 11/L2: permanent — SPEC.md §6's own Faz 11 done-condition

@@ -4,7 +4,7 @@ import { Link } from "react-router";
 import { normalizedEditDistance } from "../../../ai/editDistance";
 import { getWholeProjectPromptFile } from "../../../ai/prompts/wholeProjectLibrary";
 import { resolveRedactionPolicy } from "../../../ai/redaction";
-import { buildUpdateEntryCommand } from "../../../domain/commands";
+import { buildSetMetaHeaderCommand, buildUpdateEntryCommand } from "../../../domain/commands";
 import type { Provenance } from "../../../domain/model";
 import { useProjectStore } from "../../../state";
 import { Button, Checkbox } from "../../../ui";
@@ -17,11 +17,16 @@ import {
 import {
   buildWholeReportTranslationContext,
   otherLanguage,
+  proposeMetaHeaderTranslation,
   proposeWholeReportTranslation,
+  type MetaHeaderField,
+  type MetaHeaderTranslationLine,
   type WholeReportTranslationDiff,
 } from "./entryTranslation";
 
 const WHOLE_REPORT_TRANSLATION_PROMPT_VERSION = "v1";
+/** P-56 (ai-katmani-temizligi.md §2): the meta-header mini-panel's own prompt version, independent of the report's. */
+const META_HEADER_TRANSLATION_PROMPT_VERSION = "v1";
 
 type Phase =
   | { readonly phase: "idle" }
@@ -31,6 +36,9 @@ type Phase =
       readonly diff: WholeReportTranslationDiff;
       readonly notices: readonly string[];
       readonly selected: ReadonlySet<number>;
+      /** P-56: a small, separate section — title/customer/partName live on `project.meta` directly, never inside an entry's payload, so they can't share the entry-diff's `entryId`-keyed selection. */
+      readonly metaHeaderLines: readonly MetaHeaderTranslationLine[];
+      readonly metaHeaderSelected: ReadonlySet<MetaHeaderField>;
     }
   | { readonly phase: "failed"; readonly rawText: string }
   | { readonly phase: "error"; readonly message: string }
@@ -91,11 +99,42 @@ export function TranslateReportPanel() {
         setState({ phase: "failed", rawText: result.rawText });
         return;
       }
+
+      // P-56 (ai-katmani-temizligi.md §2): a second, independent structured
+      // call for the three project-header fields — a failure here never
+      // aborts the whole flow (the report's own translation already
+      // succeeded), it only means the header mini-panel stays empty, with a
+      // visible notice explaining why.
+      const metaHeaderNotices: string[] = [];
+      let metaHeaderLines: readonly MetaHeaderTranslationLine[] = [];
+      const metaHeaderPromptFile = getWholeProjectPromptFile("translate-project-header", META_HEADER_TRANSLATION_PROMPT_VERSION);
+      if (!metaHeaderPromptFile) {
+        metaHeaderNotices.push(t("workspace.translateReport.missingMetaHeaderPromptFile"));
+      } else {
+        const metaHeaderResult = await proposeMetaHeaderTranslation({
+          promptBody: metaHeaderPromptFile.body,
+          meta: { title: project.meta.title, customer: project.meta.customer, partName: project.meta.partName },
+          targetLanguage,
+          modelId,
+          redaction: resolveRedactionPolicy(project.meta.ai.redaction),
+          projectId: project.id,
+          promptVersion: `translate-project-header.${META_HEADER_TRANSLATION_PROMPT_VERSION}`,
+        });
+        if (metaHeaderResult.outcome === "success") {
+          metaHeaderLines = metaHeaderResult.lines;
+          metaHeaderNotices.push(...metaHeaderResult.droppedNotes);
+        } else if (metaHeaderResult.outcome === "failed") {
+          metaHeaderNotices.push(t("workspace.translateReport.metaHeaderFailed"));
+        }
+      }
+
       setState({
         phase: "review",
         diff: result.diff,
-        notices: [...droppedNotes, ...result.droppedNotes],
+        notices: [...droppedNotes, ...result.droppedNotes, ...metaHeaderNotices],
         selected: new Set(result.diff.lines.map((_, index) => index)),
+        metaHeaderLines,
+        metaHeaderSelected: new Set(metaHeaderLines.map((line) => line.field)),
       });
     } catch (error) {
       setState({ phase: "error", message: errorMessage(error) });
@@ -113,6 +152,19 @@ export function TranslateReportPanel() {
       next.add(index);
     }
     setState({ ...state, selected: next });
+  }
+
+  function toggleMetaHeaderLine(field: MetaHeaderField) {
+    if (state.phase !== "review") {
+      return;
+    }
+    const next = new Set(state.metaHeaderSelected);
+    if (next.has(field)) {
+      next.delete(field);
+    } else {
+      next.add(field);
+    }
+    setState({ ...state, metaHeaderSelected: next });
   }
 
   function handleApply() {
@@ -174,6 +226,26 @@ export function TranslateReportPanel() {
       );
       count += 1;
     });
+
+    // P-56 (ai-katmani-temizligi.md §2): a single whole-slice-replace
+    // dispatch for whichever meta-header fields are selected — freshly read
+    // `project.meta` (not `state`'s snapshot), same "never write against
+    // stale state" reasoning as `liveLookup` above. An unselected field
+    // keeps its own current live value, never the stale one captured at
+    // Analyze time.
+    const selectedMetaHeaderLines = state.metaHeaderLines.filter((line) => state.metaHeaderSelected.has(line.field));
+    if (selectedMetaHeaderLines.length > 0) {
+      const nextHeader = {
+        title: project.meta.title,
+        customer: project.meta.customer,
+        partName: project.meta.partName,
+      };
+      for (const line of selectedMetaHeaderLines) {
+        nextHeader[line.field] = line.translatedText;
+      }
+      dispatch(buildSetMetaHeaderCommand(project, nextHeader));
+      count += selectedMetaHeaderLines.length;
+    }
 
     setState({ phase: "applied", count });
   }
@@ -249,7 +321,33 @@ export function TranslateReportPanel() {
             </div>
           )}
 
-          {state.diff.lines.length === 0 ? (
+          {state.metaHeaderLines.length > 0 && (
+            <div className="flex flex-col gap-2">
+              <span className="font-mono text-2xs uppercase tracking-wide text-ink-muted">
+                {t("workspace.translateReport.projectHeaderHeading")}
+              </span>
+              {state.metaHeaderLines.map((line) => (
+                <label
+                  key={line.field}
+                  className="flex items-start gap-2 rounded-control border border-border bg-surface p-2"
+                >
+                  <Checkbox
+                    checked={state.metaHeaderSelected.has(line.field)}
+                    onCheckedChange={() => toggleMetaHeaderLine(line.field)}
+                  />
+                  <span className="flex flex-col gap-1">
+                    <span className="font-mono text-2xs uppercase tracking-wide text-ink-muted">
+                      {t(`workspace.translateReport.metaFieldLabel.${line.field}`)}
+                    </span>
+                    <span className="font-body text-xs text-ink-muted line-through">{line.originalText}</span>
+                    <span className="font-body text-sm text-ink">{line.translatedText}</span>
+                  </span>
+                </label>
+              ))}
+            </div>
+          )}
+
+          {state.diff.lines.length === 0 && state.metaHeaderLines.length === 0 ? (
             <p className="font-body text-sm text-ink-muted">{t("workspace.translateReport.noneProposed")}</p>
           ) : (
             <div className="flex flex-col gap-2">
@@ -277,7 +375,11 @@ export function TranslateReportPanel() {
           )}
 
           <div className="flex gap-2">
-            <Button type="button" onClick={handleApply} disabled={state.selected.size === 0}>
+            <Button
+              type="button"
+              onClick={handleApply}
+              disabled={state.selected.size === 0 && state.metaHeaderSelected.size === 0}
+            >
               {t("workspace.translateReport.applySelected")}
             </Button>
             <Button type="button" variant="ghost" onClick={handleReject}>

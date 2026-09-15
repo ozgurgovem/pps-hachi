@@ -125,7 +125,7 @@ describe("proposeStructuredEntry", () => {
       promptVersion: null,
     });
 
-    expect(result).toEqual({ outcome: "success", value: { unit: "count", count: 5 } });
+    expect(result).toEqual({ outcome: "success", value: { unit: "count", count: 5 }, requestId: expect.any(String) });
     expect(mockCompleteStructured).toHaveBeenCalledTimes(1);
   });
 
@@ -162,7 +162,7 @@ describe("proposeStructuredEntry", () => {
       promptVersion: null,
     });
 
-    expect(result).toEqual({ outcome: "success", value: { unit: "count", count: 5 } });
+    expect(result).toEqual({ outcome: "success", value: { unit: "count", count: 5 }, requestId: expect.any(String) });
     expect(mockCompleteStructured).toHaveBeenCalledTimes(2);
     const secondPrompt = mockCompleteStructured.mock.calls[1]?.[0];
     expect(secondPrompt).toContain("Validation errors");
@@ -203,7 +203,7 @@ describe("proposeStructuredEntry", () => {
       promptVersion: null,
     });
 
-    expect(result).toEqual({ outcome: "success", value: { unit: "count", count: 5 } });
+    expect(result).toEqual({ outcome: "success", value: { unit: "count", count: 5 }, requestId: expect.any(String) });
     expect(mockCompleteStructured).toHaveBeenCalledTimes(2);
   });
 

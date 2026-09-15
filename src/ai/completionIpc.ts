@@ -1,4 +1,5 @@
 import { Channel, invoke } from "@tauri-apps/api/core";
+import type { ResolvedRedactionPolicy } from "./redaction";
 
 /** Mirrors `src-tauri/src/ai/provider.rs::CompletionMeta`. */
 export interface CompletionMeta {
@@ -37,12 +38,22 @@ export type StreamEvent =
  * `CompletionMeta.conversationId` to continue that same conversation
  * server-side (Vorion keeps the context, not the frontend); omit it (or
  * `null`) for the first message of a thread.
+ *
+ * P-51 (ai-katmani-temizligi.md §1): `redaction` is new — unlike
+ * `completeStructured`'s always-required parameter, this stays optional
+ * (defaulting to `undefined`, which `ai_complete`'s own Rust side treats
+ * exactly like `RedactionPolicy { mode: "off", .. }`) since this app's own
+ * bare-chat callers predate P-51 and most call sites genuinely have no
+ * redaction context in scope. Only the OUTGOING prompt is masked — Vorion's
+ * streamed response is never unredacted, see `CompletionRequest::redaction`'s
+ * own Rust-side doc comment for the full reasoning.
  */
 export function completeStreaming(
   prompt: string,
   modelId: string,
   onEvent: (event: StreamEvent) => void,
   conversationId?: string | null,
+  redaction?: ResolvedRedactionPolicy,
 ): Promise<CompletionMeta> {
   const channel = new Channel<StreamEvent>();
   channel.onmessage = onEvent;
@@ -50,6 +61,7 @@ export function completeStreaming(
     prompt,
     modelId,
     conversationId: conversationId ?? null,
+    redaction: redaction ?? null,
     channel,
   });
 }

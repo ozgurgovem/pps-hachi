@@ -7,8 +7,10 @@ import * as entryProposal from "./entryProposal";
 import { buildEntryLookup } from "./layoutReview";
 import {
   buildWholeReportTranslationContext,
+  collectMetaHeaderSourceValues,
   otherLanguage,
   proposeEntryTranslation,
+  proposeMetaHeaderTranslation,
   proposeWholeReportTranslation,
 } from "./entryTranslation";
 
@@ -64,6 +66,7 @@ describe("proposeEntryTranslation", () => {
   it("returns the translated title and payload on the first successful attempt", async () => {
     mockedAttempt.mockResolvedValueOnce({
       success: true,
+      requestId: "req-1",
       value: { title: "Translated title", payload: { text: "Translated body" } },
     });
 
@@ -92,6 +95,7 @@ describe("proposeEntryTranslation", () => {
     mockedAttempt.mockResolvedValueOnce({ success: false, rawText: "not json", errorSummary: "- payload: required" });
     mockedAttempt.mockResolvedValueOnce({
       success: true,
+      requestId: "req-1",
       value: { title: "Translated title", payload: { text: "Translated body" } },
     });
 
@@ -121,10 +125,12 @@ describe("proposeEntryTranslation", () => {
   it("retries once when a protected token is lost, then succeeds", async () => {
     mockedAttempt.mockResolvedValueOnce({
       success: true,
+      requestId: "req-1",
       value: { title: "Translated title", payload: { text: "The rate dropped." } },
     });
     mockedAttempt.mockResolvedValueOnce({
       success: true,
+      requestId: "req-1",
       value: { title: "Translated title", payload: { text: "The rate dropped to 4,2." } },
     });
 
@@ -154,10 +160,12 @@ describe("proposeEntryTranslation", () => {
   it("fails without writing anything when the second attempt still loses a protected token", async () => {
     mockedAttempt.mockResolvedValueOnce({
       success: true,
+      requestId: "req-1",
       value: { title: "Translated title", payload: { text: "The rate dropped." } },
     });
     mockedAttempt.mockResolvedValueOnce({
       success: true,
+      requestId: "req-1",
       value: { title: "Translated title", payload: { text: "The rate still dropped." } },
     });
 
@@ -248,6 +256,7 @@ describe("proposeWholeReportTranslation", () => {
     const lookup = buildEntryLookup(project);
     mockedAttempt.mockResolvedValueOnce({
       success: true,
+      requestId: "req-1",
       value: { lines: [{ entryId: entry.id, field: "text", translatedText: "y".repeat(200) }] },
     });
 
@@ -276,6 +285,7 @@ describe("proposeWholeReportTranslation", () => {
     mockedAttempt.mockResolvedValueOnce({ success: false, rawText: "bad", errorSummary: "err" });
     mockedAttempt.mockResolvedValueOnce({
       success: true,
+      requestId: "req-1",
       value: { lines: [{ entryId: entry.id, field: "text", translatedText: "y".repeat(200) }] },
     });
 
@@ -301,6 +311,7 @@ describe("proposeWholeReportTranslation", () => {
 
     mockedAttempt.mockResolvedValueOnce({
       success: true,
+      requestId: "req-1",
       value: {
         lines: [
           { entryId: "with-number", field: "text", translatedText: "the number is gone now" },
@@ -310,6 +321,7 @@ describe("proposeWholeReportTranslation", () => {
     });
     mockedAttempt.mockResolvedValueOnce({
       success: true,
+      requestId: "req-1",
       value: {
         lines: [
           { entryId: "with-number", field: "text", translatedText: "still no number here" },
@@ -334,6 +346,130 @@ describe("proposeWholeReportTranslation", () => {
       expect(result.droppedNotes).toHaveLength(1);
       expect(result.droppedNotes[0]).toContain("with-number");
     }
+    expect(mockedAttempt).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe("collectMetaHeaderSourceValues (P-56, ai-katmani-temizligi.md §2)", () => {
+  it("includes title always, and customer/partName only when set to a non-blank string", () => {
+    expect(collectMetaHeaderSourceValues({ title: "T", customer: undefined, partName: undefined })).toEqual({ title: "T" });
+    expect(collectMetaHeaderSourceValues({ title: "T", customer: "Acme", partName: "  " })).toEqual({
+      title: "T",
+      customer: "Acme",
+    });
+  });
+});
+
+describe("proposeMetaHeaderTranslation (P-56, ai-katmani-temizligi.md §2)", () => {
+  it("returns empty when title/customer/partName carry no translatable content", async () => {
+    const result = await proposeMetaHeaderTranslation({
+      promptBody: "Translate the project header.",
+      meta: { title: "", customer: undefined, partName: undefined },
+      targetLanguage: "en",
+      modelId: "vorion/gpt-4o",
+      redaction: OFF,
+      projectId: "proj-1",
+      promptVersion: "translate-project-header.v1",
+    });
+
+    expect(result.outcome).toBe("empty");
+    expect(mockedAttempt).not.toHaveBeenCalled();
+  });
+
+  it("returns success with one line per set field on the first successful attempt", async () => {
+    mockedAttempt.mockResolvedValueOnce({
+      success: true,
+      requestId: "req-1",
+      value: { title: "Translated title", customer: "Acme" },
+    });
+
+    const result = await proposeMetaHeaderTranslation({
+      promptBody: "Translate the project header.",
+      meta: { title: "Original title", customer: "Acme", partName: undefined },
+      targetLanguage: "en",
+      modelId: "vorion/gpt-4o",
+      redaction: OFF,
+      projectId: "proj-1",
+      promptVersion: "translate-project-header.v1",
+    });
+
+    expect(result.outcome).toBe("success");
+    if (result.outcome === "success") {
+      expect(result.lines).toEqual([
+        { field: "title", originalText: "Original title", translatedText: "Translated title" },
+        { field: "customer", originalText: "Acme", translatedText: "Acme" },
+      ]);
+      expect(result.droppedNotes).toEqual([]);
+    }
+    expect(mockedAttempt).toHaveBeenCalledTimes(1);
+  });
+
+  it("retries once on schema failure, then succeeds", async () => {
+    mockedAttempt.mockResolvedValueOnce({ success: false, rawText: "bad", errorSummary: "err" });
+    mockedAttempt.mockResolvedValueOnce({ success: true, requestId: "req-1", value: { title: "Translated title" } });
+
+    const result = await proposeMetaHeaderTranslation({
+      promptBody: "Translate the project header.",
+      meta: { title: "Original title", customer: undefined, partName: undefined },
+      targetLanguage: "en",
+      modelId: "vorion/gpt-4o",
+      redaction: OFF,
+      projectId: "proj-1",
+      promptVersion: "translate-project-header.v1",
+    });
+
+    expect(result.outcome).toBe("success");
+    expect(mockedAttempt).toHaveBeenCalledTimes(2);
+  });
+
+  it("drops only the field that still loses a protected token after the retry, keeping the rest", async () => {
+    mockedAttempt.mockResolvedValueOnce({
+      success: true,
+      requestId: "req-1",
+      value: { title: "Translated 4,2 title", customer: "the customer is gone" },
+    });
+    mockedAttempt.mockResolvedValueOnce({
+      success: true,
+      requestId: "req-1",
+      value: { title: "Still no number here", customer: "the customer is still gone" },
+    });
+
+    const result = await proposeMetaHeaderTranslation({
+      promptBody: "Translate the project header.",
+      meta: { title: "Original 4,2 title", customer: "Acme Corp", partName: undefined },
+      targetLanguage: "en",
+      modelId: "vorion/gpt-4o",
+      redaction: OFF,
+      projectId: "proj-1",
+      promptVersion: "translate-project-header.v1",
+    });
+
+    expect(result.outcome).toBe("success");
+    if (result.outcome === "success") {
+      expect(result.lines).toEqual([
+        { field: "title", originalText: "Original 4,2 title", translatedText: "Original 4,2 title" },
+        { field: "customer", originalText: "Acme Corp", translatedText: "Acme Corp" },
+      ]);
+      expect(result.droppedNotes).toHaveLength(2);
+    }
+    expect(mockedAttempt).toHaveBeenCalledTimes(2);
+  });
+
+  it("returns failed when the retry attempt itself fails", async () => {
+    mockedAttempt.mockResolvedValueOnce({ success: false, rawText: "bad once", errorSummary: "err" });
+    mockedAttempt.mockResolvedValueOnce({ success: false, rawText: "bad twice", errorSummary: "err2" });
+
+    const result = await proposeMetaHeaderTranslation({
+      promptBody: "Translate the project header.",
+      meta: { title: "Original title", customer: undefined, partName: undefined },
+      targetLanguage: "en",
+      modelId: "vorion/gpt-4o",
+      redaction: OFF,
+      projectId: "proj-1",
+      promptVersion: "translate-project-header.v1",
+    });
+
+    expect(result.outcome).toBe("failed");
     expect(mockedAttempt).toHaveBeenCalledTimes(2);
   });
 });

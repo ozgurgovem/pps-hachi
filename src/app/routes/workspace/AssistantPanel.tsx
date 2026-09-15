@@ -91,6 +91,16 @@ export function AssistantPanel({ stepId }: AssistantPanelProps) {
     updateTurn(turnId, (turn) => (turn.phase === "done" ? { ...turn, applyState } : turn));
   }
 
+  /**
+   * P-51 (ai-katmani-temizligi.md §1): `completeStreaming` now forwards
+   * `resolveRedactionPolicy(project.meta.ai.redaction)` — the enriched
+   * prompt (the user's own typed question plus D-246's own entry-summary
+   * injection, `buildStepAssistantPrompt`) is masked on the outgoing side
+   * before it ever reaches Vorion. Barış's own chosen asymmetry
+   * (`AskUserQuestion`): the streamed response is never unredacted — see
+   * `CompletionRequest::redaction`'s own Rust-side doc comment for why that
+   * is safe here.
+   */
   async function handleSend() {
     const trimmed = promptText.trim();
     // `project` is narrowed non-null above, but that narrowing doesn't carry
@@ -141,6 +151,7 @@ export function AssistantPanel({ stepId }: AssistantPanelProps) {
           });
         },
         conversationIdForThisTurn,
+        resolveRedactionPolicy(project.meta.ai.redaction),
       );
       const generatedAt = new Date().toISOString();
       setLastConversationId(stepId, meta.conversationId);

@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { open } from "@tauri-apps/plugin-dialog";
@@ -6,6 +6,7 @@ import "../../../i18n";
 import { getMethodById } from "../../../methods";
 import type { ResolvedRedactionPolicy } from "../../../ai/redaction";
 import { ingestTablePreview } from "../../../ai/ingestIpc";
+import * as settingsIpc from "../../../ai/settingsIpc";
 import { EntryProposalField } from "./EntryProposalField";
 import * as entryProposal from "./entryProposal";
 
@@ -34,11 +35,20 @@ vi.mock("../../../ai/ingestIpc", () => ({
   ingestTablePreview: vi.fn(),
 }));
 
+vi.mock("../../../ai/settingsIpc", () => ({
+  markAccepted: vi.fn(),
+}));
+
 const mockedPropose = vi.mocked(entryProposal.proposeStructuredEntry);
 const mockedOpen = vi.mocked(open);
 const mockedIngestTablePreview = vi.mocked(ingestTablePreview);
+const mockedMarkAccepted = vi.mocked(settingsIpc.markAccepted);
 
 const OFF: ResolvedRedactionPolicy = { mode: "off", terms: [], preserveNumbers: true };
+
+beforeEach(() => {
+  mockedMarkAccepted.mockResolvedValue(undefined);
+});
 
 afterEach(() => {
   vi.clearAllMocks();
@@ -82,6 +92,7 @@ describe("EntryProposalField", () => {
     const user = userEvent.setup();
     mockedPropose.mockResolvedValueOnce({
       outcome: "success",
+      requestId: "req-1",
       value: { unit: "count", categories: [{ id: "weld", label: "Weld defect", count: 12 }] },
     });
     const redaction: ResolvedRedactionPolicy = { mode: "customers", terms: ["Acme Corp"], preserveNumbers: true };
@@ -109,6 +120,7 @@ describe("EntryProposalField", () => {
     const user = userEvent.setup();
     mockedPropose.mockResolvedValueOnce({
       outcome: "success",
+      requestId: "req-1",
       value: { unit: "count", categories: [{ id: "weld", label: "Weld defect", count: 12 }] },
     });
     const { onAccept } = renderField();
@@ -128,12 +140,15 @@ describe("EntryProposalField", () => {
     expect(provenance.editDistance).toBe(0);
     // The field collapses back to just the trigger after a successful accept.
     expect(screen.getByRole("button", { name: "Propose with AI" })).toBeTruthy();
+    // P-60 (ai-katmani-temizligi.md §4): the log entry request_id gets correlated.
+    expect(mockedMarkAccepted).toHaveBeenCalledWith("proj-1", "req-1", true);
   });
 
   it("marks the entry ai-edited with a nonzero editDistance when the draft is changed before accepting", async () => {
     const user = userEvent.setup();
     mockedPropose.mockResolvedValueOnce({
       outcome: "success",
+      requestId: "req-1",
       value: { unit: "count", categories: [{ id: "weld", label: "Weld defect", count: 12 }] },
     });
     const { onAccept } = renderField();
@@ -156,6 +171,7 @@ describe("EntryProposalField", () => {
     const user = userEvent.setup();
     mockedPropose.mockResolvedValueOnce({
       outcome: "success",
+      requestId: "req-1",
       value: { unit: "count", categories: [] },
     });
     const { onAccept } = renderField();
@@ -167,6 +183,8 @@ describe("EntryProposalField", () => {
 
     expect(onAccept).not.toHaveBeenCalled();
     expect(screen.getByRole("textbox", { name: "Raw data" })).toBeTruthy();
+    // P-60 (ai-katmani-temizligi.md §4): a rejection is reported too, not just an accept.
+    expect(mockedMarkAccepted).toHaveBeenCalledWith("proj-1", "req-1", false);
   });
 
   it("shows the raw response and writes nothing when the proposal fails validation twice", async () => {
@@ -181,6 +199,11 @@ describe("EntryProposalField", () => {
     expect(await screen.findByRole("alert")).toBeTruthy();
     expect(screen.getByText("not valid json at all")).toBeTruthy();
     expect(onAccept).not.toHaveBeenCalled();
+
+    // P-60: dismissing a "failed" state (via the same handleReject) has no
+    // requestId to correlate against — never reported.
+    await user.click(screen.getByRole("button", { name: "Try again" }));
+    expect(mockedMarkAccepted).not.toHaveBeenCalled();
   });
 
   it("shows an error and allows retry when the IPC call itself rejects", async () => {

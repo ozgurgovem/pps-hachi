@@ -64,6 +64,33 @@ struct PredictionRequest {
     conversation_id: Option<String>,
 }
 
+/// P-51 (ai-katmani-temizligi.md §1): pure — no HTTP, so it can be unit-
+/// tested directly (this crate has no mock HTTP server set up, the same
+/// reason `build_structured_prompt` is its own testable function rather
+/// than inlined into `complete_structured`). Masks `req.prompt` with
+/// `redact_text` before it ever becomes part of a `PredictionRequest` —
+/// the outgoing side of `CompletionRequest::redaction`'s own documented
+/// asymmetry (masked going out, never unmasked coming back).
+fn build_completion_prediction_request(req: &CompletionRequest) -> PredictionRequest {
+    let default_policy = RedactionPolicy {
+        mode: RedactionMode::Off,
+        terms: Vec::new(),
+        preserve_numbers: true,
+    };
+    let policy = req.redaction.as_ref().unwrap_or(&default_policy);
+    let (masked_prompt, _tokens) = redact_text(&req.prompt, policy);
+
+    let (llm_name, llm_group_name) = split_model_id(&req.model_id);
+    PredictionRequest {
+        prompt: PredictionPrompt {
+            text: masked_prompt,
+        },
+        llm_name,
+        llm_group_name,
+        conversation_id: req.conversation_id.clone(),
+    }
+}
+
 /// Only the fields this adapter actually reads from `GET /llm/api/v1/llms` —
 /// confirmed against the real "List LLMs" reference (Barış's authenticated
 /// session, 2026-08-30). `group_name` is exactly the value the Synchronous
@@ -465,13 +492,7 @@ impl LlmProvider for VorionProvider {
         req: CompletionRequest,
         tx: Channel<StreamEvent>,
     ) -> Result<CompletionMeta, AiError> {
-        let (llm_name, llm_group_name) = split_model_id(&req.model_id);
-        let request = PredictionRequest {
-            prompt: PredictionPrompt { text: req.prompt },
-            llm_name,
-            llm_group_name,
-            conversation_id: req.conversation_id,
-        };
+        let request = build_completion_prediction_request(&req);
         let data = serde_json::to_string(&request)?;
         let form = reqwest::multipart::Form::new().text("data", data);
 
@@ -977,6 +998,43 @@ mod tests {
         let json = serde_json::to_value(&request).unwrap();
 
         assert!(!json.as_object().unwrap().contains_key("stream_id"));
+    }
+
+    /// P-51 (ai-katmani-temizligi.md §1.4): proves the wiring, not just
+    /// `redact_text` itself (already covered in `redaction.rs`'s own unit
+    /// tests) — a `CompletionRequest` carrying a configured customer name
+    /// never reaches the built `PredictionRequest` in the clear.
+    #[test]
+    fn build_completion_prediction_request_masks_a_configured_term_in_the_outgoing_prompt() {
+        let req = CompletionRequest {
+            prompt: "What should I tell Acme Corp about this defect?".to_string(),
+            model_id: "vorion/gpt-4o".to_string(),
+            conversation_id: None,
+            redaction: Some(RedactionPolicy {
+                mode: RedactionMode::Customers,
+                terms: vec!["Acme Corp".to_string()],
+                preserve_numbers: true,
+            }),
+        };
+
+        let request = build_completion_prediction_request(&req);
+
+        assert!(!request.prompt.text.contains("Acme Corp"));
+        assert!(request.prompt.text.contains("Customer A"));
+    }
+
+    #[test]
+    fn build_completion_prediction_request_leaves_the_prompt_unchanged_when_redaction_is_none() {
+        let req = CompletionRequest {
+            prompt: "What should I tell Acme Corp about this defect?".to_string(),
+            model_id: "vorion/gpt-4o".to_string(),
+            conversation_id: None,
+            redaction: None,
+        };
+
+        let request = build_completion_prediction_request(&req);
+
+        assert_eq!(request.prompt.text, req.prompt);
     }
 
     /// Deserializes a response shaped exactly like Vorion's real Cancel

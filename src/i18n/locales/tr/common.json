@@ -14,7 +14,7 @@
     "openProjectDialogTitle": "PPS Hachi projesi aç",
     "chooseLanguage": {
       "title": "Proje dili",
-      "description": "Bu proje hangi dilde tutulsun? Daha sonra değiştirilemez.",
+      "description": "Bu proje hangi dilde tutulsun? Bunu daha sonra Ayarlar'dan değiştirebilirsiniz.",
       "turkish": "Türkçe",
       "english": "İngilizce"
     },
@@ -314,13 +314,21 @@
       },
       "analyzing": "Rapor çevriliyor…",
       "missingPromptFile": "Rapor geneli çeviri istemi henüz yapılandırılmamış.",
+      "missingMetaHeaderPromptFile": "Proje başlığı çeviri istemi henüz yapılandırılmamış — raporun kendi girişleri yine de çevrildi.",
+      "metaHeaderFailed": "Proje başlığı (başlık/müşteri/parça adı) bu sefer çevrilemedi — raporun kendi girişleri yine de çevrildi.",
       "failed": "AI'nin yanıtı geçerli bir çeviriye dönüştürülemedi. Ham yanıtı:",
       "retry": "Tekrar dene",
       "noneProposed": "Çevrilecek bir şey yok.",
       "applySelected": "Seçilenleri uygula",
       "rejectAll": "Tümünü reddet",
       "appliedSummary": "{{count}} çevrilmiş alan uygulandı.",
-      "analyzeAgain": "Tekrar çevir"
+      "analyzeAgain": "Tekrar çevir",
+      "projectHeaderHeading": "Proje başlığı",
+      "metaFieldLabel": {
+        "title": "Başlık",
+        "customer": "Müşteri",
+        "partName": "Parça adı"
+      }
     },
     "references": {
       "searchLabel": "Kayıt bul",
@@ -1319,6 +1327,14 @@
     "uiLanguage": {
       "heading": "Arayüz dili",
       "description": "Uygulamanın kendi ekranlarının hangi dilde gösterileceği — bir projenin içerik dilinden bağımsız."
+    },
+    "contentLanguage": {
+      "heading": "Proje içerik dili",
+      "description": "A3 ihracat ve önizleme etiketlerinin hangi dilde gösterileceği — yukarıdaki arayüz dilinden bağımsız. İstediğiniz zaman değiştirilebilir.",
+      "noProject": "İçerik dilini değiştirmek için bir proje açın.",
+      "label": "İçerik dili",
+      "turkish": "Türkçe",
+      "english": "İngilizce"
     },
     "template": {
       "heading": "Şablon",

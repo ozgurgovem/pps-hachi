@@ -474,6 +474,58 @@ describe("SettingsScreen", () => {
     });
   });
 
+  describe("Project content language (P-57, ai-katmani-temizligi.md §3)", () => {
+    test("shows a message instead of the selector when no project is open", async () => {
+      mocked.getKeyStatus.mockResolvedValueOnce(null);
+      mocked.getAiSettings.mockResolvedValueOnce(EMPTY_SETTINGS);
+
+      renderSettingsScreen();
+
+      expect(await screen.findByText("Open a project to change its content language.")).toBeTruthy();
+      expect(screen.queryByLabelText("Content language")).toBeNull();
+    });
+
+    test("shows the project's current content language on load", async () => {
+      const { project } = createNewProject({ title: "T", language: "tr", appVersion: "0.1.0" });
+      useProjectStore.setState({ ...initialProjectStoreState, project });
+      mocked.getKeyStatus.mockResolvedValueOnce(null);
+      mocked.getAiSettings.mockResolvedValueOnce(EMPTY_SETTINGS);
+
+      renderSettingsScreen();
+
+      await screen.findByLabelText("Content language");
+      expect(screen.getByText("Turkish")).toBeTruthy();
+    });
+
+    test("choosing a different content language dispatches meta.language.set and updates the project", async () => {
+      const user = userEvent.setup();
+      const { project } = createNewProject({ title: "T", language: "en", appVersion: "0.1.0" });
+      useProjectStore.setState({ ...initialProjectStoreState, project });
+      mocked.getKeyStatus.mockResolvedValueOnce(null);
+      mocked.getAiSettings.mockResolvedValueOnce(EMPTY_SETTINGS);
+
+      renderSettingsScreen();
+      await screen.findByLabelText("Content language");
+
+      await user.click(screen.getByLabelText("Content language"));
+      await user.click(await screen.findByRole("option", { name: "Turkish" }));
+
+      expect(useProjectStore.getState().project?.meta.language).toBe("tr");
+    });
+
+    test("does not touch project.meta.language when nothing is dispatched (mutation guard)", async () => {
+      const { project } = createNewProject({ title: "T", language: "en", appVersion: "0.1.0" });
+      useProjectStore.setState({ ...initialProjectStoreState, project });
+      mocked.getKeyStatus.mockResolvedValueOnce(null);
+      mocked.getAiSettings.mockResolvedValueOnce(EMPTY_SETTINGS);
+
+      renderSettingsScreen();
+      await screen.findByLabelText("Content language");
+
+      expect(useProjectStore.getState().project?.meta.language).toBe("en");
+    });
+  });
+
   describe("Template switching (Faz 11/L2)", () => {
     function makeEntry(overrides: Partial<Entry> = {}): Entry {
       const now = new Date().toISOString();

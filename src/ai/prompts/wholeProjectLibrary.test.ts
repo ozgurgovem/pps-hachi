@@ -66,6 +66,16 @@ describe("getWholeProjectPromptFile", () => {
     expect(file?.body.length).toBeGreaterThan(0);
   });
 
+  /** P-56 (ai-katmani-temizligi.md §2): the meta-header (title/customer/partName) translation prompt — see `entryTranslation.ts`. */
+  it("finds the real translate-project-header.v1 prompt file", () => {
+    const file = getWholeProjectPromptFile("translate-project-header", "v1");
+
+    expect(file).toBeDefined();
+    expect(file?.frontMatter.mode).toBe("draft");
+    expect(file?.frontMatter.outputSchema).toBe("translate-project-header");
+    expect(file?.body.length).toBeGreaterThan(0);
+  });
+
   it("returns undefined for a purpose/version with no prompt file", () => {
     expect(getWholeProjectPromptFile("layout-review", "v2-does-not-exist")).toBeUndefined();
     expect(getWholeProjectPromptFile("mock-audit", "v2-does-not-exist")).toBeUndefined();
@@ -73,5 +83,6 @@ describe("getWholeProjectPromptFile", () => {
     expect(getWholeProjectPromptFile("translate-report", "v2-does-not-exist")).toBeUndefined();
     expect(getWholeProjectPromptFile("identify-suggestion-target", "v2-does-not-exist")).toBeUndefined();
     expect(getWholeProjectPromptFile("apply-suggestion", "v2-does-not-exist")).toBeUndefined();
+    expect(getWholeProjectPromptFile("translate-project-header", "v2-does-not-exist")).toBeUndefined();
   });
 });

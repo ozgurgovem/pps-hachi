@@ -5,6 +5,7 @@ import type {
   Entry,
   EntryReference,
   ImageRef,
+  MetaHeaderFields,
   ProjectInfoFields,
   ProjectModel,
   Provenance,
@@ -21,6 +22,8 @@ import {
   type EntryUpdateCommand,
   type EntriesReorderCommand,
   type MetaAiSetCommand,
+  type MetaHeaderSetCommand,
+  type MetaLanguageSetCommand,
   type MetaProjectInfoSetCommand,
   type RoundsSetCommand,
   type SignOffSetCommand,
@@ -334,4 +337,31 @@ export function buildSetTemplateIdCommand(project: ProjectModel, templateId: str
  */
 export function buildSetBlockPinsCommand(project: ProjectModel, blockPins: BlockPins): BlockPinsSetCommand {
   return { type: "blockPins.set", before: project.blockPins ?? {}, after: blockPins, undoable: true };
+}
+
+/**
+ * P-57 (ai-katmani-temizligi.md §3): sets `project.meta.language`, same
+ * posture as `buildSetTemplateIdCommand` — a single required field, no
+ * partial-patch case. Barış's own choice (`ai-katmani-temizligi.md`'s own
+ * AskUserQuestion round): a plain, silent selector like `templateId`'s own
+ * `SelectRoot` — no confirmation dialog, even though the new value ripples
+ * into every export label `resolveA3Language` reads (D-188).
+ */
+export function buildSetMetaLanguageCommand(project: ProjectModel, language: "tr" | "en"): MetaLanguageSetCommand {
+  return { type: "meta.language.set", before: project.meta.language, after: language, undoable: true };
+}
+
+/**
+ * P-56 (ai-katmani-temizligi.md §2): sets the whole `title`/`customer`/
+ * `partName` slice at once, same posture as `buildSetProjectInfoCommand` —
+ * the caller (`TranslateReportPanel`'s meta-header mini-panel) always has
+ * the project's current values of all three fields in hand already.
+ */
+export function buildSetMetaHeaderCommand(project: ProjectModel, header: MetaHeaderFields): MetaHeaderSetCommand {
+  const before: MetaHeaderFields = {
+    title: project.meta.title,
+    customer: project.meta.customer,
+    partName: project.meta.partName,
+  };
+  return { type: "meta.header.set", before, after: header, undoable: true };
 }

@@ -460,3 +460,240 @@ async function retryWholeReportTranslation(
 
   return { outcome: "success", diff: { lines: keptLines }, droppedNotes };
 }
+
+// ---------------------------------------------------------------------------
+// Project header (meta.title/customer/partName) translation
+// (P-56, ai-katmani-temizligi.md §2)
+// ---------------------------------------------------------------------------
+
+/**
+ * P-56's own approved scope (Barış's choice, `AskUserQuestion`, option a):
+ * a small, SEPARATE mechanism from `buildWholeReportTranslationContext` —
+ * these three fields live on `ProjectModel.meta` directly, not inside any
+ * `Entry.payload`, so `collectCondensableFields`'s ≥80-character threshold
+ * (built for payload string fields) doesn't apply here at all; all three are
+ * always offered regardless of length.
+ */
+export const META_HEADER_FIELDS = ["title", "customer", "partName"] as const;
+export type MetaHeaderField = (typeof META_HEADER_FIELDS)[number];
+export type MetaHeaderSourceValues = Partial<Record<MetaHeaderField, string>>;
+
+export interface MetaHeaderTranslationLine {
+  readonly field: MetaHeaderField;
+  readonly originalText: string;
+  readonly translatedText: string;
+}
+
+export type MetaHeaderTranslationOutcome =
+  | { readonly outcome: "success"; readonly lines: readonly MetaHeaderTranslationLine[]; readonly droppedNotes: readonly string[] }
+  | { readonly outcome: "failed"; readonly rawText: string }
+  /** Nothing to translate — `customer`/`partName` unset and `title` blank never happens in practice, but the type stays honest. */
+  | { readonly outcome: "empty" };
+
+export function collectMetaHeaderSourceValues(
+  meta: Pick<ProjectModel["meta"], "title" | "customer" | "partName">,
+): MetaHeaderSourceValues {
+  const values: MetaHeaderSourceValues = {};
+  for (const field of META_HEADER_FIELDS) {
+    const value = meta[field];
+    if (typeof value === "string" && value.trim().length > 0) {
+      values[field] = value;
+    }
+  }
+  return values;
+}
+
+function buildMetaHeaderZodSchema(fields: readonly MetaHeaderField[]): ZodType<Record<string, string>> {
+  const shape: Record<string, ZodType<string>> = {};
+  for (const field of fields) {
+    shape[field] = z.string();
+  }
+  return z.object(shape);
+}
+
+function buildMetaHeaderUserInput(values: MetaHeaderSourceValues, targetLanguage: ReportLanguage): string {
+  const lines = [`Target language: ${targetLanguage}`, ""];
+  for (const field of META_HEADER_FIELDS) {
+    const value = values[field];
+    if (value !== undefined) {
+      lines.push(`${field}: ${value}`);
+    }
+  }
+  return lines.join("\n");
+}
+
+/** Per-field, mirroring `findWholeReportTokenFailures`'s own per-line check — each field's protected content is checked against ONLY that field's own original text, never a combined blob (a token that legitimately appears in `title` should never excuse `customer` from carrying its own). */
+interface MetaHeaderFieldFailure {
+  readonly field: MetaHeaderField;
+  readonly missingTokens: readonly string[];
+}
+
+function findMetaHeaderFieldFailures(
+  fields: readonly MetaHeaderField[],
+  sourceValues: MetaHeaderSourceValues,
+  translated: Readonly<Record<string, string>>,
+): readonly MetaHeaderFieldFailure[] {
+  const failures: MetaHeaderFieldFailure[] = [];
+  for (const field of fields) {
+    const original = sourceValues[field] ?? "";
+    const missing = findMissingProtectedTokens(original, translated[field] ?? "");
+    if (missing.length > 0) {
+      failures.push({ field, missingTokens: missing });
+    }
+  }
+  return failures;
+}
+
+function toMetaHeaderLines(
+  fields: readonly MetaHeaderField[],
+  sourceValues: MetaHeaderSourceValues,
+  translated: Readonly<Record<string, string>>,
+): readonly MetaHeaderTranslationLine[] {
+  return fields.map((field) => ({
+    field,
+    originalText: sourceValues[field] ?? "",
+    translatedText: translated[field] ?? sourceValues[field] ?? "",
+  }));
+}
+
+export interface ProposeMetaHeaderTranslationParams {
+  readonly promptBody: string;
+  readonly meta: Pick<ProjectModel["meta"], "title" | "customer" | "partName">;
+  readonly targetLanguage: ReportLanguage;
+  readonly modelId: string;
+  readonly redaction: ResolvedRedactionPolicy;
+  readonly projectId: string;
+  readonly promptVersion: string | null;
+}
+
+/**
+ * Same combined single-retry discipline as `proposeWholeReportTranslation` —
+ * a schema failure or a lost protected token (a customer name is very often
+ * exactly the kind of proper noun `findMissingProtectedTokens`'s own
+ * capitalized-word-run pattern is built to catch) both count as "the attempt
+ * failed," sharing ONE retry. A field that still loses its protected content
+ * on the second attempt is dropped from the result alone (falls back to its
+ * untranslated original, with a visible note), never the whole result — the
+ * title alone is still worth applying even if the customer name couldn't be
+ * safely translated this round.
+ */
+export async function proposeMetaHeaderTranslation(
+  params: ProposeMetaHeaderTranslationParams,
+): Promise<MetaHeaderTranslationOutcome> {
+  const sourceValues = collectMetaHeaderSourceValues(params.meta);
+  const fields = META_HEADER_FIELDS.filter((field) => sourceValues[field] !== undefined);
+  if (fields.length === 0) {
+    return { outcome: "empty" };
+  }
+
+  const zodSchema = buildMetaHeaderZodSchema(fields);
+  const jsonSchema = z.toJSONSchema(zodSchema, { target: "draft-2020-12" });
+  const userInput = buildMetaHeaderUserInput(sourceValues, params.targetLanguage);
+  const firstPrompt = buildProposalPrompt(params.promptBody, userInput);
+
+  const first = await attemptStructuredProposal(
+    firstPrompt,
+    jsonSchema,
+    params.modelId,
+    zodSchema,
+    params.redaction,
+    params.projectId,
+    params.promptVersion,
+  );
+
+  if (!first.success) {
+    return retryMetaHeaderTranslation(params, fields, sourceValues, jsonSchema, userInput, first.rawText, first.errorSummary, []);
+  }
+
+  const translated = first.value as Record<string, string>;
+  const failures = findMetaHeaderFieldFailures(fields, sourceValues, translated);
+  if (failures.length === 0) {
+    return { outcome: "success", lines: toMetaHeaderLines(fields, sourceValues, translated), droppedNotes: [] };
+  }
+
+  return retryMetaHeaderTranslation(
+    params,
+    fields,
+    sourceValues,
+    jsonSchema,
+    userInput,
+    JSON.stringify(translated, null, 2),
+    undefined,
+    failures,
+  );
+}
+
+function buildMetaHeaderRetryPrompt(
+  promptBody: string,
+  userInput: string,
+  previousRawText: string,
+  schemaErrorSummary: string | undefined,
+  failures: readonly MetaHeaderFieldFailure[],
+): string {
+  const parts = [
+    buildProposalPrompt(promptBody, userInput),
+    `\n\n---\n\n## Your previous attempt was invalid\n\nYour previous response:\n${previousRawText}`,
+  ];
+  if (schemaErrorSummary) {
+    parts.push(`\n\nValidation errors:\n${schemaErrorSummary}`);
+  }
+  if (failures.length > 0) {
+    const lines = failures.map(
+      (f) => `- field "${f.field}": lost protected value(s) ${f.missingTokens.map((t) => `"${t}"`).join(", ")} — restore them exactly as they appear in the original.`,
+    );
+    parts.push(`\n\nSome fields dropped protected numbers, dates, part numbers or names:\n${lines.join("\n")}`);
+  }
+  parts.push(
+    "\n\nCorrect these issues and respond again with ONLY valid JSON matching the schema — no prose, no markdown code fences.",
+  );
+  return parts.join("");
+}
+
+async function retryMetaHeaderTranslation(
+  params: ProposeMetaHeaderTranslationParams,
+  fields: readonly MetaHeaderField[],
+  sourceValues: MetaHeaderSourceValues,
+  jsonSchema: object,
+  userInput: string,
+  previousRawText: string,
+  schemaErrorSummary: string | undefined,
+  failures: readonly MetaHeaderFieldFailure[],
+): Promise<MetaHeaderTranslationOutcome> {
+  const zodSchema = buildMetaHeaderZodSchema(fields);
+  const retryPrompt = buildMetaHeaderRetryPrompt(params.promptBody, userInput, previousRawText, schemaErrorSummary, failures);
+  const second = await attemptStructuredProposal(
+    retryPrompt,
+    jsonSchema,
+    params.modelId,
+    zodSchema,
+    params.redaction,
+    params.projectId,
+    params.promptVersion,
+  );
+  if (!second.success) {
+    return { outcome: "failed", rawText: second.rawText };
+  }
+
+  const translated = second.value as Record<string, string>;
+  const stillFailing = findMetaHeaderFieldFailures(fields, sourceValues, translated);
+  if (stillFailing.length === 0) {
+    return { outcome: "success", lines: toMetaHeaderLines(fields, sourceValues, translated), droppedNotes: [] };
+  }
+
+  // A field that still lost protected content on the second attempt is
+  // dropped alone — its translated value falls back to the untranslated
+  // original (`sanitized[field] = sourceValues[field]`), the rest of the
+  // fields still translate — mirroring `retryWholeReportTranslation`'s own
+  // per-line drop.
+  const stillFailingFields = new Set(stillFailing.map((f) => f.field));
+  const sanitized: Record<string, string> = {};
+  for (const field of fields) {
+    sanitized[field] = stillFailingFields.has(field) ? (sourceValues[field] ?? "") : (translated[field] ?? "");
+  }
+  const droppedNotes = stillFailing.map(
+    (f) =>
+      `The project header's "${f.field}" field could not preserve ${f.missingTokens.map((t) => `"${t}"`).join(", ")} — it was left out, the text is unchanged.`,
+  );
+
+  return { outcome: "success", lines: toMetaHeaderLines(fields, sourceValues, sanitized), droppedNotes };
+}

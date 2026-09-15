@@ -6,10 +6,23 @@ import { getPromptFile } from "../../../ai/prompts/library";
 import { normalizedEditDistance } from "../../../ai/editDistance";
 import { ingestTablePreview, type AttachmentPreview } from "../../../ai/ingestIpc";
 import type { ResolvedRedactionPolicy } from "../../../ai/redaction";
+import { markAccepted } from "../../../ai/settingsIpc";
 import type { ErasedMethodPlugin } from "../../../methods";
 import { Button, Textarea } from "../../../ui";
 import { errorMessage } from "../launch/errorMessage";
 import { formatIngestedTableForPrompt, proposeStructuredEntry } from "./entryProposal";
+
+/**
+ * P-60 (ai-katmani-temizligi.md §4): best-effort, same posture Rust's own
+ * `append_log_entry` already takes for the *completion* half of this log —
+ * a failure here is an audit-log nicety, never something that should block
+ * or alarm the user over their real Accept/Reject action.
+ */
+function reportAccepted(projectId: string, requestId: string, accepted: boolean): void {
+  markAccepted(projectId, requestId, accepted).catch((error: unknown) => {
+    console.error("ai_mark_accepted failed:", error);
+  });
+}
 
 /** J2/D-205/§2.4: matches `EntryImagesField.tsx`'s `IMAGE_FILTER` precedent
  * — D-203's own scope narrowing (xlsx/csv only, not the full set calamine
@@ -62,7 +75,7 @@ interface EntryProposalFieldProps {
 type Phase =
   | { readonly phase: "idle" }
   | { readonly phase: "loading" }
-  | { readonly phase: "review"; readonly original: unknown; readonly draft: unknown }
+  | { readonly phase: "review"; readonly original: unknown; readonly draft: unknown; readonly requestId: string }
   | { readonly phase: "failed"; readonly rawText: string }
   | { readonly phase: "error"; readonly message: string };
 
@@ -171,7 +184,7 @@ export function EntryProposalField({
         promptVersion: `${plugin.id}.${promptVersion}`,
       });
       if (result.outcome === "success") {
-        setState({ phase: "review", original: result.value, draft: result.value });
+        setState({ phase: "review", original: result.value, draft: result.value, requestId: result.requestId });
       } else {
         setState({ phase: "failed", rawText: result.rawText });
       }
@@ -207,11 +220,20 @@ export function EntryProposalField({
       acceptedAt: generatedAt,
       editDistance: normalizedEditDistance(originalJson, draftJson),
     };
+    reportAccepted(projectId, state.requestId, true);
     onAccept(state.draft, provenance);
     handleClose();
   }
 
+  /**
+   * P-60 (ai-katmani-temizligi.md §4): also used to dismiss a "failed" state
+   * (retry) and an in-progress attachment — only a real "review" phase ever
+   * has a `requestId` to correlate a rejection against.
+   */
   function handleReject() {
+    if (state.phase === "review") {
+      reportAccepted(projectId, state.requestId, false);
+    }
     setState({ phase: "idle" });
   }
 

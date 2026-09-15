@@ -69,6 +69,7 @@ pub fn run() {
             ai::commands::ai_complete_structured,
             ai::commands::ai_capabilities,
             ai::commands::ai_get_cost_summary,
+            ai::commands::ai_mark_accepted,
             ingest::commands::ingest_table_preview,
         ])
         .run(tauri::generate_context!())

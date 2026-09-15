@@ -1,4 +1,4 @@
-import type { A3Visibility, AiMeta, BlockPins, Entry, ProjectInfoFields, Round, SignOffState, StepId } from "../model";
+import type { A3Visibility, AiMeta, BlockPins, Entry, MetaHeaderFields, ProjectInfoFields, Round, SignOffState, StepId } from "../model";
 
 /**
  * D-70: every mutation to `ProjectModel` is one of these, dispatched through
@@ -139,6 +139,36 @@ export interface BlockPinsSetCommand extends BaseCommand {
   readonly after: BlockPins;
 }
 
+/**
+ * P-57 (ai-katmani-temizligi.md §3): project-level, same reasoning and shape
+ * as `TemplateIdSetCommand`/`BlockPinsSetCommand` — `meta.language` is a
+ * single required field (never optional, unlike `ProjectInfoFields`'
+ * three), so `before`/`after` are the complete `"tr" | "en"` value, never a
+ * partial patch. D-15/D-213's "never silently" rule stays intact from the
+ * other direction: K3's translation Accepts still never dispatch this
+ * command themselves (D-216, LOCKED) — this is the missing user-initiated
+ * counterpart, reachable only from `SettingsScreen`'s own explicit selector.
+ */
+export interface MetaLanguageSetCommand extends BaseCommand {
+  readonly type: "meta.language.set";
+  readonly before: "tr" | "en";
+  readonly after: "tr" | "en";
+}
+
+/**
+ * P-56 (ai-katmani-temizligi.md §2): project-level, same reasoning and shape
+ * as `MetaProjectInfoSetCommand` — `title`/`customer`/`partName` had no
+ * command of their own at all before this (only ever set once, at project
+ * creation). `before`/`after` are the complete three-field slice, same
+ * whole-slice-replace contract — the caller (`TranslateReportPanel`'s own
+ * meta-header mini-panel) always has the project's current values in hand.
+ */
+export interface MetaHeaderSetCommand extends BaseCommand {
+  readonly type: "meta.header.set";
+  readonly before: MetaHeaderFields;
+  readonly after: MetaHeaderFields;
+}
+
 export type Command =
   | EntryInsertCommand
   | EntryRemoveCommand
@@ -150,7 +180,9 @@ export type Command =
   | MetaAiSetCommand
   | MetaProjectInfoSetCommand
   | TemplateIdSetCommand
-  | BlockPinsSetCommand;
+  | BlockPinsSetCommand
+  | MetaLanguageSetCommand
+  | MetaHeaderSetCommand;
 
 /**
  * D-70: thrown by `applyCommand` when a command's precondition doesn't hold

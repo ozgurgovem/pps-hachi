@@ -33,6 +33,7 @@ export {
   type AiMeta,
   type ProjectInfoFields,
   type BlockPins,
+  type MetaHeaderFields,
   type GeneralRag,
   type RedactionMode,
   type RedactionPolicy,

@@ -96,11 +96,19 @@ pub async fn ai_list_models() -> Result<Vec<ModelInfo>, String> {
 /// thread, `Some(...)` (the previous turn's own returned id) for a
 /// follow-up, letting Vorion itself continue the same conversation
 /// server-side rather than the frontend re-sending a growing transcript.
+///
+/// P-51 (ai-katmani-temizligi.md §1): `redaction` is new — the TS caller
+/// (`AssistantPanel.tsx`) passes `resolveRedactionPolicy(project.meta.ai.redaction)`
+/// the same way `EntryProposalField`/`TranslateReportPanel` already do for
+/// `ai_complete_structured`. See `CompletionRequest::redaction`'s own doc
+/// comment for why only the outgoing prompt is masked here, never the
+/// streamed response.
 #[tauri::command]
 pub async fn ai_complete(
     prompt: String,
     model_id: String,
     conversation_id: Option<String>,
+    redaction: Option<RedactionPolicy>,
     channel: Channel<StreamEvent>,
 ) -> Result<CompletionMeta, String> {
     let api_key = KeyringSecretStore
@@ -113,6 +121,7 @@ pub async fn ai_complete(
                 prompt,
                 model_id,
                 conversation_id,
+                redaction,
             },
             channel,
         )
@@ -168,6 +177,23 @@ pub async fn ai_cancel(
 /// logging failure is reported to stderr, never turned into a lost,
 /// otherwise-successful AI response — SPEC.md §8.14's "none of these may
 /// lose user data" applies to the log's own reliability too).
+///
+/// P-60 (ai-katmani-temizligi.md §4): `request_id` is new — TS's own
+/// `attemptStructuredProposal` generates one `crypto.randomUUID()` per
+/// physical call and passes it straight through; it is written into the
+/// logged `AiLogEntry` and, if the human later accepts or rejects whatever
+/// this call produced, `ai_mark_accepted` appends a separate log line
+/// sharing this same id. The *return type* here is deliberately unchanged —
+/// K1/K2/K3/D-247's whole `attemptStructuredProposal`-based call chain
+/// still reads a plain `Result<serde_json::Value, String>`.
+///
+/// `request_id` pushes this past clippy's default 7-argument ceiling — every
+/// parameter here is already its own named IPC argument (Tauri's own
+/// convention, matching every other command in this file), so grouping a
+/// subset into a struct would only move the same information one level
+/// deeper without reducing it; `#[allow]` is more honest than a cosmetic
+/// wrapper type with exactly one caller.
+#[allow(clippy::too_many_arguments)]
 #[tauri::command]
 pub async fn ai_complete_structured(
     app: AppHandle,
@@ -177,6 +203,7 @@ pub async fn ai_complete_structured(
     redaction: Option<RedactionPolicy>,
     project_id: String,
     prompt_version: Option<String>,
+    request_id: String,
 ) -> Result<serde_json::Value, String> {
     let api_key = KeyringSecretStore
         .get()
@@ -235,6 +262,7 @@ pub async fn ai_complete_structured(
     };
 
     let entry = AiLogEntry::new(
+        request_id,
         "vorion",
         model_id,
         prompt_version,
@@ -278,6 +306,31 @@ pub fn ai_get_cost_summary(app: AppHandle, project_id: String) -> Result<CostSum
         spend_cap_usd: settings.spend_cap_usd,
         cap_exceeded,
     })
+}
+
+/// P-60 (ai-katmani-temizligi.md §4): appends a separate `AiAcceptanceEntry`
+/// line to this project's own log sidecar, sharing `request_id` with
+/// whichever `AiLogEntry` line(s) it correlates to — never a rewrite of
+/// those lines (Barış's own chosen, append-only mechanism, `AskUserQuestion`).
+/// Unlike `ai_complete_structured`'s own log write, a failure here IS
+/// propagated to the caller rather than swallowed — this call protects
+/// nothing else (no in-flight AI response depends on it), so surfacing a
+/// real error is more honest than a silent no-op.
+#[tauri::command]
+pub fn ai_mark_accepted(
+    app: AppHandle,
+    project_id: String,
+    request_id: String,
+    accepted: bool,
+) -> Result<(), String> {
+    let app_local_data_dir = app.path().app_local_data_dir().map_err(|e| e.to_string())?;
+    let entry = usage::AiAcceptanceEntry {
+        request_id,
+        accepted,
+        timestamp: chrono::Utc::now().to_rfc3339(),
+    };
+    usage::append_acceptance_entry(&app_local_data_dir, &project_id, &entry)
+        .map_err(|e| e.to_string())
 }
 
 /// J1/SPEC.md §8.2: exposes `LlmProvider::capabilities` the same way

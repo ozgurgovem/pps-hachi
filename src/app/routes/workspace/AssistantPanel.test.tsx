@@ -131,10 +131,29 @@ describe("AssistantPanel", () => {
       "openai/gpt-4o",
       expect.any(Function),
       null,
+      { mode: "off", terms: [], preserveNumbers: true },
     );
     const [sentPrompt] = mocked.completeStreaming.mock.calls[0]!;
     expect(sentPrompt).toContain("What is 5 Why?");
     expect(sentPrompt).toContain(getCoachingMarkdown("en", 1).trim());
+  });
+
+  it("forwards the project's own resolved redaction policy to completeStreaming (P-51, ai-katmani-temizligi.md §1)", async () => {
+    const user = userEvent.setup();
+    seedProject({ modelId: "openai/gpt-4o", redaction: { mode: "customers", terms: ["Acme Corp"], preserveNumbers: true } });
+    mocked.completeStreaming.mockImplementationOnce(pendingCompletion);
+
+    renderPanel(1);
+    await user.type(screen.getByLabelText("Ask the assistant"), "Tell me about Acme Corp");
+    await user.click(screen.getByRole("button", { name: "Send" }));
+
+    expect(mocked.completeStreaming).toHaveBeenCalledWith(
+      expect.any(String),
+      "openai/gpt-4o",
+      expect.any(Function),
+      null,
+      { mode: "customers", terms: ["Acme Corp"], preserveNumbers: true },
+    );
   });
 
   it("streams chunks into the response area as they arrive, and shows a Cancel button", async () => {
@@ -304,7 +323,13 @@ describe("AssistantPanel", () => {
     await user.type(screen.getByLabelText("Ask the assistant"), "follow-up");
     await user.click(screen.getByRole("button", { name: "Send" }));
 
-    expect(mocked.completeStreaming).toHaveBeenLastCalledWith(expect.any(String), "openai/gpt-4o", expect.any(Function), "c1");
+    expect(mocked.completeStreaming).toHaveBeenLastCalledWith(
+      expect.any(String),
+      "openai/gpt-4o",
+      expect.any(Function),
+      "c1",
+      { mode: "off", terms: [], preserveNumbers: true },
+    );
   });
 
   it("D-245: resolving one turn (Reject) leaves a later, still-pending turn untouched", async () => {

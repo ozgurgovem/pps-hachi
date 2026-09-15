@@ -432,7 +432,7 @@ iyileştirmesi not düşüldü. Tam kayıt: `DECISIONS.md`'nin ilgili satırlar�
 
 | Küme | Prompt | İçerik | Durum |
 |---|---|---|---|
-| AI katmanı temizliği | `docs/oturumlar/ai-katmani-temizligi.md` | P-51 (serbest sohbet redaksiyonsuz), P-56 (whole-report çeviri kısa/meta alan kapsamıyor), P-57 (`meta.language.set` yok), P-60 (cost-log accept/reject korelasyonu yok) | Başlamadı |
+| AI katmanı temizliği | `docs/oturumlar/ai-katmani-temizligi.md` | P-51 (serbest sohbet redaksiyonsuz), P-56 (whole-report çeviri kısa/meta alan kapsamıyor), P-57 (`meta.language.set` yok), P-60 (cost-log accept/reject korelasyonu yok) | **TAMAMEN BİTTİ** — P-57 KAPANDI (D-257), P-56 KISMEN KAPANDI (D-258, meta-header yarısı), P-51 KAPANDI (D-259), P-60 KISMEN KAPANDI (D-260, mekanizma + `EntryProposalField` referans uygulaması; K1/K2/K3/D-247'nin kablo bağlaması P-71'e ertelendi) |
 | Export/UI sadakat gedikleri | `docs/oturumlar/export-ui-sadakat-gedikleri.md` | P-17 (border fidelity), P-18 (header/footer alanları bağlı değil), P-22 (action plan Gantt), P-23 (6a editörlerinin FieldFormEditor'e taşınması), P-27 (impact-effort 2×2 drag-drop), P-42 (Fishbone kategori etiketleri yanlış dile bağlı — gerçek bug, en ucuz madde) | Başlamadı |
 | Şema/veri modeli kararları | `docs/oturumlar/sema-veri-modeli-kararlari.md` | P-39 (Why-Why node-seviyesi referans, D-185'te zaten karar verildi, inşa edilmedi), P-41 (Fishbone↔5-Why cross-linking tasarım sorusu), P-66 (tpmLossTaxonomy 7 vs 8 kategori, migration gerektirir) | Başlamadı — büyük ölçüde bir KARAR turu, kod öncesi |
 

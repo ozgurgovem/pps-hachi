@@ -44,6 +44,23 @@ describe("completionIpc", () => {
     expect(mockInvoke).toHaveBeenCalledWith("ai_complete", expect.objectContaining({ conversationId: "c1" }));
   });
 
+  test("completeStreaming sends redaction: null when none is given (P-51)", async () => {
+    mockInvoke.mockResolvedValueOnce({ conversationId: "c1", streamId: "s1", messageId: "m1" });
+
+    await completeStreaming("hello", "openai/gpt-4o", () => {});
+
+    expect(mockInvoke).toHaveBeenCalledWith("ai_complete", expect.objectContaining({ redaction: null }));
+  });
+
+  test("completeStreaming forwards a given redaction policy (P-51, ai-katmani-temizligi.md §1)", async () => {
+    mockInvoke.mockResolvedValueOnce({ conversationId: "c1", streamId: "s1", messageId: "m1" });
+    const redaction = { mode: "customers" as const, terms: ["Acme Corp"], preserveNumbers: true as const };
+
+    await completeStreaming("hello", "openai/gpt-4o", () => {}, "c1", redaction);
+
+    expect(mockInvoke).toHaveBeenCalledWith("ai_complete", expect.objectContaining({ redaction }));
+  });
+
   test("completeStreaming resolves with the final CompletionMeta", async () => {
     mockInvoke.mockResolvedValueOnce({ conversationId: "c1", streamId: "s1", messageId: "m1" });
 

@@ -41,12 +41,27 @@ pub struct ConnectionStatus {
 /// for every follow-up — this is what lets Vorion itself continue the same
 /// conversation server-side rather than the frontend re-sending a growing
 /// transcript as plain text on every turn.
+///
+/// P-51 (ai-katmani-temizligi.md §1): `redaction` is new — unlike
+/// `StructuredRequest`'s symmetric mask-before-send/unmask-after-receive
+/// (the whole response arrives in one JSON value, so reversing it is
+/// cheap and safe), this free-text chat streams token-by-token
+/// (`StreamEvent::Chunk`), and a redaction token could in principle land
+/// split across two chunks the same way D-201's own Turkish-character SSE
+/// bug once did. Barış's own chosen asymmetry (`AskUserQuestion`,
+/// recommended option): redact the OUTGOING prompt only, never unredact
+/// the incoming stream — Vorion answers in its own words and essentially
+/// never echoes the literal `"Customer A"` token back, so the real risk
+/// (a customer name reaching Vorion) is closed without touching the
+/// streaming/reassembly path at all. `None` behaves like `StructuredRequest`'s
+/// own `None` — exactly `RedactionPolicy { mode: Off, .. }`.
 #[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CompletionRequest {
     pub prompt: String,
     pub model_id: String,
     pub conversation_id: Option<String>,
+    pub redaction: Option<RedactionPolicy>,
 }
 
 /// What crosses the Tauri `Channel` as a Streaming Prediction progresses —

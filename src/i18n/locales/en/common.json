@@ -14,7 +14,7 @@
     "openProjectDialogTitle": "Open PPS Hachi project",
     "chooseLanguage": {
       "title": "Project language",
-      "description": "Which language should this project be kept in? This can't be changed later.",
+      "description": "Which language should this project be kept in? You can change this later in Settings.",
       "turkish": "Turkish",
       "english": "English"
     },
@@ -314,13 +314,21 @@
       },
       "analyzing": "Translating the report…",
       "missingPromptFile": "The whole-report translation prompt is not configured yet.",
+      "missingMetaHeaderPromptFile": "The project header translation prompt is not configured yet — the report's own entries were still translated.",
+      "metaHeaderFailed": "The project header (title/customer/part name) could not be translated this time — the report's own entries were still translated.",
       "failed": "The AI's response couldn't be turned into a valid translation. Here is its raw response:",
       "retry": "Try again",
       "noneProposed": "Nothing to translate.",
       "applySelected": "Apply selected",
       "rejectAll": "Reject all",
       "appliedSummary": "Applied {{count}} translated field(s).",
-      "analyzeAgain": "Translate again"
+      "analyzeAgain": "Translate again",
+      "projectHeaderHeading": "Project header",
+      "metaFieldLabel": {
+        "title": "Title",
+        "customer": "Customer",
+        "partName": "Part name"
+      }
     },
     "references": {
       "searchLabel": "Find an entry",
@@ -1319,6 +1327,14 @@
     "uiLanguage": {
       "heading": "Interface language",
       "description": "Which language the app's own screens are shown in — independent of a project's content language."
+    },
+    "contentLanguage": {
+      "heading": "Project content language",
+      "description": "Which language the A3 export and preview labels are shown in — independent of the interface language above. Can be changed at any time.",
+      "noProject": "Open a project to change its content language.",
+      "label": "Content language",
+      "turkish": "Turkish",
+      "english": "English"
     },
     "template": {
       "heading": "Template",

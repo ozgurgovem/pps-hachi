@@ -2867,6 +2867,34 @@ AI layer: Faz 8 fully done (keychain + Vorion connection/model-discovery + strea
   (props, variant names) never changed, only its token usage. Full record: `DECISIONS.md`
   D-254 (Group 1 + the v2 palette design + P-68's own closure), D-255 (Group 2), D-256
   (Group 3 + the overall closure); `docs/oturumlar/README.md`'s own new "P-58" section.
+**AI katmanı temizliği (`docs/oturumlar/ai-katmani-temizligi.md`) — TAMAMEN BİTTİ, 2026-09-15
+  (D-257/D-258/D-259/D-260).** Four independent, small-to-medium AI-layer gaps, all resolved
+  in one session per Barış's own `AskUserQuestion` answers (all recommended options), each
+  closed with its own D-number: **P-57 KAPANDI** (D-257) — a real `meta.language.set` command
+  now exists (`MetaLanguageSetCommand`, D-58/D-224's exact shape), reachable from a new,
+  permanent, silent "Project content language" selector in `SettingsScreen` (Barış's own
+  choice — no confirmation dialog). **P-56 KISMEN KAPANDI** (D-258) — whole-report translation
+  now also covers `meta.title`/`meta.customer`/`meta.partName` via a new, separate mini-panel
+  in `TranslateReportPanel` (a new `MetaHeaderSetCommand`, the first-ever write path for these
+  three fields — but scoped only to this translation flow, no general "edit project header" UI
+  was built); the short-payload-field half of P-56 was deliberately left out of scope (Barış's
+  own choice — lowering K1's 80-character threshold would weaken its own hallucination
+  safeguard), so the row is marked partially, not fully, closed. **P-51 KAPANDI** (D-259) —
+  `AssistantPanel`'s free-form chat (`ai_complete`/`completeStreaming`) now redacts the
+  OUTGOING prompt (Barış's own chosen asymmetry — the streamed response is never unredacted,
+  since Vorion essentially never echoes a `"Customer A"` token back). **P-60 KISMEN KAPANDI**
+  (D-260) — a real accept/reject cost-log correlation mechanism was built (Rust: `AiLogEntry`
+  gained `request_id`, a new `AiAcceptanceEntry` + `ai_mark_accepted` command appends a
+  separate, append-only line sharing that id; TS: `attemptStructuredProposal` generates one
+  `crypto.randomUUID()` per call, `settingsIpc.ts::markAccepted` reports it) and wired
+  end-to-end in ONE reference call site, `EntryProposalField`. K1's `LayoutReviewPanel` diff
+  lines, K3's `TranslateReportPanel`/`EntryTranslateField` translation lines, and D-247's
+  `AssistantPanel` chat-entry-edit flow all already receive a real `requestId` from the shared
+  primitive but don't yet call `markAccepted` — filed as **P-71**, its own future wiring pass
+  (K2's mock-audit findings are read-only by design and permanently out of scope). Every piece
+  mutation-verified. `npm test` 1648/1648 (315 files), `npm run lint`/`npx tsc --noEmit`/
+  `npm run build` all clean. `cargo test` 199/199 lib, `cargo clippy --all-targets -- -D
+  warnings`/`cargo fmt -- --check` both clean.
 Templates: two company .xls files analysed; see reference/TEMPLATE_ANALYSIS.md
 Template geometry: VERIFIED 2026-08-01 against both .xls files. Five errors found and
   corrected in place — the largest was the column widths: the real split is 49.7/50.3, NOT

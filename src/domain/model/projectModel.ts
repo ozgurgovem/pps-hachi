@@ -142,6 +142,13 @@ export type AiMeta = ProjectModel["meta"]["ai"];
 export type ProjectInfoFields = Pick<ProjectModel["meta"], "priority" | "targetClosureDate" | "generalRag">;
 /** Faz 11/L3b (D-170): `blockPins` in isolation — `BlockPinsSetCommand`'s `before`/`after` shape, same posture as `AiMeta`/`ProjectInfoFields`. */
 export type BlockPins = NonNullable<ProjectModel["blockPins"]>;
+/**
+ * P-56 (ai-katmani-temizligi.md §2): the project header's three text fields
+ * in isolation — `MetaHeaderSetCommand`'s `before`/`after` shape, same
+ * posture as `ProjectInfoFields`. `title` is always present; `customer`/
+ * `partName` stay optional, matching `ProjectMetaSchema` itself.
+ */
+export type MetaHeaderFields = Pick<ProjectModel["meta"], "title" | "customer" | "partName">;
 export type GeneralRag = NonNullable<ProjectModel["meta"]["generalRag"]>;
 export type RedactionMode = z.infer<typeof RedactionModeSchema>;
 export type RedactionPolicy = z.infer<typeof RedactionPolicySchema>;

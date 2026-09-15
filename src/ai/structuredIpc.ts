@@ -31,6 +31,14 @@ import type { ResolvedRedactionPolicy } from "./redaction";
  * unchanged (`Promise<unknown>`), so every caller built on this function
  * (K1/K2/K3's `attemptStructuredProposal` chain) needs only thread these two
  * new inputs through, never adapt to a new output shape.
+ *
+ * P-60 (ai-katmani-temizligi.md §4): `requestId` is new, same posture as
+ * `projectId`/`promptVersion` — `attemptStructuredProposal` generates one
+ * `crypto.randomUUID()` per physical call and passes it through here; Rust
+ * writes it into the logged `AiLogEntry`, and a later Accept/Reject
+ * (`ai_mark_accepted`, `usageIpc.ts`) reports back against this same id. The
+ * return type stays exactly `Promise<unknown>` — this is a pure input,
+ * never surfaced in the response.
  */
 export function completeStructured(
   prompt: string,
@@ -39,6 +47,7 @@ export function completeStructured(
   redaction: ResolvedRedactionPolicy,
   projectId: string,
   promptVersion: string | null,
+  requestId: string,
 ): Promise<unknown> {
   return invoke<unknown>("ai_complete_structured", {
     prompt,
@@ -47,5 +56,6 @@ export function completeStructured(
     redaction,
     projectId,
     promptVersion,
+    requestId,
   });
 }
