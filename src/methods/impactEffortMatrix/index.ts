@@ -1,5 +1,8 @@
+import { createElement } from "react";
+import type { ImpactEffortChartSpec } from "../chartSpec";
 import type { MethodPlugin } from "../types";
 import { ImpactEffortMatrixEditor } from "./Editor";
+import { ImpactEffortChart } from "./ImpactEffortChart";
 import { renderImpactEffortMatrixToA3 } from "./renderToA3";
 import { ImpactEffortMatrixPayloadSchema, type ImpactEffortMatrixPayload } from "./schema";
 
@@ -14,5 +17,7 @@ export const impactEffortMatrixMethod: MethodPlugin<ImpactEffortMatrixPayload> =
   Editor: ImpactEffortMatrixEditor,
   createEmptyPayload: () => ({ items: [] }),
   renderToA3: renderImpactEffortMatrixToA3,
+  imageKind: "impact-effort-chart",
+  renderImage: (spec, size) => createElement(ImpactEffortChart, { spec: spec as ImpactEffortChartSpec, size }),
   aiProposal: { promptVersion: "v1" },
 };

@@ -896,6 +896,8 @@
       "unscored": "Unscored",
       "addItem": "Add item",
       "removeItem": "Remove item \"{{description}}\"",
+      "canvasHint": "Drag an item into a quadrant, or type exact scores below.",
+      "untitledItem": "Untitled item",
       "quadrants": {
         "quick-win": "Quick win",
         "major-project": "Major project",

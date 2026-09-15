@@ -144,6 +144,36 @@ export interface KpiStripChartSpec {
   readonly language?: "tr" | "en";
 }
 
+/**
+ * P-27: the impact/effort matrix's real 2×2 scatter — Barış's own choice
+ * (2026-09-15, `docs/oturumlar/P27-impact-effort-drag-drop.md`'s §1 question 4)
+ * over the launch prompt's own recommendation of a text-list-only export.
+ * A dedicated spec rather than reusing the generic `ScatterChartSpec` above:
+ * that shape carries no per-point quadrant, and this chart needs one to
+ * colour each dot consistently with `quadrant.ts`'s own `QUADRANT_COLORS`
+ * (D-165/P-37's already-approved green/blue/red status tones, reused here
+ * rather than redefined — the same posture `kpiStrip/KpiStripChart.tsx`'s own
+ * `STATUS_FILL_COLOR` comment documents). `impact`/`effort` are the item's
+ * real 1–5 scores (never the coarse drag-drop representative value the
+ * editor's canvas writes back — see `ImpactEffortCanvas.tsx`'s own comment on
+ * why only the landed quadrant, not the exact score, is load-bearing there),
+ * so the exported chart keeps whatever fidelity a manually-typed score had.
+ */
+export interface ImpactEffortChartItem {
+  readonly label: string;
+  readonly impact: number;
+  readonly effort: number;
+  readonly quadrant: "quick-win" | "major-project" | "fill-in" | "thankless-task";
+}
+
+export interface ImpactEffortChartSpec {
+  readonly kind: "impact-effort";
+  readonly items: readonly ImpactEffortChartItem[];
+  /** D-188/P-26: resolved by `renderToA3` from the entry's own `A3Language` — the chart component stays language-agnostic, same posture as `KpiStripChartSpec.sustainLabel`/`resultLabel`. */
+  readonly xLabel: string;
+  readonly yLabel: string;
+}
+
 export type ChartSpec =
   | ParetoChartSpec
   | TrendChartSpec
@@ -151,4 +181,5 @@ export type ChartSpec =
   | HistogramChartSpec
   | ScatterChartSpec
   | BoxPlotChartSpec
-  | KpiStripChartSpec;
+  | KpiStripChartSpec
+  | ImpactEffortChartSpec;

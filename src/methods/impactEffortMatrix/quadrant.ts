@@ -48,3 +48,26 @@ export const QUADRANT_EXPORT_LABELS: Readonly<Record<Quadrant, Readonly<Record<A
   "fill-in": { tr: "Doldurma", en: "Fill-in" },
   "thankless-task": { tr: "Nankör iş", en: "Thankless task" },
 };
+
+/** P-27: the scatter chart's axis titles, same `A3Language`-keyed/i18n-free posture as `QUADRANT_EXPORT_LABELS` above. */
+export const AXIS_EXPORT_LABELS: Readonly<Record<"impact" | "effort", Readonly<Record<A3Language, string>>>> = {
+  impact: { tr: "Etki", en: "Impact" },
+  effort: { tr: "Çaba", en: "Effort" },
+};
+
+/**
+ * P-27: D-165/P-37's already-approved status tones (`kpiStrip/KpiStripChart.tsx`'s
+ * own `STATUS_FILL_COLOR`) reused, never redefined — green for the best
+ * quadrant, red for the worst, blue for "valuable but costly", and a neutral
+ * grey (`kpiStrip`'s own `BASELINE_COLOR`) for the fourth, since no existing
+ * three-tone status vocabulary in this codebase has a fourth "doesn't matter
+ * much either way" meaning to borrow. Shared by both the interactive
+ * `ImpactEffortCanvas` editor and the exported `ImpactEffortChart`, so a dot
+ * never changes colour between drawing and export.
+ */
+export const QUADRANT_COLORS: Readonly<Record<Quadrant, string>> = {
+  "quick-win": "#8FBF4F",
+  "major-project": "#4A90D9",
+  "fill-in": "#8A8A8A",
+  "thankless-task": "#E0342A",
+};

@@ -45,4 +45,35 @@ describe("renderImpactEffortMatrixToA3", () => {
 
     expect(lines[1]).toEqual({ text: "Kaynak kontrolünü otomatikleştir — Hızlı kazanım" });
   });
+
+  /** P-27: the real 2×2 scatter Barış chose over a text-only export. */
+  describe("the 2×2 chart image", () => {
+    it("includes only scored, named items as chart points", () => {
+      const { image } = renderImpactEffortMatrixToA3(
+        {
+          items: [
+            { id: "1", description: "Automate weld check", impact: "5", effort: "1" },
+            { id: "2", description: "Undecided item", impact: "", effort: "" },
+            { id: "3", description: "  ", impact: "4", effort: "4" },
+          ],
+        },
+        ENTRY,
+      );
+
+      expect(image?.kind).toBe("impact-effort-chart");
+      const spec = image?.spec as { items: readonly { label: string }[] };
+      expect(spec.items).toEqual([{ label: "Automate weld check", impact: 5, effort: 1, quadrant: "quick-win" }]);
+    });
+
+    it("resolves the axis labels from the entry's language, English by default", () => {
+      const { image } = renderImpactEffortMatrixToA3({ items: [] }, ENTRY);
+      expect(image?.spec).toMatchObject({ xLabel: "Effort", yLabel: "Impact" });
+    });
+
+    it("resolves the Turkish axis labels when the entry's language is tr", () => {
+      const trEntry: A3EntrySummary = { ...ENTRY, language: "tr" };
+      const { image } = renderImpactEffortMatrixToA3({ items: [] }, trEntry);
+      expect(image?.spec).toMatchObject({ xLabel: "Çaba", yLabel: "Etki" });
+    });
+  });
 });

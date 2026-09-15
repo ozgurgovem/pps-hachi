@@ -896,6 +896,8 @@
       "unscored": "Puanlanmadı",
       "addItem": "Madde ekle",
       "removeItem": "\"{{description}}\" maddesini kaldır",
+      "canvasHint": "Bir maddeyi bir kadrana sürükleyin, ya da aşağıya tam puanları yazın.",
+      "untitledItem": "Adsız madde",
       "quadrants": {
         "quick-win": "Hızlı kazanım",
         "major-project": "Büyük proje",

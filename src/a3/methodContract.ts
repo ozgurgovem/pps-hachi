@@ -58,6 +58,8 @@ export type A3ImageKind =
   | "distribution-chart"
   | "kpi-strip"
   | "why-why-diagram"
+  /** P-27: the impact/effort matrix's real 2×2 scatter, `ImpactEffortChartSpec` — see that type's own comment. */
+  | "impact-effort-chart"
   /**
    * D-118/D-193: an ingested photo (`Entry.images[]`), not a chart/diagram
    * spec — never rasterized, never registered in `getA3ImageRendererMap()`.
