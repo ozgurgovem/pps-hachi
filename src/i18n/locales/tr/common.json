@@ -555,6 +555,8 @@
         "productivity": "Verimlilik",
         "quality": "Kalite",
         "maintenance": "Bakım",
+        "autonomousMaintenance": "Bağımsız Bakım",
+        "professionalMaintenance": "Profesyonel Bakım",
         "humanResources": "İnsan Kaynakları",
         "environment": "Çevre"
       },

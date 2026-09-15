@@ -9,7 +9,8 @@ function emptyPayload(): TpmLossTaxonomyPayload {
     cost: { ...tag },
     productivity: { ...tag },
     quality: { ...tag },
-    maintenance: { ...tag },
+    autonomousMaintenance: { ...tag },
+    professionalMaintenance: { ...tag },
     humanResources: { ...tag },
     environment: { ...tag },
   };

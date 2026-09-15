@@ -1,5 +1,5 @@
 import { describe, expect, test, vi } from "vitest";
-import { createNewProject } from "../../../domain/model";
+import { createNewProject, CURRENT_SCHEMA_VERSION } from "../../../domain/model";
 import { openProjectAtPath } from "./openProjectFlow";
 import { readPpsx, upsertRecentProject } from "./ppsxIpc";
 
@@ -90,7 +90,7 @@ describe("openProjectAtPath", () => {
   // D-59: a file from a newer build opens read-only rather than being refused.
   test("opens read-only when manifest.schemaVersion is newer than this build understands", async () => {
     const { manifest, project } = validFixture();
-    const newerManifest = { ...manifest, schemaVersion: 2 };
+    const newerManifest = { ...manifest, schemaVersion: CURRENT_SCHEMA_VERSION + 1 };
     mockReadPpsx.mockResolvedValueOnce({
       manifest: newerManifest,
       project,
@@ -106,7 +106,7 @@ describe("openProjectAtPath", () => {
 
   test("a newer-schema file with an invalid project shape is still reported corrupt", async () => {
     const { manifest } = validFixture();
-    const newerManifest = { ...manifest, schemaVersion: 2 };
+    const newerManifest = { ...manifest, schemaVersion: CURRENT_SCHEMA_VERSION + 1 };
     mockReadPpsx.mockResolvedValueOnce({
       manifest: newerManifest,
       project: { nope: true },

@@ -47,8 +47,9 @@ describe("runMigrations", () => {
   });
 
   test("defaults to the real registry when none is supplied", () => {
-    // MIGRATIONS is empty at schema version 1 (D-62) — same-version is the
-    // only currently-representable call using the real default.
+    // Same-version is a no-op regardless of what the real registry holds —
+    // this only proves the default parameter itself resolves, not the real
+    // migration's own content (see v1ToV2SplitTpmMaintenance.test.ts, D-267).
     expect(runMigrations({ id: "p1" }, 1, 1)).toEqual({ id: "p1" });
   });
 });

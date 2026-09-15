@@ -9,7 +9,8 @@ const CATEGORY_LABELS: Readonly<Record<TpmLossCategory, Readonly<Record<A3Langua
   cost: { tr: "Maliyet", en: "Cost" },
   productivity: { tr: "Verimlilik", en: "Productivity" },
   quality: { tr: "Kalite", en: "Quality" },
-  maintenance: { tr: "Bakım", en: "Maintenance" },
+  autonomousMaintenance: { tr: "Bağımsız Bakım", en: "Autonomous Maintenance" },
+  professionalMaintenance: { tr: "Profesyonel Bakım", en: "Professional Maintenance" },
   humanResources: { tr: "İnsan Kaynakları", en: "Human Resources" },
   environment: { tr: "Çevre", en: "Environment" },
 };

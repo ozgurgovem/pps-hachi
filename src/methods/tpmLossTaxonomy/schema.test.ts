@@ -12,7 +12,8 @@ describe("TpmLossTaxonomyPayloadSchema", () => {
       cost: tag(true, "medium"),
       productivity: tag(false),
       quality: tag(true, "low"),
-      maintenance: tag(false),
+      autonomousMaintenance: tag(false),
+      professionalMaintenance: tag(false),
       humanResources: tag(false),
       environment: tag(false),
     });
@@ -25,7 +26,8 @@ describe("TpmLossTaxonomyPayloadSchema", () => {
       cost: tag(false),
       productivity: tag(false),
       quality: tag(false),
-      maintenance: tag(false),
+      autonomousMaintenance: tag(false),
+      professionalMaintenance: tag(false),
       humanResources: tag(false),
       environment: tag(false),
     });

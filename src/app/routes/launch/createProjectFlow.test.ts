@@ -1,6 +1,7 @@
 import { describe, expect, test, vi } from "vitest";
 import { createProjectAtPath } from "./createProjectFlow";
 import { upsertRecentProject, writePpsx } from "./ppsxIpc";
+import { CURRENT_SCHEMA_VERSION } from "../../../domain/model";
 
 vi.mock("./ppsxIpc", () => ({
   writePpsx: vi.fn(),
@@ -19,7 +20,7 @@ describe("createProjectAtPath", () => {
 
     expect(mockWrite).toHaveBeenCalledWith(
       "/tmp/new.ppsx",
-      expect.objectContaining({ schemaVersion: 1 }),
+      expect.objectContaining({ schemaVersion: CURRENT_SCHEMA_VERSION }),
       expect.objectContaining({ meta: expect.objectContaining({ title: "New" }) }),
       [],
     );

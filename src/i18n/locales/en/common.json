@@ -555,6 +555,8 @@
         "productivity": "Productivity",
         "quality": "Quality",
         "maintenance": "Maintenance",
+        "autonomousMaintenance": "Autonomous Maintenance",
+        "professionalMaintenance": "Professional Maintenance",
         "humanResources": "Human Resources",
         "environment": "Environment"
       },

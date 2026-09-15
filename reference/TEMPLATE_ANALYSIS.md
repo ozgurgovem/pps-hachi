@@ -475,6 +475,14 @@ category fewer than the eight columns the Work Plan strip uses.
 The Work Plan strip is 8 cells in both (`U:AB`): ENG `1st…7th Step` + `Briefing`,
 TR `1.Adım…7.Adım` + `Sunum`.
 
+**Resolved, implemented (D-267/P-66, 2026-09-15):** `src/methods/tpmLossTaxonomy` shipped
+(Phase 6a, D-122) against ENG's 7-category list, not the real TR form's 8-category one — a
+mismatch found by accident during the P-62 scope session (D-232) and filed as P-66. It now uses
+the real TR form's 8 categories (`TPM_LOSS_CATEGORIES`, `autonomousMaintenance`/
+`professionalMaintenance` replacing the single `maintenance` field), with a real migration
+(`src/domain/migrations/v1ToV2SplitTpmMaintenance.ts`, schema version 1→2) copying an old
+entry's `maintenance` tag into both new fields.
+
 **For the template definitions:** the loss taxonomy is a **per-template list**, not a shared
 constant. `farplas-7step-en` has 7 entries, `farplas-7step-tr` has 8. A single hardcoded
 taxonomy will silently corrupt one of the two.

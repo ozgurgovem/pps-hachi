@@ -13,7 +13,8 @@ function emptyPayload(): TpmLossTaxonomyPayload {
     cost: { ...tag },
     productivity: { ...tag },
     quality: { ...tag },
-    maintenance: { ...tag },
+    autonomousMaintenance: { ...tag },
+    professionalMaintenance: { ...tag },
     humanResources: { ...tag },
     environment: { ...tag },
   };
@@ -41,7 +42,16 @@ function ControlledEditor({
 describe("TpmLossTaxonomyEditor", () => {
   it("renders one checkbox per fixed TPM loss category", () => {
     render(<TpmLossTaxonomyEditor payload={emptyPayload()} onChange={vi.fn()} />);
-    for (const label of ["Work Safety", "Cost", "Productivity", "Quality", "Maintenance", "Human Resources", "Environment"]) {
+    for (const label of [
+      "Work Safety",
+      "Cost",
+      "Productivity",
+      "Quality",
+      "Autonomous Maintenance",
+      "Professional Maintenance",
+      "Human Resources",
+      "Environment",
+    ]) {
       expect(screen.getByLabelText(label)).toBeTruthy();
     }
   });

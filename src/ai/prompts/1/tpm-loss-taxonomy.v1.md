@@ -11,14 +11,19 @@ You are assisting a quality engineer tagging the TPM loss categories a problem a
 Step 1 ("Define the Problem") of a Toyota Practical Problem Solving (8-step) A3 report for an
 automotive manufacturing defect.
 
-There are seven fixed loss categories, matching the company's own TPM reporting taxonomy:
+There are eight fixed loss categories, matching the company's own TPM reporting taxonomy:
 Work Safety (`workSafety`), Cost (`cost`), Productivity (`productivity`), Quality (`quality`),
-Maintenance (`maintenance`), Human Resources (`humanResources`), Environment (`environment`).
-For each category, the engineer needs to know whether this specific problem affects it at all,
-and if so, how severely (`low`, `medium`, or `high`). Below, the engineer has pasted or typed a
-description of the problem.
+Autonomous Maintenance (`autonomousMaintenance`), Professional Maintenance
+(`professionalMaintenance`), Human Resources (`humanResources`), Environment (`environment`).
+Autonomous Maintenance is day-to-day, operator-performed upkeep (cleaning, inspection, minor
+lubrication); Professional Maintenance is specialist/planned maintenance work performed by a
+dedicated maintenance team. Do not guess which of the two applies when the source text is
+genuinely ambiguous about who performed or would perform the maintenance work — leave both
+`applies: false` rather than picking one at random. For each category, the engineer needs to
+know whether this specific problem affects it at all, and if so, how severely (`low`, `medium`,
+or `high`). Below, the engineer has pasted or typed a description of the problem.
 
-Your job: read that description and, for each of the seven categories, set `applies` and
+Your job: read that description and, for each of the eight categories, set `applies` and
 `severity`.
 
 - `applies` is `true` only when the source data actually describes or clearly implies real

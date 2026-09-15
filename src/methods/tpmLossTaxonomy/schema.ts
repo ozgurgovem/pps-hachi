@@ -2,11 +2,12 @@ import { z } from "zod";
 import { TPM_LOSS_SEVERITIES } from "./categories";
 
 /**
- * SPEC.md §3.0: seven fixed TPM loss categories (Work Safety, Cost,
- * Productivity, Quality, Maintenance, Human Resources, Environment), each
- * tagged with whether it applies and, if so, its severity. Categories are
- * fixed domain fields (like `isIsNot`'s four dimensions), not a user-added
- * list — no row table here. Loose per D-51.
+ * SPEC.md §3.0: eight fixed TPM loss categories (Work Safety, Cost,
+ * Productivity, Quality, Autonomous Maintenance, Professional Maintenance,
+ * Human Resources, Environment — D-267/P-66), each tagged with whether it
+ * applies and, if so, its severity. Categories are fixed domain fields
+ * (like `isIsNot`'s four dimensions), not a user-added list — no row table
+ * here. Loose per D-51.
  */
 export const TpmLossTagSchema = z.looseObject({
   applies: z.boolean(),
@@ -20,7 +21,8 @@ export const TpmLossTaxonomyPayloadSchema = z.looseObject({
   cost: TpmLossTagSchema,
   productivity: TpmLossTagSchema,
   quality: TpmLossTagSchema,
-  maintenance: TpmLossTagSchema,
+  autonomousMaintenance: TpmLossTagSchema,
+  professionalMaintenance: TpmLossTagSchema,
   humanResources: TpmLossTagSchema,
   environment: TpmLossTagSchema,
 });
