@@ -1,10 +1,11 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import "../../../i18n";
 import { getMethodById } from "../../../methods";
 import type { ResolvedRedactionPolicy } from "../../../ai/redaction";
 import type { Provenance } from "../../../domain/model";
+import * as settingsIpc from "../../../ai/settingsIpc";
 import { EntryTranslateField } from "./EntryTranslateField";
 import * as entryTranslation from "./entryTranslation";
 
@@ -21,9 +22,18 @@ vi.mock("./entryTranslation", async () => {
   return { ...actual, proposeEntryTranslation: vi.fn() };
 });
 
+vi.mock("../../../ai/settingsIpc", () => ({
+  markAccepted: vi.fn(),
+}));
+
 const mockedPropose = vi.mocked(entryTranslation.proposeEntryTranslation);
+const mockedMarkAccepted = vi.mocked(settingsIpc.markAccepted);
 
 const OFF: ResolvedRedactionPolicy = { mode: "off", terms: [], preserveNumbers: true };
+
+beforeEach(() => {
+  mockedMarkAccepted.mockResolvedValue(undefined);
+});
 
 afterEach(() => {
   vi.clearAllMocks();
@@ -58,6 +68,7 @@ describe("EntryTranslateField", () => {
     const user = userEvent.setup();
     mockedPropose.mockResolvedValueOnce({
       outcome: "success",
+      requestId: "req-1",
       title: "Çevrilmiş başlık",
       payload: { text: "Çevrilmiş metin" },
     });
@@ -85,6 +96,7 @@ describe("EntryTranslateField", () => {
     const user = userEvent.setup();
     mockedPropose.mockResolvedValueOnce({
       outcome: "success",
+      requestId: "req-1",
       title: "Çevrilmiş başlık",
       payload: { text: "Çevrilmiş metin" },
     });
@@ -108,12 +120,15 @@ describe("EntryTranslateField", () => {
     expect(provenance.editDistance).toBe(0);
     // Collapses back to just the trigger after a successful accept.
     expect(screen.getByRole("button", { name: "Translate to Turkish" })).toBeTruthy();
+    // P-71: the log entry's request_id gets correlated with a real accept.
+    expect(mockedMarkAccepted).toHaveBeenCalledWith("proj-1", "req-1", true);
   });
 
   it("marks the entry ai-edited with a nonzero editDistance when the draft title is changed before accepting", async () => {
     const user = userEvent.setup();
     mockedPropose.mockResolvedValueOnce({
       outcome: "success",
+      requestId: "req-1",
       title: "Çevrilmiş başlık",
       payload: { text: "Çevrilmiş metin" },
     });
@@ -134,6 +149,7 @@ describe("EntryTranslateField", () => {
     const user = userEvent.setup();
     mockedPropose.mockResolvedValueOnce({
       outcome: "success",
+      requestId: "req-1",
       title: "Çevrilmiş başlık",
       payload: { text: "Çevrilmiş metin" },
     });
@@ -144,6 +160,8 @@ describe("EntryTranslateField", () => {
 
     expect(onAccept).not.toHaveBeenCalled();
     expect(screen.getByRole("button", { name: "Translate to Turkish" })).toBeTruthy();
+    // P-71: a rejection is reported too, not just an accept.
+    expect(mockedMarkAccepted).toHaveBeenCalledWith("proj-1", "req-1", false);
   });
 
   it("shows the raw response and writes nothing when the translation fails validation twice", async () => {
@@ -156,6 +174,9 @@ describe("EntryTranslateField", () => {
     expect(await screen.findByRole("alert")).toBeTruthy();
     expect(screen.getByText("not valid json at all")).toBeTruthy();
     expect(onAccept).not.toHaveBeenCalled();
+    // P-71: a "failed" state has no requestId to correlate against — never reported.
+    await user.click(screen.getByRole("button", { name: "Try again" }));
+    expect(mockedMarkAccepted).not.toHaveBeenCalled();
   });
 
   it("shows an error and allows retry when the IPC call itself rejects", async () => {

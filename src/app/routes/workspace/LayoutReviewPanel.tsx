@@ -11,6 +11,7 @@ import { getA3RendererMap } from "../../../methods/registry";
 import { useProjectStore } from "../../../state";
 import { Button, Checkbox } from "../../../ui";
 import { errorMessage } from "../launch/errorMessage";
+import { reportAccepted } from "./entryProposal";
 import {
   buildEntryLookup,
   buildLayoutReviewContext,
@@ -36,6 +37,7 @@ type Phase =
       readonly notices: readonly string[];
       readonly selectedVisibility: ReadonlySet<number>;
       readonly selectedCondensation: ReadonlySet<number>;
+      readonly requestId: string;
     }
   | { readonly phase: "failed"; readonly rawText: string }
   | { readonly phase: "error"; readonly message: string }
@@ -100,6 +102,7 @@ export function LayoutReviewPanel({ descriptor }: LayoutReviewPanelProps) {
         notices: [...droppedNotes, ...result.droppedNotes],
         selectedVisibility: new Set(result.diff.visibilityChanges.map((_, index) => index)),
         selectedCondensation: new Set(result.diff.textCondensations.map((_, index) => index)),
+        requestId: result.requestId,
       });
     } catch (error) {
       setState({ phase: "error", message: errorMessage(error) });
@@ -201,10 +204,19 @@ export function LayoutReviewPanel({ descriptor }: LayoutReviewPanelProps) {
       condensationCount += 1;
     });
 
+    // P-71 (P71-cost-log-korelasyon-kablolama.md §2.1, Barış's own chosen
+    // option a): one "Analyze" produces one `requestId` for many independent
+    // checkbox lines — reported `true` when at least one actually applied
+    // (a selection can still apply zero if its target entry was removed
+    // meanwhile), `false` on an explicit Reject All below.
+    reportAccepted(project.id, state.requestId, visibilityCount + condensationCount > 0);
     setState({ phase: "applied", visibilityCount, condensationCount });
   }
 
   function handleReject() {
+    if (state.phase === "review" && project) {
+      reportAccepted(project.id, state.requestId, false);
+    }
     setState({ phase: "idle" });
   }
 

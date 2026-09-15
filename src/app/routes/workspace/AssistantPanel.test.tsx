@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router";
@@ -10,13 +10,18 @@ import { AssistantPanel } from "./AssistantPanel";
 import { getCoachingMarkdown } from "./coachContent";
 import * as completionIpc from "../../../ai/completionIpc";
 import type { CompletionMeta, StreamEvent } from "../../../ai/completionIpc";
+import * as settingsIpc from "../../../ai/settingsIpc";
 import * as chatEntryEdit from "./chatEntryEdit";
 
 vi.mock("../../../ai/completionIpc");
 vi.mock("./chatEntryEdit");
+vi.mock("../../../ai/settingsIpc", () => ({
+  markAccepted: vi.fn(),
+}));
 
 const mocked = vi.mocked(completionIpc);
 const mockedChatEntryEdit = vi.mocked(chatEntryEdit);
+const mockedMarkAccepted = vi.mocked(settingsIpc.markAccepted);
 const initialStoreState = useProjectStore.getState();
 const initialChatStoreState = useAssistantChatStore.getState();
 
@@ -88,6 +93,10 @@ async function sendAndResolve(
   });
   await screen.findByRole("button", { name: "Apply the suggestion" });
 }
+
+beforeEach(() => {
+  mockedMarkAccepted.mockResolvedValue(undefined);
+});
 
 afterEach(() => {
   vi.clearAllMocks();
@@ -392,6 +401,7 @@ describe("AssistantPanel", () => {
       });
       mockedChatEntryEdit.proposeEntryEditFromSuggestion.mockResolvedValueOnce({
         outcome: "success",
+        requestId: "req-1",
         title: "New title",
         payload: { text: "New body" },
       });
@@ -435,6 +445,7 @@ describe("AssistantPanel", () => {
       });
       mockedChatEntryEdit.proposeEntryEditFromSuggestion.mockResolvedValueOnce({
         outcome: "success",
+        requestId: "req-1",
         title: "New title",
         payload: { text: "New body" },
       });
@@ -457,6 +468,11 @@ describe("AssistantPanel", () => {
       // path every other edit in the app uses — so it lands on the real
       // undo stack, reachable via the workspace's own Undo button/Cmd-Z.
       expect(selectCanUndo(useProjectStore.getState())).toBe(true);
+      // P-71: only `proposeEntryEditFromSuggestion`'s own `requestId`
+      // correlates — `identifySuggestionTargetEntry`'s own routing step has
+      // no accept/reject point the user ever sees.
+      expect(mockedMarkAccepted).toHaveBeenCalledTimes(1);
+      expect(mockedMarkAccepted).toHaveBeenCalledWith(expect.any(String), "req-1", true);
     });
 
     it("shows a no-match message, with a way back, when the suggestion targets no existing entry", async () => {
@@ -506,6 +522,7 @@ describe("AssistantPanel", () => {
       });
       mockedChatEntryEdit.proposeEntryEditFromSuggestion.mockResolvedValueOnce({
         outcome: "success",
+        requestId: "req-1",
         title: "New title",
         payload: { text: "New body" },
       });
@@ -519,6 +536,8 @@ describe("AssistantPanel", () => {
 
       expect(screen.getByRole("button", { name: "Apply the suggestion" })).toBeTruthy();
       expect(useProjectStore.getState().project?.steps[1]?.entries).toEqual([existing]);
+      // P-71: a rejection of the review is reported too, not just an accept.
+      expect(mockedMarkAccepted).toHaveBeenCalledWith(expect.any(String), "req-1", false);
     });
   });
 });

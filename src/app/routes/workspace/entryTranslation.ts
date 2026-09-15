@@ -73,7 +73,7 @@ export interface EntryTranslationValue {
 }
 
 export type EntryTranslationOutcome =
-  | { readonly outcome: "success"; readonly title: string; readonly payload: unknown }
+  | { readonly outcome: "success"; readonly title: string; readonly payload: unknown; readonly requestId: string }
   | { readonly outcome: "failed"; readonly rawText: string };
 
 export interface ProposeEntryTranslationParams {
@@ -138,7 +138,7 @@ export async function proposeEntryTranslation(
   const value = first.value as EntryTranslationValue;
   const missing = findMissingProtectedTokens(originalCombined, combineTitleAndPayload(value.title, value.payload));
   if (missing.length === 0) {
-    return { outcome: "success", title: value.title, payload: value.payload };
+    return { outcome: "success", title: value.title, payload: value.payload, requestId: first.requestId };
   }
 
   return retryEntryTranslation(
@@ -210,7 +210,7 @@ async function retryEntryTranslation(
   if (stillMissing.length > 0) {
     return { outcome: "failed", rawText: JSON.stringify(value, null, 2) };
   }
-  return { outcome: "success", title: value.title, payload: value.payload };
+  return { outcome: "success", title: value.title, payload: value.payload, requestId: second.requestId };
 }
 
 // ---------------------------------------------------------------------------
@@ -341,7 +341,12 @@ function translationLineKey(entryId: string, field: string): string {
 }
 
 export type WholeReportTranslationOutcome =
-  | { readonly outcome: "success"; readonly diff: WholeReportTranslationDiff; readonly droppedNotes: readonly string[] }
+  | {
+      readonly outcome: "success";
+      readonly diff: WholeReportTranslationDiff;
+      readonly droppedNotes: readonly string[];
+      readonly requestId: string;
+    }
   | { readonly outcome: "failed"; readonly rawText: string };
 
 export interface ProposeWholeReportTranslationParams {
@@ -384,7 +389,7 @@ export async function proposeWholeReportTranslation(
   const diff = first.value as WholeReportTranslationDiff;
   const failures = findWholeReportTokenFailures(diff.lines, params.lookup);
   if (failures.length === 0) {
-    return { outcome: "success", diff, droppedNotes: [] };
+    return { outcome: "success", diff, droppedNotes: [], requestId: first.requestId };
   }
 
   return retryWholeReportTranslation(params, jsonSchema, JSON.stringify(diff, null, 2), undefined, failures);
@@ -448,7 +453,7 @@ async function retryWholeReportTranslation(
   const diff = second.value as WholeReportTranslationDiff;
   const stillFailing = findWholeReportTokenFailures(diff.lines, params.lookup);
   if (stillFailing.length === 0) {
-    return { outcome: "success", diff, droppedNotes: [] };
+    return { outcome: "success", diff, droppedNotes: [], requestId: second.requestId };
   }
 
   const failingKeys = new Set(stillFailing.map((f) => translationLineKey(f.entryId, f.field)));
@@ -458,7 +463,7 @@ async function retryWholeReportTranslation(
       `A translation for entry "${f.entryId}" (field "${f.field}") could not preserve ${f.missingTokens.map((t) => `"${t}"`).join(", ")} — it was left out, the text is unchanged.`,
   );
 
-  return { outcome: "success", diff: { lines: keptLines }, droppedNotes };
+  return { outcome: "success", diff: { lines: keptLines }, droppedNotes, requestId: second.requestId };
 }
 
 // ---------------------------------------------------------------------------
@@ -485,9 +490,14 @@ export interface MetaHeaderTranslationLine {
 }
 
 export type MetaHeaderTranslationOutcome =
-  | { readonly outcome: "success"; readonly lines: readonly MetaHeaderTranslationLine[]; readonly droppedNotes: readonly string[] }
+  | {
+      readonly outcome: "success";
+      readonly lines: readonly MetaHeaderTranslationLine[];
+      readonly droppedNotes: readonly string[];
+      readonly requestId: string;
+    }
   | { readonly outcome: "failed"; readonly rawText: string }
-  /** Nothing to translate — `customer`/`partName` unset and `title` blank never happens in practice, but the type stays honest. */
+  /** Nothing to translate — `customer`/`partName` unset and `title` blank never happens in practice, but the type stays honest. Never made a real call, so there is no `requestId` to correlate. */
   | { readonly outcome: "empty" };
 
 export function collectMetaHeaderSourceValues(
@@ -608,7 +618,12 @@ export async function proposeMetaHeaderTranslation(
   const translated = first.value as Record<string, string>;
   const failures = findMetaHeaderFieldFailures(fields, sourceValues, translated);
   if (failures.length === 0) {
-    return { outcome: "success", lines: toMetaHeaderLines(fields, sourceValues, translated), droppedNotes: [] };
+    return {
+      outcome: "success",
+      lines: toMetaHeaderLines(fields, sourceValues, translated),
+      droppedNotes: [],
+      requestId: first.requestId,
+    };
   }
 
   return retryMetaHeaderTranslation(
@@ -677,7 +692,12 @@ async function retryMetaHeaderTranslation(
   const translated = second.value as Record<string, string>;
   const stillFailing = findMetaHeaderFieldFailures(fields, sourceValues, translated);
   if (stillFailing.length === 0) {
-    return { outcome: "success", lines: toMetaHeaderLines(fields, sourceValues, translated), droppedNotes: [] };
+    return {
+      outcome: "success",
+      lines: toMetaHeaderLines(fields, sourceValues, translated),
+      droppedNotes: [],
+      requestId: second.requestId,
+    };
   }
 
   // A field that still lost protected content on the second attempt is
@@ -695,5 +715,10 @@ async function retryMetaHeaderTranslation(
       `The project header's "${f.field}" field could not preserve ${f.missingTokens.map((t) => `"${t}"`).join(", ")} — it was left out, the text is unchanged.`,
   );
 
-  return { outcome: "success", lines: toMetaHeaderLines(fields, sourceValues, sanitized), droppedNotes };
+  return {
+    outcome: "success",
+    lines: toMetaHeaderLines(fields, sourceValues, sanitized),
+    droppedNotes,
+    requestId: second.requestId,
+  };
 }

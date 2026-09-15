@@ -126,7 +126,7 @@ export interface ProposeEntryEditFromSuggestionParams {
 }
 
 export type EntryEditFromSuggestionOutcome =
-  | { readonly outcome: "success"; readonly title: string; readonly payload: unknown }
+  | { readonly outcome: "success"; readonly title: string; readonly payload: unknown; readonly requestId: string }
   | { readonly outcome: "failed"; readonly rawText: string };
 
 interface EntryEditValue {
@@ -163,5 +163,5 @@ export async function proposeEntryEditFromSuggestion(
     return { outcome: "failed", rawText: result.rawText };
   }
   const value = result.value as EntryEditValue;
-  return { outcome: "success", title: value.title, payload: value.payload };
+  return { outcome: "success", title: value.title, payload: value.payload, requestId: result.requestId };
 }

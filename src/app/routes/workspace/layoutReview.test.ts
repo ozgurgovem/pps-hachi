@@ -260,7 +260,7 @@ describe("proposeLayoutReviewDiff", () => {
 
     const result = await proposeLayoutReviewDiff({ ...baseParams, lookup: new Map() });
 
-    expect(result).toEqual({ outcome: "success", diff: SCHEMA_VALID_EMPTY_DIFF, droppedNotes: [] });
+    expect(result).toEqual({ outcome: "success", diff: SCHEMA_VALID_EMPTY_DIFF, droppedNotes: [], requestId: "req-1" });
     expect(mockedAttempt).toHaveBeenCalledTimes(1);
   });
 
@@ -270,7 +270,7 @@ describe("proposeLayoutReviewDiff", () => {
 
     const result = await proposeLayoutReviewDiff({ ...baseParams, lookup: new Map() });
 
-    expect(result).toEqual({ outcome: "success", diff: SCHEMA_VALID_EMPTY_DIFF, droppedNotes: [] });
+    expect(result).toEqual({ outcome: "success", diff: SCHEMA_VALID_EMPTY_DIFF, droppedNotes: [], requestId: "req-1" });
     expect(mockedAttempt).toHaveBeenCalledTimes(2);
     const retryPrompt = mockedAttempt.mock.calls[1]?.[0] as string;
     expect(retryPrompt).toContain("bad shape");
@@ -304,7 +304,7 @@ describe("proposeLayoutReviewDiff", () => {
 
     const result = await proposeLayoutReviewDiff({ ...baseParams, lookup });
 
-    expect(result).toEqual({ outcome: "success", diff: goodDiff, droppedNotes: [] });
+    expect(result).toEqual({ outcome: "success", diff: goodDiff, droppedNotes: [], requestId: "req-1" });
     expect(mockedAttempt).toHaveBeenCalledTimes(2);
     const retryPrompt = mockedAttempt.mock.calls[1]?.[0] as string;
     expect(retryPrompt).toContain("4,2");

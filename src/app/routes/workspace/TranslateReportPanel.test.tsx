@@ -5,6 +5,7 @@ import { MemoryRouter } from "react-router";
 import "../../../i18n";
 import { createNewProject } from "../../../domain/model";
 import type { AiMeta, Entry, ProjectModel } from "../../../domain/model";
+import * as settingsIpc from "../../../ai/settingsIpc";
 import { useProjectStore } from "../../../state";
 import { TranslateReportPanel } from "./TranslateReportPanel";
 import * as entryTranslation from "./entryTranslation";
@@ -20,9 +21,14 @@ vi.mock("./entryTranslation", async () => {
   };
 });
 
+vi.mock("../../../ai/settingsIpc", () => ({
+  markAccepted: vi.fn(),
+}));
+
 const mockedBuildContext = vi.mocked(entryTranslation.buildWholeReportTranslationContext);
 const mockedPropose = vi.mocked(entryTranslation.proposeWholeReportTranslation);
 const mockedProposeMetaHeader = vi.mocked(entryTranslation.proposeMetaHeaderTranslation);
+const mockedMarkAccepted = vi.mocked(settingsIpc.markAccepted);
 
 const initialStoreState = useProjectStore.getState();
 
@@ -75,6 +81,7 @@ beforeEach(() => {
   // report-only tests (written before P-56) don't need to know this second,
   // independent call even exists.
   mockedProposeMetaHeader.mockResolvedValue({ outcome: "empty" });
+  mockedMarkAccepted.mockResolvedValue(undefined);
 });
 
 afterEach(() => {
@@ -96,7 +103,7 @@ describe("TranslateReportPanel", () => {
     const user = userEvent.setup();
     seedProject();
     mockedBuildContext.mockReturnValueOnce({ contextText: "the context", droppedNotes: [] });
-    mockedPropose.mockResolvedValueOnce({ outcome: "success", diff: { lines: [] }, droppedNotes: [] });
+    mockedPropose.mockResolvedValueOnce({ outcome: "success", diff: { lines: [] }, droppedNotes: [], requestId: "req-1" });
 
     renderPanel();
     await user.click(screen.getByRole("button", { name: "Translate whole report to Turkish" }));
@@ -112,7 +119,7 @@ describe("TranslateReportPanel", () => {
     const user = userEvent.setup();
     seedProject();
     mockedBuildContext.mockReturnValueOnce({ contextText: "ctx", droppedNotes: ["context note"] });
-    mockedPropose.mockResolvedValueOnce({ outcome: "success", diff: { lines: [] }, droppedNotes: ["line note"] });
+    mockedPropose.mockResolvedValueOnce({ outcome: "success", diff: { lines: [] }, droppedNotes: ["line note"], requestId: "req-1" });
 
     renderPanel();
     await user.click(screen.getByRole("button", { name: "Translate whole report to Turkish" }));
@@ -142,7 +149,7 @@ describe("TranslateReportPanel", () => {
     const diff: WholeReportTranslationDiff = {
       lines: [{ entryId: "e1", field: "title", translatedText: "Çevrilmiş başlık" }],
     };
-    mockedPropose.mockResolvedValueOnce({ outcome: "success", diff, droppedNotes: [] });
+    mockedPropose.mockResolvedValueOnce({ outcome: "success", diff, droppedNotes: [], requestId: "req-1" });
 
     renderPanel();
     await user.click(screen.getByRole("button", { name: "Translate whole report to Turkish" }));
@@ -161,6 +168,8 @@ describe("TranslateReportPanel", () => {
     // The project's own language setting is never touched by accepting a line.
     expect(updated?.meta.language).toBe("en");
     expect(await screen.findByText("Applied 1 translated field(s).")).toBeTruthy();
+    // P-71: at least one line was actually applied — reported true.
+    expect(mockedMarkAccepted).toHaveBeenCalledWith(expect.any(String), "req-1", true);
   });
 
   it("does not apply a line whose checkbox was unchecked", async () => {
@@ -171,7 +180,7 @@ describe("TranslateReportPanel", () => {
     const diff: WholeReportTranslationDiff = {
       lines: [{ entryId: "e1", field: "title", translatedText: "Çevrilmiş başlık" }],
     };
-    mockedPropose.mockResolvedValueOnce({ outcome: "success", diff, droppedNotes: [] });
+    mockedPropose.mockResolvedValueOnce({ outcome: "success", diff, droppedNotes: [], requestId: "req-1" });
 
     renderPanel();
     await user.click(screen.getByRole("button", { name: "Translate whole report to Turkish" }));
@@ -181,6 +190,9 @@ describe("TranslateReportPanel", () => {
 
     const updated = useProjectStore.getState().project;
     expect(updated?.steps[2]?.entries[0]?.title).toBe("Original title");
+    // P-71: with every line unchecked, "Apply selected" is disabled — the
+    // click is a no-op, so `handleApply` never runs and nothing is reported.
+    expect(mockedMarkAccepted).not.toHaveBeenCalled();
   });
 
   it("applies an accepted payload-field translation, writing only that field", async () => {
@@ -191,7 +203,7 @@ describe("TranslateReportPanel", () => {
     const diff: WholeReportTranslationDiff = {
       lines: [{ entryId: "e1", field: "text", translatedText: "y".repeat(200) }],
     };
-    mockedPropose.mockResolvedValueOnce({ outcome: "success", diff, droppedNotes: [] });
+    mockedPropose.mockResolvedValueOnce({ outcome: "success", diff, droppedNotes: [], requestId: "req-1" });
 
     renderPanel();
     await user.click(screen.getByRole("button", { name: "Translate whole report to Turkish" }));
@@ -202,6 +214,7 @@ describe("TranslateReportPanel", () => {
     const updatedEntry = updated?.steps[1]?.entries[0];
     expect((updatedEntry?.payload as { text: string }).text).toBe("y".repeat(200));
     expect(updatedEntry?.title).toBe(entry.title);
+    expect(mockedMarkAccepted).toHaveBeenCalledWith(expect.any(String), "req-1", true);
   });
 
   it("shows the project header mini-panel and applies a selected field via meta.header.set (P-56)", async () => {
@@ -210,12 +223,17 @@ describe("TranslateReportPanel", () => {
     const withHeader: ProjectModel = { ...project, meta: { ...project.meta, title: "Original title", customer: "Acme" } };
     useProjectStore.setState({ ...initialStoreState, project: withHeader });
     mockedBuildContext.mockReturnValueOnce({ contextText: "ctx", droppedNotes: [] });
-    mockedPropose.mockResolvedValueOnce({ outcome: "success", diff: { lines: [] }, droppedNotes: [] });
+    mockedPropose.mockResolvedValueOnce({ outcome: "success", diff: { lines: [] }, droppedNotes: [], requestId: "req-1" });
     const metaLines: readonly MetaHeaderTranslationLine[] = [
       { field: "title", originalText: "Original title", translatedText: "Çevrilmiş başlık" },
       { field: "customer", originalText: "Acme", translatedText: "Acme" },
     ];
-    mockedProposeMetaHeader.mockResolvedValueOnce({ outcome: "success", lines: metaLines, droppedNotes: [] });
+    mockedProposeMetaHeader.mockResolvedValueOnce({
+      outcome: "success",
+      lines: metaLines,
+      droppedNotes: [],
+      requestId: "req-meta-1",
+    });
 
     renderPanel();
     await user.click(screen.getByRole("button", { name: "Translate whole report to Turkish" }));
@@ -233,13 +251,17 @@ describe("TranslateReportPanel", () => {
     expect(updated?.meta.title).toBe("Çevrilmiş başlık");
     expect(updated?.meta.customer).toBe("Acme"); // unchecked, left as its current live value
     expect(await screen.findByText("Applied 1 translated field(s).")).toBeTruthy();
+    // P-71: two independent calls, two independent `requestId`s — the report
+    // diff had nothing to apply (false), the meta header applied one field (true).
+    expect(mockedMarkAccepted).toHaveBeenCalledWith(expect.any(String), "req-1", false);
+    expect(mockedMarkAccepted).toHaveBeenCalledWith(expect.any(String), "req-meta-1", true);
   });
 
   it("shows a notice and no section when the project header has nothing to translate", async () => {
     const user = userEvent.setup();
     seedProject();
     mockedBuildContext.mockReturnValueOnce({ contextText: "ctx", droppedNotes: [] });
-    mockedPropose.mockResolvedValueOnce({ outcome: "success", diff: { lines: [] }, droppedNotes: [] });
+    mockedPropose.mockResolvedValueOnce({ outcome: "success", diff: { lines: [] }, droppedNotes: [], requestId: "req-1" });
     mockedProposeMetaHeader.mockResolvedValueOnce({ outcome: "empty" });
 
     renderPanel();
@@ -253,7 +275,7 @@ describe("TranslateReportPanel", () => {
     const user = userEvent.setup();
     seedProject();
     mockedBuildContext.mockReturnValueOnce({ contextText: "ctx", droppedNotes: [] });
-    mockedPropose.mockResolvedValueOnce({ outcome: "success", diff: { lines: [] }, droppedNotes: [] });
+    mockedPropose.mockResolvedValueOnce({ outcome: "success", diff: { lines: [] }, droppedNotes: [], requestId: "req-1" });
     mockedProposeMetaHeader.mockResolvedValueOnce({ outcome: "failed", rawText: "bad" });
 
     renderPanel();
@@ -275,7 +297,7 @@ describe("TranslateReportPanel", () => {
     const diff: WholeReportTranslationDiff = {
       lines: [{ entryId: "e1", field: "title", translatedText: "Çevrilmiş başlık" }],
     };
-    mockedPropose.mockResolvedValueOnce({ outcome: "success", diff, droppedNotes: [] });
+    mockedPropose.mockResolvedValueOnce({ outcome: "success", diff, droppedNotes: [], requestId: "req-1" });
 
     renderPanel();
     await user.click(screen.getByRole("button", { name: "Translate whole report to Turkish" }));
@@ -284,5 +306,35 @@ describe("TranslateReportPanel", () => {
     expect(screen.getByRole("button", { name: "Translate whole report to Turkish" })).toBeTruthy();
     const updated = useProjectStore.getState().project;
     expect(updated?.steps[2]?.entries[0]?.title).toBe("Original title");
+    // P-71: an explicit Reject All is reported too, not just an Apply — the
+    // meta header never got a `requestId` here (default "empty" mock), so
+    // only the report diff's own call is reported.
+    expect(mockedMarkAccepted).toHaveBeenCalledWith(expect.any(String), "req-1", false);
+    expect(mockedMarkAccepted).toHaveBeenCalledTimes(1);
+  });
+
+  it("rejecting the whole diff also reports the meta-header call's own requestId when it succeeded", async () => {
+    const user = userEvent.setup();
+    const project = seedProject();
+    const withHeader: ProjectModel = { ...project, meta: { ...project.meta, title: "Original title" } };
+    useProjectStore.setState({ ...initialStoreState, project: withHeader });
+    mockedBuildContext.mockReturnValueOnce({ contextText: "ctx", droppedNotes: [] });
+    mockedPropose.mockResolvedValueOnce({ outcome: "success", diff: { lines: [] }, droppedNotes: [], requestId: "req-1" });
+    mockedProposeMetaHeader.mockResolvedValueOnce({
+      outcome: "success",
+      lines: [{ field: "title", originalText: "Original title", translatedText: "Çevrilmiş başlık" }],
+      droppedNotes: [],
+      requestId: "req-meta-1",
+    });
+
+    renderPanel();
+    await user.click(screen.getByRole("button", { name: "Translate whole report to Turkish" }));
+    await user.click(await screen.findByRole("button", { name: "Reject all" }));
+
+    const updated = useProjectStore.getState().project;
+    expect(updated?.meta.title).toBe("Original title");
+    expect(mockedMarkAccepted).toHaveBeenCalledWith(expect.any(String), "req-1", false);
+    expect(mockedMarkAccepted).toHaveBeenCalledWith(expect.any(String), "req-meta-1", false);
+    expect(mockedMarkAccepted).toHaveBeenCalledTimes(2);
   });
 });

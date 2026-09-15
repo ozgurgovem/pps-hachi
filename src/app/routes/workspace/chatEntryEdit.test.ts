@@ -166,7 +166,12 @@ describe("proposeEntryEditFromSuggestion", () => {
       promptVersion: "apply-suggestion.v1",
     });
 
-    expect(result).toEqual({ outcome: "success", title: "Updated title", payload: { text: "Updated body" } });
+    expect(result).toEqual({
+      outcome: "success",
+      requestId: expect.any(String),
+      title: "Updated title",
+      payload: { text: "Updated body" },
+    });
     expect(mockedCompleteStructured).toHaveBeenCalledTimes(1);
   });
 
@@ -187,7 +192,12 @@ describe("proposeEntryEditFromSuggestion", () => {
       promptVersion: "apply-suggestion.v1",
     });
 
-    expect(result).toEqual({ outcome: "success", title: "Fixed title", payload: { text: "Fixed body" } });
+    expect(result).toEqual({
+      outcome: "success",
+      requestId: expect.any(String),
+      title: "Fixed title",
+      payload: { text: "Fixed body" },
+    });
     expect(mockedCompleteStructured).toHaveBeenCalledTimes(2);
   });
 

@@ -1,8 +1,25 @@
 import { z, type ZodType } from "zod";
 import type { AttachmentPreview } from "../../../ai/ingestIpc";
 import type { ResolvedRedactionPolicy } from "../../../ai/redaction";
+import { markAccepted } from "../../../ai/settingsIpc";
 import { completeStructured } from "../../../ai/structuredIpc";
 import { errorMessage } from "../launch/errorMessage";
+
+/**
+ * P-71 (P71-cost-log-korelasyon-kablolama.md §3): moved here from
+ * `EntryProposalField.tsx` (its original, first home) once a third caller
+ * needed the identical wrapper (Anayasa Madde 2/G2) — every surface that
+ * correlates an Accept/Reject against a `requestId` shares this one
+ * best-effort reporter rather than re-writing it. Same posture Rust's own
+ * `append_log_entry` already takes for the *completion* half of this log —
+ * a failure here is an audit-log nicety, never something that should block
+ * or alarm the user over their real Accept/Reject action.
+ */
+export function reportAccepted(projectId: string, requestId: string, accepted: boolean): void {
+  markAccepted(projectId, requestId, accepted).catch((error: unknown) => {
+    console.error("ai_mark_accepted failed:", error);
+  });
+}
 
 /**
  * J1/SPEC.md §8.7: the pure retry-and-validate orchestration behind

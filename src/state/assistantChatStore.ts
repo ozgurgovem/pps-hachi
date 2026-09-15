@@ -23,6 +23,8 @@ export type ApplyState =
       readonly aiPayload: unknown;
       readonly draftTitle: string;
       readonly draftPayload: unknown;
+      /** P-71 (P71-cost-log-korelasyon-kablolama.md §2.4): only this second call's own `requestId` correlates — `identifySuggestionTargetEntry`'s own call has no real accept/reject point the user ever sees (same class as K2's mock-audit findings, which never get one either). */
+      readonly requestId: string;
     }
   | { readonly step: "failed"; readonly rawText: string }
   | { readonly step: "error"; readonly message: string };

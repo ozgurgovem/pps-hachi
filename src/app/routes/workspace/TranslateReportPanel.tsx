@@ -9,6 +9,7 @@ import type { Provenance } from "../../../domain/model";
 import { useProjectStore } from "../../../state";
 import { Button, Checkbox } from "../../../ui";
 import { errorMessage } from "../launch/errorMessage";
+import { reportAccepted } from "./entryProposal";
 import {
   buildEntryLookup,
   lookupCondensableText,
@@ -39,6 +40,9 @@ type Phase =
       /** P-56: a small, separate section — title/customer/partName live on `project.meta` directly, never inside an entry's payload, so they can't share the entry-diff's `entryId`-keyed selection. */
       readonly metaHeaderLines: readonly MetaHeaderTranslationLine[];
       readonly metaHeaderSelected: ReadonlySet<MetaHeaderField>;
+      /** P-71 (§2.3): two independent structured calls, two independent `requestId`s — the report diff's own call always happens, the meta-header call's `requestId` is only present when it actually succeeded (a missing prompt file or a failed call never got a real request to correlate). */
+      readonly requestId: string;
+      readonly metaHeaderRequestId: string | undefined;
     }
   | { readonly phase: "failed"; readonly rawText: string }
   | { readonly phase: "error"; readonly message: string }
@@ -107,6 +111,7 @@ export function TranslateReportPanel() {
       // visible notice explaining why.
       const metaHeaderNotices: string[] = [];
       let metaHeaderLines: readonly MetaHeaderTranslationLine[] = [];
+      let metaHeaderRequestId: string | undefined;
       const metaHeaderPromptFile = getWholeProjectPromptFile("translate-project-header", META_HEADER_TRANSLATION_PROMPT_VERSION);
       if (!metaHeaderPromptFile) {
         metaHeaderNotices.push(t("workspace.translateReport.missingMetaHeaderPromptFile"));
@@ -123,6 +128,7 @@ export function TranslateReportPanel() {
         if (metaHeaderResult.outcome === "success") {
           metaHeaderLines = metaHeaderResult.lines;
           metaHeaderNotices.push(...metaHeaderResult.droppedNotes);
+          metaHeaderRequestId = metaHeaderResult.requestId;
         } else if (metaHeaderResult.outcome === "failed") {
           metaHeaderNotices.push(t("workspace.translateReport.metaHeaderFailed"));
         }
@@ -135,6 +141,8 @@ export function TranslateReportPanel() {
         selected: new Set(result.diff.lines.map((_, index) => index)),
         metaHeaderLines,
         metaHeaderSelected: new Set(metaHeaderLines.map((line) => line.field)),
+        requestId: result.requestId,
+        metaHeaderRequestId,
       });
     } catch (error) {
       setState({ phase: "error", message: errorMessage(error) });
@@ -176,7 +184,7 @@ export function TranslateReportPanel() {
     // could write against an entry that has since changed or been removed.
     const liveLookup = buildEntryLookup(project);
     const acceptedBy = project.meta.owner.name;
-    let count = 0;
+    let reportLineCount = 0;
 
     state.diff.lines.forEach((line, index) => {
       if (!state.selected.has(index)) {
@@ -213,7 +221,7 @@ export function TranslateReportPanel() {
             provenance,
           }),
         );
-        count += 1;
+        reportLineCount += 1;
         return;
       }
       const payload = entry.payload;
@@ -224,7 +232,7 @@ export function TranslateReportPanel() {
       dispatch(
         buildUpdateEntryCommand(step, stepId, entry.id, { title: entry.title, payload: nextPayload, now, provenance }),
       );
-      count += 1;
+      reportLineCount += 1;
     });
 
     // P-56 (ai-katmani-temizligi.md §2): a single whole-slice-replace
@@ -234,6 +242,7 @@ export function TranslateReportPanel() {
     // keeps its own current live value, never the stale one captured at
     // Analyze time.
     const selectedMetaHeaderLines = state.metaHeaderLines.filter((line) => state.metaHeaderSelected.has(line.field));
+    let metaHeaderCount = 0;
     if (selectedMetaHeaderLines.length > 0) {
       const nextHeader = {
         title: project.meta.title,
@@ -244,13 +253,29 @@ export function TranslateReportPanel() {
         nextHeader[line.field] = line.translatedText;
       }
       dispatch(buildSetMetaHeaderCommand(project, nextHeader));
-      count += selectedMetaHeaderLines.length;
+      metaHeaderCount = selectedMetaHeaderLines.length;
     }
 
-    setState({ phase: "applied", count });
+    // P-71 (§2.3): each of the two independent structured calls' own
+    // `requestId` is reported separately, same option-(a) semantics as K1 —
+    // `true` when that section actually applied at least one line, `false`
+    // otherwise. The meta-header call may never have produced a `requestId`
+    // at all (missing prompt file, or its own schema-retry exhausted).
+    reportAccepted(project.id, state.requestId, reportLineCount > 0);
+    if (state.metaHeaderRequestId) {
+      reportAccepted(project.id, state.metaHeaderRequestId, metaHeaderCount > 0);
+    }
+
+    setState({ phase: "applied", count: reportLineCount + metaHeaderCount });
   }
 
   function handleReject() {
+    if (state.phase === "review" && project) {
+      reportAccepted(project.id, state.requestId, false);
+      if (state.metaHeaderRequestId) {
+        reportAccepted(project.id, state.metaHeaderRequestId, false);
+      }
+    }
     setState({ phase: "idle" });
   }
 

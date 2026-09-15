@@ -8,6 +8,7 @@ import type { ResolvedRedactionPolicy } from "../../../ai/redaction";
 import type { ErasedMethodPlugin } from "../../../methods";
 import { Button, Input } from "../../../ui";
 import { errorMessage } from "../launch/errorMessage";
+import { reportAccepted } from "./entryProposal";
 import { otherLanguage, proposeEntryTranslation, type ReportLanguage } from "./entryTranslation";
 
 const ENTRY_TRANSLATION_PROMPT_VERSION = "v1";
@@ -29,7 +30,14 @@ interface EntryTranslateFieldProps {
 type Phase =
   | { readonly phase: "idle" }
   | { readonly phase: "loading" }
-  | { readonly phase: "review"; readonly aiTitle: string; readonly aiPayload: unknown; readonly draftTitle: string; readonly draftPayload: unknown }
+  | {
+      readonly phase: "review";
+      readonly aiTitle: string;
+      readonly aiPayload: unknown;
+      readonly draftTitle: string;
+      readonly draftPayload: unknown;
+      readonly requestId: string;
+    }
   | { readonly phase: "failed"; readonly rawText: string }
   | { readonly phase: "error"; readonly message: string };
 
@@ -87,6 +95,7 @@ export function EntryTranslateField({
           aiPayload: result.payload,
           draftTitle: result.title,
           draftPayload: result.payload,
+          requestId: result.requestId,
         });
       } else {
         setState({ phase: "failed", rawText: result.rawText });
@@ -130,11 +139,16 @@ export function EntryTranslateField({
       acceptedAt: generatedAt,
       editDistance: normalizedEditDistance(aiJson, draftJson),
     };
+    reportAccepted(projectId, state.requestId, true);
     onAccept(state.draftTitle, state.draftPayload, provenance);
     setState({ phase: "idle" });
   }
 
+  /** P-71: only a real "review" phase has a `requestId` to correlate a rejection against — same posture `EntryProposalField.handleReject` already established. */
   function handleReject() {
+    if (state.phase === "review") {
+      reportAccepted(projectId, state.requestId, false);
+    }
     setState({ phase: "idle" });
   }
 

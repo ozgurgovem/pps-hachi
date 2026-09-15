@@ -2903,6 +2903,37 @@ AI layer: Faz 8 fully done (keychain + Vorion connection/model-discovery + strea
   own shipped mechanism mutation-verified. `npm test` 1648/1648 (315 files), `npm run lint`/
   `npx tsc --noEmit`/`npm run build` all clean. `cargo test` 199/199 lib, `cargo clippy
   --all-targets -- -D warnings`/`cargo fmt -- --check` both clean.
+**P-71 (cost-log correlation, the six remaining functions/four UI surfaces): FULLY CLOSED
+  2026-09-15 (D-271), same day as its own launch prompt was written.** Per
+  `docs/oturumlar/P71-cost-log-korelasyon-kablolama.md`, §0's own pre-scan re-verified against
+  real code, matched exactly — only `entryProposal.ts::proposeStructuredEntry` surfaced
+  `requestId`; the other six functions didn't. One `AskUserQuestion` round for §2.1's own real
+  open question (K1/K3-whole's one `requestId` covering many independently-checkable lines) —
+  Barış chose option (a), his own recommended: `true` when at least one line was actually
+  applied, `false` on an explicit Reject All, no per-line distinction. §2.4's own question was
+  already reasoned to a conclusion inside the launch prompt itself (only the second of D-247's
+  two chained calls correlates), so it was applied directly (Anayasa Madde 9) rather than asked
+  again. Same three-step mechanic repeated across `layoutReview.ts::proposeLayoutReviewDiff`,
+  `entryTranslation.ts`'s three functions, and `chatEntryEdit.ts::proposeEntryEditFromSuggestion`
+  (each success branch gained `requestId: string`, sourced from whichever `Attempt` actually
+  won — first try or retry); `EntryProposalField.tsx`'s own `reportAccepted` wrapper was moved
+  into `entryProposal.ts` as a shared helper (G2 — the fifth caller was the trigger) rather than
+  reimplemented four more times. Two real findings surfaced while writing tests, not assumed:
+  (1) K1/K3-whole's "Apply selected" button is already `disabled` when every line is unchecked,
+  so a no-op click never even reaches `handleApply` — the first-written tests wrongly expected
+  a `false` report there and were corrected to "never called"; (2) `TranslateReportPanel`'s
+  Reject-All path had a real, previously untested code line (reporting the meta-header call's
+  own `requestId` as `false` too, when that call had succeeded) — disabling it left all 11
+  existing tests green, confirming a genuine gap, closed with one new test. Every
+  `reportAccepted`/`markAccepted` call site across all four touched components was individually
+  mutation-verified (disabled, confirmed RED, restored, confirmed GREEN). `npm test` 1700/1700
+  (321 files, +1 net new test over D-270's own 1699 baseline — the rest are assertions added to
+  already-existing tests), exit code 0 (checked via a separate logfile, not piped through
+  `tail`). `npm run lint` clean (the one pre-existing `ThemeProvider` warning). `npx tsc
+  --noEmit` clean. `npm run build` green (same pre-existing chunk-size warning). Rust genuinely
+  untouched (`git status src-tauri/` empty, confirmed — this slice is TS-only end to end).
+  `scripts/gen-a3-fixture.ts` not re-run — this slice touches no `src/a3/` file, only the AI-
+  layer orchestration files under `src/app/routes/workspace/` (grep+`git status`-confirmed).
 Templates: two company .xls files analysed; see reference/TEMPLATE_ANALYSIS.md
 Template geometry: VERIFIED 2026-08-01 against both .xls files. Five errors found and
   corrected in place — the largest was the column widths: the real split is 49.7/50.3, NOT

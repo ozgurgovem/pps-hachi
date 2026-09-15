@@ -13,6 +13,7 @@ import { getA3RendererMap } from "../../../methods/registry";
 import { selectStepChat, useAssistantChatStore, useProjectStore, type ApplyState, type Turn } from "../../../state";
 import { Button, Input, Textarea } from "../../../ui";
 import { identifySuggestionTargetEntry, proposeEntryEditFromSuggestion } from "./chatEntryEdit";
+import { reportAccepted } from "./entryProposal";
 import { errorMessage } from "../launch/errorMessage";
 import { buildStepAssistantPrompt } from "./stepAiContext";
 
@@ -308,6 +309,7 @@ export function AssistantPanel({ stepId }: AssistantPanelProps) {
       aiPayload: editResult.payload,
       draftTitle: editResult.title,
       draftPayload: editResult.payload,
+      requestId: editResult.requestId,
     });
   }
 
@@ -340,7 +342,7 @@ export function AssistantPanel({ stepId }: AssistantPanelProps) {
     if (!step) {
       return;
     }
-    const { targetEntryId, aiTitle, aiPayload, draftTitle, draftPayload } = turn.applyState;
+    const { targetEntryId, aiTitle, aiPayload, draftTitle, draftPayload, requestId } = turn.applyState;
     const aiJson = JSON.stringify({ title: aiTitle, payload: aiPayload });
     const draftJson = JSON.stringify({ title: draftTitle, payload: draftPayload });
     const wasEdited = draftJson !== aiJson;
@@ -357,6 +359,7 @@ export function AssistantPanel({ stepId }: AssistantPanelProps) {
       acceptedAt: generatedAt,
       editDistance: normalizedEditDistance(aiJson, draftJson),
     };
+    reportAccepted(project.id, requestId, true);
     dispatch(
       buildUpdateEntryCommand(step, stepId, targetEntryId, {
         title: draftTitle,
@@ -374,7 +377,12 @@ export function AssistantPanel({ stepId }: AssistantPanelProps) {
     }));
   }
 
+  /** P-71: only a real "review" `applyState` has a `requestId` to correlate against — `handleCancelApply`'s other dismissal points (noMatch/failed/error) never reached a proposal at all. */
   function handleRejectEntryEdit(turnId: string) {
+    const turn = turns.find((candidate) => candidate.id === turnId);
+    if (turn?.phase === "done" && turn.applyState?.step === "review" && project) {
+      reportAccepted(project.id, turn.applyState.requestId, false);
+    }
     updateApplyState(turnId, undefined);
   }
 

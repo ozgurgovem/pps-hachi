@@ -87,6 +87,7 @@ describe("proposeEntryTranslation", () => {
       outcome: "success",
       title: "Translated title",
       payload: { text: "Translated body" },
+      requestId: "req-1",
     });
     expect(mockedAttempt).toHaveBeenCalledTimes(1);
   });
@@ -116,6 +117,7 @@ describe("proposeEntryTranslation", () => {
       outcome: "success",
       title: "Translated title",
       payload: { text: "Translated body" },
+      requestId: "req-1",
     });
     expect(mockedAttempt).toHaveBeenCalledTimes(2);
     const retryPrompt = mockedAttempt.mock.calls[1]?.[0];
@@ -151,6 +153,7 @@ describe("proposeEntryTranslation", () => {
       outcome: "success",
       title: "Translated title",
       payload: { text: "The rate dropped to 4,2." },
+      requestId: "req-1",
     });
     expect(mockedAttempt).toHaveBeenCalledTimes(2);
     const retryPrompt = mockedAttempt.mock.calls[1]?.[0];

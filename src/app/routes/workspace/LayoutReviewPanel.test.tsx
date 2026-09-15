@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router";
@@ -6,6 +6,7 @@ import "../../../i18n";
 import type { A3LayoutDescriptor } from "../../../a3/descriptor";
 import { createNewProject } from "../../../domain/model";
 import type { AiMeta, Entry, ProjectModel } from "../../../domain/model";
+import * as settingsIpc from "../../../ai/settingsIpc";
 import { useProjectStore } from "../../../state";
 import { LayoutReviewPanel } from "./LayoutReviewPanel";
 import * as layoutReview from "./layoutReview";
@@ -16,8 +17,13 @@ vi.mock("./layoutReview", async () => {
   return { ...actual, buildLayoutReviewContext: vi.fn(), proposeLayoutReviewDiff: vi.fn() };
 });
 
+vi.mock("../../../ai/settingsIpc", () => ({
+  markAccepted: vi.fn(),
+}));
+
 const mockedBuildContext = vi.mocked(layoutReview.buildLayoutReviewContext);
 const mockedPropose = vi.mocked(layoutReview.proposeLayoutReviewDiff);
+const mockedMarkAccepted = vi.mocked(settingsIpc.markAccepted);
 
 const initialStoreState = useProjectStore.getState();
 
@@ -67,6 +73,10 @@ function renderPanel() {
   );
 }
 
+beforeEach(() => {
+  mockedMarkAccepted.mockResolvedValue(undefined);
+});
+
 afterEach(() => {
   vi.clearAllMocks();
   useProjectStore.setState(initialStoreState, true);
@@ -90,6 +100,7 @@ describe("LayoutReviewPanel", () => {
       outcome: "success",
       diff: { visibilityChanges: [], textCondensations: [] },
       droppedNotes: [],
+      requestId: "req-1",
     });
 
     renderPanel();
@@ -110,6 +121,7 @@ describe("LayoutReviewPanel", () => {
       outcome: "success",
       diff: { visibilityChanges: [], textCondensations: [] },
       droppedNotes: ["diff note"],
+      requestId: "req-1",
     });
 
     renderPanel();
@@ -144,6 +156,7 @@ describe("LayoutReviewPanel", () => {
         textCondensations: [],
       },
       droppedNotes: [],
+      requestId: "req-1",
     });
 
     renderPanel();
@@ -157,6 +170,8 @@ describe("LayoutReviewPanel", () => {
     const updated = useProjectStore.getState().project;
     expect(updated?.steps[2]?.entries[0]?.a3Visibility).toBe("appendix");
     expect(await screen.findByText("Applied 1 placement change(s) and 0 text condensation(s).")).toBeTruthy();
+    // P-71: at least one line was actually applied — reported true.
+    expect(mockedMarkAccepted).toHaveBeenCalledWith(expect.any(String), "req-1", true);
   });
 
   it("does not apply a visibility change whose checkbox was unchecked", async () => {
@@ -171,6 +186,7 @@ describe("LayoutReviewPanel", () => {
         textCondensations: [],
       },
       droppedNotes: [],
+      requestId: "req-1",
     });
 
     renderPanel();
@@ -181,6 +197,9 @@ describe("LayoutReviewPanel", () => {
 
     const updated = useProjectStore.getState().project;
     expect(updated?.steps[2]?.entries[0]?.a3Visibility).toBe("primary");
+    // P-71: with every line unchecked, "Apply selected" is disabled — the
+    // click is a no-op, so `handleApply` never runs and nothing is reported.
+    expect(mockedMarkAccepted).not.toHaveBeenCalled();
   });
 
   it("applies an accepted text condensation with ai-accepted Provenance", async () => {
@@ -192,7 +211,7 @@ describe("LayoutReviewPanel", () => {
       visibilityChanges: [],
       textCondensations: [{ entryId: "e1", field: "text", condensedText: "shorter sentence", reason: "shorter" }],
     };
-    mockedPropose.mockResolvedValueOnce({ outcome: "success", diff, droppedNotes: [] });
+    mockedPropose.mockResolvedValueOnce({ outcome: "success", diff, droppedNotes: [], requestId: "req-1" });
 
     renderPanel();
     await user.click(screen.getByRole("button", { name: "Analyze layout" }));
@@ -205,6 +224,7 @@ describe("LayoutReviewPanel", () => {
     expect(updatedEntry?.provenance.origin).toBe("ai-accepted");
     expect(updatedEntry?.provenance.model?.providerId).toBe("vorion");
     expect(updatedEntry?.provenance.acceptedBy).toBe("Ada");
+    expect(mockedMarkAccepted).toHaveBeenCalledWith(expect.any(String), "req-1", true);
   });
 
   it("rejecting the whole diff returns to idle, applying nothing", async () => {
@@ -219,6 +239,7 @@ describe("LayoutReviewPanel", () => {
         textCondensations: [],
       },
       droppedNotes: [],
+      requestId: "req-1",
     });
 
     renderPanel();
@@ -228,5 +249,7 @@ describe("LayoutReviewPanel", () => {
     expect(screen.getByRole("button", { name: "Analyze layout" })).toBeTruthy();
     const updated = useProjectStore.getState().project;
     expect(updated?.steps[2]?.entries[0]?.a3Visibility).toBe("primary");
+    // P-71: an explicit Reject All is reported too, not just an Apply.
+    expect(mockedMarkAccepted).toHaveBeenCalledWith(expect.any(String), "req-1", false);
   });
 });

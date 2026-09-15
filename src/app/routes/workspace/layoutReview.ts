@@ -398,7 +398,12 @@ function buildLayoutReviewRetryPrompt(
 }
 
 export type LayoutReviewOutcome =
-  | { readonly outcome: "success"; readonly diff: LayoutReviewDiff; readonly droppedNotes: readonly string[] }
+  | {
+      readonly outcome: "success";
+      readonly diff: LayoutReviewDiff;
+      readonly droppedNotes: readonly string[];
+      readonly requestId: string;
+    }
   | { readonly outcome: "failed"; readonly rawText: string };
 
 export interface ProposeLayoutReviewParams {
@@ -443,7 +448,7 @@ export async function proposeLayoutReviewDiff(params: ProposeLayoutReviewParams)
   const diff = first.value as LayoutReviewDiff;
   const failures = findProtectedTokenFailures(diff.textCondensations, params.lookup);
   if (failures.length === 0) {
-    return { outcome: "success", diff, droppedNotes: [] };
+    return { outcome: "success", diff, droppedNotes: [], requestId: first.requestId };
   }
 
   return retryOnce(params, jsonSchema, JSON.stringify(diff, null, 2), undefined, failures);
@@ -480,7 +485,7 @@ async function retryOnce(
   const diff = second.value as LayoutReviewDiff;
   const stillFailing = findProtectedTokenFailures(diff.textCondensations, params.lookup);
   if (stillFailing.length === 0) {
-    return { outcome: "success", diff, droppedNotes: [] };
+    return { outcome: "success", diff, droppedNotes: [], requestId: second.requestId };
   }
 
   const failingKeys = new Set(stillFailing.map((f) => lineKey(f.entryId, f.field)));
@@ -490,7 +495,12 @@ async function retryOnce(
       `A condensation for entry "${f.entryId}" (field "${f.field}") could not preserve ${f.missingTokens.map((t) => `"${t}"`).join(", ")} — it was left out, the text is unchanged.`,
   );
 
-  return { outcome: "success", diff: { ...diff, textCondensations: keptCondensations }, droppedNotes };
+  return {
+    outcome: "success",
+    diff: { ...diff, textCondensations: keptCondensations },
+    droppedNotes,
+    requestId: second.requestId,
+  };
 }
 
 /**
