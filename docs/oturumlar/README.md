@@ -384,7 +384,7 @@ Kalan üç aday hâlâ başlamadı:
 | ~~P-58~~ | ~~`docs/oturumlar/P58-gorsel-dil-yayilmasi.md`~~ | **KAPANDI (D-254/D-255/D-256, 2026-09-15) — Farplas görsel dili `src/ui/`'nin 12 primitifine yayıldı, P-68 (WCAG AA) kapandı, D-220'nin owed dark-mode onayı kapandı.** Bkz. aşağıdaki "P-58" bölümü. | Kapandı — 12/12 bileşen, üç BVVL turu, hepsi onaylandı |
 | Küçük açık maddeler | `docs/oturumlar/kucuk-acik-maddeler.md` | ~~P-63 (kpi-strip'in ADIM 7'de her zaman appendix'e düşmesi)~~ **P-63 CLOSED (D-234, 2026-09-09)** + ~~P-64 (bir kolonun son bloğunun kendi sürükleme tutamacı yok)~~ **P-64 CLOSED (D-233, 2026-09-09)** | İkisi de BİTTİ |
 | M1-M4 (Faz 12'nin kendi dilimleri) | `docs/oturumlar/M1-i18n-tarama.md` / `M2-auto-update.md` / `M3-paketleme-imza-kapanisi.md` / `M4-polish-kalite-tabani.md` | i18n taraması, auto-update, packaging/signing kapanışı, Quality floor denetimi — bkz. yukarıdaki "Faz 12" bölümü | **DÖRDÜ DE BİTTİ** (M1 D-235/D-236, M2 D-238, M3 D-231, M4 D-237) |
-| ~~CI kırmızı durumu (P-69/CI-A)~~ | ~~`docs/oturumlar/CI-kirmizi-durum-devam-2.md`~~ | **KOD BİTTİ (D-252, 2026-09-14) — yerel doğrulama tamam, gerçek CI push+watch owed.** `CI-kirmizi-durum-devam-2.md`'nin kendi §0 bulgusu YANLIŞ çıktı — gerçek log yeniden okunduğunda asıl ilk başarısızlık "creates a new project" testinin kendisiydi. İki gerçek, bağımsız kök neden bulundu: (1) `UiLanguageToggle`'ın (D-242) kendi "English" düğmesiyle dil-dialogunun "English" düğmesi metin çakışması — seçici dialogun `role="dialog"`'ına kapsandı; (2) çok daha derin — gerçek Tauri v2'de `window.__TAURI_INTERNALS__.invoke` (ve nesnenin kendisi) `writable:false, configurable:false` — `e2eInvokeMockBridge.ts`'in (D-239) atama denemesi hiçbir zaman çalışmamıştı, sessizce throw ediyordu. `e2eInvokeMockBridge.ts` silindi, yerine kilitli hiçbir property'ye dokunmayan `src/testing/nativeDialogs.ts` (düz, yazılabilir `window.__e2e_dialog_mocks__`) geldi. P-70 da aynı oturumda kapatıldı. Üç ayrı gerçek yerel `npm run test:e2e` çalıştırmasında **6/6 passing**. | Kod BİTTİ, yerel 6/6 doğrulandı — `git push` + `gh run watch` ile gerçek CI sonucu bu oturumun kendi son adımı |
+| ~~CI kırmızı durumu (P-69/CI-A)~~ | ~~`docs/oturumlar/CI-kirmizi-durum-devam-2.md`~~ | **TAMAMEN KAPANDI (D-252, 2026-09-14) — gerçek CI'de doğrulandı.** `CI-kirmizi-durum-devam-2.md`'nin kendi §0 bulgusu YANLIŞ çıktı — gerçek log yeniden okunduğunda asıl ilk başarısızlık "creates a new project" testinin kendisiydi. İki gerçek, bağımsız kök neden bulundu: (1) `UiLanguageToggle`'ın (D-242) kendi "English" düğmesiyle dil-dialogunun "English" düğmesi metin çakışması — seçici dialogun `role="dialog"`'ına kapsandı; (2) çok daha derin — gerçek Tauri v2'de `window.__TAURI_INTERNALS__.invoke` (ve nesnenin kendisi) `writable:false, configurable:false` — `e2eInvokeMockBridge.ts`'in (D-239) atama denemesi hiçbir zaman çalışmamıştı, sessizce throw ediyordu. `e2eInvokeMockBridge.ts` silindi, yerine kilitli hiçbir property'ye dokunmayan `src/testing/nativeDialogs.ts` (düz, yazılabilir `window.__e2e_dialog_mocks__`) geldi. P-70 da aynı oturumda kapatıldı. **`git push` + `gh run watch 34888950619 --exit-status` → `conclusion: "success"`, hem macOS hem Windows job'ları her adımda (E2E dahil) yeşil — Faz 5'ten (2026-08-03) beri projenin İLK tam yeşil CI run'ı.** | TAMAMEN BİTTİ — hem CI-A hem CI-B kapalı, gerçek CI'de kanıtlandı |
 
 **Paralel çalıştırma değerlendirmesi** (Barış'ın kendi sorusu, 2026-09-08): bu depo bugüne kadar
 HİÇBİR zaman worktree/branch-bazlı paralel oturum kullanmadı — her oturum doğrudan `main`'e
@@ -416,6 +416,30 @@ kodu seviyesinde dosya çakışma riski:
   sırada çalıştırılabilir.
 
 **Barış'ın kendi seçimi bekleniyor** — bu tablo yalnızca aday listesi, hiçbiri henüz başlamadı.
+
+## P yığını durum taraması — DECISIONS.md'nin 70 P-maddesi tek tek gerçek koda karşı doğrulandı
+
+`docs/oturumlar/P-yigini-durum-taramasi.md`'nin kendi işi (2026-09-15): kod YAZMADAN,
+`DECISIONS.md`'nin Pending tablosundaki her P-maddesinin gerçek durumunu doğrulamak. Sekiz
+satır gerçekten kapanmıştı ama kendi metni hiç güncellenmemişti (P-40/D-227, P-06/D-205,
+P-07/D-221, P-49/P-69/P-70/D-252) — düzeltildi. Altı P-numarası (P-56/57/58/59/60/61) hiçbir
+zaman tabloya satır olarak eklenmemişti (yalnızca D-log anlatımında filed edilmişlerdi) —
+geriye dönük eklendi; ikisi (P-58, P-59) gerçekte kapanmış bulundu. P-51'e D-247'nin kısmi
+iyileştirmesi not düşüldü. Tam kayıt: `DECISIONS.md`'nin ilgili satırları, commit `d67362c`.
+
+27 madde gerçekten açık kaldı. Barış'a `AskUserQuestion` ile soruldu, üç küme birden seçildi
+— üçü de kendi launch prompt'unu aldı:
+
+| Küme | Prompt | İçerik | Durum |
+|---|---|---|---|
+| AI katmanı temizliği | `docs/oturumlar/ai-katmani-temizligi.md` | P-51 (serbest sohbet redaksiyonsuz), P-56 (whole-report çeviri kısa/meta alan kapsamıyor), P-57 (`meta.language.set` yok), P-60 (cost-log accept/reject korelasyonu yok) | Başlamadı |
+| Export/UI sadakat gedikleri | `docs/oturumlar/export-ui-sadakat-gedikleri.md` | P-17 (border fidelity), P-18 (header/footer alanları bağlı değil), P-22 (action plan Gantt), P-23 (6a editörlerinin FieldFormEditor'e taşınması), P-27 (impact-effort 2×2 drag-drop), P-42 (Fishbone kategori etiketleri yanlış dile bağlı — gerçek bug, en ucuz madde) | Başlamadı |
+| Şema/veri modeli kararları | `docs/oturumlar/sema-veri-modeli-kararlari.md` | P-39 (Why-Why node-seviyesi referans, D-185'te zaten karar verildi, inşa edilmedi), P-41 (Fishbone↔5-Why cross-linking tasarım sorusu), P-66 (tpmLossTaxonomy 7 vs 8 kategori, migration gerektirir) | Başlamadı — büyük ölçüde bir KARAR turu, kod öncesi |
+
+Kalan 12 madde (P-12/P-15/P-16/P-20/P-32/P-38/P-44/P-48/P-50/P-52/P-53/P-54/P-55/P-65)
+Barış'ın seçmediği, çoğu ortam-sınırlı (gerçek Windows makinesi, LibreOffice pipeline) ya da
+bilinçli YAGNI/ertelenmiş maddeler — kendi satırları `DECISIONS.md`'de güncel, yeni bir
+launch prompt gerektirmiyor.
 
 ## Kullanım
 
