@@ -169,6 +169,24 @@ describe("MethodPlugin.tier (D-169)", () => {
       expect(recommendedIds).toEqual([...RECOMMENDED_BY_STEP[stepId]].sort());
     }
   });
+
+  /**
+   * P-41 decision round (2026-09-15): Barış's own team practice is
+   * 5-Why-first (`reference/Examples/PPS_A3_EK-2905_...pdf`'s real ADIM 4
+   * panel is a branching Why-Why tree, D-176) — `fishbone` stays
+   * `"recommended"` (D-11 is still LOCKED: Fishbone is not removed or
+   * demoted to "more"), only its position within Step 4's recommended
+   * group moves behind `five-why`/`why-why-tree`. `MethodBand`/
+   * `getMethodsForStep` preserve `METHOD_REGISTRY`'s own array order
+   * unsorted (D-187/C6), so this is an ordering assertion, unlike the
+   * `.sort()`ed membership check above.
+   */
+  it("orders Step 4's recommended methods five-why → why-why-tree → fishbone (D-266)", () => {
+    const recommendedIds = getMethodsForStep(4)
+      .filter((plugin) => plugin.tier === "recommended")
+      .map((plugin) => plugin.id);
+    expect(recommendedIds).toEqual(["five-why", "why-why-tree", "fishbone"]);
+  });
 });
 
 /**

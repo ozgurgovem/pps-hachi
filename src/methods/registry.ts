@@ -95,7 +95,6 @@ import { vocComplaintMethod } from "./vocComplaint";
 export const METHOD_REGISTRY: readonly ErasedMethodPlugin[] = [
   registerMethod(genericTextMethod),
   registerMethod(paretoMethod),
-  registerMethod(fishboneMethod),
   registerMethod(fiveG5N1KMethod),
   registerMethod(trendMethod),
   registerMethod(isIsNotMethod),
@@ -114,6 +113,7 @@ export const METHOD_REGISTRY: readonly ErasedMethodPlugin[] = [
   registerMethod(msaGageRrMethod),
   registerMethod(pointOfCauseMethod),
   registerMethod(whyWhyTreeMethod),
+  registerMethod(fishboneMethod),
   registerMethod(faultTreeMethod),
   registerMethod(causeEffectMatrixMethod),
   registerMethod(pfmeaLinkageMethod),
