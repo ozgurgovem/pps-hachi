@@ -15,6 +15,23 @@
 @import "@fontsource/source-sans-3/600.css";
 @import "@fontsource/source-sans-3/700.css";
 
+/* Lemon Milk — Farplas's own real corporate slogan face (the two ALL-CAPS
+ * taglines only: "BETTER. SOLUTION. TOGETHER." / "FUTURE. MOBILITY.
+ * TOGETHER."), self-hosted from the Bold .otf Barış supplied from Farplas's
+ * own brand-assets folder — not an @fontsource package, since Lemon Milk
+ * isn't on Google Fonts. Its own donationware license covers commercial use
+ * for an appreciation donation, not a purchased license; Barış, on behalf
+ * of Farplas, confirmed using it here. Bold-only and no lowercase glyphs in
+ * this free tier (the file's own readme: "need lowercases? get LEMON MILK
+ * Pro") — a non-issue, both taglines are ALL CAPS by design. */
+@font-face {
+  font-family: "Lemon Milk";
+  src: url("./assets/fonts/LEMONMILK-Bold.otf") format("opentype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
 /* Manual dark mode: driven by [data-theme] on <html>, set by ThemeProvider
  * (system preference by default, user override persisted). Not the media-query
  * strategy, because the launch screen's quality floor requires an explicit toggle. */
@@ -194,6 +211,8 @@
   --color-fp-accent-fill-ink: var(--fp-accent-fill-ink);
 
   --font-fp-display: "Source Sans 3", sans-serif;
+  /* Farplas's own two ALL-CAPS taglines only — see the @font-face comment above. */
+  --font-fp-slogan: "Lemon Milk", "Archivo Narrow", sans-serif;
 }
 
 body {
@@ -219,5 +238,172 @@ body {
 @media (prefers-reduced-motion: no-preference) {
   .launch-enter {
     animation: launch-enter 420ms ease-out both;
+  }
+}
+
+/* Launch screen's intro animation (`IntroAnimation.tsx`) — a Farplas-branded
+ * sequence shown once per app launch, per `introSeen.ts`'s own gate. That
+ * gate already keeps this component from ever mounting under a reduced-
+ * motion preference or in the test environment; these rules are wrapped in
+ * the same media query as `.launch-enter` above purely as defense in depth,
+ * matching this file's own established convention (the rule is absent
+ * entirely under reduced motion, not merely unused).
+ *
+ * Ported from Barış's own second Claude Design revision, 2026-09-16 — a
+ * grid-based relayout of the original free-floating version. Every element
+ * in the component now carries exactly ONE `animation` shorthand (never two
+ * combined via a comma list) — a first version combined a fade and a drift
+ * animation on the same element via two separate longhand properties, and a
+ * later spread silently collapsed them back to one shared duration, which
+ * is what caused floating text to overlap the climax reveal. This revision
+ * avoids that whole bug class structurally: a drifting element is a plain
+ * wrapper carrying only `intro-drift-*`, its fading child carries only
+ * `intro-fade-window`/`intro-fx-logo`/`intro-fx-soft` — no shared property
+ * ever needs to express two animations' worth of values at once. */
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes intro-fade-window {
+    0% {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+    16% {
+      opacity: 1;
+      transform: none;
+    }
+    78% {
+      opacity: 1;
+      transform: none;
+    }
+    100% {
+      opacity: 0;
+      transform: translateY(-6px);
+    }
+  }
+
+  @keyframes intro-fx-logo {
+    0% {
+      opacity: 0;
+      transform: scale(0.72);
+      filter: blur(14px);
+    }
+    24% {
+      opacity: 1;
+      transform: scale(0.96);
+      filter: blur(0);
+    }
+    74% {
+      opacity: 1;
+      transform: scale(1.04);
+      filter: blur(0);
+    }
+    100% {
+      opacity: 0;
+      transform: scale(1.16);
+      filter: blur(9px);
+    }
+  }
+
+  @keyframes intro-fx-soft {
+    0% {
+      opacity: 0;
+      transform: scale(0.84);
+      filter: blur(16px);
+    }
+    22% {
+      opacity: 0.42;
+      transform: scale(0.93);
+      filter: blur(2px);
+    }
+    72% {
+      opacity: 0.42;
+      transform: scale(1.05);
+      filter: blur(2px);
+    }
+    100% {
+      opacity: 0;
+      transform: scale(1.16);
+      filter: blur(12px);
+    }
+  }
+
+  /* Four fixed, gentle parallax drift vectors (a 1–2vw/vh wander — much
+   * subtler than the original's 5–9vw) — one drift per grid cell/artifact
+   * panel, applied on its own wrapper element, never combined with another
+   * animation on the same node. */
+  @keyframes intro-drift-a {
+    from {
+      transform: translate3d(-1vw, 2vh, 0);
+    }
+    to {
+      transform: translate3d(1vw, -1.6vh, 0);
+    }
+  }
+  @keyframes intro-drift-b {
+    from {
+      transform: translate3d(1vw, -2vh, 0);
+    }
+    to {
+      transform: translate3d(-1vw, 1.6vh, 0);
+    }
+  }
+  @keyframes intro-drift-c {
+    from {
+      transform: translate3d(0.6vw, 2.4vh, 0);
+    }
+    to {
+      transform: translate3d(-0.6vw, -1.8vh, 0);
+    }
+  }
+  @keyframes intro-drift-d {
+    from {
+      transform: translate3d(-0.6vw, -2.4vh, 0);
+    }
+    to {
+      transform: translate3d(0.6vw, 1.8vh, 0);
+    }
+  }
+
+  @keyframes intro-draw {
+    from {
+      clip-path: inset(0 0 100% 0);
+    }
+    to {
+      clip-path: inset(0 0 0 0);
+    }
+  }
+
+  @keyframes intro-reveal {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  @keyframes intro-flood {
+    0% {
+      opacity: 0;
+      transform: scale(0.25);
+    }
+    55% {
+      opacity: 1;
+      transform: scale(1);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1.3);
+    }
+  }
+
+  @keyframes intro-overlay-out {
+    from {
+      opacity: 1;
+    }
+    to {
+      opacity: 0;
+    }
   }
 }

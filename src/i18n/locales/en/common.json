@@ -8,10 +8,56 @@
     "english": "English"
   },
   "launch": {
+    "brandWordmark": "Farplas",
+    "eyebrow": "Practical Problem Solving · A3 Report · AI-Assisted",
+    "slogan": "BETTER. SOLUTION. TOGETHER.",
+    "description": "Run the eight-step Practical Problem Solving method from a single A3 report. Every step is on record, from clarifying the problem to standardizing the fix — every project stays auditable. AI assistance is optional and always a suggestion — you make the call.",
     "newProject": "New PPS Project",
     "openProject": "Open Existing Project",
     "newProjectDialogTitle": "Save new project as",
     "openProjectDialogTitle": "Open PPS Hachi project",
+    "stats": {
+      "format": "Output format",
+      "methodSteps": "Method steps",
+      "savedProjects": "Saved projects"
+    },
+    "methodAside": {
+      "title": "Method"
+    },
+    "intro": {
+      "skip": "Click to skip",
+      "words": {
+        "problemDefinition": "PROBLEM DEFINITION",
+        "engineering": "ENGINEERING",
+        "rootCause": "ROOT CAUSE",
+        "correctiveAction": "CORRECTIVE ACTION",
+        "aiPowered": "AI-POWERED",
+        "pdca": "PLAN · DO · CHECK · ACT",
+        "aiCollaboration": "AI COLLABORATION",
+        "standardization": "STANDARDIZATION & DISSEMINATION"
+      },
+      "panels": {
+        "problemSolving": "PROBLEM SOLVING",
+        "paretoAnalysis": "PARETO ANALYSIS",
+        "fiveW1H": "5W1H",
+        "fishboneDiagram": "FISHBONE DIAGRAM",
+        "correctiveAction": "CORRECTIVE ACTION",
+        "fiveWhy": "5 WHY",
+        "standards": "STANDARDS"
+      },
+      "miniCharts": {
+        "beforeAfter": "BEFORE / AFTER",
+        "effort": "EFFORT →",
+        "impactEffort": "IMPACT / EFFORT",
+        "gapAnalysis": "GAP ANALYSIS",
+        "actual": "ACTUAL",
+        "target": "TARGET"
+      }
+    },
+    "footer": {
+      "tagline": "FUTURE. MOBILITY. TOGETHER.",
+      "brand": "Farplas Otomotiv A.Ş. · PPS Hachi"
+    },
     "chooseLanguage": {
       "title": "Project language",
       "description": "Which language should this project be kept in? You can change this later in Settings.",

@@ -2,11 +2,15 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 import { getVersion } from "@tauri-apps/api/app";
+import farplasLogoUrl from "../../../assets/brand/farplas-logo.png";
+import { STEP_IDS } from "../../../domain/model";
 import { Button, DialogContent, DialogRoot } from "../../../ui";
 import { UiLanguageToggle } from "../../../i18n/UiLanguageToggle";
 import { open, save } from "../../../testing/nativeDialogs";
 import { createProjectAtPath } from "./createProjectFlow";
 import { errorMessage } from "./errorMessage";
+import { IntroAnimation } from "./IntroAnimation";
+import { markIntroPlayed, shouldShowIntro } from "./introSeen";
 import { openProjectAtPath } from "./openProjectFlow";
 import { RecentProjectCard } from "./RecentProjectCard";
 import { useRecentProjects } from "./useRecentProjects";
@@ -35,6 +39,19 @@ export function LaunchScreen() {
    */
   const [pendingProjectPath, setPendingProjectPath] = useState<string | null>(null);
   const updateCheck = useUpdateCheck();
+  /**
+   * Barış's own request, 2026-09-16 — a Farplas-branded intro sequence
+   * (`IntroAnimation.tsx`), shown once per app launch (his own chosen
+   * option over "every visit to /"). `shouldShowIntro` folds in the
+   * reduced-motion and test-environment gates, so this line is the only
+   * place either one is consulted.
+   */
+  const [showIntro, setShowIntro] = useState(() => shouldShowIntro(import.meta.env.MODE));
+
+  function handleIntroFinish() {
+    markIntroPlayed();
+    setShowIntro(false);
+  }
 
   useEffect(() => {
     document.title = t("app.title");
@@ -137,70 +154,152 @@ export function LaunchScreen() {
   }
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-5xl flex-col gap-10 p-10">
-      <section className="launch-enter flex flex-wrap items-center justify-between gap-6 border-b border-line pb-8">
-        <h1 className="font-display text-4xl font-semibold uppercase tracking-wide text-ink">
-          {t("app.title")} <span aria-hidden="true">八</span>
-        </h1>
-        <div className="flex gap-3">
-          <Button size="lg" onClick={() => void handleNewProject()} disabled={isBusy}>
-            {t("launch.newProject")}
-          </Button>
-          <Button size="lg" onClick={() => void handleOpenProject()} disabled={isBusy}>
-            {t("launch.openProject")}
-          </Button>
+    <div className="flex min-h-screen flex-col bg-white dark:bg-surface">
+      {showIntro && <IntroAnimation onFinish={handleIntroFinish} />}
+      <header className="flex flex-wrap items-center justify-between gap-4 border-b border-fp-gray-light px-6 py-4 sm:px-10">
+        <div className="flex items-center gap-4">
+          <img src={farplasLogoUrl} alt={t("launch.brandWordmark")} className="h-6 w-auto" />
+          <span aria-hidden="true" className="h-5 w-px bg-fp-gray-light" />
+          <span className="font-mono text-xs font-semibold uppercase tracking-[0.14em] text-fp-gray-dark">
+            {t("app.title")}
+          </span>
         </div>
-      </section>
-
-      {/* SPEC.md §2.1's own "Secondary: ... language toggle (TR / EN) ..." row
-          — deferred at Phase 2 (2026-08-02), never built until this real gap
-          surfaced in Barış's own first trial run (2026-09-10). */}
-      <div className="flex justify-end">
+        {/* SPEC.md §2.1's own "Secondary: ... language toggle (TR / EN) ..." row
+            — deferred at Phase 2 (2026-08-02), never built until this real gap
+            surfaced in Barış's own first trial run (2026-09-10). */}
         <UiLanguageToggle />
-      </div>
+      </header>
 
-      {actionError && (
-        <p
-          role="alert"
-          className="rounded-control border border-danger bg-surface-raised p-3 font-body text-sm text-danger"
-        >
-          {actionError}
-        </p>
-      )}
-
-      {(updateCheck.state.status === "available" || updateCheck.state.status === "downloading") && (
-        <div className="flex items-center justify-between gap-4 rounded-control border border-accent bg-surface-raised p-3">
-          <p className="font-body text-sm text-ink">
-            {updateCheck.state.status === "available"
-              ? t("settings.updates.launchBannerTitle", { version: updateCheck.state.version })
-              : t("settings.updates.downloading")}
-          </p>
-          {updateCheck.state.status === "available" && (
-            <Button size="sm" onClick={() => void updateCheck.installNow()}>
-              {t("settings.updates.installButton")}
-            </Button>
+      {(actionError ||
+        updateCheck.state.status === "available" ||
+        updateCheck.state.status === "downloading") && (
+        <div className="flex flex-col gap-3 px-6 pt-6 sm:px-10">
+          {actionError && (
+            <p
+              role="alert"
+              className="rounded-control border border-danger bg-surface-raised p-3 font-body text-sm text-danger"
+            >
+              {actionError}
+            </p>
+          )}
+          {(updateCheck.state.status === "available" || updateCheck.state.status === "downloading") && (
+            <div className="flex items-center justify-between gap-4 rounded-control border border-accent bg-surface-raised p-3">
+              <p className="font-body text-sm text-ink">
+                {updateCheck.state.status === "available"
+                  ? t("settings.updates.launchBannerTitle", { version: updateCheck.state.version })
+                  : t("settings.updates.downloading")}
+              </p>
+              {updateCheck.state.status === "available" && (
+                <Button size="sm" onClick={() => void updateCheck.installNow()}>
+                  {t("settings.updates.installButton")}
+                </Button>
+              )}
+            </div>
           )}
         </div>
       )}
 
-      <section className="flex flex-col gap-4">
-        <h2 className="font-display text-xl uppercase tracking-wide text-ink-muted">{t("launch.recent.title")}</h2>
+      <main className="grid flex-1 grid-cols-1 lg:grid-cols-[1.15fr_0.85fr]">
+        <section className="launch-enter flex min-w-0 flex-col gap-10 px-6 py-12 sm:px-10 sm:py-14">
+          <div>
+            <div className="mb-5 flex items-center gap-3">
+              <span aria-hidden="true" className="block h-0.5 w-7 bg-fp-red" />
+              <span className="font-mono text-xs font-semibold uppercase tracking-[0.16em] text-fp-red">
+                {t("launch.eyebrow")}
+              </span>
+            </div>
+            <h1 className="flex flex-wrap items-baseline gap-4 font-fp-display text-4xl font-bold uppercase tracking-tight text-fp-charcoal">
+              {t("app.title")}
+              <span aria-hidden="true" className="text-3xl font-normal text-fp-teal">
+                八
+              </span>
+            </h1>
+            <p className="mt-4 font-fp-slogan text-lg font-bold tracking-wide text-fp-teal-deep">{t("launch.slogan")}</p>
+            <p className="mt-5 max-w-[48ch] text-pretty font-body text-base leading-relaxed text-fp-gray-dark">
+              {t("launch.description")}
+            </p>
+          </div>
+
+          <div className="flex flex-wrap gap-3">
+            <Button size="lg" onClick={() => void handleNewProject()} disabled={isBusy}>
+              {t("launch.newProject")}
+            </Button>
+            <Button size="lg" variant="secondary" onClick={() => void handleOpenProject()} disabled={isBusy}>
+              {t("launch.openProject")}
+            </Button>
+          </div>
+
+          <div className="mt-auto grid grid-cols-3 gap-7 border-t border-fp-gray-light pt-7">
+            <div>
+              <div className="font-fp-display text-2xl font-bold text-fp-charcoal">A3</div>
+              <div className="mt-1.5 font-mono text-xs uppercase tracking-wide text-fp-gray-dark">
+                {t("launch.stats.format")}
+              </div>
+            </div>
+            <div>
+              <div className="font-fp-display text-2xl font-bold text-fp-charcoal">{STEP_IDS.length}</div>
+              <div className="mt-1.5 font-mono text-xs uppercase tracking-wide text-fp-gray-dark">
+                {t("launch.stats.methodSteps")}
+              </div>
+            </div>
+            <div>
+              <div className="font-fp-display text-2xl font-bold text-fp-charcoal">{entries.length}</div>
+              <div className="mt-1.5 font-mono text-xs uppercase tracking-wide text-fp-gray-dark">
+                {t("launch.stats.savedProjects")}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <aside className="min-w-0 border-t border-fp-gray-light bg-surface-raised px-6 py-12 sm:px-10 sm:py-14 lg:border-t-0 lg:border-l">
+          <div className="mb-5 font-mono text-xs font-semibold uppercase tracking-[0.16em] text-fp-teal-deep">
+            {t("launch.methodAside.title")}
+          </div>
+          <ol className="m-0 grid list-none gap-0 p-0">
+            {STEP_IDS.map((stepId) => (
+              <li
+                key={stepId}
+                className="grid grid-cols-[34px_minmax(0,1fr)] items-baseline gap-3.5 border-b border-fp-gray-light py-3"
+              >
+                <span className="font-mono text-sm font-bold tabular-nums text-fp-teal-deep">
+                  {String(stepId).padStart(2, "0")}
+                </span>
+                <span className="font-body text-[15px] font-semibold text-fp-charcoal">
+                  {t(`workspace.steps.${stepId}.name`)}
+                </span>
+              </li>
+            ))}
+          </ol>
+        </aside>
+      </main>
+
+      <section className="border-t border-fp-gray-light px-6 py-10 sm:px-10">
+        <div className="mb-4 flex flex-wrap items-baseline justify-between gap-4">
+          <h2 className="font-mono text-xs font-semibold uppercase tracking-[0.16em] text-fp-red">
+            {t("launch.recent.title")}
+          </h2>
+        </div>
         {isLoading ? (
-          <p className="font-mono text-2xs text-ink-muted">{t("launch.recent.loading")}</p>
+          <p className="font-mono text-2xs text-fp-gray-dark">{t("launch.recent.loading")}</p>
         ) : recentError ? (
           <p role="alert" className="font-body text-sm text-danger">
             {t("launch.recent.loadError", { reason: recentError })}
           </p>
         ) : entries.length === 0 ? (
-          <p className="font-body text-sm text-ink-muted">{t("launch.recent.empty")}</p>
+          <p className="font-body text-sm text-fp-gray-dark">{t("launch.recent.empty")}</p>
         ) : (
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-2 border-t border-fp-gray-light">
             {entries.map((entry) => (
               <RecentProjectCard key={entry.path} entry={entry} onOpen={openAndNavigate} disabled={isBusy} />
             ))}
           </div>
         )}
       </section>
+
+      <footer className="flex flex-wrap items-center justify-between gap-4 border-t border-fp-gray-light bg-surface-raised px-6 py-5 sm:px-10">
+        <span className="font-fp-slogan text-sm font-bold tracking-wide text-fp-teal-deep">{t("launch.footer.tagline")}</span>
+        <span className="font-mono text-xs tracking-wide text-fp-gray-dark">{t("launch.footer.brand")}</span>
+      </footer>
 
       <DialogRoot
         open={pendingProjectPath !== null}
@@ -229,6 +328,6 @@ export function LaunchScreen() {
           </div>
         </DialogContent>
       </DialogRoot>
-    </main>
+    </div>
   );
 }

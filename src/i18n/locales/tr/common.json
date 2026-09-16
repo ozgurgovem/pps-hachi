@@ -8,10 +8,56 @@
     "english": "English"
   },
   "launch": {
+    "brandWordmark": "Farplas",
+    "eyebrow": "Pratik Problem Çözme · A3 Raporu · Yapay Zekâ Destekli",
+    "slogan": "BETTER. SOLUTION. TOGETHER.",
+    "description": "Sekiz adımlı Pratik Problem Çözme yöntemini tek bir A3 raporunda yürütün. Problemi netleştirmekten standartlaştırmaya kadar her adım kayıt altında, her proje denetlenebilir. Yapay zekâ desteği isteğe bağlıdır ve her zaman bir öneri sunar — kararı siz verirsiniz.",
     "newProject": "Yeni PPS Projesi",
     "openProject": "Mevcut Projeyi Aç",
     "newProjectDialogTitle": "Yeni projeyi kaydet",
     "openProjectDialogTitle": "PPS Hachi projesi aç",
+    "stats": {
+      "format": "Çıktı formatı",
+      "methodSteps": "Yöntem adımı",
+      "savedProjects": "Kayıtlı proje"
+    },
+    "methodAside": {
+      "title": "Yöntem"
+    },
+    "intro": {
+      "skip": "Geçmek için tıklayın",
+      "words": {
+        "problemDefinition": "PROBLEM TANIMI",
+        "engineering": "MÜHENDİSLİK",
+        "rootCause": "KÖK NEDEN",
+        "correctiveAction": "DÜZELTİCİ FAALİYET",
+        "aiPowered": "YAPAY ZEKÂ DESTEKLİ",
+        "pdca": "PLANLA · UYGULA · KONTROL · ÖNLEM AL",
+        "aiCollaboration": "YAPAY ZEKÂ İŞ BİRLİĞİ",
+        "standardization": "STANDARTLAŞTIRMA VE YAYGINLAŞTIRMA"
+      },
+      "panels": {
+        "problemSolving": "PROBLEM ÇÖZME",
+        "paretoAnalysis": "PARETO ANALİZİ",
+        "fiveW1H": "5N1K",
+        "fishboneDiagram": "BALIK KILÇIĞI DİYAGRAMI",
+        "correctiveAction": "DÜZELTİCİ FAALİYET",
+        "fiveWhy": "5 NEDEN",
+        "standards": "STANDARTLAR"
+      },
+      "miniCharts": {
+        "beforeAfter": "ÖNCESİ / SONRASI",
+        "effort": "ÇABA →",
+        "impactEffort": "ETKİ / ÇABA",
+        "gapAnalysis": "FARK ANALİZİ",
+        "actual": "GERÇEKLEŞEN",
+        "target": "HEDEF"
+      }
+    },
+    "footer": {
+      "tagline": "FUTURE. MOBILITY. TOGETHER.",
+      "brand": "Farplas Otomotiv A.Ş. · PPS Hachi"
+    },
     "chooseLanguage": {
       "title": "Proje dili",
       "description": "Bu proje hangi dilde tutulsun? Bunu daha sonra Ayarlar'dan değiştirebilirsiniz.",
