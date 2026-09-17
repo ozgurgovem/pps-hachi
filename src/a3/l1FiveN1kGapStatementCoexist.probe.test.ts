@@ -7,14 +7,18 @@ import { FIVE_N1K_METHOD_ID } from "../methods/fiveN1K/index";
 import { GAP_STATEMENT_METHOD_ID } from "../methods/gapStatement/index";
 
 /**
- * Faz 11/L1 (D-223/D-224) PROBE: D-159's own "exact fit, no slack" design
- * puts BOTH `fiveN1K` (4 rows) and `gapStatement` (8 rows) in ADIM 1's same
- * 12-canvas-row block. Before D-224's fix, `place.ts`/`placeZones.ts`
- * treated any zoned entry as consuming the *whole* rest of the block —
- * whichever of the two was placed second would have silently dropped to
- * the appendix, in either order. This exercises the real registry against
- * the real template, both orders, the same discipline `p25TwoImageEntries
- * .probe.test.ts` used for the analogous Step 2 finding.
+ * Faz 11/L1 (D-223/D-224) PROBE, rewritten for the ADIM 1 BVVL round
+ * (2026-09-16/17): originally proved D-224's `zonesRowSpan` fix — before
+ * it, any zoned entry silently consumed the *whole* rest of its block,
+ * dropping whichever of `fiveN1K`/`gapStatement` was placed second. Both
+ * methods have since moved off `zones` entirely (D-224's own mechanism
+ * stays valid for `smartTarget`, its only remaining user) onto their own
+ * `image` (`five-n1k-diagram`/`gap-analysis-chart`, BVVL round). The
+ * *shape* of the original failure this probe guards against — two entries
+ * sharing one block, order-independent, neither silently dropped — is
+ * still a real risk under the new mechanism too (`place.ts`'s own
+ * `lines`+`image` row accounting per entry), so the probe is kept, not
+ * retired, with its assertions updated to the two images it now expects.
  */
 function emptyStep(): StepState {
   return { entries: [] };
@@ -49,6 +53,9 @@ function gapStatementEntry(order: number): Entry {
       gapValue: 3,
       unit: "PPM",
       baselinePeriod: "Q2 2026",
+      idealValue: 0,
+      actualValue: 3,
+      targetDate: "Q3 2026",
     },
     images: [],
     createdAt: "2026-01-01T00:00:00.000Z",
@@ -92,39 +99,52 @@ describe("Faz 11/L1 D-224 PROBE — fiveN1K + gapStatement coexist in ADIM 1's o
   it("places both entries and drops neither when fiveN1K is entered first", () => {
     const rendererMap = getA3RendererMap();
     const project = fixtureProject([fiveN1kEntry(0), gapStatementEntry(1)]);
-    const { descriptor } = buildA3Layout(project, pps8StepAuto, { rendererMap });
+    const { descriptor, pendingImages } = buildA3Layout(project, pps8StepAuto, { rendererMap });
 
     expect(descriptor.overflowWarnings).toEqual([]);
-    const values = descriptor.sheets.a3.cells.map((cell) => cell.value);
-    expect(values).toContain("WHAT?"); // fiveN1K's own label
-    expect(values.some((v) => typeof v === "string" && v.includes("Leak at final test"))).toBe(true);
+    const kinds = pendingImages.map((slot) => slot.kind);
+    expect(kinds).toContain("five-n1k-diagram");
+    expect(kinds).toContain("gap-analysis-chart");
   });
 
   it("places both entries and drops neither when gapStatement is entered first (the reverse order)", () => {
     const rendererMap = getA3RendererMap();
     const project = fixtureProject([gapStatementEntry(0), fiveN1kEntry(1)]);
-    const { descriptor } = buildA3Layout(project, pps8StepAuto, { rendererMap });
+    const { descriptor, pendingImages } = buildA3Layout(project, pps8StepAuto, { rendererMap });
 
     expect(descriptor.overflowWarnings).toEqual([]);
-    const values = descriptor.sheets.a3.cells.map((cell) => cell.value);
-    expect(values).toContain("WHAT?");
-    expect(values.some((v) => typeof v === "string" && v.includes("Leak at final test"))).toBe(true);
+    const kinds = pendingImages.map((slot) => slot.kind);
+    expect(kinds).toContain("five-n1k-diagram");
+    expect(kinds).toContain("gap-analysis-chart");
   });
 
-  it("keeps both entries' cells within ADIM 1's own 6-17 row range and does not overflow into ADIM 2", () => {
+  it("keeps both entries' image anchors inside ADIM 1's own block, never past ADIM 2's own (possibly elastic-shifted) header row", () => {
     const rendererMap = getA3RendererMap();
     const project = fixtureProject([fiveN1kEntry(0), gapStatementEntry(1)]);
-    const { descriptor } = buildA3Layout(project, pps8StepAuto, { rendererMap });
+    const { descriptor, pendingImages } = buildA3Layout(project, pps8StepAuto, { rendererMap });
 
-    const adim1Cells = descriptor.sheets.a3.cells.filter((cell) => {
-      const row = Number(cell.ref.match(/\d+/)?.[0]);
-      const col = cell.ref.match(/^[A-Z]+/)?.[0] ?? "";
-      return row >= 6 && row <= 17 && col <= "L";
-    });
-    // fiveN1K's 6 labels + gapStatement's zone lines should all be present.
-    expect(adim1Cells.length).toBeGreaterThan(0);
-    // Nothing from either entry should have leaked into ADIM 2's header row (18).
-    const row18Cells = descriptor.sheets.a3.cells.filter((cell) => cell.ref.endsWith("18") && cell.ref <= "L18");
-    expect(row18Cells.every((cell) => cell.value === "ADIM 2. PROBLEMİ PARÇALARA AYIRIN")).toBe(true);
+    expect(pendingImages).toHaveLength(2);
+
+    // ADIM 1's own default 12-row block, plus both entries' combined
+    // 22-row demand, forces real elastic growth (D-158/D-160) — ADIM 2's
+    // own header genuinely moves down from its static row 18, so the
+    // header is located by its own text, never a hardcoded row number
+    // (a hardcoded "row 18" check would pass vacuously once the header
+    // moves, matching zero cells rather than catching a real overlap).
+    const adim2HeaderCell = descriptor.sheets.a3.cells.find(
+      (cell) => cell.value === "ADIM 2. PROBLEMİ PARÇALARA AYIRIN",
+    );
+    expect(adim2HeaderCell).toBeDefined();
+    const adim2HeaderRow = Number(adim2HeaderCell!.ref.match(/\d+/)![0]);
+
+    for (const slot of pendingImages) {
+      const row = Number(slot.anchorCell.match(/\d+/)?.[0]);
+      const col = slot.anchorCell.match(/^[A-Z]+/)?.[0] ?? "";
+      const rowSpanCount = slot.heightPt / 13; // pps-8step-auto's uniform 13pt canvas row
+      expect(row).toBeGreaterThanOrEqual(6);
+      expect(col <= "L").toBe(true);
+      // The image's own last occupied row must sit strictly above ADIM 2's header, wherever it landed.
+      expect(row + rowSpanCount - 1).toBeLessThan(adim2HeaderRow);
+    }
   });
 });

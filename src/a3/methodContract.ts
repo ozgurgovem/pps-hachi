@@ -83,7 +83,11 @@ export type A3ImageKind =
    * `A3BlockAggregateImage`'s own doc comment for why this is the one
    * `A3ImageKind` built from more than one entry's payload at once.
    */
-  | "action-gantt-chart";
+  | "action-gantt-chart"
+  /** ADIM 1 BVVL round (2026-09-16/17): `gapStatement`'s two-bar comparison chart + its three Layer A bands, one combined image — see `GapAnalysisChartSpec`. */
+  | "gap-analysis-chart"
+  /** ADIM 1 BVVL round (2026-09-17): `fiveN1K`'s hub-and-petal diagram, replacing the old 6-zone table — see `FiveN1KDiagramSpec`. */
+  | "five-n1k-diagram";
 
 /**
  * The explicit pixel box a method's chart/diagram must draw itself into.

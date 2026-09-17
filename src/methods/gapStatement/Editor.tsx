@@ -50,6 +50,35 @@ export function GapStatementEditor({ payload, onChange }: MethodEditorProps<GapS
           />
         </div>
       </div>
+
+      <div className="grid grid-cols-3 gap-3">
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="gap-statement-actualValue">{t("methods.gapStatement.actualValueLabel")}</Label>
+          <Input
+            id="gap-statement-actualValue"
+            type="number"
+            value={payload.actualValue}
+            onChange={(event) => onChange({ ...payload, actualValue: Number(event.target.value) })}
+          />
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="gap-statement-idealValue">{t("methods.gapStatement.idealValueLabel")}</Label>
+          <Input
+            id="gap-statement-idealValue"
+            type="number"
+            value={payload.idealValue}
+            onChange={(event) => onChange({ ...payload, idealValue: Number(event.target.value) })}
+          />
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="gap-statement-targetDate">{t("methods.gapStatement.targetDateLabel")}</Label>
+          <Input
+            id="gap-statement-targetDate"
+            value={payload.targetDate}
+            onChange={(event) => onChange({ ...payload, targetDate: event.target.value })}
+          />
+        </div>
+      </div>
     </div>
   );
 }

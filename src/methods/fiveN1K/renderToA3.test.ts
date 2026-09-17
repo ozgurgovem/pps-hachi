@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import type { FiveN1KDiagramSpec } from "../chartSpec";
 import { renderFiveN1KToA3 } from "./renderToA3";
 import type { FiveN1KPayload } from "./schema";
 
@@ -6,75 +7,69 @@ function emptyPayload(): FiveN1KPayload {
   return { ne: "", neden: "", nasil: "", kim: "", neZaman: "", nerede: "" };
 }
 
-describe("renderFiveN1KToA3 (TEMPLATE_ANALYSIS.md §14.2, D-102 zones)", () => {
-  it("emits exactly six equal-width zones, in Ne/Neden/Nasıl/Kim/Ne zaman/Nerede order, and no top-level lines", () => {
+/** BVVL round, ADIM 1 (2026-09-17): replaces D-189/D-224's six-zone table with a hub-and-petal diagram image. */
+describe("renderFiveN1KToA3 (BVVL round, five-n1k-diagram)", () => {
+  it("emits no top-level lines and exactly one image request", () => {
     const content = renderFiveN1KToA3(emptyPayload(), { id: "e1", title: "5N1K", language: "tr" });
 
     expect(content.lines).toEqual([]);
-    expect(content.zones).toHaveLength(6);
-    expect(content.zones!.every((zone) => zone.widthFraction === 1 / 6)).toBe(true);
-    expect(content.zones!.reduce((sum, zone) => sum + zone.widthFraction, 0)).toBeCloseTo(1);
+    expect(content.zones).toBeUndefined();
+    expect(content.image).toBeDefined();
+    expect(content.image!.kind).toBe("five-n1k-diagram");
   });
 
-  /** D-224: without this, a zoned entry silently consumes the whole rest of the block — see place.ts. */
-  it("declares an explicit zonesRowSpan of 4, so a sibling zoned entry can follow it in the same block", () => {
+  it("declares a fixed row span that fits ADIM 1's own default budget unconditionally, no elastic growth needed", () => {
     const content = renderFiveN1KToA3(emptyPayload(), { id: "e1", title: "5N1K", language: "tr" });
-    expect(content.zonesRowSpan).toBe(4);
+    expect(content.image!.rowSpan).toBe(4);
   });
 
-  it("each zone's first line is the bold question label, in reference-image order, with Layer B's fill style id", () => {
+  it("emits exactly six items, in the reference image's own clockwise-from-top order (NOT the Editor's field order)", () => {
     const content = renderFiveN1KToA3(emptyPayload(), { id: "e1", title: "5N1K", language: "tr" });
-    const labels = content.zones!.map((zone) => zone.lines![0]);
+    const spec = content.image!.spec as FiveN1KDiagramSpec;
 
-    expect(labels).toEqual([
-      { text: "NE?", bold: true, fillStyleId: "fiveN1kNe" },
-      { text: "NEDEN?", bold: true, fillStyleId: "fiveN1kNeden" },
-      { text: "NASIL?", bold: true, fillStyleId: "fiveN1kNasil" },
-      { text: "KİM?", bold: true, fillStyleId: "fiveN1kKim" },
-      { text: "NE ZAMAN?", bold: true, fillStyleId: "fiveN1kNeZaman" },
-      { text: "NEREDE?", bold: true, fillStyleId: "fiveN1kNerede" },
+    expect(spec.items).toHaveLength(6);
+    expect(spec.items.map((item) => item.label)).toEqual(["NE?", "NEDEN?", "NASIL?", "NEREDE?", "NE ZAMAN?", "KİM?"]);
+  });
+
+  it("gives each item its own D-165 Layer B colour, matching the label order", () => {
+    const content = renderFiveN1KToA3(emptyPayload(), { id: "e1", title: "5N1K", language: "tr" });
+    const spec = content.image!.spec as FiveN1KDiagramSpec;
+
+    expect(spec.items.map((item) => item.color)).toEqual([
+      "#C68A2E",
+      "#5F4470",
+      "#2F7A6E",
+      "#556677",
+      "#8A5A3B",
+      "#8B3A5C",
     ]);
   });
 
-  it("appends the user's answer as a second, non-bold, untinted line when the field is filled", () => {
-    const payload: FiveN1KPayload = { ...emptyPayload(), ne: "Gürültü", kim: "Ayşe Yılmaz" };
+  it("trims and forwards each field's own answer to the matching item, in the diagram's own order", () => {
+    const payload: FiveN1KPayload = {
+      ne: "  Gürültü  ",
+      neden: "Rezonans",
+      nasil: "",
+      kim: "Ayşe Yılmaz",
+      neZaman: "Vardiya 2",
+      nerede: "Hat 3",
+    };
     const content = renderFiveN1KToA3(payload, { id: "e1", title: "5N1K", language: "tr" });
+    const spec = content.image!.spec as FiveN1KDiagramSpec;
 
-    expect(content.zones![0]!.lines).toEqual([
-      { text: "NE?", bold: true, fillStyleId: "fiveN1kNe" },
-      { text: "Gürültü" },
-    ]);
-    expect(content.zones![3]!.lines).toEqual([
-      { text: "KİM?", bold: true, fillStyleId: "fiveN1kKim" },
-      { text: "Ayşe Yılmaz" },
-    ]);
+    expect(spec.items.map((item) => item.answer)).toEqual(["Gürültü", "Rezonans", "", "Hat 3", "Vardiya 2", "Ayşe Yılmaz"]);
   });
 
-  it("leaves a zone at just its label line when the field is blank", () => {
-    const content = renderFiveN1KToA3(emptyPayload(), { id: "e1", title: "5N1K", language: "tr" });
-
-    expect(content.zones![1]!.lines).toEqual([{ text: "NEDEN?", bold: true, fillStyleId: "fiveN1kNeden" }]);
-  });
-
-  it("trims whitespace-only answers down to the blank case", () => {
-    const payload: FiveN1KPayload = { ...emptyPayload(), nerede: "   " };
-    const content = renderFiveN1KToA3(payload, { id: "e1", title: "5N1K", language: "tr" });
-
-    expect(content.zones![5]!.lines).toEqual([{ text: "NEREDE?", bold: true, fillStyleId: "fiveN1kNerede" }]);
-  });
-
-  /** D-188/P-26: `entry.language` picks the question-word labels, defaulting to English. */
   it("uses English question labels for an English-language entry", () => {
     const content = renderFiveN1KToA3(emptyPayload(), { id: "e1", title: "5N1K", language: "en" });
-    const labels = content.zones!.map((zone) => zone.lines![0]);
+    const spec = content.image!.spec as FiveN1KDiagramSpec;
 
-    expect(labels).toEqual([
-      { text: "WHAT?", bold: true, fillStyleId: "fiveN1kNe" },
-      { text: "WHY?", bold: true, fillStyleId: "fiveN1kNeden" },
-      { text: "HOW?", bold: true, fillStyleId: "fiveN1kNasil" },
-      { text: "WHO?", bold: true, fillStyleId: "fiveN1kKim" },
-      { text: "WHEN?", bold: true, fillStyleId: "fiveN1kNeZaman" },
-      { text: "WHERE?", bold: true, fillStyleId: "fiveN1kNerede" },
-    ]);
+    expect(spec.items.map((item) => item.label)).toEqual(["WHAT?", "WHY?", "HOW?", "WHERE?", "WHEN?", "WHO?"]);
+  });
+
+  it("carries a hub label", () => {
+    const content = renderFiveN1KToA3(emptyPayload(), { id: "e1", title: "5N1K", language: "tr" });
+    const spec = content.image!.spec as FiveN1KDiagramSpec;
+    expect(spec.hubLabel).toBe("5N1K");
   });
 });

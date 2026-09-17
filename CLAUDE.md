@@ -2934,6 +2934,31 @@ AI layer: Faz 8 fully done (keychain + Vorion connection/model-discovery + strea
   untouched (`git status src-tauri/` empty, confirmed — this slice is TS-only end to end).
   `scripts/gen-a3-fixture.ts` not re-run — this slice touches no `src/a3/` file, only the AI-
   layer orchestration files under `src/app/routes/workspace/` (grep+`git status`-confirmed).
+**ADIM 1 (Problem Definition) BVVL round — Gap Analysis chart + 5N1K hub-and-petal diagram:
+  DONE 2026-09-17 (D-272).** Barış's own request: the Gap Analysis / Problem Statement split
+  duplicated the same ideal/actual/gap information twice, with a hardcoded English header in a
+  Turkish UI; 5N1K rendered as a plain 6-column table instead of the reference image's rosette
+  shape. CLAUDE.md's own Block Visual Verification Loop was run (~7 rounds against one
+  cumulative Claude Artifact, against the real signed `PPS_A3_EK-2905_...xlsx` reference's own
+  OOXML/EMU geometry). `gapStatement` gained `idealValue`/`actualValue`/`targetDate` and now
+  emits a single combined `gap-analysis-chart` image (bars + deviation bracket + the three
+  Layer A bands, replacing two duplicated text zones); `fiveN1K` now emits a single
+  `five-n1k-diagram` image (a true circle, hub + six petals in the reference's clockwise
+  order, D-165 Layer B colors). **Barış's own real-app trial run (`npm run tauri dev`) found
+  two regressions, both fixed this session**: (1) `fiveN1K` was silently dropping to the
+  appendix — root cause was relying on elastic growth that only worked with empty ADIM 2/3
+  neighbours; fixed by shrinking the two images' row spans (`DIAGRAM_ROW_SPAN=4` +
+  `CHART_ROW_SPAN=8`) to sum to exactly ADIM 1's own static default (12 rows), so both fit
+  unconditionally regardless of neighbour state — proven with a new saturated-neighbour test,
+  mutation-verified. (2) both images still looked "tiny" after that fix — investigated
+  thoroughly (temporary Playwright + real Chromium ruled out the `pixelRatio` hypothesis) and
+  found to be the correct, unavoidable consequence of giving each image only its own small
+  share of the block's height, not a bug. The real fix would need a new "side-by-side
+  placement" mechanism in `place.ts` (entries sharing block width instead of always stacking
+  vertically) — **Barış explicitly chose to defer this to a separate future session**
+  (`AskUserQuestion`, opposite of the recommended "build it now" option). Launch prompt:
+  `docs/oturumlar/adim1-yan-yana-yerlesim.md`. `npm test` 325 files/1729 tests, exit code 0.
+  `npm run lint`/`npx tsc --noEmit` clean. `cargo test`/`clippy`/`fmt` clean — Rust untouched.
 Templates: two company .xls files analysed; see reference/TEMPLATE_ANALYSIS.md
 Template geometry: VERIFIED 2026-08-01 against both .xls files. Five errors found and
   corrected in place — the largest was the column widths: the real split is 49.7/50.3, NOT

@@ -1,4 +1,7 @@
+import { createElement } from "react";
+import type { GapAnalysisChartSpec } from "../chartSpec";
 import type { MethodPlugin } from "../types";
+import { GapAnalysisChart } from "./GapAnalysisChart";
 import { GapStatementEditor } from "./Editor";
 import { renderGapStatementToA3 } from "./renderToA3";
 import { GapStatementPayloadSchema, type GapStatementPayload } from "./schema";
@@ -13,7 +16,19 @@ export const gapStatementMethod: MethodPlugin<GapStatementPayload> = {
   useWhenKey: "methods.gapStatement.useWhen",
   schema: GapStatementPayloadSchema,
   Editor: GapStatementEditor,
-  createEmptyPayload: () => ({ ideal: "", actual: "", gap: "", gapValue: 0, unit: "", baselinePeriod: "" }),
+  createEmptyPayload: () => ({
+    ideal: "",
+    actual: "",
+    gap: "",
+    gapValue: 0,
+    unit: "",
+    baselinePeriod: "",
+    idealValue: 0,
+    actualValue: 0,
+    targetDate: "",
+  }),
   renderToA3: renderGapStatementToA3,
+  imageKind: "gap-analysis-chart",
+  renderImage: (spec, size) => createElement(GapAnalysisChart, { spec: spec as GapAnalysisChartSpec, size }),
   aiProposal: { promptVersion: "v1" },
 };

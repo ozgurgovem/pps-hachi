@@ -13,6 +13,16 @@ import { z } from "zod";
  * readiness selector treats a default `0` as "not yet filled" (documented on
  * `evaluateReadiness.ts`'s own S1 check), the same accepted heuristic S3
  * already uses for `smartTarget`.
+ *
+ * ADIM 1 BVVL round (2026-09-16/17): `idealValue`/`actualValue` reverse
+ * D-162/D-224's earlier "no numeric fields, no fabricated chart" call —
+ * Barış explicitly asked for a real two-bar comparison matching the
+ * EK-2905 workbook's own "GAP ANALİZİ" chart, so this dilim adds the two
+ * numbers that chart actually needs (matching `smartTarget`'s own
+ * `baseline`/`target` naming). `targetDate` mirrors `baselinePeriod`'s role
+ * for the ideal bar (`baselinePeriod` already covers the actual bar's own
+ * date, reused as-is). These two values drive `GapAnalysisChart` directly;
+ * `gapValue` stays untouched (S1's own quantification signal).
  */
 export const GapStatementPayloadSchema = z.looseObject({
   ideal: z.string(),
@@ -21,6 +31,9 @@ export const GapStatementPayloadSchema = z.looseObject({
   gapValue: z.number(),
   unit: z.string(),
   baselinePeriod: z.string(),
+  idealValue: z.number(),
+  actualValue: z.number(),
+  targetDate: z.string(),
 });
 
 export type GapStatementPayload = z.infer<typeof GapStatementPayloadSchema>;

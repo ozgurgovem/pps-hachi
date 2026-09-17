@@ -1,4 +1,7 @@
+import { createElement } from "react";
+import type { FiveN1KDiagramSpec } from "../chartSpec";
 import type { MethodPlugin } from "../types";
+import { FiveN1KDiagram } from "./FiveN1KDiagram";
 import { FiveN1KEditor } from "./Editor";
 import { renderFiveN1KToA3 } from "./renderToA3";
 import { FiveN1KPayloadSchema, type FiveN1KPayload } from "./schema";
@@ -22,5 +25,7 @@ export const fiveN1KMethod: MethodPlugin<FiveN1KPayload> = {
     nerede: "",
   }),
   renderToA3: renderFiveN1KToA3,
+  imageKind: "five-n1k-diagram",
+  renderImage: (spec, size) => createElement(FiveN1KDiagram, { spec: spec as FiveN1KDiagramSpec, size }),
   aiProposal: { promptVersion: "v1" },
 };

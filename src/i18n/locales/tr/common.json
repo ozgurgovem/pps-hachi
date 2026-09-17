@@ -569,7 +569,10 @@
       "gapLabel": "Boşluk",
       "gapValueLabel": "Boşluk büyüklüğü",
       "unitLabel": "Birim",
-      "baselinePeriodLabel": "Baseline dönemi"
+      "baselinePeriodLabel": "Baseline dönemi",
+      "actualValueLabel": "Mevcut değer",
+      "idealValueLabel": "Hedef değer",
+      "targetDateLabel": "Hedef tarihi"
     },
     "fiveW2H": {
       "name": "5W2H",
@@ -1055,7 +1058,8 @@
         "kim": "Kim",
         "neZaman": "Ne zaman",
         "nerede": "Nerede"
-      }
+      },
+      "charCount": "{{count}}/{{limit}} karakter"
     },
     "problemImpact": {
       "name": "Problem etkisi (maliyet)",

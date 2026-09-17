@@ -131,13 +131,23 @@ describe("pps-8step-auto (TEMPLATE_ANALYSIS.md §12, D-158/D-224)", () => {
     }
   });
 
-  it("carries the Layer A band fill styles and Layer B category chip styles (D-224)", () => {
+  /**
+   * ADIM 1 BVVL round (2026-09-16/17): D-224's Layer A/B `fillStyleId`
+   * chip styles are gone — `gapStatement`/`fiveN1K` no longer render as
+   * `zones`+`fillStyleId` text cells, they render as one rasterized image
+   * each (`GapAnalysisChart`/`FiveN1KDiagram`), drawing D-165's own hex
+   * values directly in SVG rather than looking them up in a template's
+   * style table. Nothing else in the codebase still references these ids
+   * (grep-confirmed before removal) — this test locks in that they stay
+   * removed rather than silently reappearing as dead weight.
+   */
+  it("no longer carries the retired Layer A/B fillStyleId chip styles (BVVL round)", () => {
     const styleIds = new Set(pps8StepAuto.styles.map((s) => s.id));
     for (const id of ["bandPositive", "bandCaution", "bandNegative"]) {
-      expect(styleIds.has(id)).toBe(true);
+      expect(styleIds.has(id)).toBe(false);
     }
     for (const id of ["fiveN1kNe", "fiveN1kNeden", "fiveN1kNasil", "fiveN1kKim", "fiveN1kNeZaman", "fiveN1kNerede"]) {
-      expect(styleIds.has(id)).toBe(true);
+      expect(styleIds.has(id)).toBe(false);
     }
   });
 

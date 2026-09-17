@@ -569,7 +569,10 @@
       "gapLabel": "Gap",
       "gapValueLabel": "Gap size",
       "unitLabel": "Unit",
-      "baselinePeriodLabel": "Baseline period"
+      "baselinePeriodLabel": "Baseline period",
+      "actualValueLabel": "Current value",
+      "idealValueLabel": "Target value",
+      "targetDateLabel": "Target date"
     },
     "fiveW2H": {
       "name": "5W2H",
@@ -1055,7 +1058,8 @@
         "kim": "Who",
         "neZaman": "When",
         "nerede": "Where"
-      }
+      },
+      "charCount": "{{count}}/{{limit}} characters"
     },
     "problemImpact": {
       "name": "Problem impact (cost)",

@@ -200,6 +200,49 @@ export interface GanttChartSpec {
   readonly items: readonly GanttChartItem[];
 }
 
+/**
+ * BVVL round, ADIM 1 (2026-09-16/17, `gapStatement`): a real two-bar
+ * comparison — Barış's own reference is the EK-2905 workbook's own
+ * `chart1.xml` (title "GAP ANALİZİ", categories "Mevcut Durum (date)" /
+ * "İdeal Durum (date)"), reversing D-162/D-224's earlier "no numeric
+ * fields, no fabricated chart" call now that Barış has explicitly asked
+ * for the real chart. `bandTexts` are the three already-localized,
+ * already-assembled Layer A band lines (İdeal Durum / Mevcut Durum /
+ * Problem Tanımı) — `GapAnalysisChart.tsx` only draws them, all locale/
+ * label logic stays in `renderToA3.ts` per this codebase's usual split.
+ */
+export interface GapAnalysisChartSpec {
+  readonly kind: "gap-analysis";
+  readonly title: string;
+  readonly unit: string;
+  readonly actualValue: number;
+  readonly idealValue: number;
+  readonly actualBarLabel: string;
+  readonly idealBarLabel: string;
+  readonly actualDate: string;
+  readonly idealDate: string;
+  readonly deviationLabel: string;
+  readonly bandTexts: readonly [string, string, string];
+}
+
+/**
+ * BVVL round, ADIM 1 (2026-09-17, `fiveN1K`): a hub-and-petal diagram
+ * replacing the old 6-column zone table — one item per 5N1K question, in
+ * `FIELD_ORDER`'s own order. Colours are D-165's already-approved Layer B
+ * hex values, reused verbatim (never redefined here).
+ */
+export interface FiveN1KDiagramItem {
+  readonly label: string;
+  readonly answer: string;
+  readonly color: string;
+}
+
+export interface FiveN1KDiagramSpec {
+  readonly kind: "five-n1k";
+  readonly hubLabel: string;
+  readonly items: readonly FiveN1KDiagramItem[];
+}
+
 export type ChartSpec =
   | ParetoChartSpec
   | TrendChartSpec
@@ -209,4 +252,6 @@ export type ChartSpec =
   | BoxPlotChartSpec
   | KpiStripChartSpec
   | ImpactEffortChartSpec
-  | GanttChartSpec;
+  | GanttChartSpec
+  | GapAnalysisChartSpec
+  | FiveN1KDiagramSpec;

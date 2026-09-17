@@ -703,6 +703,18 @@ temiz. `cargo test`/`clippy`/`fmt` temiz — Rust bu dilimde HİÇ değişmedi. 
 fixture.ts` yeniden çalıştırılmadı — bu dilim yalnızca yeni bir saf dosya ekledi ve mevcut UI
 bileşenlerinde prop-threading yaptı. Tam kayıt: `DECISIONS.md` D-229.
 
+## ADIM 1 — gapStatement/fiveN1K'nin yan yana yerleşimi (D-272'nin ertelediği iş)
+
+D-272 (2026-09-17): Barış'ın gerçek uygulamada bulduğu iki regresyondan biri (5N1K'nin
+sessizce appendix'e düşmesi) bu oturumda düzeltildi — satır bütçesi (`DIAGRAM_ROW_SPAN=4` +
+`CHART_ROW_SPAN=8`) artık ADIM 1'in kendi 12 satırlık varsayılanına tam eşit, koşulsuz sığıyor.
+İkinci bulgu (her iki görselin de "çok küçük" görünmesi) araştırıldı ve bir hata OLMADIĞI,
+mevcut dikey-bölüşüm tasarımının kaçınılmaz sonucu olduğu doğrulandı. Gerçek düzeltme
+`place.ts`'e yeni bir yan-yana/genişlik-paylaşımlı yerleşim mekanizması gerektiriyor — Barış
+bunu (`AskUserQuestion`, önerilenin AKSİNE) ayrı bir oturuma erteledi. Launch prompt:
+`docs/oturumlar/adim1-yan-yana-yerlesim.md` — üç gerçek açık soru (mekanizmanın şekli,
+genişlik oranı, kapsamın genelliği) + kendi BVVL turu içeriyor, henüz başlanmadı.
+
 ## Prompt yazarken
 
 - **Her dosya adını depoda doğrula.** Promptun ilk adımı, adlandırdığı dosyaların

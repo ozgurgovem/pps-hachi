@@ -1,15 +1,20 @@
 import { describe, expect, it } from "vitest";
 import { buildA3Layout } from "../../a3/buildA3Layout";
-import { farplas7StepTr } from "../../a3/templates/farplas-7step-tr";
+import { pps8StepAuto } from "../../a3/templates/pps-8step-auto";
 import type { ProjectModel, StepState } from "../../domain/model";
-import { getA3RendererMap } from "../registry";
+import { getA3ImageRendererMap, getA3RendererMap } from "../registry";
 import { GAP_STATEMENT_METHOD_ID } from "./index";
 
 /**
- * D-224/D-102: proves the two-zone (no-image) panel survives a real block's
- * geometry end to end through `buildA3Layout` — no rasterization pass is
- * needed here (unlike `smartTarget`'s own survival test) since neither zone
- * carries an `image`, only `lines`/`fillStyleId`.
+ * ADIM 1 BVVL round (2026-09-16/17): proves the combined chart+bands image
+ * survives a real block's geometry end to end through `buildA3Layout`,
+ * mirroring `kpiStrip/xlsxSurvival.test.ts`'s own two-call proof. Uses
+ * `pps-8step-auto` (D-157's default template) — this design was reviewed
+ * and approved against that template's own real scale throughout the BVVL
+ * loop. `CHART_ROW_SPAN` (8) now fits `farplas-7step-tr`'s legacy 14-row
+ * ADIM 1 block too (post-regression-fix, see `renderToA3.ts`'s own note),
+ * but `pps-8step-auto` stays this test's target since that is the
+ * template the design was actually reviewed against.
  */
 function emptyStep(): StepState {
   return { entries: [] };
@@ -30,7 +35,7 @@ function fixtureProject(): ProjectModel {
       language: "en",
       ai: { enabled: false, redaction: {} },
     },
-    templateId: "farplas-7step-tr",
+    templateId: "pps-8step-auto",
     steps: {
       1: {
         entries: [
@@ -47,6 +52,9 @@ function fixtureProject(): ProjectModel {
               gapValue: 3,
               unit: "PPM",
               baselinePeriod: "Q2 2026",
+              idealValue: 0,
+              actualValue: 3,
+              targetDate: "Q3 2026",
             },
             images: [],
             createdAt: "2026-01-01T00:00:00.000Z",
@@ -68,38 +76,45 @@ function fixtureProject(): ProjectModel {
   };
 }
 
-describe("gapStatement two-zone panel — buildA3Layout survival (D-224)", () => {
-  it("places both zones' text as real cells, tinted with the Layer A band styles, and requests no image", () => {
+const ONE_PIXEL_PNG_BASE64 =
+  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=";
+
+describe("gapStatement — buildA3Layout two-call survival (BVVL round)", () => {
+  it("discovers a pending gap-analysis-chart image slot anchored inside ADIM 1's block on the first call", () => {
     const rendererMap = getA3RendererMap();
-    const { descriptor, pendingImages } = buildA3Layout(fixtureProject(), farplas7StepTr, { rendererMap });
+    const { pendingImages } = buildA3Layout(fixtureProject(), pps8StepAuto, { rendererMap });
 
-    expect(pendingImages).toEqual([]);
-
-    const values = descriptor.sheets.a3.cells.map((cell) => cell.value);
-    expect(values).toContain("3 PPM above ideal (Q2 2026)");
-    expect(values).toContain("Ideal: Zero leaks");
-
-    // "Ideal: Zero leaks" appears twice — once plain in the left (gap-analysis)
-    // zone, once tinted in the right (problem-statement) zone — so check that
-    // *some* cell with each value carries the expected band style, not just
-    // the first match.
-    const hasStyledCell = (value: string, styleId: string) =>
-      descriptor.sheets.a3.cells.some((cell) => cell.value === value && cell.styleId === styleId);
-    expect(hasStyledCell("Ideal: Zero leaks", "bandPositive")).toBe(true);
-    expect(hasStyledCell("Actual: Intermittent leak", "bandCaution")).toBe(true);
-    expect(hasStyledCell("Gap: 3 PPM above ideal", "bandNegative")).toBe(true);
+    expect(pendingImages).toHaveLength(1);
+    expect(pendingImages[0]).toMatchObject({
+      entryId: "gap-statement-entry-1",
+      kind: "gap-analysis-chart",
+    });
+    expect(pendingImages[0]!.widthPt).toBeGreaterThan(0);
+    expect(pendingImages[0]!.heightPt).toBeGreaterThan(0);
   });
 
-  it("consumes only its own 8-row zonesRowSpan, leaving the rest of the block free for a later entry", () => {
-    const rendererMap = getA3RendererMap();
-    const { descriptor } = buildA3Layout(fixtureProject(), farplas7StepTr, { rendererMap });
+  it("resolves a renderer for gap-analysis-chart via the shared registry map", () => {
+    const imageRendererMap = getA3ImageRendererMap();
+    expect(imageRendererMap["gap-analysis-chart"]).toBeTypeOf("function");
+  });
 
-    // farplas-7step-tr's ADIM 1 block runs rows 8-21 (14 rows). The
-    // zonesRowSpan fix means gapStatement's own content never lands past
-    // row 15 (start row 8 + 8 - 1).
-    const rowsUsed = descriptor.sheets.a3.cells
-      .map((cell) => Number(cell.ref.match(/\d+/)?.[0]))
-      .filter((row) => row >= 8 && row <= 21);
-    expect(Math.max(...rowsUsed)).toBeLessThanOrEqual(15);
+  it("embeds the rasterized chart at the pending slot's exact geometry on the second call", () => {
+    const rendererMap = getA3RendererMap();
+    const project = fixtureProject();
+    const first = buildA3Layout(project, pps8StepAuto, { rendererMap });
+
+    const images = first.pendingImages.map((slot) => ({
+      id: `${slot.entryId}-${slot.kind}`,
+      data: ONE_PIXEL_PNG_BASE64,
+      mimeType: "image/png" as const,
+      anchorCell: slot.anchorCell,
+      widthPt: slot.widthPt,
+      heightPt: slot.heightPt,
+    }));
+
+    const second = buildA3Layout(project, pps8StepAuto, { rendererMap, images });
+
+    expect(second.descriptor.sheets.a3.images).toEqual(images);
+    expect(second.descriptor.sheets.a3.images[0]!.anchorCell).toBe(first.pendingImages[0]!.anchorCell);
   });
 });

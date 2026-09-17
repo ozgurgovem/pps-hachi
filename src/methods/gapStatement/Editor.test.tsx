@@ -6,7 +6,17 @@ import { GapStatementEditor } from "./Editor";
 import type { GapStatementPayload } from "./schema";
 
 function emptyPayload(): GapStatementPayload {
-  return { ideal: "", actual: "", gap: "", gapValue: 0, unit: "", baselinePeriod: "" };
+  return {
+    ideal: "",
+    actual: "",
+    gap: "",
+    gapValue: 0,
+    unit: "",
+    baselinePeriod: "",
+    idealValue: 0,
+    actualValue: 0,
+    targetDate: "",
+  };
 }
 
 describe("GapStatementEditor", () => {
@@ -22,6 +32,14 @@ describe("GapStatementEditor", () => {
     expect(screen.getByLabelText(/Gap size/)).toBeTruthy();
     expect(screen.getByLabelText(/^Unit/)).toBeTruthy();
     expect(screen.getByLabelText(/Baseline period/)).toBeTruthy();
+  });
+
+  /** ADIM 1 BVVL round (2026-09-16/17): the fields the new chart needs. */
+  it("renders the chart's own numeric fields — current value, target value, target date", () => {
+    render(<GapStatementEditor payload={emptyPayload()} onChange={vi.fn()} />);
+    expect(screen.getByLabelText(/Current value/)).toBeTruthy();
+    expect(screen.getByLabelText(/Target value/)).toBeTruthy();
+    expect(screen.getByLabelText(/Target date/)).toBeTruthy();
   });
 
   it("updates only the edited field, leaving the others untouched", async () => {
@@ -45,5 +63,19 @@ describe("GapStatementEditor", () => {
 
     const lastCall = onChange.mock.calls[onChange.mock.calls.length - 1]![0] as GapStatementPayload;
     expect(lastCall.gapValue).toBe(3);
+  });
+
+  it("writes the current/target values as numbers", async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    render(<GapStatementEditor payload={emptyPayload()} onChange={onChange} />);
+
+    await user.type(screen.getByLabelText(/Current value/), "6");
+    const afterActual = onChange.mock.calls[onChange.mock.calls.length - 1]![0] as GapStatementPayload;
+    expect(afterActual.actualValue).toBe(6);
+
+    await user.type(screen.getByLabelText(/Target value/), "3");
+    const afterIdeal = onChange.mock.calls[onChange.mock.calls.length - 1]![0] as GapStatementPayload;
+    expect(afterIdeal.idealValue).toBe(3);
   });
 });
