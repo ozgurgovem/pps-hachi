@@ -35,22 +35,54 @@ function bandLine(label: string, value: string): string {
  * *best-case* elastic ceiling — empty ADIM 2/3) shipped, and in Barış's
  * real project (non-empty neighbours, ordinary elastic slack) the sibling
  * `fiveN1K` entry was silently dropped to the appendix — invisible in the
- * step's own live block preview, with no visible warning — and this
- * chart's own block ballooned from elastic growth, showing tiny in the
- * same fixed-height preview. `CHART_ROW_SPAN` + `fiveN1K/renderToA3.ts`'s
- * own `DIAGRAM_ROW_SPAN` now sum to exactly 12 — ADIM 1's own *default*
- * row count (`pps-8step-auto.ts`'s own `contentRows`), so both entries
- * fit **unconditionally**, with zero reliance on elastic growth or
- * cooperative neighbours — the same total budget D-224's own
- * `zonesRowSpan` split (8+4) already proved reliable. The visual cost is
- * real: both images are now noticeably more compact than the BVVL loop's
- * own approved mockups. Flagged back to Barış rather than silently
- * accepted — his own side-by-side placement idea (packing entries
- * horizontally within a block, not just vertically) could recover the
- * lost size without growing the row budget, but is a real new placement
- * mechanism, not a same-session fix.
+ * step's own live block preview, with no visible warning. The row-span
+ * fix that followed (8, summing with `fiveN1K`'s own 4 to exactly ADIM
+ * 1's default 12 rows) traded that outage for a different, real cost —
+ * both images were noticeably more compact than the BVVL loop's own
+ * approved mockups, since stacking meant each image got only a slice of
+ * the block's full height.
+ *
+ * ADIM 1 side-by-side round (2026-09-17): `place.ts`'s new
+ * `A3BlockContent.widthFraction` mechanism lets `gapStatement`/`fiveN1K`
+ * sit next to each other instead of stacked — each now uses the block's
+ * FULL row height while only sharing its width. This is both more
+ * compact-image-free (no stacking penalty) AND still unconditional —
+ * neither entry depends on elastic growth or an empty neighbour, matching
+ * the same reliability guarantee the row-span fix already established.
+ *
+ * Real-app regression, round 7 (2026-09-17, Barış's own live block
+ * preview screenshot): a fixed `rowSpan: 12` reserves exactly 12 rows —
+ * correct for ADIM 1's own STATIC default, but ADIM 1 also declares
+ * `elastic: { minimumCanvasRows: 10 }` (Faz 11/L3a, D-158/D-160), and a
+ * near-empty ADIM 2/3 lets it grow the block FAR past 12 rows. The two
+ * images stayed pinned to their old fixed 12-row footprint regardless,
+ * leaving the rest of a much taller live block empty — exactly the huge
+ * blank area under two tiny charts in Barış's own screenshot.
+ * `content.image.rowSpan` left OMITTED (not a magic number) makes
+ * `place.ts` size the image to whatever the block's own real,
+ * post-elastic `contentRows` range actually is (`imageRowSpan =
+ * lastRow - startRow + 1`, `place.ts`'s own established default for a
+ * `rowSpan`-less image) — self-bounding by construction (it can never
+ * request more rows than the block's own real end, so this cannot
+ * reintroduce the original stacked-and-dropped regression), and it now
+ * genuinely grows with the block instead of floating in a fixed corner
+ * of it.
+ *
+ * Real-app regression, round 8 (2026-09-17, Barış's own live block preview
+ * screenshot): an omitted `rowSpan` reports `Number.POSITIVE_INFINITY`
+ * demand to the elastic solver (`elasticAllocation.ts`) — with ADIM 2/3
+ * genuinely near-empty in Barış's real project, ADIM 1 greedily absorbed
+ * the ENTIRE column's surplus, producing a much taller block than either
+ * chart's own internal layout actually needed — a huge blank area under
+ * two still-modestly-sized charts, not the "grows to fill it" fix round 7
+ * intended. `MAX_DEMAND_ROW_SPAN` caps the SOLVER'S demand at a finite,
+ * deliberately generous target (double the static default) while
+ * `rowSpan` itself stays omitted — placement still self-bounds to
+ * whatever the block actually resolves to (never smaller, never able to
+ * overflow it), so the block now grows up to a reasonable size and stops,
+ * leaving any further surplus for other blocks instead of consuming it all.
  */
-const CHART_ROW_SPAN = 8;
+const MAX_DEMAND_ROW_SPAN = 24;
 
 export function renderGapStatementToA3(payload: GapStatementPayload, entry: A3EntrySummary): A3BlockContent {
   const language = resolveA3Language(entry);
@@ -79,6 +111,7 @@ export function renderGapStatementToA3(payload: GapStatementPayload, entry: A3En
 
   return {
     lines: [],
-    image: { kind: "gap-analysis-chart", rowSpan: CHART_ROW_SPAN, spec },
+    image: { kind: "gap-analysis-chart", spec, maxDemandRowSpan: MAX_DEMAND_ROW_SPAN },
+    widthFraction: 0.5,
   };
 }

@@ -108,6 +108,23 @@ export interface A3ImageRequest {
   /** How many of the block's content rows this image should reserve, vertical-stack blocks only. */
   readonly rowSpan?: number;
   /**
+   * ADIM 1 round 8 (2026-09-17, Barış's own live-app screenshot): caps this
+   * image's contribution to the ELASTIC SOLVER's row demand (D-158/D-160,
+   * `elasticAllocation.ts`) at a finite value, while `rowSpan` itself stays
+   * omitted so PLACEMENT (`place.ts`) still self-bounds to the block's real
+   * resolved height — never smaller than the block, never able to overflow
+   * it, so this can never reintroduce the fixed-`rowSpan` appendix-drop
+   * regression round 7 fixed. Without this, an omitted `rowSpan` reports
+   * `Number.POSITIVE_INFINITY` demand (unchanged default — correct for
+   * content with no natural ceiling, e.g. `fishbone`/`smartTarget`, which
+   * genuinely benefit from absorbing an entire column's surplus). Set this
+   * when the image has an aesthetic maximum beyond which more room stops
+   * helping — omitting it let two side-by-side ADIM 1 entries balloon to
+   * consume an entire near-empty column, a large mostly-blank block with
+   * two still-small charts in one corner, not a "small but reliable" state.
+   */
+  readonly maxDemandRowSpan?: number;
+  /**
    * D-118/D-193: omitted (the Phase 5/D-102 default) means `kind`/`spec`
    * must be rasterized by `src/a3/render/rasterize.ts`. `"asset"` means the
    * image already exists as bytes — an ingested photo — and `assetImageId`
@@ -153,6 +170,29 @@ export interface A3BlockContent {
    * rows the second one needs — see `place.ts`'s own fix note (D-224).
    */
   readonly zonesRowSpan?: number;
+  /**
+   * ADIM 1 side-by-side round (2026-09-17): a fraction (0..1) of the
+   * block's content-column width this entry's own `lines`/`image` content
+   * should occupy when placed next to its neighbours, instead of the
+   * Phase 4 default of stacking every entry full-width, one below the
+   * other. Consecutive entries in placement order that ALL declare a
+   * `widthFraction` form one side-by-side group (`place.ts`'s
+   * `groupIntoRuns`) — column ranges are snapped to whole columns the
+   * same way `zones`' own `widthFraction` already is (D-102,
+   * `splitColumnsIntoZones`, including D-189/P-43's stranded-column
+   * widening), and every member of the group starts at the SAME row and
+   * uses its OWN full row demand (never divided, unlike D-224's
+   * `zonesRowSpan` band-splitting) — the group as a whole then advances
+   * past whichever member needed the most rows. An entry with no sibling
+   * declaring `widthFraction` right next to it in the block is placed
+   * exactly as before (full block width, one row band of its own).
+   * Ignored when `content.zones` is also set — the two mechanisms solve
+   * the same "more than one thing across the block's width" problem at
+   * different granularities (within one entry vs. across entries) and are
+   * not meant to compose. `gapStatement`/`fiveN1K` (ADIM 1) are this
+   * field's first and, so far, only declaring methods.
+   */
+  readonly widthFraction?: number;
 }
 
 /**

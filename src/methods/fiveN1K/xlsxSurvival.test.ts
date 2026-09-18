@@ -11,10 +11,20 @@ import { FIVE_N1K_METHOD_ID } from "./index";
  * survives a real block's geometry end to end through `buildA3Layout`,
  * mirroring `kpiStrip/xlsxSurvival.test.ts`'s own two-call proof. Uses
  * `pps-8step-auto` (D-157's default template, the one this design was
- * reviewed against throughout the BVVL loop). `DIAGRAM_ROW_SPAN` (4, post-
- * regression-fix — see that constant's own note) fits `farplas-7step-tr`'s
- * legacy 14-row ADIM 1 block too, but `pps-8step-auto` stays this test's
- * target.
+ * reviewed against throughout the BVVL loop).
+ *
+ * ADIM 1 side-by-side round (2026-09-17): this fixture carries only ONE
+ * Step 1 entry — `fiveN1K`'s own `widthFraction: 0.5` has no sibling to
+ * group with, so `place.ts`'s `groupIntoRuns` falls back to the ungrouped,
+ * full-block-width path (`A3BlockContent.widthFraction`'s own doc
+ * comment) — this test exercises that solo fallback, not the grouped
+ * side-by-side placement. The grouped case (both `fiveN1K` and
+ * `gapStatement` present, same row, non-overlapping half-width columns) is
+ * proven separately below and in
+ * `l1FiveN1kGapStatementCoexist.probe.test.ts`. `FULL_BLOCK_ROW_SPAN` (12,
+ * post-regression-fix — see that constant's own note) fits
+ * `farplas-7step-tr`'s legacy 14-row ADIM 1 block too, but `pps-8step-auto`
+ * stays this test's target.
  */
 function emptyStep(): StepState {
   return { entries: [] };
@@ -86,7 +96,11 @@ describe("5N1K diagram — buildA3Layout two-call survival (BVVL round)", () => 
       entryId: "five-n1k-entry-1",
       kind: "five-n1k-diagram",
     });
-    expect(pendingImages[0]!.widthPt).toBeGreaterThan(0);
+    // A solo `widthFraction` entry (no sibling to group with) falls back to
+    // the FULL block width (A:L, 567pt) — the same width a pre-side-by-side
+    // entry would have gotten, not a half-width column it has no partner to
+    // share with.
+    expect(pendingImages[0]!.widthPt).toBeCloseTo(567, 1);
     expect(pendingImages[0]!.heightPt).toBeGreaterThan(0);
   });
 
@@ -116,19 +130,24 @@ describe("5N1K diagram — buildA3Layout two-call survival (BVVL round)", () => 
   });
 
   /**
-   * Real-app regression guard (2026-09-17, Barış's own trial run): the two
-   * BVVL-approved entries (`fiveN1K` + `gapStatement`) coexist in ADIM 1's
-   * same block — verified with ADIM 2/3 both FULLY SATURATED at their own
-   * default row count (zero spare rows anywhere in the column to lend),
-   * the same worst-case rigor `kpiStrip/kpiStripPps8StepAutoFits.test.ts`
-   * (P-63) already established, not just an empty-neighbour best case.
-   * `DIAGRAM_ROW_SPAN` (4) + `CHART_ROW_SPAN` (8) sum to exactly ADIM 1's
-   * own default (12), so this must hold *unconditionally* — the earlier
-   * 11+11 numbers (reasoned only from the best case) silently dropped
-   * `fiveN1K` in Barış's real project, which was never this saturated.
-   * Mutation-verified: temporarily reverting `DIAGRAM_ROW_SPAN` to 11
-   * turned this test genuinely RED (five-n1k-entry-1 dropped), confirming
-   * it is not a vacuous pass.
+   * Real-app regression guard (2026-09-17, Barış's own trial run, then the
+   * side-by-side round the same day): the two BVVL-approved entries
+   * (`fiveN1K` + `gapStatement`) coexist in ADIM 1's same block — verified
+   * with ADIM 2/3 both FULLY SATURATED at their own default row count
+   * (zero spare rows anywhere in the column to lend), the same worst-case
+   * rigor `kpiStrip/kpiStripPps8StepAutoFits.test.ts` (P-63) already
+   * established, not just an empty-neighbour best case. Since the two now
+   * sit SIDE BY SIDE (`widthFraction: 0.5` each) rather than stacked, ADIM
+   * 1's real demand is 12 rows (the MAX of the two, not the sum of the old
+   * 4+8 split) — exactly its own default, so this holds *unconditionally*
+   * with zero reliance on elastic growth at all, a strictly stronger
+   * guarantee than the stacked shape this test originally proved.
+   * Mutation-verified: temporarily dropping `fiveN1K`'s own `widthFraction`
+   * (the pair no longer groups — `fiveN1K` places full-width first at its
+   * own 12 rows, leaving `gapStatement` needing a second, un-lendable
+   * 12-row band against a fully saturated column) turned this test
+   * genuinely RED (`gap-statement-entry-1` dropped), confirming it is not
+   * a vacuous pass.
    */
   it("neither entry drops to the appendix even when ADIM 2/3 leave zero spare rows in the column", () => {
     const rendererMap = getA3RendererMap();

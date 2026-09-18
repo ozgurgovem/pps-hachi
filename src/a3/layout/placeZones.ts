@@ -155,9 +155,21 @@ function toColumnRange(columnWidths: readonly ColumnWidth[], indices: ZoneColumn
  * can't split a column), then widens any zone stranded on a near-zero-width
  * gutter column (D-189/P-43, `widenStrandedZones`). A zone with no columns
  * left to assign is dropped from the output — the caller decides what that
- * means for the entry as a whole.
+ * means for the entry as a whole. Only assignments *past* the point columns
+ * run out are ever dropped (the greedy walk below is strictly left to
+ * right), so a caller matching returned ranges back to their input zones by
+ * index can rely on any drop being a contiguous suffix, never a gap in the
+ * middle.
+ *
+ * ADIM 1 side-by-side round (2026-09-17): exported so `place.ts`'s
+ * `A3BlockContent.widthFraction` (a *different* entries share this block's
+ * width, not one entry's `zones`) can reuse this exact same column-
+ * splitting arithmetic — including the D-189/P-43 stranded-column
+ * widening — instead of a second implementation (G2). Callers outside
+ * `A3ContentZone`'s own shape build a plain `{ widthFraction }` object per
+ * item; every other field on `A3ContentZone` is optional and unused here.
  */
-function splitColumnsIntoZones(
+export function splitColumnsIntoZones(
   zones: readonly A3ContentZone[],
   columnWidths: readonly ColumnWidth[],
 ): readonly ZoneColumnRange[] {

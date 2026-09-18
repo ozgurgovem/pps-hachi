@@ -1,10 +1,17 @@
 import type { Entry, ProjectModel, StepId } from "../../domain/model";
 import { parseRange } from "../cellRef";
-import { resolveEntryContent, type A3BlockAggregateImageMap, type A3EntryRendererMap } from "../methodContract";
+import {
+  resolveEntryContent,
+  type A3BlockAggregateImageMap,
+  type A3BlockContent,
+  type A3EntryRendererMap,
+} from "../methodContract";
 import type { A3Template, TemplateBlock } from "../templates/types";
 import { entriesForBlock, columnWidthsInRange, type EntryWithStep } from "./entriesByBlock";
 import { ENTRY_CONTENT_FONT_PT, type ColumnWidth } from "./contentStyle";
 import { estimateCharsPerLine, wrapText } from "./measure";
+import { splitColumnsIntoZones } from "./placeZones";
+import { groupIntoRuns } from "./widthFractionGroups";
 
 /**
  * Faz 11/L3a (D-158/D-160, both LOCKED): how many canvas rows this block's
@@ -30,7 +37,38 @@ import { estimateCharsPerLine, wrapText } from "./measure";
  * producing avoidable overflow on an otherwise-empty column. Defaults to
  * `{}` so every pre-P-22 call site (none of which know this map exists)
  * reproduces its old estimate unchanged.
+ *
+ * ADIM 1 side-by-side round (2026-09-17): a `widthFraction` run
+ * (`groupIntoRuns`, same segmentation `place.ts` uses) demands the MAX of
+ * its members' own row needs, not the sum — they share one row band, not a
+ * stack of independent ones. Each member's own line-wrap width is its
+ * `splitColumnsIntoZones`-assigned sub-range, not the whole block, for the
+ * same reason `place.ts` narrows it there.
+ *
+ * ADIM 1 round 8 (2026-09-17): an `image` with no `rowSpan` but a declared
+ * `maxDemandRowSpan` (`A3ImageRequest`'s own doc comment) reports THAT
+ * bounded value instead of `Number.POSITIVE_INFINITY` — letting two such
+ * entries compete fairly for a column's surplus instead of one of them
+ * greedily absorbing all of it, however much is available.
  */
+function singleEntryRowDemand(content: A3BlockContent, widthPt: number): number {
+  if (content.zones) {
+    return content.zonesRowSpan ?? Number.POSITIVE_INFINITY;
+  }
+
+  const maxCharsPerLine = estimateCharsPerLine(widthPt, ENTRY_CONTENT_FONT_PT);
+  const lineCount = content.lines.reduce((sum, line) => sum + wrapText(line.text, maxCharsPerLine).length, 0);
+
+  if (content.image) {
+    if (content.image.rowSpan !== undefined) {
+      return lineCount + content.image.rowSpan;
+    }
+    return lineCount + (content.image.maxDemandRowSpan ?? Number.POSITIVE_INFINITY);
+  }
+
+  return lineCount;
+}
+
 export function estimateBlockRowDemand(
   entries: readonly Entry[],
   contentColumnWidths: readonly ColumnWidth[],
@@ -39,44 +77,57 @@ export function estimateBlockRowDemand(
   aggregateImageMap: A3BlockAggregateImageMap = {},
 ): number {
   const blockWidthPt = contentColumnWidths.reduce((sum, column) => sum + column.widthPt, 0);
-  const maxCharsPerLine = estimateCharsPerLine(blockWidthPt, ENTRY_CONTENT_FONT_PT);
 
-  let total = 0;
-  const aggregateMethodIds = new Set<string>();
-  for (const entry of entries) {
-    if (aggregateImageMap[entry.methodId] !== undefined) {
-      aggregateMethodIds.add(entry.methodId);
-    }
-
-    const content = resolveEntryContent(
+  const resolved = entries.map((entry) => ({
+    entry,
+    content: resolveEntryContent(
       entry.methodId,
       entry.payload,
       { id: entry.id, title: entry.title, language, images: entry.images },
       rendererMap,
-    );
+    ),
+  }));
 
-    if (content.zones) {
-      if (content.zonesRowSpan === undefined) {
-        return Number.POSITIVE_INFINITY;
+  const aggregateMethodIds = new Set<string>();
+  for (const item of resolved) {
+    if (aggregateImageMap[item.entry.methodId] !== undefined) {
+      aggregateMethodIds.add(item.entry.methodId);
+    }
+  }
+
+  const runs = groupIntoRuns(resolved, (item) => item.content);
+
+  let total = 0;
+  for (const run of runs) {
+    if (run.sideBySide) {
+      const ranges = splitColumnsIntoZones(
+        run.items.map((item) => ({ widthFraction: item.content.widthFraction! })),
+        contentColumnWidths,
+      );
+
+      let groupDemand = 0;
+      for (let index = 0; index < run.items.length; index += 1) {
+        // Same tail-only drop rule as `place.ts` — an index past
+        // `ranges.length` has no columns left and contributes no demand.
+        const range = ranges[index];
+        if (!range) {
+          continue;
+        }
+        const demand = singleEntryRowDemand(run.items[index]!.content, range.widthPt);
+        if (demand === Number.POSITIVE_INFINITY) {
+          return Number.POSITIVE_INFINITY;
+        }
+        groupDemand = Math.max(groupDemand, demand);
       }
-      total += content.zonesRowSpan;
+      total += groupDemand;
       continue;
     }
 
-    const lineCount = content.lines.reduce(
-      (sum, line) => sum + wrapText(line.text, maxCharsPerLine).length,
-      0,
-    );
-
-    if (content.image) {
-      if (content.image.rowSpan === undefined) {
-        return Number.POSITIVE_INFINITY;
-      }
-      total += lineCount + content.image.rowSpan;
-      continue;
+    const demand = singleEntryRowDemand(run.items[0]!.content, blockWidthPt);
+    if (demand === Number.POSITIVE_INFINITY) {
+      return Number.POSITIVE_INFINITY;
     }
-
-    total += lineCount;
+    total += demand;
   }
 
   for (const methodId of aggregateMethodIds) {

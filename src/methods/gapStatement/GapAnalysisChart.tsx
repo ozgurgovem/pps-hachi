@@ -22,6 +22,33 @@ const BAND_TEXT_PADDING_X = 10;
 const COMPACT_WIDTH_PT = 170;
 const CHART_MARGIN_PX = 20;
 
+/**
+ * Real-app follow-up round 3 (2026-09-17): Barış's own concrete mockup,
+ * mid-review — a real Y-axis with gridlines, value labels moved INSIDE
+ * the bars (freeing the space above them entirely), and the deviation
+ * indicator's horizontal bridge routed all the way past the rightmost bar
+ * before dropping down, so its "Hedeften Sapma" label lands in genuinely
+ * open margin space rather than the cramped gap between two bars —
+ * closing the round-1/round-2 overlap complaints structurally instead of
+ * shrinking text or moving it by a few px.
+ */
+const AXIS_LABEL_WIDTH_PX = 22;
+const AXIS_TARGET_TICKS = 7;
+const BRIDGE_MARGIN_PX = 16;
+/** Enough for "Hedeften Sapma" (14 chars) at this file's own 9.5px label font — see `barsAreaWidth`'s own note. */
+const LABEL_ZONE_WIDTH_PX = 88;
+
+/** Rounds `rough` up to the nearest "nice" step (1/2/5 × a power of ten) — standard chart-axis tick spacing. */
+function niceAxisStep(rough: number): number {
+  if (rough <= 0) {
+    return 1;
+  }
+  const magnitude = 10 ** Math.floor(Math.log10(rough));
+  const residual = rough / magnitude;
+  const niceResidual = residual <= 1 ? 1 : residual <= 2 ? 2 : residual <= 5 ? 5 : 10;
+  return niceResidual * magnitude;
+}
+
 function drawBands(
   spec: GapAnalysisChartSpec,
   layout: ReturnType<typeof layoutGapBands>,
@@ -54,6 +81,52 @@ function drawBands(
   });
 }
 
+interface BarValueLayout {
+  readonly y: number;
+  readonly fontSize: number;
+  readonly inside: boolean;
+}
+
+/** Below this, even the minimum readable font (`MIN_READABLE_FONT_PX`) plus its own padding doesn't fit inside the bar. */
+const MIN_READABLE_FONT_PX = 9;
+const INSIDE_FONT_PX = 12;
+
+/**
+ * Real-app follow-up round 4 (2026-09-17, Barış's own direct correction):
+ * round 3 kept an "above the bar" fallback for a bar shorter than
+ * `MIN_BAR_HEIGHT_FOR_INSIDE_LABEL_PX` — the İdeal bar (a real, common
+ * case: the target is usually the smaller of the two values) triggered
+ * it every time, landing back on the exact "value above the bar" layout
+ * Barış's own mockup replaced. His mockup shows "%3" sitting inside the
+ * short green bar too, near its own top edge — always inside, never a
+ * conditional fallback.
+ *
+ * Round 5 follow-up: a fixed 12px font clamped to stay above the bar's
+ * own bottom edge still let the glyph's own ink poke out the TOP of a
+ * genuinely short bar (12px of cap-height doesn't fit in a 10px-tall
+ * bar no matter where the baseline sits) — Barış's own "İdeal Durum
+ * yüzdesi barın dışında kalmış" catch. The font itself now shrinks for
+ * a short bar (down to a 7px floor) instead of only moving the baseline,
+ * so the whole glyph — not just its baseline — stays inside.
+ *
+ * Round 7 follow-up: a 7px value on a 10px-tall bar was technically
+ * "inside" but read as illegibly tiny — Barış's own direct correction:
+ * "İdeal Durum yüzdesi çok ufak kaldı... eğer içine sığmıyorsa üste
+ * koyabilirsin" (too tiny — if it doesn't fit, put it above instead).
+ * Below `MIN_READABLE_FONT_PX`'s own real floor, the value now moves
+ * ABOVE the bar (this file's original round-3 fallback, reinstated —
+ * this time an explicit choice rather than a guess) at a full, legible
+ * 12px, rather than shrinking the font any further.
+ */
+function barValueLayout(topY: number, plotBottom: number): BarValueLayout {
+  const barHeightPx = plotBottom - topY;
+  const fontSizeIfInside = Math.min(INSIDE_FONT_PX, barHeightPx - 6);
+  if (fontSizeIfInside < MIN_READABLE_FONT_PX) {
+    return { y: topY - 6, fontSize: INSIDE_FONT_PX, inside: false };
+  }
+  return { y: topY + fontSizeIfInside + 2, fontSize: fontSizeIfInside, inside: true };
+}
+
 /**
  * BVVL round, ADIM 1 (2026-09-16/17): chart + the three Layer A bands drawn
  * as ONE image, not a separate `lines`+`image` pair — `place.ts` always
@@ -72,27 +145,60 @@ export function GapAnalysisChart({ spec, size }: { spec: GapAnalysisChartSpec; s
   const bandsHeightPx = BAND_HEIGHT_PX * spec.bandTexts.length;
   const chartHeightPx = Math.max(60, size.heightPx - bandsHeightPx);
 
-  const maxValue = Math.max(spec.actualValue, spec.idealValue, 1) * 1.3;
   const plotTop = 26;
   const plotBottom = chartHeightPx - 34;
-  const scaleY = (value: number) => plotBottom - (value / maxValue) * (plotBottom - plotTop);
 
-  const barWidth = layout.widthPx * 0.22;
-  const barGap = layout.widthPx * 0.3;
+  // Real Y-axis (round 3 follow-up) — a "nice" step/max so ticks land on
+  // clean numbers, not the old maxValue*1.3 magic headroom.
+  const rawMax = Math.max(spec.actualValue, spec.idealValue, 1) * 1.15;
+  const axisStep = niceAxisStep(rawMax / AXIS_TARGET_TICKS);
+  const axisMax = Math.ceil(rawMax / axisStep) * axisStep;
+  const tickCount = Math.round(axisMax / axisStep);
+  const ticks = Array.from({ length: tickCount + 1 }, (_, index) => index * axisStep);
+  const scaleY = (value: number) => plotBottom - (value / axisMax) * (plotBottom - plotTop);
+
+  const plotLeft = boxX + AXIS_LABEL_WIDTH_PX;
+  const plotRight = boxX + layout.widthPx;
+  const plotWidth = plotRight - plotLeft;
+
+  /**
+   * Round 3 follow-up: the deviation label's own zone is reserved BEFORE
+   * the bars are laid out, not left to whatever happens to be left over —
+   * round 2's "corner badge"/round-1's "gap midpoint" both learned that
+   * hard the same way (the label only ever got the space bars/gap math
+   * didn't already claim, which was rarely enough). `LABEL_ZONE_WIDTH_PX`
+   * is sized for "Hedeften Sapma" at this file's own label font — the
+   * longest of the two label lines — with a small safety margin.
+   */
+  const barsAreaWidth = Math.max(60, plotWidth - LABEL_ZONE_WIDTH_PX - BRIDGE_MARGIN_PX);
+  const barWidth = barsAreaWidth * 0.26;
+  const barGap = barsAreaWidth * 0.3;
   const clusterWidth = barWidth * 2 + barGap;
-  const clusterX = boxX + (layout.widthPx - clusterWidth) / 2;
+  const clusterX = plotLeft + (barsAreaWidth - clusterWidth) / 2;
   const actualBarX = clusterX;
   const idealBarX = clusterX + barWidth + barGap;
-  const axisLeft = boxX;
-  const axisRight = boxX + layout.widthPx;
   const actualTopY = scaleY(spec.actualValue);
   const idealTopY = scaleY(spec.idealValue);
 
   const deviation = Math.abs(spec.actualValue - spec.idealValue);
   const deviationText = deviation.toFixed(1).replace(".", ",");
-  const bracketX = idealBarX + barWidth / 2;
-  const dashStartX = actualBarX + barWidth;
-  const labelX = (dashStartX + bracketX) / 2;
+  const actualValueLayout = barValueLayout(actualTopY, plotBottom);
+  const idealValueLayout = barValueLayout(idealTopY, plotBottom);
+
+  /**
+   * Round 4 follow-up: `bridgeX` now anchors directly to the İDEAL bar's
+   * own right edge (a small, fixed gap) instead of the reserved zone's
+   * own outer boundary — round 3's version left an unexplained,
+   * un-bridged gap between the bar and the arrow (no dash at the bar's
+   * own height closing it), which read as "the arrow floated off to the
+   * right of the bar" exactly as Barış described. TWO dashed segments
+   * now always run — one at each bar's own top, right edge to `bridgeX`
+   * — direction-agnostic (works the same whichever bar happens to be
+   * taller); the vertical arrow carries an arrowhead at BOTH ends again
+   * (round 3 had dropped the top one, per Barış's own correction).
+   */
+  const bridgeX = idealBarX + barWidth + BRIDGE_MARGIN_PX;
+  const labelX = bridgeX + 10;
   const labelMidY = (actualTopY + idealTopY) / 2;
 
   return (
@@ -105,11 +211,31 @@ export function GapAnalysisChart({ spec, size }: { spec: GapAnalysisChartSpec; s
       <text x={size.widthPx / 2} y={16} fontSize={13} fontWeight={700} textAnchor="middle" fill="#1A1A1A">
         {spec.title}
       </text>
-      <line x1={axisLeft} y1={plotTop - 4} x2={axisLeft} y2={plotBottom} stroke="#C9C6BA" />
-      <line x1={axisLeft} y1={plotBottom} x2={axisRight} y2={plotBottom} stroke="#C9C6BA" />
+
+      {ticks.map((tick) => {
+        const y = scaleY(tick);
+        return (
+          <g key={tick}>
+            <line x1={plotLeft} y1={y} x2={plotRight} y2={y} stroke="#EEECE4" />
+            <text x={plotLeft - 6} y={y + 3} fontSize={8} textAnchor="end" fill="#8A877C">
+              {tick}
+              {spec.unit}
+            </text>
+          </g>
+        );
+      })}
+      <line x1={plotLeft} y1={plotTop - 4} x2={plotLeft} y2={plotBottom} stroke="#C9C6BA" />
+      <line x1={plotLeft} y1={plotBottom} x2={plotRight} y2={plotBottom} stroke="#C9C6BA" />
 
       <rect x={actualBarX} y={actualTopY} width={barWidth} height={plotBottom - actualTopY} fill={ACTUAL_COLOR} />
-      <text x={actualBarX + barWidth / 2} y={actualTopY - 6} fontSize={12} fontWeight={700} fill={ACTUAL_COLOR} textAnchor="middle">
+      <text
+        x={actualBarX + barWidth / 2}
+        y={actualValueLayout.y}
+        fontSize={actualValueLayout.fontSize}
+        fontWeight={700}
+        fill={actualValueLayout.inside ? "#FFFFFF" : ACTUAL_COLOR}
+        textAnchor="middle"
+      >
         {spec.actualValue}
         {spec.unit}
       </text>
@@ -123,7 +249,14 @@ export function GapAnalysisChart({ spec, size }: { spec: GapAnalysisChartSpec; s
       )}
 
       <rect x={idealBarX} y={idealTopY} width={barWidth} height={plotBottom - idealTopY} fill={IDEAL_COLOR} />
-      <text x={idealBarX + barWidth / 2} y={idealTopY - 6} fontSize={12} fontWeight={700} fill="#2E7D32" textAnchor="middle">
+      <text
+        x={idealBarX + barWidth / 2}
+        y={idealValueLayout.y}
+        fontSize={idealValueLayout.fontSize}
+        fontWeight={700}
+        fill={idealValueLayout.inside ? "#FFFFFF" : "#2E7D32"}
+        textAnchor="middle"
+      >
         {spec.idealValue}
         {spec.unit}
       </text>
@@ -137,25 +270,37 @@ export function GapAnalysisChart({ spec, size }: { spec: GapAnalysisChartSpec; s
       )}
 
       <defs>
-        <marker id="gapAnalysisArrow" markerWidth={8} markerHeight={8} refX={4} refY={4} orient="auto-start-reverse">
-          <path d="M0,0 L8,4 L0,8 z" fill={PROBLEM_COLOR} />
+        {/* Round 5 follow-up: `refX`/`refY` were set to the marker's own
+            CENTER (2,2), not its tip — the actual SVG marker contract
+            aligns whichever local point `refX`/`refY` names with the
+            line's real endpoint, so a center-aligned marker draws its
+            tip ~half the marker's own size PAST that endpoint (past the
+            dashed bridge line it should stop at — Barış's own "arrows
+            should stay between the [bridge] lines" catch). `refX`
+            (always equal to `markerWidth`, the tip's own local x) puts
+            the tip exactly at the endpoint, the flat base trailing back
+            along the line instead. Round 7: shrunk again, by exactly the
+            50% Barış asked for (3×3 → 1.5×1.5). */}
+        <marker id="gapAnalysisArrow" markerWidth={1.5} markerHeight={1.5} refX={1.5} refY={0.75} orient="auto-start-reverse">
+          <path d="M0,0 L1.5,0.75 L0,1.5 z" fill={PROBLEM_COLOR} />
         </marker>
       </defs>
-      <line x1={dashStartX} y1={actualTopY} x2={bracketX} y2={actualTopY} stroke={PROBLEM_COLOR} strokeWidth={1.5} strokeDasharray="5 4" />
+      <line x1={actualBarX + barWidth} y1={actualTopY} x2={bridgeX} y2={actualTopY} stroke={PROBLEM_COLOR} strokeWidth={1.5} strokeDasharray="5 4" />
+      <line x1={idealBarX + barWidth} y1={idealTopY} x2={bridgeX} y2={idealTopY} stroke={PROBLEM_COLOR} strokeWidth={1.5} strokeDasharray="5 4" />
       <line
-        x1={bracketX}
+        x1={bridgeX}
         y1={actualTopY}
-        x2={bracketX}
+        x2={bridgeX}
         y2={idealTopY}
         stroke={PROBLEM_COLOR}
-        strokeWidth={2}
+        strokeWidth={1.5}
         markerStart="url(#gapAnalysisArrow)"
         markerEnd="url(#gapAnalysisArrow)"
       />
-      <text x={labelX} y={labelMidY - 8} fontSize={10.5} textAnchor="middle" fill={PROBLEM_COLOR}>
+      <text x={labelX} y={labelMidY - 4} fontSize={9.5} textAnchor="start" fill={PROBLEM_COLOR}>
         {spec.deviationLabel}
       </text>
-      <text x={labelX} y={labelMidY + 15} fontSize={18} fontWeight={700} textAnchor="middle" fill={PROBLEM_COLOR}>
+      <text x={labelX} y={labelMidY + 13} fontSize={15} fontWeight={700} textAnchor="start" fill={PROBLEM_COLOR}>
         {deviationText}
         {spec.unit}
       </text>

@@ -81,6 +81,19 @@ describe("estimateBlockRowDemand", () => {
     expect(estimateBlockRowDemand([fixtureEntry()], wideColumns, rendererMap, "en")).toBe(Number.POSITIVE_INFINITY);
   });
 
+  /**
+   * ADIM 1 round 8 (2026-09-17): an image with no `rowSpan` but a declared
+   * `maxDemandRowSpan` reports THAT bounded value instead of Infinity —
+   * `gapStatement`/`fiveN1K`'s own fix for the "one image greedily absorbs
+   * an entire column's surplus" regression.
+   */
+  it("reports maxDemandRowSpan (not Infinity) for an image with no rowSpan but a declared maxDemandRowSpan", () => {
+    const rendererMap: A3EntryRendererMap = {
+      fixture: () => ({ lines: [], image: { kind: "gap-analysis-chart", spec: {}, maxDemandRowSpan: 24 } }),
+    };
+    expect(estimateBlockRowDemand([fixtureEntry()], wideColumns, rendererMap, "en")).toBe(24);
+  });
+
   it("stays 0 for a methodId with no registered renderer (falls back to a bare title line, but only when the fallback is actually reached)", () => {
     expect(estimateBlockRowDemand([fixtureEntry({ title: "" })], wideColumns, {}, "en")).toBe(0);
   });
@@ -218,6 +231,46 @@ describe("resolveElasticBlocks", () => {
       0,
     );
     expect(totalRows).toBe(50);
+  });
+
+  /**
+   * ADIM 1 round 8 (2026-09-17, Barış's own live block preview screenshot):
+   * with an unbounded (Infinity) demand, a block whose two neighbours are
+   * both near-empty absorbs the ENTIRE column's surplus — a much larger
+   * block than the image inside it actually needed, a huge blank area under
+   * a still-modest-sized chart. `maxDemandRowSpan` caps that demand at a
+   * finite, deliberate target, so the block grows only as far as it asked
+   * for and leaves the rest of a genuinely large surplus for other blocks.
+   */
+  it("caps a block's own growth at maxDemandRowSpan instead of absorbing an entire column's surplus", () => {
+    const rendererMap: A3EntryRendererMap = {
+      empty: () => ({ lines: [] }),
+      "gap-and-5n1k": () => ({
+        lines: [],
+        image: { kind: "gap-analysis-chart", spec: {}, maxDemandRowSpan: 24 },
+      }),
+    };
+    // A much larger ADIM 2 default than `leftColumnBlocks()`'s own 26 —
+    // deliberately generous surplus (60 - 18 floor = 42 giveable rows),
+    // far more than ADIM 1's own bounded 24-row demand (12 rows above its
+    // own 12-row default) could ever want.
+    const generousBlocks: TemplateBlock[] = leftColumnBlocks().map((block) =>
+      block.label === "ADIM 2"
+        ? { ...block, contentRows: { start: block.contentRows.start, end: block.contentRows.start + 59 } }
+        : block,
+    );
+    const template = fixtureElasticTemplate(generousBlocks);
+    const entries = [
+      entryWithStep(1, { id: "e1", methodId: "gap-and-5n1k" }),
+      entryWithStep(2, { id: "e2", methodId: "empty" }),
+      entryWithStep(3, { id: "e3", methodId: "empty" }),
+    ];
+    const resolved = resolveElasticBlocks(template, entries, rendererMap, "en");
+
+    const [adim1] = resolved;
+    // Grows to exactly its own bounded demand (24), never further, however
+    // much more surplus the column could have offered.
+    expect(adim1!.contentRows.end - adim1!.contentRows.start + 1).toBe(24);
   });
 
   it("never shrinks a block below its declared minimumCanvasRows, however extreme the neighbouring demand", () => {

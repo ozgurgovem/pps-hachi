@@ -226,10 +226,11 @@ export interface GapAnalysisChartSpec {
 }
 
 /**
- * BVVL round, ADIM 1 (2026-09-17, `fiveN1K`): a hub-and-petal diagram
- * replacing the old 6-column zone table — one item per 5N1K question, in
- * `FIELD_ORDER`'s own order. Colours are D-165's already-approved Layer B
- * hex values, reused verbatim (never redefined here).
+ * BVVL round, ADIM 1 (2026-09-17, `fiveN1K`): one item per 5N1K question,
+ * in `FIELD_ORDER`'s own order. Round 9: `color` now carries a real
+ * Farplas corporate design handoff's own two-brand-color ladder (see
+ * `renderToA3.ts`'s own note) rather than D-165's Layer B hues — the field
+ * itself is unchanged, only which hex values `renderToA3.ts` assigns to it.
  */
 export interface FiveN1KDiagramItem {
   readonly label: string;

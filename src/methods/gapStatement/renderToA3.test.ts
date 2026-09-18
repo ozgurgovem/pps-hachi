@@ -32,9 +32,34 @@ describe("renderGapStatementToA3 (BVVL round, gap-analysis-chart)", () => {
     expect(content.image!.kind).toBe("gap-analysis-chart");
   });
 
-  it("declares a fixed row span for the combined chart+bands image", () => {
+  /**
+   * Round 7 follow-up (2026-09-17, Barış's own live block preview
+   * screenshot): a fixed `rowSpan: 12` stayed pinned to ADIM 1's own
+   * STATIC default even once elastic growth (Faz 11/L3a) pushed the real
+   * block far past 12 rows, leaving a huge empty area in the live block
+   * preview under two now-tiny images. `rowSpan` is left OMITTED so
+   * `place.ts` sizes this to the block's own real, post-elastic row
+   * range instead — self-bounding by construction (see `renderToA3.ts`'s
+   * own note), not the fixed number this used to be.
+   */
+  it("declares NO fixed row span (grows with the block's own real, post-elastic height) and a widthFraction to share the block's width", () => {
     const content = renderGapStatementToA3(emptyPayload(), { id: "e1", title: "Leak at final test" });
-    expect(content.image!.rowSpan).toBe(8);
+    expect(content.image!.rowSpan).toBeUndefined();
+    expect(content.widthFraction).toBe(0.5);
+  });
+
+  /**
+   * Round 8 follow-up (2026-09-17, Barış's own live block preview
+   * screenshot): an omitted `rowSpan` reports Infinite demand to the
+   * elastic solver, letting this entry absorb an ENTIRE column's surplus
+   * when neighbours are empty — a much larger block than the chart itself
+   * needed. `maxDemandRowSpan` bounds the solver's demand while leaving
+   * `rowSpan` itself omitted, so placement still self-bounds safely.
+   */
+  it("caps the elastic solver's demand at a finite maxDemandRowSpan, without reintroducing a fixed rowSpan", () => {
+    const content = renderGapStatementToA3(emptyPayload(), { id: "e1", title: "Leak at final test" });
+    expect(content.image!.rowSpan).toBeUndefined();
+    expect(content.image!.maxDemandRowSpan).toBe(24);
   });
 
   it("forwards the ideal/actual numeric values and unit straight into the spec", () => {

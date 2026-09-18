@@ -46,15 +46,31 @@ describe("smoke: real render, no throw", () => {
       items: [
         { label: "NE?", answer: "Yüksek fire oranı", color: "#C68A2E" },
         { label: "NEDEN?", answer: "Enjeksiyon sapması", color: "#5F4470" },
-        { label: "NASIL?", answer: "Sensör arızası ile çok uzun bir cevap metni burada yazıyor", color: "#2F7A6E" },
-        { label: "NEREDE?", answer: "T2 enjeksiyon alanı", color: "#556677" },
-        { label: "NE ZAMAN?", answer: "", color: "#8A5A3B" },
-        { label: "KİM?", answer: "Proses Mühendisliği", color: "#8B3A5C" },
+        // Round 6 (horizontal chevron list, replacing the radial rosette):
+        // this answer used to force truncation at the rosette's own tiny
+        // per-satellite capacity — the list's full-width rows now render
+        // it completely (round 9: since the answer panel fills the row's
+        // FULL remaining width — see FiveN1KDiagram.tsx's own note — this
+        // wraps at a much wider point than round 7/8's own artificially
+        // narrow target), a genuine capacity improvement, not a regression.
+        { label: "NASIL?", answer: "Sensör arızası ile çok uzun bir cevap metni burada yazıyor", color: "#064F58" },
+        { label: "NEREDE?", answer: "T2 enjeksiyon alanı", color: "#077E89" },
+        { label: "NE ZAMAN?", answer: "", color: "#B21924" },
+        { label: "KİM?", answer: "Proses Mühendisliği", color: "#C71C27" },
       ],
     };
-    const html = renderToStaticMarkup(<FiveN1KDiagram spec={spec} size={{ widthPx: 756, heightPx: 143 }} />);
+    // Round 7: the real, current default production size (283.5×156pt,
+    // no elastic growth) — the old 756×143 predates both the side-by-side
+    // round and elastic-growth-aware sizing, and no longer represents any
+    // real production geometry.
+    const html = renderToStaticMarkup(<FiveN1KDiagram spec={spec} size={{ widthPx: 378, heightPx: 208 }} />);
     expect(html).toContain("<svg");
     expect(html).toContain("5N1K");
-    expect(html).toContain("…"); // the long NASIL answer must truncate
+    // At this real size the answer wraps onto two lines, at the full
+    // available answer-panel width (round 9), not round 7/8's own
+    // artificially narrow wrap target.
+    expect(html).toContain("Sensör arızası ile çok uzun bir cevap metni burada");
+    expect(html).toContain("yazıyor");
+    expect(html).not.toContain("…");
   });
 });

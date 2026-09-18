@@ -7,18 +7,24 @@ import { FIVE_N1K_METHOD_ID } from "../methods/fiveN1K/index";
 import { GAP_STATEMENT_METHOD_ID } from "../methods/gapStatement/index";
 
 /**
- * Faz 11/L1 (D-223/D-224) PROBE, rewritten for the ADIM 1 BVVL round
- * (2026-09-16/17): originally proved D-224's `zonesRowSpan` fix — before
- * it, any zoned entry silently consumed the *whole* rest of its block,
- * dropping whichever of `fiveN1K`/`gapStatement` was placed second. Both
- * methods have since moved off `zones` entirely (D-224's own mechanism
- * stays valid for `smartTarget`, its only remaining user) onto their own
- * `image` (`five-n1k-diagram`/`gap-analysis-chart`, BVVL round). The
- * *shape* of the original failure this probe guards against — two entries
- * sharing one block, order-independent, neither silently dropped — is
- * still a real risk under the new mechanism too (`place.ts`'s own
- * `lines`+`image` row accounting per entry), so the probe is kept, not
- * retired, with its assertions updated to the two images it now expects.
+ * Faz 11/L1 (D-223/D-224) PROBE, rewritten three times since: first for the
+ * ADIM 1 BVVL round (2026-09-16/17, `zones` → each own `image`, stacked,
+ * summing to the block's default 12 rows), then for the ADIM 1 side-by-side
+ * round (2026-09-17, `docs/oturumlar/adim1-yan-yana-yerlesim.md` — both
+ * entries declare `A3BlockContent.widthFraction: 0.5` and sit next to each
+ * other via `place.ts`'s `groupIntoRuns`), then again for round 7
+ * (2026-09-17, Barış's own live block preview screenshot): a fixed
+ * `rowSpan: 12` on each image kept them pinned to the block's own STATIC
+ * default even once elastic growth (Faz 11/L3a) pushed the real block far
+ * past it — `rowSpan` is now omitted on both, so each grows with the
+ * block's own real, post-elastic height. With empty ADIM 2/3 (this
+ * fixture's own shape), that means ADIM 1 genuinely DOES grow now — the
+ * opposite of the side-by-side round's own "no elastic growth needed"
+ * finding, which was specific to the old fixed-12 design. The *shape* of
+ * the original failure this probe guards against — two entries sharing one
+ * block, order-independent, neither silently dropped — is still checked;
+ * the third test now also proves the two images grow together, filling the
+ * real (elastic-grown) block instead of staying pinned to the old default.
  */
 function emptyStep(): StepState {
   return { entries: [] };
@@ -118,33 +124,56 @@ describe("Faz 11/L1 D-224 PROBE — fiveN1K + gapStatement coexist in ADIM 1's o
     expect(kinds).toContain("gap-analysis-chart");
   });
 
-  it("keeps both entries' image anchors inside ADIM 1's own block, never past ADIM 2's own (possibly elastic-shifted) header row", () => {
+  it("places both entries SIDE BY SIDE, same start row and non-overlapping columns, and GROWS them together with the block's own real elastic height", () => {
     const rendererMap = getA3RendererMap();
     const project = fixtureProject([fiveN1kEntry(0), gapStatementEntry(1)]);
     const { descriptor, pendingImages } = buildA3Layout(project, pps8StepAuto, { rendererMap });
 
     expect(pendingImages).toHaveLength(2);
 
-    // ADIM 1's own default 12-row block, plus both entries' combined
-    // 22-row demand, forces real elastic growth (D-158/D-160) — ADIM 2's
-    // own header genuinely moves down from its static row 18, so the
-    // header is located by its own text, never a hardcoded row number
-    // (a hardcoded "row 18" check would pass vacuously once the header
-    // moves, matching zero cells rather than catching a real overlap).
+    // Round 7's own real fix: with `rowSpan` omitted, both entries report
+    // infinite row demand, so ADIM 1 genuinely grows past its own static
+    // default (12) once its empty neighbours (this fixture's own shape)
+    // have nothing to compete with it for — the header must have moved
+    // past the old static row 18, proving real elastic growth happened
+    // (never asserted as a specific row: the exact target depends on the
+    // solver's own arithmetic, which is `resolveElasticBlocks.test.ts`'s
+    // job to pin, not this probe's).
     const adim2HeaderCell = descriptor.sheets.a3.cells.find(
       (cell) => cell.value === "ADIM 2. PROBLEMİ PARÇALARA AYIRIN",
     );
     expect(adim2HeaderCell).toBeDefined();
     const adim2HeaderRow = Number(adim2HeaderCell!.ref.match(/\d+/)![0]);
+    expect(adim2HeaderRow).toBeGreaterThan(18);
 
-    for (const slot of pendingImages) {
-      const row = Number(slot.anchorCell.match(/\d+/)?.[0]);
-      const col = slot.anchorCell.match(/^[A-Z]+/)?.[0] ?? "";
-      const rowSpanCount = slot.heightPt / 13; // pps-8step-auto's uniform 13pt canvas row
-      expect(row).toBeGreaterThanOrEqual(6);
-      expect(col <= "L").toBe(true);
-      // The image's own last occupied row must sit strictly above ADIM 2's header, wherever it landed.
-      expect(row + rowSpanCount - 1).toBeLessThan(adim2HeaderRow);
+    const geometry = pendingImages.map((slot) => ({
+      kind: slot.kind,
+      row: Number(slot.anchorCell.match(/\d+/)?.[0]),
+      col: slot.anchorCell.match(/^[A-Z]+/)?.[0] ?? "",
+      widthPt: slot.widthPt,
+      heightPt: slot.heightPt,
+    }));
+
+    // Both start at the block's own first content row (6) — neither is
+    // stacked below the other.
+    for (const slot of geometry) {
+      expect(slot.row).toBe(6);
     }
+
+    // Together they span the block's real 12-column width (A:L, 567pt) in
+    // two equal, non-overlapping halves — 6 columns (283.5pt) each, not
+    // the pre-side-by-side full 567pt a stacked entry would have gotten.
+    const columns = geometry.map((slot) => slot.col).sort();
+    expect(columns).toEqual(["A", "G"]);
+    for (const slot of geometry) {
+      expect(slot.widthPt).toBeCloseTo(283.5, 1);
+    }
+
+    // Both images grow to the SAME real block height (13pt/row × however
+    // many rows the block actually resolved to) — well past the old
+    // static 12-row/156pt ceiling, and identical to each other since they
+    // share one row band.
+    expect(geometry[0]!.heightPt).toBeCloseTo(geometry[1]!.heightPt, 5);
+    expect(geometry[0]!.heightPt).toBeGreaterThan(12 * 13);
   });
 });

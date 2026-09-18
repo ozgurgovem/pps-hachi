@@ -11,10 +11,20 @@ import { GAP_STATEMENT_METHOD_ID } from "./index";
  * mirroring `kpiStrip/xlsxSurvival.test.ts`'s own two-call proof. Uses
  * `pps-8step-auto` (D-157's default template) — this design was reviewed
  * and approved against that template's own real scale throughout the BVVL
- * loop. `CHART_ROW_SPAN` (8) now fits `farplas-7step-tr`'s legacy 14-row
- * ADIM 1 block too (post-regression-fix, see `renderToA3.ts`'s own note),
- * but `pps-8step-auto` stays this test's target since that is the
- * template the design was actually reviewed against.
+ * loop.
+ *
+ * ADIM 1 side-by-side round (2026-09-17): this fixture carries only ONE
+ * Step 1 entry — `gapStatement`'s own `widthFraction: 0.5` has no sibling
+ * to group with, so `place.ts`'s `groupIntoRuns` falls back to the
+ * ungrouped, full-block-width path (`A3BlockContent.widthFraction`'s own
+ * doc comment) — this test exercises that solo fallback, not the grouped
+ * side-by-side placement. The grouped case (both `gapStatement` and
+ * `fiveN1K` present, same row, non-overlapping half-width columns) is
+ * proven separately in `l1FiveN1kGapStatementCoexist.probe.test.ts`.
+ * `FULL_BLOCK_ROW_SPAN` (12) fits `farplas-7step-tr`'s legacy 14-row ADIM
+ * 1 block too (post-regression-fix, see `renderToA3.ts`'s own note), but
+ * `pps-8step-auto` stays this test's target since that is the template
+ * the design was actually reviewed against.
  */
 function emptyStep(): StepState {
   return { entries: [] };
@@ -89,8 +99,12 @@ describe("gapStatement — buildA3Layout two-call survival (BVVL round)", () => 
       entryId: "gap-statement-entry-1",
       kind: "gap-analysis-chart",
     });
-    expect(pendingImages[0]!.widthPt).toBeGreaterThan(0);
     expect(pendingImages[0]!.heightPt).toBeGreaterThan(0);
+    // A solo `widthFraction` entry (no sibling to group with) falls back to
+    // the FULL block width (A:L, 567pt) — the same width a pre-side-by-side
+    // entry would have gotten, not a half-width column it has no partner to
+    // share with.
+    expect(pendingImages[0]!.widthPt).toBeCloseTo(567, 1);
   });
 
   it("resolves a renderer for gap-analysis-chart via the shared registry map", () => {
