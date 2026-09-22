@@ -1,5 +1,6 @@
 import type { A3ImageSize } from "../../a3/methodContract";
 import type { KpiStripChartSpec, KpiStripItem } from "../chartSpec";
+import { readableFontPx } from "../../a3/readability";
 
 /**
  * D-177's approved visual: a horizontal strip of bullet-graph tiles, one
@@ -71,8 +72,8 @@ function Tile({ item, x, width, height, sustainLabel, resultLabel, locale }: Til
   const triangleSize = Math.max(4, barHeight * 0.3);
   const triangleTop = barTop - 2 - triangleSize;
 
-  const labelFontSize = Math.max(10, labelHeight * 0.5);
-  const footerFontSize = Math.max(9, footerHeight * 0.55);
+  const labelFontSize = readableFontPx(labelHeight * 0.5);
+  const footerFontSize = readableFontPx(footerHeight * 0.55);
 
   return (
     <g>
@@ -129,7 +130,7 @@ export function KpiStripChart({ spec, size }: { spec: KpiStripChartSpec; size: A
   const tileWidth = size.widthPx / count;
   const titleHeight = Math.max(MIN_TITLE_HEIGHT_PX, size.heightPx * TITLE_HEIGHT_FRACTION);
   const tilesHeight = Math.max(1, size.heightPx - titleHeight);
-  const titleFontSize = Math.max(9, titleHeight * 0.6);
+  const titleFontSize = readableFontPx(titleHeight * 0.6);
   const locale = spec.language ?? "en";
 
   return (

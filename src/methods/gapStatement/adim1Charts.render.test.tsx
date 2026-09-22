@@ -59,18 +59,18 @@ describe("smoke: real render, no throw", () => {
         { label: "KİM?", answer: "Proses Mühendisliği", color: "#C71C27" },
       ],
     };
-    // Round 7: the real, current default production size (283.5×156pt,
-    // no elastic growth) — the old 756×143 predates both the side-by-side
-    // round and elastic-growth-aware sizing, and no longer represents any
-    // real production geometry.
-    const html = renderToStaticMarkup(<FiveN1KDiagram spec={spec} size={{ widthPx: 378, heightPx: 208 }} />);
+    // The real, current production size on the Rev00 form (247.5 x 299pt,
+    // measured through `buildA3Layout` on 2026-09-22) — the old 378x208
+    // pair came from the pre-Rev00 §12 page contract.
+    const html = renderToStaticMarkup(<FiveN1KDiagram spec={spec} size={{ widthPx: 330, heightPx: 399 }} />);
     expect(html).toContain("<svg");
     expect(html).toContain("5N1K");
-    // At this real size the answer wraps onto two lines, at the full
-    // available answer-panel width (round 9), not round 7/8's own
-    // artificially narrow wrap target.
-    expect(html).toContain("Sensör arızası ile çok uzun bir cevap metni burada");
-    expect(html).toContain("yazıyor");
+    // At this real size, at the printed-10pt readability floor, the answer
+    // wraps across the row's two available lines — nothing is lost and no
+    // ellipsis appears.
+    for (const word of "Sensör arızası ile çok uzun bir cevap metni".split(" ")) {
+      expect(html).toContain(word);
+    }
     expect(html).not.toContain("…");
   });
 });

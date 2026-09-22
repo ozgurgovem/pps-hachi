@@ -285,18 +285,18 @@ describe("buildA3Layout — pps-8step-auto header identity band (Faz 11/L1)", ()
     const { descriptor } = buildA3Layout(project, pps8StepAuto, { rendererMap });
     const cells = descriptor.sheets.a3.cells;
 
-    expect(cellByRef(cells, "C2")).toBe("PPS-2026-014"); // ppsId
-    expect(cellByRef(cells, "G2")).toBe("Kapı Panel Gürültü Problemi"); // problemTitle
-    expect(cellByRef(cells, "K2")).toBe("Ayşe Yılmaz"); // problemOwner
-    expect(cellByRef(cells, "P2")).toBe("Farplas Otomotiv"); // customer
-    expect(cellByRef(cells, "T2")).toBe("Hat 3"); // line
-    expect(cellByRef(cells, "X2")).toBe("Yüksek"); // priority, Turkish dictionary
-    expect(cellByRef(cells, "C3")).toBe("Kalite"); // department
-    expect(cellByRef(cells, "G3")).toBe("12345-A"); // partNumber
-    expect(cellByRef(cells, "K3")).toBe("2026-01-01"); // openedAt, ISO date only
-    expect(cellByRef(cells, "P3")).toBe("A"); // revision
-    expect(cellByRef(cells, "T3")).toBe("2026-12-01"); // targetClosureDate
-    expect(cellByRef(cells, "X3")).toBe("Sarı"); // generalRag, Turkish dictionary
+    expect(cellByRef(cells, "B4")).toBe("PPS-2026-014"); // ppsId
+    expect(cellByRef(cells, "E4")).toBe("Kapı Panel Gürültü Problemi"); // problemTitle
+    expect(cellByRef(cells, "K4")).toBe("Ayşe Yılmaz"); // problemOwner
+    expect(cellByRef(cells, "O4")).toBe("Farplas Otomotiv"); // customer
+    expect(cellByRef(cells, "R4")).toBe("Hat 3"); // line
+    expect(cellByRef(cells, "X4")).toBe("Yüksek"); // priority, Turkish dictionary
+    expect(cellByRef(cells, "B5")).toBe("Kalite"); // department
+    expect(cellByRef(cells, "E5")).toBe("12345-A"); // partNumber
+    expect(cellByRef(cells, "K5")).toBe("2026-01-01"); // openedAt, ISO date only
+    expect(cellByRef(cells, "O5")).toBe("A"); // revision
+    expect(cellByRef(cells, "R5")).toBe("2026-12-01"); // targetClosureDate
+    expect(cellByRef(cells, "X5")).toBe("Sarı"); // generalRag, Turkish dictionary
   });
 
   it("shows the English dictionary labels for priority/generalRag on an English-language project", () => {
@@ -308,8 +308,8 @@ describe("buildA3Layout — pps-8step-auto header identity band (Faz 11/L1)", ()
     const { descriptor } = buildA3Layout(project, pps8StepAuto, { rendererMap });
     const cells = descriptor.sheets.a3.cells;
 
-    expect(cellByRef(cells, "X2")).toBe("Critical");
-    expect(cellByRef(cells, "X3")).toBe("Red");
+    expect(cellByRef(cells, "X4")).toBe("Critical"); // priority
+    expect(cellByRef(cells, "X5")).toBe("Red"); // generalRag
   });
 
   it("leaves optional identity-band fields blank rather than writing a value cell when unset", () => {
@@ -321,9 +321,10 @@ describe("buildA3Layout — pps-8step-auto header identity band (Faz 11/L1)", ()
     // priority/customer/line/partNumber/targetClosureDate/generalRag are all
     // unset in the base fixture — buildA3Layout.ts only pushes a value cell
     // when resolveHeaderFieldValue returns non-empty (see its own `if (value)`).
-    expect(cellByRef(cells, "X2")).toBeUndefined(); // priority
-    expect(cellByRef(cells, "P2")).toBeUndefined(); // customer
-    expect(cellByRef(cells, "X3")).toBeUndefined(); // generalRag
+    expect(cellByRef(cells, "X4")).toBeUndefined(); // priority
+    expect(cellByRef(cells, "O4")).toBeUndefined(); // customer
+    expect(cellByRef(cells, "R4")).toBeUndefined(); // line
+    expect(cellByRef(cells, "X5")).toBeUndefined(); // generalRag
   });
 });
 
@@ -347,9 +348,9 @@ describe("buildA3Layout — pps-8step-auto elastic block allocation (Faz 11/L3a)
       templateId: "pps-8step-auto",
       steps: {
         ...fixtureProject().steps,
-        // Empty ADIM 1/3 give up their full slack (2 + 3 canvas rows) down
-        // to their own floor; ADIM 2's 20 entries (2 lines each = 40 rows of
-        // demand) want far more than its 26-row default.
+        // Empty ADIM 1/3 give up their slack down to their own floors (4
+        // and 3 canvas rows); ADIM 2's 20 entries (2 lines each = 40 rows
+        // of demand) want far more than its 19-row Rev00 default.
         2: { entries: manyGenericTextEntries(20) },
       },
     });
@@ -357,30 +358,40 @@ describe("buildA3Layout — pps-8step-auto elastic block allocation (Faz 11/L3a)
     const { descriptor } = buildA3Layout(project, pps8StepAuto, { rendererMap });
     const { cells, merges } = descriptor.sheets.a3;
 
-    // ADIM 1 shrinks to its 10-canvas-row floor; its header never moves
-    // (it's the top of the column) but its own block now ends at row 15.
-    expect(cells.find((cell) => cell.ref === "A4")?.value).toBe("ADIM 1. PROBLEMİ NETLEŞTİRİN");
+    // ADIM 1 shrinks to its 4-canvas-row floor; its title cell never moves
+    // (it is the top of the column), and its guidance strip travels with it
+    // on the header's own last row.
+    expect(cells.find((cell) => cell.ref === "A7")?.value).toBe("ADIM 1 — PROBLEM TANIMI");
+    expect(merges).toContainEqual({ range: "A7:L7" });
+    expect(cells.find((cell) => cell.ref === "A8")?.value).toBe(
+      "Problemin net tanımı: Ne? Nerede? Ne zaman? Ne kadar?",
+    );
 
-    // ADIM 2's header shifts up from its default A18:L19 to A16:L17 — a real
-    // merge for the new range must exist (dynamically emitted, since this
-    // block's header merge was deliberately removed from the static
-    // template.merges list).
-    expect(cells.find((cell) => cell.ref === "A16")?.value).toBe("ADIM 2. PROBLEMİ PARÇALARA AYIRIN");
-    expect(merges).toContainEqual({ range: "A16:L17" });
-    expect(merges).not.toContainEqual({ range: "A18:L19" });
+    // ADIM 2's header shifts UP from its Rev00 default A16:L17 to A13:L14 —
+    // a real merge for the new range must exist (dynamically emitted, since
+    // an elastic block's header merge is deliberately absent from the static
+    // template.merges list), and its strip moves with it.
+    expect(cells.find((cell) => cell.ref === "A13")?.value).toBe("ADIM 2 — PROBLEMİ PARÇALARA AYIRMA");
+    expect(merges).toContainEqual({ range: "A13:L13" });
+    // Same caveat as the pinned case below: ADIM 2's own content now runs
+    // through row 16, and every content line is merged across the block's
+    // full width, so assert the header MOVED rather than that the range is
+    // absent.
+    expect(cells.find((cell) => cell.ref === "A16")?.value).not.toBe("ADIM 2 — PROBLEMİ PARÇALARA AYIRMA");
+    expect(cells.find((cell) => cell.ref === "A14")?.value).toBe("Mevcut durum / trend / problem noktası");
 
-    // ADIM 2's content now starts at row 18 (right after its own shifted
-    // header), not the old default of row 20.
-    expect(cells.find((cell) => cell.ref === "A18")?.value).toBe("Problem Tanımı");
+    // ADIM 2's content now starts at row 15 (right after its own shifted
+    // header), not the Rev00 default of row 18.
+    expect(cells.find((cell) => cell.ref === "A15")?.value).toBe("Problem Tanımı");
 
-    // ADIM 3 (still empty) is pushed down to header A49:L50, holding its
-    // own 3-canvas-row floor (contentRows 51-53).
-    expect(cells.find((cell) => cell.ref === "A49")?.value).toBe("ADIM 3. HEDEF BELİRLEYİN");
-    expect(merges).toContainEqual({ range: "A49:L50" });
+    // ADIM 3 (still empty) is pushed down to header A39:L40, holding its
+    // own 3-canvas-row floor (contentRows 41-43).
+    expect(cells.find((cell) => cell.ref === "A39")?.value).toBe("ADIM 3 — HEDEF BELİRLEME");
+    expect(merges).toContainEqual({ range: "A39:L39" });
 
-    // 40 rows of demand cannot all fit into the 31-row ceiling ADIM 2 was
-    // actually granted (26 default + 5 borrowed) — the surplus safely
-    // overflows to an appendix (D-100), it is never silently truncated.
+    // 40 rows of demand cannot all fit into the 24-row ceiling ADIM 2 was
+    // actually granted — the surplus safely overflows to an appendix
+    // (D-100), it is never silently truncated.
     expect(descriptor.overflowWarnings.some((warning) => warning.stepIds.includes(2))).toBe(true);
     expect(descriptor.sheets.appendices.length).toBeGreaterThan(0);
   });
@@ -415,26 +426,31 @@ describe("buildA3Layout — pps-8step-auto manual block pins (Faz 11/L3b)", () =
     const { cells, merges } = descriptor.sheets.a3;
 
     // ADIM 1's header never moves (top of the column); its own content now
-    // spans 20 rows instead of its 12-row default.
-    expect(cells.find((cell) => cell.ref === "A4")?.value).toBe("ADIM 1. PROBLEMİ NETLEŞTİRİN");
+    // spans 20 rows instead of its 7-row Rev00 default.
+    expect(cells.find((cell) => cell.ref === "A7")?.value).toBe("ADIM 1 — PROBLEM TANIMI");
 
-    // ADIM 2's header shifts down from its default A18:L19 to A26:L27 — a
-    // real dynamic merge for the shifted range, the old one gone.
-    expect(cells.find((cell) => cell.ref === "A26")?.value).toBe("ADIM 2. PROBLEMİ PARÇALARA AYIRIN");
-    expect(merges).toContainEqual({ range: "A26:L27" });
-    expect(merges).not.toContainEqual({ range: "A18:L19" });
+    // ADIM 2's header shifts down from its Rev00 default A16:L16 to A29:L29
+    // — a real dynamic merge for the shifted range, the old one gone.
+    expect(cells.find((cell) => cell.ref === "A29")?.value).toBe("ADIM 2 — PROBLEMİ PARÇALARA AYIRMA");
+    expect(merges).toContainEqual({ range: "A29:L29" });
+    // The header genuinely MOVED — it is not merely also present at the
+    // shifted row. (A bare `not.toContainEqual({ range: "A16:L16" })` would
+    // be wrong here: ADIM 1's own content now runs through row 16, and
+    // `place.ts` merges every content line across the block's full width,
+    // so that exact range legitimately exists for a different reason.)
+    expect(cells.find((cell) => cell.ref === "A16")?.value).not.toBe("ADIM 2 — PROBLEMİ PARÇALARA AYIRMA");
 
     // ADIM 3 (untouched — ADIM 2 alone had enough slack to cover ADIM 1's
     // growth) keeps its own original default header range.
-    expect(cells.find((cell) => cell.ref === "A46")?.value).toBe("ADIM 3. HEDEF BELİRLEYİN");
-    expect(merges).toContainEqual({ range: "A46:L47" });
+    expect(cells.find((cell) => cell.ref === "A37")?.value).toBe("ADIM 3 — HEDEF BELİRLEME");
+    expect(merges).toContainEqual({ range: "A37:L37" });
 
     // elasticBlocks (the drag-handle overlay's own geometry source) reports
     // ADIM 1's real pin and every left-column block's resolved geometry.
     const adim1Geometry = descriptor.elasticBlocks.find((block) => block.stepIds.includes(1));
     expect(adim1Geometry).toMatchObject({
-      contentRows: { start: 6, end: 25 },
-      minimumCanvasRows: 10,
+      contentRows: { start: 9, end: 28 },
+      minimumCanvasRows: 4,
       pinnedCanvasRows: 20,
     });
     const adim3Geometry = descriptor.elasticBlocks.find((block) => block.stepIds.includes(3));

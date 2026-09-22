@@ -1,6 +1,15 @@
 import type { A3TextTone } from "../methodContract";
 
-/** Must match the `entryContent`/`entryContentBold` style font size in templates/*.ts (D-40). */
+/**
+ * Fallback body font size for a caller with no template in hand.
+ *
+ * This used to be THE body font size for every template, hardcoded at
+ * `farplas-7step-tr`'s own 19pt — which silently mis-wrapped every other
+ * template, since a sheet that prints at 100 % authors its body text at a
+ * completely different size. The real value now lives on
+ * `A3Template.bodyFontPt`; this constant survives only as the default for
+ * the handful of pure helpers that take a width and a font size directly.
+ */
 export const ENTRY_CONTENT_FONT_PT = 19;
 export const ENTRY_TITLE_STYLE_ID = "entryContentBold";
 export const ENTRY_BODY_STYLE_ID = "entryContent";

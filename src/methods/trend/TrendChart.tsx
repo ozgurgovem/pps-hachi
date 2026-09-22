@@ -1,6 +1,7 @@
 import { CartesianGrid, Line, LineChart, ReferenceDot, ReferenceLine, XAxis, YAxis } from "recharts";
 import type { A3ImageSize } from "../../a3/methodContract";
 import type { TrendChartSpec } from "../chartSpec";
+import { A3_AXIS_TICK } from "../shared/chartText";
 
 /**
  * SPEC.md §1.3: trend/run chart with a target line and event markers.
@@ -25,8 +26,8 @@ export function TrendChart({ spec, size }: { spec: TrendChartSpec; size: A3Image
       margin={{ top: 8, right: 24, bottom: 8, left: 8 }}
     >
       <CartesianGrid strokeDasharray="3 3" />
-      <XAxis dataKey="label" />
-      <YAxis />
+      <XAxis dataKey="label" tick={A3_AXIS_TICK} />
+      <YAxis tick={A3_AXIS_TICK} />
       <Line
         type="monotone"
         dataKey="value"

@@ -517,7 +517,7 @@ exports[`buildA3Layout > matches the golden-file snapshot for a representative p
           "range": "B9:O9",
         },
       ],
-      "name": "A3",
+      "name": "A3 Summary",
       "pageSetup": {
         "fitToHeight": 1,
         "fitToPage": true,

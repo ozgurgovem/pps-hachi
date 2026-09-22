@@ -548,8 +548,15 @@ export function SettingsScreen() {
 
       {/* Faz 11/L2: permanent — SPEC.md §6's own Faz 11 done-condition
           ("switching a project between templates preserves every entry and
-          warns before anything moves to an appendix"), D-223's scope
-          narrowed to these two templates. */}
+          warns before anything moves to an appendix").
+
+          TEK FORMAT KURALI (Barış, 2026-09-22): there is now exactly one
+          registered template, so this section has nothing to offer and is
+          hidden rather than shown as a one-item picker. The switching
+          MECHANISM stays wired and tested (`previewTemplateSwitch`,
+          `templateId.set`) — the moment a second format is ever registered
+          the section reappears on its own, with no code change. */}
+      {listTemplates().length > 1 ? (
       <section className="flex flex-col gap-3 rounded-control border border-border bg-surface-raised p-6">
         <h2 className="font-display text-lg text-ink">{t("settings.template.heading")}</h2>
         {project ? (
@@ -572,6 +579,7 @@ export function SettingsScreen() {
           <p className="font-body text-sm text-ink-muted">{t("settings.template.noProject")}</p>
         )}
       </section>
+      ) : null}
 
       {/* M2/D-238: permanent — a manual check alongside `LaunchScreen`'s
           silent on-launch check (same `useUpdateCheck` hook, its own

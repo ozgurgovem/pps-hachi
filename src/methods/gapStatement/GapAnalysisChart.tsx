@@ -1,4 +1,5 @@
 import type { A3ImageSize } from "../../a3/methodContract";
+import { A3_MIN_PRINTED_FONT_PT, minImageFontPx } from "../../a3/readability";
 import type { GapAnalysisChartSpec } from "../chartSpec";
 import { layoutGapBands } from "./chartLayout";
 
@@ -10,16 +11,44 @@ const BAND_COLORS = [IDEAL_COLOR, ACTUAL_COLOR, PROBLEM_COLOR] as const;
 const BAND_TEXT_COLORS = ["#1A1A1A", "#1A1A1A", "#FFFFFF"] as const;
 
 const PT_TO_PX = 96 / 72;
+
+/**
+ * OKUNABİLİRLİK TABANI (`src/a3/readability.ts`, Barış 2026-09-22 —
+ * DEĞİŞMEZ). Every piece of type in this chart is clamped to this, so the
+ * chart runs out of room and drops/wraps content — which is visible — rather
+ * than shrinking its own labels under the printed floor, which is not.
+ * 10pt printed works out to 13.34px inside a rasterized A3 image.
+ */
+const MIN_FONT_PX = minImageFontPx();
+/** The one label allowed to be BIGGER than the floor: the headline deviation number. */
+const DEVIATION_VALUE_FONT_PX = Math.max(16, MIN_FONT_PX);
 /** Real EK-2905 band box: cy=252000 EMU = 19.84pt — the three bands below the chart always share this one height, never their own individual line-count height (Barış's own correction, BVVL round 4). */
-const BAND_HEIGHT_PT = 20;
-const BAND_FONT_PT = 8;
-const BAND_LINE_HEIGHT_PT = 10;
+const BAND_HEIGHT_PT = 22;
+const BAND_FONT_PT = A3_MIN_PRINTED_FONT_PT;
+const BAND_LINE_HEIGHT_PT = 12;
 const BAND_HEIGHT_PX = BAND_HEIGHT_PT * PT_TO_PX;
 const BAND_FONT_PX = BAND_FONT_PT * PT_TO_PX;
 const BAND_LINE_HEIGHT_PX = BAND_LINE_HEIGHT_PT * PT_TO_PX;
 const BAND_TEXT_PADDING_X = 10;
 
-const COMPACT_WIDTH_PT = 170;
+/**
+ * 2026-09-20 real-app follow-up (Barış's own direct report — the chart was
+ * still reading as too small next to a real block, `reference/
+ * PPS_A3_EK-2905_Yüksek_Fire_Problemi_10.08.2026.xlsx` given as the target):
+ * root-caused via a real `buildA3Layout` run — the block's own *granted*
+ * width was already generous (e.g. 636pt/848px on a real Step 1 block), but
+ * the old `COMPACT_WIDTH_PT = 170` / `× 0.42` pair capped the chart at a
+ * bare, content-driven minimum regardless of how much more room was
+ * actually available, so the chart sat in a small corner of its own box.
+ * `layoutGapBands`'s own "never force-wrap short text just to fill space"
+ * behaviour (BVVL round 4, still correct — see `chartLayout.test.ts`) is
+ * untouched; only the FLOOR fed into it here now tracks most of the real
+ * available width (`COMPACT_WIDTH_RATIO`) instead of a small fixed minimum,
+ * with `COMPACT_WIDTH_MIN_PT` only as a defensive floor for a pathologically
+ * narrow allocation.
+ */
+const COMPACT_WIDTH_MIN_PT = 150;
+const COMPACT_WIDTH_RATIO = 0.8;
 const CHART_MARGIN_PX = 20;
 
 /**
@@ -32,11 +61,11 @@ const CHART_MARGIN_PX = 20;
  * closing the round-1/round-2 overlap complaints structurally instead of
  * shrinking text or moving it by a few px.
  */
-const AXIS_LABEL_WIDTH_PX = 22;
+const AXIS_LABEL_WIDTH_PX = 34;
 const AXIS_TARGET_TICKS = 7;
 const BRIDGE_MARGIN_PX = 16;
-/** Enough for "Hedeften Sapma" (14 chars) at this file's own 9.5px label font — see `barsAreaWidth`'s own note. */
-const LABEL_ZONE_WIDTH_PX = 88;
+/** Enough for "Hedeften Sapma" (14 chars) at this file's own floor-clamped label font — see `barsAreaWidth`'s own note. */
+const LABEL_ZONE_WIDTH_PX = Math.ceil(14 * MIN_FONT_PX * 0.52);
 
 /** Rounds `rough` up to the nearest "nice" step (1/2/5 × a power of ten) — standard chart-axis tick spacing. */
 function niceAxisStep(rough: number): number {
@@ -88,8 +117,8 @@ interface BarValueLayout {
 }
 
 /** Below this, even the minimum readable font (`MIN_READABLE_FONT_PX`) plus its own padding doesn't fit inside the bar. */
-const MIN_READABLE_FONT_PX = 9;
-const INSIDE_FONT_PX = 12;
+const MIN_READABLE_FONT_PX = MIN_FONT_PX;
+const INSIDE_FONT_PX = Math.max(14, MIN_FONT_PX);
 
 /**
  * Real-app follow-up round 4 (2026-09-17, Barış's own direct correction):
@@ -137,8 +166,8 @@ function barValueLayout(topY: number, plotBottom: number): BarValueLayout {
  * `size` this component is handed, never measured after mount.
  */
 export function GapAnalysisChart({ spec, size }: { spec: GapAnalysisChartSpec; size: A3ImageSize }) {
-  const compactWidthPx = Math.min(COMPACT_WIDTH_PT * PT_TO_PX, size.widthPx * 0.42);
-  const maxWidthPx = Math.max(compactWidthPx, size.widthPx - CHART_MARGIN_PX);
+  const maxWidthPx = Math.max(COMPACT_WIDTH_MIN_PT * PT_TO_PX, size.widthPx - CHART_MARGIN_PX);
+  const compactWidthPx = Math.max(COMPACT_WIDTH_MIN_PT * PT_TO_PX, Math.min(size.widthPx * COMPACT_WIDTH_RATIO, maxWidthPx));
   const layout = layoutGapBands(spec.bandTexts, BAND_FONT_PX, compactWidthPx, maxWidthPx);
   const boxX = (size.widthPx - layout.widthPx) / 2;
 
@@ -208,7 +237,7 @@ export function GapAnalysisChart({ spec, size }: { spec: GapAnalysisChartSpec; s
       viewBox={`0 0 ${size.widthPx} ${size.heightPx}`}
     >
       <rect x={0} y={0} width={size.widthPx} height={size.heightPx} fill="#FFFFFF" />
-      <text x={size.widthPx / 2} y={16} fontSize={13} fontWeight={700} textAnchor="middle" fill="#1A1A1A">
+      <text x={size.widthPx / 2} y={MIN_FONT_PX + 4} fontSize={MIN_FONT_PX} fontWeight={700} textAnchor="middle" fill="#1A1A1A">
         {spec.title}
       </text>
 
@@ -217,7 +246,7 @@ export function GapAnalysisChart({ spec, size }: { spec: GapAnalysisChartSpec; s
         return (
           <g key={tick}>
             <line x1={plotLeft} y1={y} x2={plotRight} y2={y} stroke="#EEECE4" />
-            <text x={plotLeft - 6} y={y + 3} fontSize={8} textAnchor="end" fill="#8A877C">
+            <text x={plotLeft - 6} y={y + 3} fontSize={MIN_FONT_PX} textAnchor="end" fill="#8A877C">
               {tick}
               {spec.unit}
             </text>
@@ -239,11 +268,11 @@ export function GapAnalysisChart({ spec, size }: { spec: GapAnalysisChartSpec; s
         {spec.actualValue}
         {spec.unit}
       </text>
-      <text x={actualBarX + barWidth / 2} y={plotBottom + 16} fontSize={10} textAnchor="middle" fill="#5A584F">
+      <text x={actualBarX + barWidth / 2} y={plotBottom + MIN_FONT_PX + 4} fontSize={MIN_FONT_PX} textAnchor="middle" fill="#5A584F">
         {spec.actualBarLabel}
       </text>
       {spec.actualDate && (
-        <text x={actualBarX + barWidth / 2} y={plotBottom + 28} fontSize={9} textAnchor="middle" fill="#8A877C">
+        <text x={actualBarX + barWidth / 2} y={plotBottom + 2 * MIN_FONT_PX + 8} fontSize={MIN_FONT_PX} textAnchor="middle" fill="#8A877C">
           ({spec.actualDate})
         </text>
       )}
@@ -260,11 +289,11 @@ export function GapAnalysisChart({ spec, size }: { spec: GapAnalysisChartSpec; s
         {spec.idealValue}
         {spec.unit}
       </text>
-      <text x={idealBarX + barWidth / 2} y={plotBottom + 16} fontSize={10} textAnchor="middle" fill="#5A584F">
+      <text x={idealBarX + barWidth / 2} y={plotBottom + MIN_FONT_PX + 4} fontSize={MIN_FONT_PX} textAnchor="middle" fill="#5A584F">
         {spec.idealBarLabel}
       </text>
       {spec.idealDate && (
-        <text x={idealBarX + barWidth / 2} y={plotBottom + 28} fontSize={9} textAnchor="middle" fill="#8A877C">
+        <text x={idealBarX + barWidth / 2} y={plotBottom + 2 * MIN_FONT_PX + 8} fontSize={MIN_FONT_PX} textAnchor="middle" fill="#8A877C">
           ({spec.idealDate})
         </text>
       )}
@@ -297,15 +326,16 @@ export function GapAnalysisChart({ spec, size }: { spec: GapAnalysisChartSpec; s
         markerStart="url(#gapAnalysisArrow)"
         markerEnd="url(#gapAnalysisArrow)"
       />
-      <text x={labelX} y={labelMidY - 4} fontSize={9.5} textAnchor="start" fill={PROBLEM_COLOR}>
+      <text x={labelX} y={labelMidY - 4} fontSize={MIN_FONT_PX} textAnchor="start" fill={PROBLEM_COLOR}>
         {spec.deviationLabel}
       </text>
-      <text x={labelX} y={labelMidY + 13} fontSize={15} fontWeight={700} textAnchor="start" fill={PROBLEM_COLOR}>
+      <text x={labelX} y={labelMidY + DEVIATION_VALUE_FONT_PX} fontSize={DEVIATION_VALUE_FONT_PX} fontWeight={700} textAnchor="start" fill={PROBLEM_COLOR}>
         {deviationText}
         {spec.unit}
       </text>
 
       {drawBands(spec, layout, boxX, chartHeightPx)}
+
     </svg>
   );
 }

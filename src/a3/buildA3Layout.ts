@@ -110,8 +110,18 @@ export function buildA3Layout(
       value: field.label,
       styleId: field.labelStyleId,
     });
+    // Rev00 paints every approval value cell whether or not it holds a name,
+    // so a field with its OWN value range always emits one — an empty string
+    // still carries the fill and the border.
+    //
+    // A field whose value range IS its label range (D-96: `farplas-7step-tr`'s
+    // own footer, where a wet-ink signature goes beside the printed label and
+    // there is no separate cell) must not, or it would emit a second cell at
+    // the same ref and overwrite the label's own style with the value's.
     const value = resolveFooterFieldValue();
-    if (value) {
+    if (field.valueRange !== field.labelRange) {
+      cells.push({ ref: topLeft(field.valueRange), value, styleId: field.valueStyleId });
+    } else if (value) {
       cells.push({ ref: topLeft(field.valueRange), value, styleId: field.valueStyleId });
     }
   }
@@ -143,16 +153,36 @@ export function buildA3Layout(
   );
 
   for (const block of resolvedBlocks) {
+    // Rev00 fidelity (2026-09-22): a block with a guidance strip spends the
+    // LAST row of its `headerRange` on that strip, so the title cell only
+    // ever covers the rows above it. A block with no strip (Rev00's own
+    // ADIM 4, and every `farplas-7step-tr` block) behaves exactly as before.
+    const headerBounds = parseRange(block.headerRange);
+    const subHeaderRow = block.subHeader && block.subHeader.length > 0 ? headerBounds.end.row : undefined;
+    const titleLastRow = subHeaderRow === undefined ? headerBounds.end.row : subHeaderRow - 1;
+    const titleRange = `${block.contentColumns.first}${headerBounds.start.row}:${block.contentColumns.last}${titleLastRow}`;
+
     cells.push({
-      ref: topLeft(block.headerRange),
+      ref: topLeft(titleRange),
       value: block.label,
       styleId: block.headerStyleId,
     });
+
+    if (subHeaderRow !== undefined) {
+      for (const cell of block.subHeader!) {
+        const range = `${cell.firstCol}${subHeaderRow}:${cell.lastCol}${subHeaderRow}`;
+        cells.push({ ref: `${cell.firstCol}${subHeaderRow}`, value: cell.value, styleId: "blockSubHeader" });
+        if (cell.firstCol !== cell.lastCol) {
+          dynamicMerges.push({ range });
+        }
+      }
+    }
+
     if (block.elastic) {
       // Non-elastic blocks keep their header merge in the template's own
       // static `merges` list; an elastic block's header moves per project,
       // so its merge can only be declared here, from the resolved range.
-      dynamicMerges.push({ range: block.headerRange });
+      dynamicMerges.push({ range: titleRange });
 
       // Faz 11/L3b (D-170): the drag-handle overlay's own geometry source —
       // `stepIds[0]` is the same key `resolveElasticBlocks` already reads
@@ -207,11 +237,45 @@ export function buildA3Layout(
       contentColumnWidths,
       options.rendererMap,
       project.meta.language,
+      template.bodyFontPt,
     );
 
     cells.push(...placement.cells);
     dynamicMerges.push(...placement.merges);
     pendingImages.push(...placement.pendingImages);
+
+    // Rev00 fidelity: the reference form paints every fillable canvas cell
+    // cream, whether or not anything is written in it. The app only ever
+    // emits a cell where it has content, so without this an unfilled block
+    // renders bare white and the sheet stops looking like the form. Painted
+    // AFTER real content so nothing can overwrite it, and only on refs no
+    // placed cell or merge already owns.
+    if (template.canvasFillStyleId) {
+      const occupied = new Set(placement.cells.map((cell) => cell.ref));
+      for (const merge of placement.merges) {
+        const bounds = parseRange(merge.range);
+        for (const column of contentColumnWidths) {
+          const columnIndex = columnLetterToIndex(column.key);
+          if (
+            columnIndex < columnLetterToIndex(bounds.start.column) ||
+            columnIndex > columnLetterToIndex(bounds.end.column)
+          ) {
+            continue;
+          }
+          for (let rowNumber = bounds.start.row; rowNumber <= bounds.end.row; rowNumber += 1) {
+            occupied.add(`${column.key}${rowNumber}`);
+          }
+        }
+      }
+      for (let rowNumber = block.contentRows.start; rowNumber <= block.contentRows.end; rowNumber += 1) {
+        for (const column of contentColumnWidths) {
+          const ref = `${column.key}${rowNumber}`;
+          if (!occupied.has(ref)) {
+            cells.push({ ref, value: "", styleId: template.canvasFillStyleId });
+          }
+        }
+      }
+    }
 
     // The chart is built from whichever of this block's aggregate-declaring
     // entries actually survived placement above — an action dropped to the
@@ -268,10 +332,25 @@ export function buildA3Layout(
   const staticMerges = template.merges.filter(
     (staticMerge) => !dynamicMerges.some((dynamicMerge) => rangesOverlap(staticMerge.range, dynamicMerge.range)),
   );
-  const merges: MergedRange[] = [...staticMerges, ...dynamicMerges];
+  // A "merge" spanning exactly one cell is not a merge, and
+  // `rust_xlsxwriter` refuses the whole workbook over it
+  // (`Xlsx(MergeRangeSingleCell)`) — found 2026-09-22 by actually producing
+  // a real `.xlsx`, which no unit test had been doing: the descriptor and
+  // the HTML preview both accept a single-cell range happily, so this can
+  // only ever surface at the writer. Rev00 genuinely has single-cell fields
+  // (the approval band's three "Tarih" columns), so rather than forbid
+  // declaring them, they are dropped here — one guard that protects every
+  // template, present and future.
+  const isRealMerge = (range: string): boolean => {
+    const bounds = parseRange(range);
+    return bounds.start.row !== bounds.end.row || bounds.start.column !== bounds.end.column;
+  };
+  const merges: MergedRange[] = [...staticMerges, ...dynamicMerges].filter((merge) => isRealMerge(merge.range));
 
   const a3Sheet: SheetDescriptor = {
-    name: "A3",
+    // Rev00's own worksheet is called "A3 Summary" — the tab name is visible
+    // in Excel, so it is part of "birebir aynı" too.
+    name: "A3 Summary",
     columns: template.columns,
     rows: template.rows,
     merges,

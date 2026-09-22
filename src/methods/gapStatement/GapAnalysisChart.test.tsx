@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { GapAnalysisChart } from "./GapAnalysisChart";
+import { minImageFontPx } from "../../a3/readability";
 import type { GapAnalysisChartSpec } from "../chartSpec";
 
 const PT_TO_PX = 96 / 72;
@@ -83,7 +84,8 @@ describe("GapAnalysisChart — deviation bracket never overlaps a bar's own valu
 describe("GapAnalysisChart — round 3: real axis, in-bar values, bridge routed past the bars", () => {
   it("keeps the deviation label fully inside the image's own declared width", () => {
     const svg = renderToStaticMarkup(<GapAnalysisChart spec={realSpec()} size={REAL_SIZE} />);
-    const labelMatch = svg.match(/<text x="([\d.]+)" y="[\d.]+" font-size="9.5" text-anchor="start"[^>]*>Hedeften Sapma/);
+    // Font size is now the readability floor, not a literal — match any size.
+    const labelMatch = svg.match(/<text x="([\d.]+)" y="[\d.]+" font-size="[\d.]+" text-anchor="start"[^>]*>Hedeften Sapma/);
     expect(labelMatch).toBeDefined();
     const labelX = Number(labelMatch![1]);
     // "Hedeften Sapma" at 9.5px needs real room to its right — this is
@@ -99,7 +101,7 @@ describe("GapAnalysisChart — round 3: real axis, in-bar values, bridge routed 
 
   it("places a tall bar's own value label INSIDE the bar (white text)", () => {
     const svg = renderToStaticMarkup(<GapAnalysisChart spec={{ ...realSpec(), actualValue: 16.4, idealValue: 3 }} size={REAL_SIZE} />);
-    const actualLabel = svg.match(/<text x="[\d.]+" y="[\d.]+" font-size="12" font-weight="700" fill="(#[0-9A-F]+)" text-anchor="middle">16\.4/);
+    const actualLabel = svg.match(/<text x="[\d.]+" y="[\d.]+" font-size="[\d.]+" font-weight="700" fill="(#[0-9A-F]+)" text-anchor="middle">16\.4/);
     expect(actualLabel?.[1]).toBe("#FFFFFF");
   });
 
@@ -121,7 +123,10 @@ describe("GapAnalysisChart — round 3: real axis, in-bar values, bridge routed 
     const svg = renderToStaticMarkup(<GapAnalysisChart spec={{ ...realSpec(), actualValue: 16.4, idealValue: 3 }} size={REAL_SIZE} />);
     const idealLabel = svg.match(/<text x="[\d.]+" y="([\d.]+)" font-size="([\d.]+)" font-weight="700" fill="(#[0-9A-F]+)" text-anchor="middle">3/);
     expect(idealLabel?.[3]).toBe("#2E7D32");
-    expect(Number(idealLabel?.[2])).toBe(12);
+    // Full-size, not shrunk: `INSIDE_FONT_PX` is now driven by the printed
+    // 10pt readability floor (`src/a3/readability.ts`) rather than a literal
+    // 12, so assert it is at or above that floor instead of a fixed number.
+    expect(Number(idealLabel?.[2])).toBeGreaterThanOrEqual(minImageFontPx());
   });
 });
 
@@ -178,5 +183,49 @@ describe("GapAnalysisChart — round 5: arrowhead tip-aligned, not centre-aligne
     const markerMatch = svg.match(/<marker id="gapAnalysisArrow" markerWidth="([\d.]+)" markerHeight="[\d.]+" refX="([\d.]+)"/);
     expect(markerMatch).toBeDefined();
     expect(Number(markerMatch![2])).toBe(Number(markerMatch![1]));
+  });
+});
+
+/**
+ * 2026-09-20 real-app follow-up (Barış's own direct report on a real
+ * `farplas-7step-tr` screenshot, `reference/
+ * PPS_A3_EK-2905_Yüksek_Fire_Problemi_10.08.2026.xlsx` given as the
+ * target size): the old `COMPACT_WIDTH_PT = 170` / `× 0.42` pair capped
+ * the chart at a small, content-driven minimum regardless of how much
+ * more room was actually granted — confirmed via a real `buildA3Layout`
+ * run, `farplas-7step-tr`'s own Step 1 column hands this entry 636pt
+ * (848px), yet the chart used to render at barely a quarter of that.
+ */
+describe("GapAnalysisChart — 2026-09-20 follow-up (uses most of a much wider real box, not a small fixed minimum)", () => {
+  /** farplas-7step-tr's own real Step 1 side-by-side geometry for this entry (636×420pt), confirmed via a real `buildA3Layout` run. */
+  const WIDE_SIZE = { widthPx: 636 * PT_TO_PX, heightPx: 420 * PT_TO_PX };
+
+  /**
+   * Deliberately SHORT band texts — `realSpec()`'s own long "Problem
+   * Tanımı" band already needs a two-line-minimum width close to what this
+   * follow-up grants, which would pass even under the OLD, buggy formula
+   * and mask the real regression (confirmed by mutation-testing against
+   * the old `COMPACT_WIDTH_PT = 170` / `× 0.42` pair — it stayed GREEN with
+   * `realSpec()`, only went RED with genuinely short bands like these,
+   * where nothing but the width-preference itself can be driving the
+   * chosen width).
+   */
+  function shortBandSpec(): GapAnalysisChartSpec {
+    return { ...realSpec(), bandTexts: ["İdeal: %3", "Mevcut: %16,4", "Fark: %13,4"] };
+  }
+
+  it("draws a plot area much wider than the old ~227px compact cap, not just a narrow chart centred in a big margin", () => {
+    const svg = renderToStaticMarkup(<GapAnalysisChart spec={shortBandSpec()} size={WIDE_SIZE} />);
+    // The axis (`#C9C6BA`) draws two lines — a vertical left border (x2 ===
+    // x1) and the horizontal bottom border. The bottom border's own SPAN
+    // (x2 − x1), not its raw x2, is the real read of plot width — x2 alone
+    // also grows with `boxX`'s own centring offset even when the chart
+    // itself stays narrow, which would mask the regression this guards.
+    const axisLines = [...svg.matchAll(/<line x1="([\d.]+)" y1="[\d.]+" x2="([\d.]+)" y2="[\d.]+" stroke="#C9C6BA">/g)];
+    const horizontalAxis = axisLines.find(([, x1, x2]) => x1 !== x2);
+    expect(horizontalAxis).toBeDefined();
+    const plotSpanPx = Number(horizontalAxis![2]) - Number(horizontalAxis![1]);
+    const oldCompactCeilingPx = 170 * PT_TO_PX;
+    expect(plotSpanPx).toBeGreaterThan(oldCompactCeilingPx * 1.5);
   });
 });

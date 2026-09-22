@@ -1,27 +1,32 @@
 import { describe, expect, it } from "vitest";
 import { createNewProject } from "../../domain/model/createProject";
-import { farplas7StepTr } from "./farplas-7step-tr";
 import { pps8StepAuto } from "./pps-8step-auto";
 import { DEFAULT_TEMPLATE_ID, getTemplateById, listTemplates } from "./registry";
 
 /**
  * Faz 11/L1 (D-223 §2.4): this dilim's one real new architecture mechanism.
+ *
+ * 2026-09-22 (TEK FORMAT KURALI): the registry now holds exactly one
+ * template. `farplas-7step-tr` was de-registered, because a project still
+ * carrying its id went on rendering the old form — preview and export
+ * alike — while five sessions of Rev00 fidelity work landed on a template
+ * nothing pointed at.
  */
 describe("template registry (D-223)", () => {
-  it("resolves both registered templates by id", () => {
-    expect(getTemplateById("farplas-7step-tr")).toBe(farplas7StepTr);
+  it("resolves the one registered template by id", () => {
     expect(getTemplateById("pps-8step-auto")).toBe(pps8StepAuto);
   });
 
-  it("falls back to farplas-7step-tr for an unrecognised templateId (D-52/P-05's own graceful-degradation posture)", () => {
-    expect(getTemplateById("some-future-template-this-build-has-never-heard-of")).toBe(farplas7StepTr);
-    expect(getTemplateById("")).toBe(farplas7StepTr);
+  it("resolves a legacy or unrecognised templateId to the Rev00 form, so no project is stranded on a retired format", () => {
+    expect(getTemplateById("farplas-7step-tr")).toBe(pps8StepAuto);
+    expect(getTemplateById("some-future-template-this-build-has-never-heard-of")).toBe(pps8StepAuto);
+    expect(getTemplateById("")).toBe(pps8StepAuto);
   });
 
-  it("lists exactly the two registered templates", () => {
+  it("lists exactly the one registered template", () => {
     const templates = listTemplates();
-    expect(templates).toHaveLength(2);
-    expect(templates.map((t) => t.id).sort()).toEqual(["farplas-7step-tr", "pps-8step-auto"]);
+    expect(templates).toHaveLength(1);
+    expect(templates.map((t) => t.id)).toEqual(["pps-8step-auto"]);
   });
 
   it("D-157: DEFAULT_TEMPLATE_ID is pps-8step-auto, and matches what createNewProject actually writes", () => {

@@ -3,42 +3,22 @@ import { columnLetterToIndex, parseRange } from "../cellRef";
 import { pps8StepAuto } from "./pps-8step-auto";
 
 /**
- * Faz 11/L1 (D-223/D-224): structural invariants for the transcribed
- * geometry — `farplas-7step-tr` has no equivalent file of its own (it was
- * hand-verified against the reference `.xls` via the Rust fidelity suite,
- * D-97), but this template's row math (D-158's default row counts, minus
- * D-224's own "2-row header" correction) is exactly the kind of arithmetic
- * that silently drifts if a block's range is ever edited by hand later.
+ * Structural invariants for the Rev00 transcription.
+ *
+ * The GEOMETRY itself (row count/heights, column grid, print setup, block
+ * titles, the elastic floors) is asserted in `rev00Fidelity.test.ts` against
+ * the numbers measured straight out of the reference workbook — one source
+ * of truth, not two (Anayasa Madde 2). What stays here is the structural
+ * arithmetic that would silently drift if a range were ever hand-edited:
+ * nothing straddling the fold, every referenced style id actually existing.
+ *
+ * 2026-09-22: the §12 page-contract assertions this file used to carry
+ * (24 columns at 8.285714, 795pt of rows, a 50-row block band, 0.32in
+ * margins) were all Oturum A's own WIDENED contract, not Rev00's. They are
+ * gone, replaced by the measured values — see `pps-8step-auto.ts`'s own
+ * header comment for why the widening was reverted.
  */
-describe("pps-8step-auto (TEMPLATE_ANALYSIS.md §12, D-158/D-224)", () => {
-  it("has 24 body columns of 8.285714 charWidth plus one 1.142857 KAT divider (§12.2)", () => {
-    const bodyColumns = pps8StepAuto.columns.filter((c) => c.key !== "M");
-    expect(bodyColumns).toHaveLength(24);
-    expect(bodyColumns.every((c) => c.charWidth === 8.285714)).toBe(true);
-
-    const divider = pps8StepAuto.columns.find((c) => c.key === "M");
-    expect(divider?.charWidth).toBe(1.142857);
-  });
-
-  it("fold symmetry: the left 12 columns and the right 12 columns are identical in count and width (D-151)", () => {
-    const mIndex = pps8StepAuto.columns.findIndex((c) => c.key === "M");
-    const left = pps8StepAuto.columns.slice(0, mIndex);
-    const right = pps8StepAuto.columns.slice(mIndex + 1);
-    expect(left).toHaveLength(12);
-    expect(right).toHaveLength(12);
-  });
-
-  it("rows sum to exactly 795.00pt: 32 (title) + 71 (identity) + 650 (block band) + 42 (approval) (§12.3)", () => {
-    const total = pps8StepAuto.rows.reduce((sum, row) => sum + row.heightPt, 0);
-    expect(total).toBeCloseTo(795.0, 5);
-  });
-
-  it("the block band (rows 4-53) is exactly 50 rows of 13pt = 650pt (D-158's invariant column total)", () => {
-    const blockRows = pps8StepAuto.rows.filter((r) => r.index >= 4 && r.index <= 53);
-    expect(blockRows).toHaveLength(50);
-    expect(blockRows.every((r) => r.heightPt === 13)).toBe(true);
-  });
-
+describe("pps-8step-auto — structural invariants", () => {
   it("has exactly 8 blocks, each mapped to exactly one app-step (unlike farplas-7step-tr's merged Step 5+6)", () => {
     expect(pps8StepAuto.blocks).toHaveLength(8);
     const allSteps = pps8StepAuto.blocks.flatMap((b) => b.appSteps);
@@ -46,43 +26,51 @@ describe("pps-8step-auto (TEMPLATE_ANALYSIS.md §12, D-158/D-224)", () => {
     expect(pps8StepAuto.blocks.every((b) => b.appSteps.length === 1)).toBe(true);
   });
 
-  it("left-column blocks (ADIM 1/2/3) each reserve a 2-row header + D-158's own default canvas rows, summing to 50", () => {
-    const leftBlocks = pps8StepAuto.blocks.filter((b) => b.contentColumns.first === "A");
-    expect(leftBlocks.map((b) => b.appSteps[0])).toEqual([1, 2, 3]);
-
-    const totalLeftRows = leftBlocks.reduce((sum, block) => {
-      const headerRows = parseRange(block.headerRange).end.row - parseRange(block.headerRange).start.row + 1;
-      const canvasRows = block.contentRows.end - block.contentRows.start + 1;
-      return sum + headerRows + canvasRows;
-    }, 0);
-    expect(totalLeftRows).toBe(50);
-
-    // D-158's own defaults, minus D-224's 2-row header correction.
-    expect(leftBlocks.map((b) => b.contentRows.end - b.contentRows.start + 1)).toEqual([12, 26, 6]);
-  });
-
-  it("right-column blocks (ADIM 4-8) each reserve a 2-row header + D-158's own default canvas rows, summing to 50", () => {
-    const rightBlocks = pps8StepAuto.blocks.filter((b) => b.contentColumns.first === "N");
-    expect(rightBlocks.map((b) => b.appSteps[0])).toEqual([4, 5, 6, 7, 8]);
-
-    const totalRightRows = rightBlocks.reduce((sum, block) => {
-      const headerRows = parseRange(block.headerRange).end.row - parseRange(block.headerRange).start.row + 1;
-      const canvasRows = block.contentRows.end - block.contentRows.start + 1;
-      return sum + headerRows + canvasRows;
-    }, 0);
-    expect(totalRightRows).toBe(50);
-
-    expect(rightBlocks.map((b) => b.contentRows.end - b.contentRows.start + 1)).toEqual([18, 6, 6, 6, 4]);
+  it("fold symmetry: the left 12 columns and the right 12 columns are identical in count and width (D-151)", () => {
+    const left = pps8StepAuto.columns.slice(0, 12);
+    const right = pps8StepAuto.columns.slice(13);
+    expect(left).toHaveLength(12);
+    expect(right).toHaveLength(12);
+    expect(left.map((c) => c.charWidth)).toEqual(right.map((c) => c.charWidth));
   });
 
   it("no block's header or content range crosses the M divider column", () => {
+    const mIndex = columnLetterToIndex("M");
     for (const block of pps8StepAuto.blocks) {
       const headerRange = parseRange(block.headerRange);
       const headerFirst = columnLetterToIndex(headerRange.start.column);
       const headerLast = columnLetterToIndex(headerRange.end.column);
-      const mIndex = columnLetterToIndex("M");
-      const straddlesM = headerFirst <= mIndex && mIndex <= headerLast;
-      expect(straddlesM).toBe(false);
+      expect(headerFirst <= mIndex && mIndex <= headerLast).toBe(false);
+
+      const contentFirst = columnLetterToIndex(block.contentColumns.first);
+      const contentLast = columnLetterToIndex(block.contentColumns.last);
+      expect(contentFirst <= mIndex && mIndex <= contentLast).toBe(false);
+    }
+  });
+
+  it("no guidance-strip cell crosses the M divider column either", () => {
+    const mIndex = columnLetterToIndex("M");
+    for (const block of pps8StepAuto.blocks) {
+      for (const cell of block.subHeader ?? []) {
+        const first = columnLetterToIndex(cell.firstCol);
+        const last = columnLetterToIndex(cell.lastCol);
+        expect(first <= mIndex && mIndex <= last).toBe(false);
+        expect(first).toBeLessThanOrEqual(last);
+      }
+    }
+  });
+
+  it("every guidance strip spans exactly its own block's columns, with no gap and no overlap", () => {
+    for (const block of pps8StepAuto.blocks) {
+      const cells = block.subHeader;
+      if (!cells || cells.length === 0) {
+        continue;
+      }
+      expect(cells[0]!.firstCol).toBe(block.contentColumns.first);
+      expect(cells[cells.length - 1]!.lastCol).toBe(block.contentColumns.last);
+      for (let i = 1; i < cells.length; i += 1) {
+        expect(columnLetterToIndex(cells[i]!.firstCol)).toBe(columnLetterToIndex(cells[i - 1]!.lastCol) + 1);
+      }
     }
   });
 
@@ -98,29 +86,33 @@ describe("pps-8step-auto (TEMPLATE_ANALYSIS.md §12, D-158/D-224)", () => {
     }
   });
 
-  it("has exactly 12 header-identity-band fields, matching D-153's own field list", () => {
-    expect(pps8StepAuto.headerFields.map((f) => f.id)).toEqual([
-      "ppsId",
-      "problemTitle",
-      "problemOwner",
-      "customer",
-      "line",
-      "priority",
-      "department",
-      "partNumber",
-      "openedAt",
-      "revision",
-      "targetClosureDate",
-      "generalRag",
+  it("has exactly 12 header-identity-band fields, matching Rev00's own field list", () => {
+    expect(pps8StepAuto.headerFields).toHaveLength(12);
+    expect(pps8StepAuto.headerFields.map((f) => f.label)).toEqual([
+      "PPS ID",
+      "Problem Başlığı",
+      "Problem Sahibi",
+      "Müşteri / Tesis",
+      "Hat / Makine",
+      "Öncelik",
+      "Bölüm",
+      "Parça / Proses",
+      "Açılış Tarihi",
+      "Revizyon",
+      "Hedef Kapanış",
+      "Genel RAG",
     ]);
   });
 
-  it("has exactly 5 footer (approval) fields, each its own label-only range (D-96's precedent)", () => {
-    expect(pps8StepAuto.footerFields).toHaveLength(5);
-    expect(pps8StepAuto.footerFields.every((f) => f.labelRange === f.valueRange)).toBe(true);
+  it("gives every approval field its own value cell on the row below its label (Rev00's own two-row band)", () => {
+    expect(pps8StepAuto.footerFields).toHaveLength(11);
+    for (const field of pps8StepAuto.footerFields) {
+      expect(field.labelRange).not.toBe(field.valueRange);
+      expect(parseRange(field.valueRange).start.row).toBe(parseRange(field.labelRange).start.row + 1);
+    }
   });
 
-  it("every style id referenced by a headerFields/footerFields/blocks entry exists in the style table", () => {
+  it("every style id referenced by a headerFields/footerFields/blocks/staticCells entry exists in the style table", () => {
     const styleIds = new Set(pps8StepAuto.styles.map((s) => s.id));
     for (const field of [...pps8StepAuto.headerFields, ...pps8StepAuto.footerFields]) {
       expect(styleIds.has(field.labelStyleId)).toBe(true);
@@ -128,19 +120,16 @@ describe("pps-8step-auto (TEMPLATE_ANALYSIS.md §12, D-158/D-224)", () => {
     }
     for (const block of pps8StepAuto.blocks) {
       expect(styleIds.has(block.headerStyleId)).toBe(true);
+      expect(styleIds.has(block.bodyStyleId)).toBe(true);
     }
+    for (const cell of pps8StepAuto.staticCells) {
+      expect(styleIds.has(cell.styleId)).toBe(true);
+    }
+    expect(styleIds.has(pps8StepAuto.canvasFillStyleId!)).toBe(true);
+    // Emitted by `buildA3Layout` for every block declaring a guidance strip.
+    expect(styleIds.has("blockSubHeader")).toBe(true);
   });
 
-  /**
-   * ADIM 1 BVVL round (2026-09-16/17): D-224's Layer A/B `fillStyleId`
-   * chip styles are gone — `gapStatement`/`fiveN1K` no longer render as
-   * `zones`+`fillStyleId` text cells, they render as one rasterized image
-   * each (`GapAnalysisChart`/`FiveN1KDiagram`), drawing D-165's own hex
-   * values directly in SVG rather than looking them up in a template's
-   * style table. Nothing else in the codebase still references these ids
-   * (grep-confirmed before removal) — this test locks in that they stay
-   * removed rather than silently reappearing as dead weight.
-   */
   it("no longer carries the retired Layer A/B fillStyleId chip styles (BVVL round)", () => {
     const styleIds = new Set(pps8StepAuto.styles.map((s) => s.id));
     for (const id of ["bandPositive", "bandCaution", "bandNegative"]) {
@@ -151,9 +140,7 @@ describe("pps-8step-auto (TEMPLATE_ANALYSIS.md §12, D-158/D-224)", () => {
     }
   });
 
-  it("uses a 0.32in margin on all four sides and a 100% zoom (§12.1)", () => {
-    expect(pps8StepAuto.marginsIn).toEqual({ top: 0.32, bottom: 0.32, left: 0.32, right: 0.32 });
-    expect(pps8StepAuto.zoomPercent).toBe(100);
-    expect(pps8StepAuto.bodyRowHeightPt).toBe(13);
+  it("declares a body row height matching Rev00's own 18pt block-band rows", () => {
+    expect(pps8StepAuto.bodyRowHeightPt).toBe(18);
   });
 });

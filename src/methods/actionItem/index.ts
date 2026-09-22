@@ -13,11 +13,20 @@ export const ACTION_ITEM_METHOD_ID = "action-item";
 
 /**
  * P-22/D-270: rows the block-level Gantt reserves at the top of Step 6's
- * block, before any action's own text row — the same conservative sizing
- * `kpiStrip`'s own `CHART_ROW_SPAN` (D-182/P-63) already chose against
- * `pps-8step-auto`'s tighter elastic canvases.
+ * block, before any action's own text row.
+ *
+ * Recalibrated 2026-09-22 from 6 to 4, against Rev00's real ADIM 6 canvas
+ * (4 rows). At 6 the block's total demand — chart plus two actions' five
+ * text rows each — exceeded even the whole right column's borrowable
+ * surplus by exactly one row, so a second action silently landed in an
+ * appendix and lost its bar on the chart. Unlike a per-entry image this is
+ * a BLOCK-LEVEL reservation made by `buildA3Layout` itself, so it cannot
+ * use `maxDemandRowSpan`'s self-bounding trick the way `kpiStrip` now does
+ * (P-63); a value matched to the real canvas is the honest fix available
+ * here. Making block-aggregate reservations elastic too is worth doing, but
+ * it is a mechanism change, not a constant.
  */
-const GANTT_ROW_SPAN = 6;
+const GANTT_ROW_SPAN = 4;
 
 function buildActionItemGanttSpec(
   entries: readonly { readonly id: string; readonly title: string; readonly payload: ActionItemPayload }[],

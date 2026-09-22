@@ -17,7 +17,7 @@ const RESULT_LABEL: Readonly<Record<A3Language, string>> = { tr: "Sonuç", en: "
  * when that happens; D-100's overflow guarantee already sends any entry
  * that still doesn't fit to the appendix rather than truncating it.
  */
-const CHART_ROW_SPAN = 6;
+const CHART_MAX_DEMAND_ROW_SPAN = 6;
 
 /**
  * P-63 fix: the title used to be a separate `lines` entry (1 row) on top of
@@ -40,7 +40,18 @@ export function renderKpiStripToA3(payload: KpiStripPayload, entry: A3EntrySumma
     lines: [],
     image: {
       kind: "kpi-strip",
-      rowSpan: CHART_ROW_SPAN,
+      // P-63, closed properly (2026-09-22): a FIXED `rowSpan` is a promise
+      // about a canvas whose size this file cannot know. It was 6 to match
+      // `pps-8step-auto`'s then-6-row ADIM 7 canvas; Rev00's real ADIM 7
+      // canvas is 4 rows, so the fixed span broke again the moment the
+      // template was transcribed faithfully — the same bug, a second time,
+      // for the same reason. Omitting `rowSpan` and declaring only a
+      // `maxDemandRowSpan` ceiling makes placement self-bound to whatever
+      // the block actually resolved to (`place.ts`), so this entry fits any
+      // canvas size and can never again unconditionally overflow, while the
+      // ceiling still stops it ballooning across a near-empty column
+      // (`gapStatement`/`fiveN1K`'s own round-8 pattern).
+      maxDemandRowSpan: CHART_MAX_DEMAND_ROW_SPAN,
       spec: {
         kind: "kpi-strip",
         title: entry.title,

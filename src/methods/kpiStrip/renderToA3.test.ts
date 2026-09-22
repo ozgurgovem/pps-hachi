@@ -23,7 +23,11 @@ describe("renderKpiStripToA3", () => {
 
     expect(content.lines).toEqual([]);
     expect(content.image?.kind).toBe("kpi-strip");
-    expect(content.image?.rowSpan).toBe(6);
+    // P-63, closed properly: no fixed `rowSpan` any more — placement
+    // self-bounds to the block's real canvas, so this can never again
+    // overflow a canvas smaller than a hardcoded guess.
+    expect(content.image?.rowSpan).toBeUndefined();
+    expect(content.image?.maxDemandRowSpan).toBe(6);
     const spec = content.image?.spec as KpiStripChartSpec;
     expect(spec.title).toBe("ADIM 7 KPI izleme");
   });

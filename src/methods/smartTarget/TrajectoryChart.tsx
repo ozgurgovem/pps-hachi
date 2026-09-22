@@ -1,6 +1,7 @@
 import { Bar, CartesianGrid, ComposedChart, Line, XAxis, YAxis } from "recharts";
 import type { A3ImageSize } from "../../a3/methodContract";
 import type { TrajectoryChartSpec } from "../chartSpec";
+import { A3_AXIS_TICK } from "../shared/chartText";
 
 /**
  * D-38: Step 3's zone B — baseline→target trajectory. Rendered once here,
@@ -23,8 +24,8 @@ export function TrajectoryChart({ spec, size }: { spec: TrajectoryChartSpec; siz
       margin={{ top: 8, right: 16, bottom: 8, left: 8 }}
     >
       <CartesianGrid strokeDasharray="3 3" />
-      <XAxis dataKey="label" />
-      <YAxis />
+      <XAxis dataKey="label" tick={A3_AXIS_TICK} />
+      <YAxis tick={A3_AXIS_TICK} />
       <Bar
         dataKey="baseline"
         fill="#B8AE93"

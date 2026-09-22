@@ -2959,6 +2959,178 @@ AI layer: Faz 8 fully done (keychain + Vorion connection/model-discovery + strea
   (`AskUserQuestion`, opposite of the recommended "build it now" option). Launch prompt:
   `docs/oturumlar/adim1-yan-yana-yerlesim.md`. `npm test` 325 files/1729 tests, exit code 0.
   `npm run lint`/`npx tsc --noEmit` clean. `cargo test`/`clippy`/`fmt` clean — Rust untouched.
+**`pps-8step-auto`'s visual chrome corrected to match Rev00's own real colors/fonts/borders
+  (D-277, 2026-09-18) — Barış's own direct request ("identical to the reference format"),
+  visual only, no functional-rule changes.** §11.6 had explicitly left cell styles/fills/
+  borders/fonts uninventoried, and that gap survived L1's own build (D-224) — the shipped
+  colors were copied from `farplas-7step-tr.ts`'s own PDCA scheme (a different source file)
+  rather than measured from Rev00 itself, producing garish red/yellow/cyan/green instead of
+  Rev00's real navy/teal/green. This session read every fill/font/border on Rev00's `A3
+  Summary` sheet cell-by-cell (`openpyxl`) and corrected `pps-8step-auto.ts`'s style table to
+  match exactly: title band `#17365D` navy fill + white 17pt text (was borderless-fill/black
+  text with a stray border); block headers use exactly **three** colors, not four independent
+  PDCA phases (ADIM 1-3 navy `#1F4E78`, ADIM 4-6 teal `#0F6B78`, ADIM 7-8 the *same* green
+  `#70AD47` — Check and Act are painted identically in the real file); field labels/values/
+  footer labels gained their real fills (`#E7E6E6`/`#FFF9E6`/`#D9E2F3`), font sizes/colors, and
+  thin `#B7C9D6` borders (all previously borderless with wrong sizes/colors); a new `katLabel`
+  static cell ("KAT" at `M3`) was added, matching Rev00's own divider label that the app never
+  had. Font family (Calibri) deliberately untouched — D-224 already chose it as a reasoned
+  substitute for Rev00's own measured "Carlito" (LibreOffice's metric clone of Calibri), and
+  reverting it would undo a already-justified decision. Geometry (rows/columns/merges/block
+  ranges/elastic minimums) is completely unchanged — verified by `pps-8step-auto.test.ts`'s 14
+  structural tests staying green untouched, and by a real `buildA3Layout` descriptor dump
+  confirming the corrected colors land exactly where expected. This session's own uncommitted,
+  mid-flight work (the deferred ADIM 1 "yan-yana yerleşim" side-by-side-placement effort, see
+  the D-272 entry above) was found to touch adjacent files (`gapStatement`/`fiveN1K`/
+  `place.ts`/`placeZones.ts`/`elasticAllocation.ts`) — per AKIS.md's own "a dirty worktree
+  belongs to the user, stop and ask if a new task would touch the same files" rule, Barış was
+  asked first; he chose "leave it as-is, work around it," so this change touches
+  `pps-8step-auto.ts` only (confirmed via `git status`). Deliberately not touched/built:
+  `farplas-7step-tr.ts` (built from a different source file, not expected to match this
+  reference); Rev00's own 4-row "VAKA BİLGİLERİ" banner+field structure (the app's 2-row
+  identity band is §12.3/Oturum A's own already-locked page-contract decision — changing row
+  counts would cascade into block start rows, crossing into "functional" geometry, out of
+  scope); each block's static internal sub-header row (Rev00's "ID·Aksiyon·Sorumlu·Termin·
+  Durum" table headers — the app's generic entry-canvas architecture was a deliberate B2/B3/
+  C1-C6 design choice, reopening it would be a far larger project); a full-height `M`-column
+  fill (only the single "KAT" label cell was added); a `dashed` border weight (the descriptor's
+  `BorderWeight` type only supports thin/medium/thick — adding a new weight would be a schema
+  change, `thin` used as the closest available approximation). `npm test` 328 files/1764 tests,
+  exit code 0 (checked via a separate logfile). `npm run lint` clean (the one pre-existing
+  `ThemeProvider` warning). `npx tsc --noEmit` clean. Rust untouched (TS-only,
+  `src-tauri/` empty in `git status`). `scripts/gen-a3-fixture.ts` not re-run — it only
+  exercises `farplas-7step-tr`, untouched by this change. **Honestly unverified, the usual
+  class of gap**: no display/Tauri runtime in this environment — the corrected colors were
+  never seen in a real WKWebView window or a real exported/opened `.xlsx`; Barış's own
+  `npm run tauri dev` walkthrough is still owed.
+**`pps-8step-auto`'s identity band rebuilt to Rev00's own real 4-row structure (D-278,
+  2026-09-20) — Barış's own follow-up ("still not identical — the top PPS info area still
+  reads as the old file").** D-277 had only fixed colors/fonts; §12.3's own Oturum A page-
+  contract decision (a flat 2-row field grid, no banner) was still in place, which is what
+  made the identity band still read as generic/interchangeable with `farplas-7step-tr`'s own
+  header. Re-measured Rev00's real row heights (18/24/24/5pt — a "VAKA BİLGİLERİ" banner row,
+  two field rows, one filler row) and found they already sum to the same 71pt total §12.3
+  used, so the rebuild changed zero page totals (still 795pt) — only where the identity
+  band's own 71pt is internally split. This pushes every row from the old row 4 onward down
+  by exactly 2 (block band now rows 6-55, footer now row 56); `ROWS`/`HEADER_FIELDS`/
+  `BLOCKS`/`FOOTER_FIELDS`/`MERGES`/`printArea` in `pps-8step-auto.ts` were all updated
+  together, plus a new `STATIC_CELLS` banner (reusing `blockHeaderPlan`'s style directly,
+  since Rev00 paints its banner identically to its block headers) and the "KAT" divider
+  label moved to align with it. This is template-geometry-only — `place.ts`/`placeZones.ts`/
+  `elasticAllocation.ts` read a block's `headerRange`/`contentRows` off the template, never a
+  hardcoded number, so no placement/budget/elastic-solver logic changed, only its inputs.
+  Checked for conflict with the still-uncommitted mid-flight "yan-yana yerleşim" work a
+  second time (same file set as D-277 flagged) — `elasticAllocation.test.ts`'s own hardcoded
+  row numbers turned out to belong to an independent synthetic test template, never the real
+  `pps8StepAuto` import, so zero overlap; the one real hit was two stale absolute-row
+  assertions in `l1FiveN1kGapStatementCoexist.probe.test.ts` (both outside that file's own
+  uncommitted diff), fixed as a minimal, mechanical two-line correction. `npm test` 328
+  files/1764 tests, exit code 0. `npm run lint`/`npx tsc --noEmit` clean. Rust untouched.
+  `scripts/gen-a3-fixture.ts` not re-run (farplas-7step-tr only). Deliberately still
+  unmatched: per-block internal sub-header rows and the M-column's full-height fill (both
+  cross into the generic-content-canvas architecture, out of a geometry-only correction's
+  scope). **Honestly unverified, the usual class of gap**: no display/Tauri runtime in this
+  environment; Barış's own `npm run tauri dev` walkthrough is still owed.
+**ADIM 1's `five-n1k`/`gap-analysis` diagrams still rendered too small (D-279, 2026-09-20)
+  — reported via a real app screenshot (`farplas-7step-tr`, the red "1. PROBLEMİN
+  TANIMLANMASI" header) plus a reference example file
+  (`reference/PPS_A3_EK-2905_Yüksek_Fire_Problemi_10.08.2026.xlsx`), root-caused and fixed
+  in both SVG components.** The prior, already-committed session (D-273–D-276) fixed elastic
+  over-growth but over-corrected: a real `buildA3Layout` run proved the GRANTED box was
+  already generous (1011×560px for the 5N1K diagram, 848×560px for the gap chart on
+  `farplas-7step-tr`'s own wide Step 1) — the bug was in the two React SVG components' own
+  sizing logic, not in `place.ts`. `FiveN1KDiagram.tsx`: its `viewBox` width used to be
+  locked to `size.widthPx` itself, which under SVG's `preserveAspectRatio="meet"` math
+  permanently capped the overall scale factor at ≤1 (could shrink, never grow) — fixed with
+  a fixed `NATURAL_WIDTH_PX=378` (this component's own already-tuned width) for both
+  `viewBox` dimensions, letting `meet` genuinely scale the whole diagram up uniformly;
+  verified real scale factor 2.67× on the real scenario (diagram now fills ~99% of its box,
+  was pinned at ~37%). `GapAnalysisChart.tsx`: `COMPACT_WIDTH_PT=170`/`×0.42` kept the chart
+  at a small content-driven minimum regardless of available space — raised the floor to
+  `COMPACT_WIDTH_RATIO=0.8` of available width (was ~27% used, now ~80%); `layoutGapBands`'s
+  own "never force-wrap short text" behavior (BVVL round 4) stayed untouched and its tests
+  stayed green. Both fixes mutation-verified (temporarily reverted to the true original
+  formulas, confirmed genuinely RED, restored, confirmed GREEN) — the GapChart check needed
+  a second pass after a real false-negative was caught: the first test reused `realSpec()`,
+  whose own long "Problem Tanımı" band already demanded a similar width from text-wrapping
+  alone, masking the regression; fixed with a dedicated short-text fixture. `npm test` 328
+  files/1767 tests, exit 0. `npm run lint`/`npx tsc --noEmit` clean. Rust untouched.
+  **Honestly unverified**: no display/Tauri runtime here — the computed improvement (2.67×
+  scale, 80% width utilization) is a real code-level result, not a pixel-measured screenshot
+  match; Barış's own `npm run tauri dev` look is still owed.
+**Same-day round 2 (D-280): the D-279 fix above was mathematically correct but produced ZERO
+  visible change in Barış's very next real screenshot — the 8th such round.** Rather than
+  guess a 9th time, `FiveN1KDiagram.tsx`'s `preserveAspectRatio`-based scale-up was removed
+  entirely (this exact rasterization pipeline has two prior, real, browser-only capture
+  quirks on record — D-105, D-113 — that jsdom tests can never reproduce, making
+  `viewBox`/`preserveAspectRatio` a genuine unverifiable risk). Its `viewBox` now always
+  equals `size.widthPx × size.heightPx` exactly, matching `GapAnalysisChart.tsx`'s own
+  already-working pattern (G2); row height is computed directly from the granted height,
+  clamped between round 9's approved 27.8px floor and a new 55px ceiling. Both components
+  also got a temporary, impossible-to-miss diagnostic — a magenta border drawn last (so it
+  paints on top of everything) at the component's own real received box, plus the raw
+  `widthPx`/`heightPx` as text — so the next real screenshot will show definitively whether
+  the granted box itself is small (an upstream bug not yet found) or genuinely large (meaning
+  this rewrite worked). Tests rewritten to match the new contract, mutation-verified. `npm
+  test` 328/1767 green, lint/tsc clean, Rust untouched. **Still not verified in a real
+  window** — this is the honest state, not a claim of success.
+**D-281 (2026-09-22): the pop-out preview screenshot revealed the REAL explanation for
+  "eski format" — the project is on `farplas-7step-tr` (the legacy template), not
+  `pps-8step-auto`.** Field names visible in the screenshot ("Sorumlu/Kaizen No/Konu/
+  Müdürlük/Kayıp Cinsi", block headers "1. PROBLEMİN TANIMLANMASI"/"4. KÖK NEDEN ANALİZİ")
+  match `farplas-7step-tr.ts` exactly — none of D-277/D-278's identity-band/color work ever
+  applied to this project, since that work only touched `pps-8step-auto.ts`, a completely
+  separate file. The pop-out preview, inline step preview, and Export A3 all genuinely share
+  one source (D-133/D-229) — there's no drift between them; the project's own `templateId`
+  is simply still the old one. **Action needed from Barış: Settings → Template → switch to
+  `pps-8step-auto`** (D-225's own switcher, already built and working). Separately, D-280's
+  debug border WAS visible in the real screenshot — confirming the dev server picked up the
+  fix (ruling out staleness) — but its text used a fixed 11px font, illegible at the 36% zoom
+  shown. Replaced with a font size proportional to the box itself (`min(width,height)*0.18`,
+  filled background), so the next screenshot will show the real number unambiguously
+  regardless of scale. `npm test` 328/1767 green, lint/tsc clean. **Still open**: whether the
+  granted box is genuinely small in this real project (a real bug not yet found) or the
+  earlier screenshot's smallness was a scale/reading artifact — the next legible screenshot
+  resolves it.
+**İKİ DEĞİŞMEZ KURAL (D-282, 2026-09-22) — bunlar Barış'ın açık talimatıdır, yeniden
+  müzakere edilmez.**
+  **(1) TEK FORMAT, Rev00 ile BİREBİR.** A3 formatı
+  `reference/PPS_A3_Problem_Solving_Template_Rev00.xlsx` ile birebir aynıdır. Kayıt
+  defterinde tek şablon vardır (`pps-8step-auto`); tanınmayan/eski bir `templateId`
+  ona düşer. "Asıl A3" ile "adımlardaki önizleme" iki ayrı format DEĞİLDİR — üçü de
+  (satır-içi önizleme, pop-out pencere, Export A3) `getTemplateById(project.templateId)`
+  ile aynı tek descriptor'ı okur. Beş oturumluk sadakat çalışmasının Barış'ın ekranına
+  hiç ulaşmamasının sebebi, açık projenin emekli `farplas-7step-tr`'ye kilitli olmasıydı.
+  Geometri sayıları referans dosyadan **ölçülür** (openpyxl), eski analiz belgelerinden
+  kopyalanmaz — §12'nin genişletilmiş sütun sözleşmesi (47.25pt) GERİ ALINDI, çünkü
+  gerçek imzalı `PPS_A3_EK-2905` dosyası Rev00'un harfi harfine geometrisini taşıyor.
+  `ColumnDef.charWidth` **görünür** karakter değeridir (= saklanan − 5/7); saklanan
+  değeri kopyalamak sayfayı ~90pt genişletir ve A3 sığması sessizce bozulur.
+  Tek bilinçli sapma, Barış'ın kendi seçimi: **çerçeve sabit, kanvas esnek** —
+  sayfa/marj/sütun/katlama/renk/font/blok adları/yönlendirme şeritleri Rev00 ile
+  aynıdır, yalnızca bir bloğun kanvas yüksekliği komşusu boşsa büyür (D-158/D-160/
+  D-226). Bunun bedeli: Rev00'un ADIM 2 içindeki 32. satır şeridi ve ADIM 3'ün 43.
+  satırı, kanvasın ORTASINDA sabit satırlar oldukları için yok — üretilen dosyada eksik
+  olan tek şey bu 5 etiket.
+  **(2) OKUNABİLİRLİK TABANI: basılı yazı en az 10 pt.** Uygulamanın A3 alanlarına
+  yerleştirdiği her şey — hücre metni, grafik/diyagram etiketleri, eksen değerleri.
+  Tek kaynak `src/a3/readability.ts`. İki farklı birim vardır ve karıştırmak bu hatanın
+  kök nedenidir: **hücre metni** puntoyla yazılır ve Excel'in sığdırma oranıyla küçülür
+  (`bodyFontPt × fitScale`, şablon seviyesi kısıt); **grafik metni** pikselle yazılır,
+  `widthPt × PT_TO_PX` pikselde rasterize edilip tam `widthPt` puntoda geri konur, yani
+  1 görsel pikseli her zaman 1/1.3333 puntodur (`RASTER_SCALE` bunu DEĞİŞTİRMEZ, sadece
+  çözünürlüğü) — %100 basılan sayfada taban **13.34px**, `minImageFontPx()`. Yer
+  yetmiyorsa yazıyı küçültme: içeriği kırp (görülebilir) ya da alanı büyüt. Rev00'un
+  kendi form kromu (8pt alan etiketleri, blok başlıkları, şeritler) kural (1)'e tabidir,
+  bu tabana değil. Sabit `rowSpan` bu ailenin tekrar eden hatasıdır (bilinmeyen bir
+  kanvas hakkında verilmiş söz) — mümkünse `maxDemandRowSpan` kullan; P-63 böyle
+  gerçekten kapandı.
+  **Her iki kural da mekanik kapıya bağlı** (Anayasa Bölüm 4): `rev00Fidelity.test.ts`
+  (ölçülen Rev00 geometrisi + basılı font tabanı) ve `chartReadability.test.tsx`
+  (bileşenlerin gerçekten çizdiği `font-size`'ları DOM'dan okur). İkisi de mutasyonla
+  doğrulandı. **Ve: "birebir" iddiası gerçek `.xlsx` üretilmeden yapılmaz** — testler
+  `Xlsx(MergeRangeSingleCell)` hatasını göremedi, dosyayı gerçekten yazmak yakaladı.
+  Tam kayıt: D-282.
 Templates: two company .xls files analysed; see reference/TEMPLATE_ANALYSIS.md
 Template geometry: VERIFIED 2026-08-01 against both .xls files. Five errors found and
   corrected in place — the largest was the column widths: the real split is 49.7/50.3, NOT

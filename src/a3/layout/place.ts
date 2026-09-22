@@ -8,7 +8,7 @@ import {
   type A3TextTone,
 } from "../methodContract";
 import type { TemplateBlock } from "../templates/types";
-import { ENTRY_CONTENT_FONT_PT, resolveLineStyleId, type ColumnWidth } from "./contentStyle";
+import { resolveLineStyleId, type ColumnWidth } from "./contentStyle";
 import { estimateCharsPerLine, wrapText } from "./measure";
 import { placeZonesContent, splitColumnsIntoZones } from "./placeZones";
 import { groupIntoRuns } from "./widthFractionGroups";
@@ -87,8 +87,9 @@ function placeEntryContent(
   startRow: number,
   lastRow: number,
   contentRows: readonly RowDef[],
+  bodyFontPt: number,
 ): PlacedEntryContent | undefined {
-  const maxCharsPerLine = estimateCharsPerLine(range.widthPt, ENTRY_CONTENT_FONT_PT);
+  const maxCharsPerLine = estimateCharsPerLine(range.widthPt, bodyFontPt);
   const wrappedLines: WrappedLine[] = [];
   for (const line of content.lines) {
     for (const text of wrapText(line.text, maxCharsPerLine)) {
@@ -170,6 +171,8 @@ export function placeBlockContent(
   contentColumnWidths: readonly ColumnWidth[],
   rendererMap: A3EntryRendererMap,
   language: ProjectModel["meta"]["language"],
+  /** The template's own `bodyFontPt` — what this block's text is actually rendered at, and therefore what line wrapping must be estimated against. */
+  bodyFontPt: number,
 ): PlacedBlockContent {
   const cells: CellData[] = [];
   const merges: MergedRange[] = [];
@@ -219,6 +222,7 @@ export function placeBlockContent(
           groupStartRow,
           lastRow,
           contentRows,
+          bodyFontPt,
         );
         if (!placed) {
           droppedEntryIds.push(item.entry.id);
@@ -273,6 +277,7 @@ export function placeBlockContent(
       row,
       lastRow,
       contentRows,
+      bodyFontPt,
     );
     if (!placed) {
       droppedEntryIds.push(entry.id);

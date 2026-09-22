@@ -101,10 +101,10 @@ describe("gapStatement — buildA3Layout two-call survival (BVVL round)", () => 
     });
     expect(pendingImages[0]!.heightPt).toBeGreaterThan(0);
     // A solo `widthFraction` entry (no sibling to group with) falls back to
-    // the FULL block width (A:L, 567pt) — the same width a pre-side-by-side
+    // the FULL block width (A:L, 495pt) — the same width a pre-side-by-side
     // entry would have gotten, not a half-width column it has no partner to
     // share with.
-    expect(pendingImages[0]!.widthPt).toBeCloseTo(567, 1);
+    expect(pendingImages[0]!.widthPt).toBeCloseTo(495, 1);
   });
 
   it("resolves a renderer for gap-analysis-chart via the shared registry map", () => {

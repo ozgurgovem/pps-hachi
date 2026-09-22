@@ -5,8 +5,16 @@ import type { FiveN1KDiagramSpec } from "../chartSpec";
 import { FIVE_N1K_ANSWER_SOFT_LIMIT } from "./constants";
 
 const PT_TO_PX = 96 / 72;
-/** pps-8step-auto's real ADIM 1 side-by-side geometry (283.5×156pt) — the same size `renderToA3.ts` actually requests. */
-const REAL_SIZE = { widthPx: 283.5 * PT_TO_PX, heightPx: 156 * PT_TO_PX };
+/**
+ * The real granted box on the Rev00 form (measured through `buildA3Layout`,
+ * 2026-09-22): ADIM 1 is 495pt wide, split in half between this diagram and
+ * the gap chart, and 299pt tall once the block's own elastic growth is
+ * resolved. The old 283.5 x 156 pair was the pre-Rev00 §12 contract's
+ * geometry and is 2x too short, which made the readability floor look like
+ * it forced truncation when in reality the box is tall enough for two
+ * lines per row.
+ */
+const REAL_SIZE = { widthPx: 247.5 * PT_TO_PX, heightPx: 299 * PT_TO_PX };
 
 /** The reference document's own six real 5N1K answers (EK-2905's A3 Summary sheet, longest 40 chars) — the calibration sample `FIVE_N1K_ANSWER_SOFT_LIMIT`'s own doc comment cites. */
 function referenceAnswerSpec(): FiveN1KDiagramSpec {
@@ -45,9 +53,15 @@ describe("FiveN1KDiagram — round 9 (Farplas design handoff: header + row numbe
     expect(rows).toHaveLength(6);
   });
 
-  it("renders the real reference document's longest answer (41 chars) on a single line, with no ellipsis", () => {
+  it("renders the real reference document's longest answer (41 chars) in full, with no ellipsis", () => {
     const svg = renderToStaticMarkup(<FiveN1KDiagram spec={referenceAnswerSpec()} size={REAL_SIZE} />);
-    expect(svg).toContain("15.07.2026 Enj. Makinesi Değişikliği ile");
+    // Okunabilirlik kuralı (2026-09-22): at the printed-10pt floor this no
+    // longer fits on ONE line inside a half-block ADIM 1 box, so it wraps
+    // onto the row's second line. What must still hold is that nothing is
+    // LOST — every word is present and no ellipsis appears.
+    for (const word of "15.07.2026 Enj. Makinesi Değişikliği ile".split(" ")) {
+      expect(svg).toContain(word);
+    }
     expect(svg).not.toContain("…");
   });
 
@@ -69,10 +83,17 @@ describe("FiveN1KDiagram — round 9 (Farplas design handoff: header + row numbe
     expect(borders).toEqual(["#3C3F42", "#53565A", "#064F58", "#077E89", "#B21924", "#C71C27"]);
   });
 
-  it("renders zero-padded row numbers 01 through 06, in order", () => {
+  /**
+   * Okunabilirlik kuralı (2026-09-22): round 9's decorative "01".."06" row
+   * index was drawn at 6px — 4.5pt printed, far under the floor. It carries
+   * no information the row order does not already show, and at the floor
+   * font it would not fit inside the chevron beside its own label, so it was
+   * removed rather than printed illegibly. This keeps it removed.
+   */
+  it("draws no decorative row-number index — it could not carry the readability floor", () => {
     const svg = renderToStaticMarkup(<FiveN1KDiagram spec={referenceAnswerSpec()} size={REAL_SIZE} />);
     for (const rowNumber of ["01", "02", "03", "04", "05", "06"]) {
-      expect(svg).toContain(`>${rowNumber}<`);
+      expect(svg).not.toContain(`>${rowNumber}<`);
     }
   });
 
@@ -131,10 +152,7 @@ describe("FiveN1KDiagram — round 9 (Farplas design handoff: header + row numbe
  * box doesn't match the diagram's own natural proportions, scale the WHOLE
  * diagram uniformly (never stretch one axis independently).
  */
-describe("FiveN1KDiagram — round 9 follow-up (flat-left chevron, fixed row height regardless of growth)", () => {
-  /** pps-8step-auto's own round-8 elastic-growth ceiling (24 rows/312pt) — the same size a near-empty column can hand this diagram. */
-  const GROWN_SIZE = { widthPx: 283.5 * PT_TO_PX, heightPx: 24 * 13 * PT_TO_PX };
-
+describe("FiveN1KDiagram — round 9 follow-up (flat-left chevron)", () => {
   it("draws each chevron with a FLAT left edge (5 points), not an inward-notched 'ribbon' shape (6 points)", () => {
     const svg = renderToStaticMarkup(<FiveN1KDiagram spec={referenceAnswerSpec()} size={REAL_SIZE} />);
     const firstPolygon = svg.match(/<polygon points="([^"]+)"/)?.[1];
@@ -147,26 +165,60 @@ describe("FiveN1KDiagram — round 9 follow-up (flat-left chevron, fixed row hei
     expect(points[0]![0]).toBe(0);
     expect(points[4]![0]).toBe(0);
   });
+});
 
-  it("keeps every row's own height IDENTICAL whether the block is at its default size or elastically grown", () => {
-    const defaultSvg = renderToStaticMarkup(<FiveN1KDiagram spec={referenceAnswerSpec()} size={REAL_SIZE} />);
-    const grownSvg = renderToStaticMarkup(<FiveN1KDiagram spec={referenceAnswerSpec()} size={GROWN_SIZE} />);
+/**
+ * 2026-09-20 real-app follow-up, attempt 2 (Barış's own direct report, a
+ * real screenshot on `farplas-7step-tr`'s much wider Step 1 block, given
+ * TWICE now across two consecutive rounds with zero visible change each
+ * time): attempt 1 (a fixed natural `viewBox` size + `preserveAspectRatio`
+ * scale-up) was correct BY ARITHMETIC — confirmed via a real `buildA3Layout`
+ * run and the SVG spec's own documented "meet" formula — but produced no
+ * visible change in the real app. Rather than keep trusting a mechanism
+ * this project's own history (D-105, D-113) already found fragile under
+ * this exact `html-to-image` capture pipeline, this attempt drops
+ * `preserveAspectRatio` scaling entirely: `viewBox` now always equals
+ * `size.widthPx × size.heightPx` exactly (matching `GapAnalysisChart.tsx`'s
+ * own already-working pattern, G2), and row height is computed directly
+ * from the real granted height, clamped between round 9's own approved
+ * floor and a deliberate ceiling.
+ */
+describe("FiveN1KDiagram — 2026-09-20 follow-up, attempt 2 (viewBox always matches the real box exactly, no scale transform)", () => {
+  /** farplas-7step-tr's own real Step 1 side-by-side geometry for this entry (758.25×420pt), confirmed via a real `buildA3Layout` run — nearly 3× `REAL_SIZE`'s own tuned width. */
+  const WIDE_SIZE = { widthPx: 758.25 * PT_TO_PX, heightPx: 420 * PT_TO_PX };
+  /** pps-8step-auto's own round-8 elastic-growth ceiling (24 rows/312pt) — the same size a near-empty column can hand this diagram. */
+  const GROWN_SIZE = { widthPx: 283.5 * PT_TO_PX, heightPx: 24 * 13 * PT_TO_PX };
 
-    const defaultViewBox = defaultSvg.match(/viewBox="([^"]+)"/)?.[1];
-    const grownViewBox = grownSvg.match(/viewBox="([^"]+)"/)?.[1];
-    // The internal viewBox (where row geometry actually lives) must be
-    // IDENTICAL regardless of the real, much taller outer box — proving
-    // row height is a fixed constant, not derived from `size.heightPx`.
-    expect(grownViewBox).toBe(defaultViewBox);
-
-    // The outer <svg> width/height DO still match the real granted box —
-    // only the internal content stays fixed-size, scaled to fit by the
-    // browser's own `preserveAspectRatio`, not stretched by this component.
-    expect(grownSvg).toContain(`width="${GROWN_SIZE.widthPx}" height="${GROWN_SIZE.heightPx}"`);
+  it("sets viewBox to exactly size.widthPx × size.heightPx — no separate natural coordinate space, no preserveAspectRatio", () => {
+    const svg = renderToStaticMarkup(<FiveN1KDiagram spec={referenceAnswerSpec()} size={WIDE_SIZE} />);
+    expect(svg).toContain(`viewBox="0 0 ${WIDE_SIZE.widthPx} ${WIDE_SIZE.heightPx}"`);
+    expect(svg).toContain(`width="${WIDE_SIZE.widthPx}" height="${WIDE_SIZE.heightPx}"`);
+    expect(svg).not.toContain("preserveAspectRatio");
   });
 
-  it("scales the whole diagram uniformly to fit its real box via preserveAspectRatio, anchored to the top-left", () => {
+  it("grows row height on a much wider/taller real box, well past round 9's own 27.8px default", () => {
+    // Deliberately a SHORT box, not `REAL_SIZE` — the real Rev00 ADIM 1 box
+    // is now tall enough to sit at the row-height ceiling already, so
+    // comparing it against a bigger one would compare 55 with 55.
+    const SHORT_SIZE = { widthPx: REAL_SIZE.widthPx, heightPx: 200 };
+    const narrowSvg = renderToStaticMarkup(<FiveN1KDiagram spec={referenceAnswerSpec()} size={SHORT_SIZE} />);
+    const wideSvg = renderToStaticMarkup(<FiveN1KDiagram spec={referenceAnswerSpec()} size={WIDE_SIZE} />);
+    const narrowChevronHeight = Number(narrowSvg.match(/<polygon points="0,0 [\d.]+,0 [\d.]+,([\d.]+)/)![1]) * 2;
+    const wideChevronHeight = Number(wideSvg.match(/<polygon points="0,0 [\d.]+,0 [\d.]+,([\d.]+)/)![1]) * 2;
+    expect(wideChevronHeight).toBeGreaterThan(narrowChevronHeight);
+  });
+
+  it("never grows row height past the deliberate ceiling, even on a hugely over-grown block (never the old 'sparse, over-tall' rows again)", () => {
     const svg = renderToStaticMarkup(<FiveN1KDiagram spec={referenceAnswerSpec()} size={GROWN_SIZE} />);
-    expect(svg).toContain('preserveAspectRatio="xMinYMin meet"');
+    // Chevron height is 2× the half-height coordinate in `chevronPoints`'s own polygon string.
+    const chevronHeight = Number(svg.match(/<polygon points="0,0 [\d.]+,0 [\d.]+,([\d.]+)/)![1]) * 2;
+    expect(chevronHeight).toBeLessThanOrEqual(55);
+  });
+
+  it("never grows row height below round 9's own approved 27.8px floor, even on a very short real box", () => {
+    const tinySize = { widthPx: 283.5 * PT_TO_PX, heightPx: 60 };
+    const svg = renderToStaticMarkup(<FiveN1KDiagram spec={referenceAnswerSpec()} size={tinySize} />);
+    const chevronHeight = Number(svg.match(/<polygon points="0,0 [\d.]+,0 [\d.]+,([\d.]+)/)![1]) * 2;
+    expect(chevronHeight).toBeGreaterThanOrEqual(27.8);
   });
 });

@@ -7,6 +7,7 @@ import type { A3Template, TemplateBlock } from "../templates/types";
 import type { ColumnWidth } from "./contentStyle";
 import type { EntryWithStep } from "./entriesByBlock";
 import { estimateBlockRowDemand, resolveElasticBlocks } from "./elasticAllocation";
+import { ENTRY_CONTENT_FONT_PT } from "./contentStyle";
 
 const wideColumns: readonly ColumnWidth[] = [{ key: "A", widthPt: 1000 }];
 
@@ -140,6 +141,7 @@ function fixtureElasticTemplate(blocks: readonly TemplateBlock[]): A3Template {
     marginsIn: { top: 0, bottom: 0, left: 0, right: 0 },
     bodyRowHeightPt: 13,
     zoomPercent: 100,
+  bodyFontPt: ENTRY_CONTENT_FONT_PT,
   };
 }
 

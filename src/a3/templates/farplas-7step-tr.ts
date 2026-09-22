@@ -508,4 +508,17 @@ export const farplas7StepTr: A3Template = {
   marginsIn: { top: 0.1969, bottom: 0.1969, left: 0.2362, right: 0.2362 },
   bodyRowHeightPt: 30,
   zoomPercent: 70,
+  /**
+   * This sheet is authored ~2.4x oversize and Excel shrinks it to ~41 % to
+   * fit A3, so the body font has to be authored at 19pt to print near 8pt —
+   * the number `ENTRY_CONTENT_FONT_PT` used to hardcode globally for every
+   * template. It stays 19 here and is now declared per template instead.
+   *
+   * NOTE (2026-09-22): 19 x ~0.41 prints at ~7.8pt, BELOW
+   * `A3_MIN_PRINTED_FONT_PT`. This template is legacy-compatibility only
+   * (D-157) and is no longer what any project renders, which is why
+   * `templates.test.ts` exempts it by name rather than silently lowering the
+   * floor for everyone.
+   */
+  bodyFontPt: 19,
 };

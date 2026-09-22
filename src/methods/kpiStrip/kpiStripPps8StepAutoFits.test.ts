@@ -9,8 +9,9 @@ import { KPI_STRIP_METHOD_ID } from "./index";
 /**
  * P-63's own regression test, per `docs/oturumlar/kucuk-acik-maddeler.md`
  * §1.3: a `kpi-strip` entry must no longer drop to an appendix on
- * `pps-8step-auto`'s real ADIM 7 canvas (`contentRows: { start: 42, end: 47
- * }` — exactly 6 rows, D-158/§12.8), proven through the real `buildA3Layout`
+ * `pps-8step-auto`'s real ADIM 7 canvas (`contentRows: { start: 44, end: 49
+ * }` as of the 2026-09-20 identity-band correction's +2 row shift — still
+ * exactly 6 rows, D-158/§12.8), proven through the real `buildA3Layout`
  * pipeline, not a mock (D-97's own structural-comparison discipline).
  *
  * ADIM 7 is `elastic` (Faz 11/L3a, D-158/D-160), sharing ONE column-wide
@@ -72,16 +73,13 @@ function fixtureProject(): ProjectModel {
       1: emptyStep(),
       2: emptyStep(),
       3: emptyStep(),
-      // ADIM 4 default is 18 canvas rows (minimum 12) — 1 title line + 17
-      // body lines saturates it exactly, the single largest slack source in
-      // ADIM 7's own column group if left empty.
-      4: { entries: [genericTextEntry("root-cause-1", "Kök Neden Analizi", 17)] },
-      // ADIM 5 default is 6 canvas rows (minimum 4) — 1 title line + 5 body
-      // lines saturates it exactly.
-      5: { entries: [genericTextEntry("countermeasure-1", "Uygulama Planı", 5)] },
-      // ADIM 6 default is 6 canvas rows (minimum 4) — 1 title line + 5 body
-      // lines saturates it exactly, leaving nothing for ADIM 7 to borrow.
-      6: { entries: [genericTextEntry("action-item-1", "Eylem Planı", 5)] },
+      // Rev00's own right-column canvas defaults (2026-09-22): ADIM 4 = 13
+      // rows, ADIM 5 = 4, ADIM 6 = 4, ADIM 8 = 3. Each filler is 1 title
+      // line + (default − 1) body lines, saturating its block exactly so
+      // there is no slack anywhere in ADIM 7's column group left to borrow.
+      4: { entries: [genericTextEntry("root-cause-1", "Kök Neden Analizi", 12)] },
+      5: { entries: [genericTextEntry("countermeasure-1", "Uygulama Planı", 3)] },
+      6: { entries: [genericTextEntry("action-item-1", "Eylem Planı", 3)] },
       7: {
         entries: [
           {
@@ -114,7 +112,7 @@ function fixtureProject(): ProjectModel {
       },
       // ADIM 8 default is 4 canvas rows (minimum 3) — 1 title line + 3 body
       // lines saturates it exactly, same reasoning as ADIM 6 above.
-      8: { entries: [genericTextEntry("document-updates-1", "Standart Güncelleme", 3)] },
+      8: { entries: [genericTextEntry("document-updates-1", "Standart Güncelleme", 2)] },
     },
     signOff: {},
     rounds: [],

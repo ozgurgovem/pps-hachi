@@ -1,6 +1,7 @@
 import { Bar, CartesianGrid, ComposedChart, Line, ReferenceLine, XAxis, YAxis } from "recharts";
 import type { A3ImageSize } from "../../a3/methodContract";
 import type { ParetoChartSpec } from "../chartSpec";
+import { A3_AXIS_TICK } from "../shared/chartText";
 
 const DEFAULT_CUTOFF_PERCENT = 80;
 
@@ -44,9 +45,9 @@ export function ParetoChart({ spec, size }: { spec: ParetoChartSpec; size: A3Ima
       margin={{ top: 8, right: 24, bottom: 8, left: 8 }}
     >
       <CartesianGrid strokeDasharray="3 3" />
-      <XAxis dataKey="label" />
-      <YAxis yAxisId="count" />
-      <YAxis yAxisId="percent" orientation="right" domain={[0, 100]} />
+      <XAxis dataKey="label" tick={A3_AXIS_TICK} />
+      <YAxis yAxisId="count" tick={A3_AXIS_TICK} />
+      <YAxis yAxisId="percent" orientation="right" domain={[0, 100]} tick={A3_AXIS_TICK} />
       {/* `isAnimationActive={false}` on every series is load-bearing, not cosmetic:
           Recharts animates from zero on mount, so a capture taken before the
           animation finishes would export bars/lines at the wrong values. */}

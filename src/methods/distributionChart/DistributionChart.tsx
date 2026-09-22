@@ -2,6 +2,7 @@ import { Bar, BarChart, CartesianGrid, ReferenceLine, Scatter, ScatterChart, XAx
 import type { A3ImageSize } from "../../a3/methodContract";
 import type { BoxPlotChartSpec, HistogramChartSpec, ScatterChartSpec } from "../chartSpec";
 import { computeBoxPlotStats, computeHistogramBins } from "./stats";
+import { A3_AXIS_TICK } from "../shared/chartText";
 
 /**
  * SPEC.md §1.3: histogram / scatter / box plot, one component dispatching
@@ -31,8 +32,8 @@ function HistogramView({ spec, size }: { spec: HistogramChartSpec; size: A3Image
   return (
     <BarChart width={size.widthPx} height={size.heightPx} data={[...bins]} margin={{ top: 8, right: 24, bottom: 8, left: 8 }}>
       <CartesianGrid strokeDasharray="3 3" />
-      <XAxis dataKey="rangeLabel" />
-      <YAxis allowDecimals={false} />
+      <XAxis dataKey="rangeLabel" tick={A3_AXIS_TICK} />
+      <YAxis allowDecimals={false} tick={A3_AXIS_TICK} />
       <Bar dataKey="count" fill="#5F4470" name={spec.unit ?? "count"} isAnimationActive={false} />
     </BarChart>
   );
@@ -42,8 +43,8 @@ function ScatterView({ spec, size }: { spec: ScatterChartSpec; size: A3ImageSize
   return (
     <ScatterChart width={size.widthPx} height={size.heightPx} margin={{ top: 8, right: 24, bottom: 8, left: 8 }}>
       <CartesianGrid strokeDasharray="3 3" />
-      <XAxis type="number" dataKey="x" name={spec.xLabel ?? "x"} />
-      <YAxis type="number" dataKey="y" name={spec.yLabel ?? "y"} />
+      <XAxis type="number" dataKey="x" name={spec.xLabel ?? "x"} tick={A3_AXIS_TICK} />
+      <YAxis type="number" dataKey="y" name={spec.yLabel ?? "y"} tick={A3_AXIS_TICK} />
       <ZAxis range={[60, 60]} />
       <Scatter data={[...spec.points]} fill="#5F4470" isAnimationActive={false} />
     </ScatterChart>
@@ -59,8 +60,8 @@ function BoxPlotView({ spec, size }: { spec: BoxPlotChartSpec; size: A3ImageSize
   return (
     <BarChart width={size.widthPx} height={size.heightPx} data={data} margin={{ top: 8, right: 24, bottom: 8, left: 8 }}>
       <CartesianGrid strokeDasharray="3 3" />
-      <XAxis dataKey="name" />
-      <YAxis domain={[stats.min, stats.max]} />
+      <XAxis dataKey="name" tick={A3_AXIS_TICK} />
+      <YAxis domain={[stats.min, stats.max]} tick={A3_AXIS_TICK} />
       <Bar dataKey="belowBox" stackId="box" fill="transparent" isAnimationActive={false} />
       <Bar dataKey="box" stackId="box" fill="#5F4470" isAnimationActive={false} />
       <ReferenceLine y={stats.median} stroke="#A6303F" strokeWidth={2} />

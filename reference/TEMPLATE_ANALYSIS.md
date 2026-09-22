@@ -843,6 +843,30 @@ constraint and the measurement; Oturum A cuts the numbers.
   and the header field set differs from §3's. This changes what `farplas-7step-tr` is *for*.
 - Cell styles, fills, borders and fonts were not inventoried this pass — only geometry, merges,
   text and page setup. PDCA colour coding not checked.
+  **CLOSED 2026-09-18 (D-277)**, for the one sheet that matters (`A3 Summary`): every fill/
+  font/border/alignment was read cell-by-cell via `openpyxl`. Title band `#17365D` fill + white
+  17pt text, no border. Block headers use exactly **three** colours, not four independent PDCA
+  phases — ADIM 1-3 share navy `#1F4E78`, ADIM 4-6 share teal `#0F6B78`, ADIM 7-8 share the
+  *same* green `#70AD47` (Check and Act are painted identically) — all white 10pt text. Field
+  labels `#E7E6E6` fill + 8pt `#404040` text + thin `#B7C9D6` border; field values `#FFF9E6`
+  fill + 11pt regular text + the same border; footer/approval labels `#D9E2F3` fill + the same
+  8pt `#404040` text + the same border. The `M` divider carries a small "KAT" label at its own
+  row 3, `#E7E6E6` fill, 7pt bold `#404040`. `pps-8step-auto.ts`'s style table was corrected to
+  match exactly (its prior colours had been copied from `farplas-7step-tr.ts`'s own, unrelated
+  PDCA scheme rather than measured from Rev00 itself — see D-277 for the full record). Body-
+  canvas sub-header rows, the M-column's full-height fill, and the 4-row "VAKA BİLGİLERİ"
+  banner structure were deliberately left unmeasured/unmatched — they'd require re-opening
+  already-approved architectural decisions (B2/B3/C1-C6's generic content canvas, §12.3's
+  2-row identity band), out of a pure style-table correction's scope.
+  **The identity-band half of this CLOSED too, 2026-09-20 (D-278)**, per Barış's own
+  follow-up ("still not identical — the top info area still reads as the old file"): Rev00's
+  real row heights for its identity band (its own rows 3-6: 18/24/24/5pt — a banner row, two
+  field rows, one filler row) were re-measured and found to already sum to the same 71pt
+  §12.3's own 2-row simplification used, so `pps-8step-auto.ts` was rebuilt to Rev00's real
+  4-row split with zero change to the page's own 795pt total. Still deliberately unmatched:
+  the per-block internal sub-header rows and the M-column's full-height fill (a single "KAT"
+  label at the banner row is the only divider-column treatment) — both still cross into the
+  generic-content-canvas architecture, out of scope for a template-geometry-only correction.
 - The six per-step working sheets and `Lists & Settings` were not analysed; they likely define
   the per-step data model and the dropdown vocabularies, which is direct input to Oturum B.
 

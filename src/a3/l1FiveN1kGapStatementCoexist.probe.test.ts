@@ -135,16 +135,17 @@ describe("Faz 11/L1 D-224 PROBE — fiveN1K + gapStatement coexist in ADIM 1's o
     // infinite row demand, so ADIM 1 genuinely grows past its own static
     // default (12) once its empty neighbours (this fixture's own shape)
     // have nothing to compete with it for — the header must have moved
-    // past the old static row 18, proving real elastic growth happened
-    // (never asserted as a specific row: the exact target depends on the
-    // solver's own arithmetic, which is `resolveElasticBlocks.test.ts`'s
-    // job to pin, not this probe's).
+    // past the template's own static default (row 20, since the 2026-09-20
+    // identity-band correction shifted every block row by +2), proving real
+    // elastic growth happened (never asserted as a specific row: the exact
+    // target depends on the solver's own arithmetic, which is
+    // `resolveElasticBlocks.test.ts`'s job to pin, not this probe's).
     const adim2HeaderCell = descriptor.sheets.a3.cells.find(
-      (cell) => cell.value === "ADIM 2. PROBLEMİ PARÇALARA AYIRIN",
+      (cell) => cell.value === "ADIM 2 — PROBLEMİ PARÇALARA AYIRMA",
     );
     expect(adim2HeaderCell).toBeDefined();
     const adim2HeaderRow = Number(adim2HeaderCell!.ref.match(/\d+/)![0]);
-    expect(adim2HeaderRow).toBeGreaterThan(18);
+    expect(adim2HeaderRow).toBeGreaterThan(20);
 
     const geometry = pendingImages.map((slot) => ({
       kind: slot.kind,
@@ -154,19 +155,20 @@ describe("Faz 11/L1 D-224 PROBE — fiveN1K + gapStatement coexist in ADIM 1's o
       heightPt: slot.heightPt,
     }));
 
-    // Both start at the block's own first content row (6) — neither is
-    // stacked below the other.
+    // Both start at the block's own first content row (9 — Rev00's ADIM 1
+    // spends rows 7-8 on its title and guidance strip) — neither is stacked
+    // below the other.
     for (const slot of geometry) {
-      expect(slot.row).toBe(6);
+      expect(slot.row).toBe(9);
     }
 
-    // Together they span the block's real 12-column width (A:L, 567pt) in
-    // two equal, non-overlapping halves — 6 columns (283.5pt) each, not
-    // the pre-side-by-side full 567pt a stacked entry would have gotten.
+    // Together they span the block's real 12-column width (A:L, 495pt) in
+    // two equal, non-overlapping halves — 6 columns (247.5pt) each, not
+    // the pre-side-by-side full 495pt a stacked entry would have gotten.
     const columns = geometry.map((slot) => slot.col).sort();
     expect(columns).toEqual(["A", "G"]);
     for (const slot of geometry) {
-      expect(slot.widthPt).toBeCloseTo(283.5, 1);
+      expect(slot.widthPt).toBeCloseTo(247.5, 1);
     }
 
     // Both images grow to the SAME real block height (13pt/row × however

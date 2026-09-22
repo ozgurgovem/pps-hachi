@@ -51,12 +51,12 @@ import { groupIntoRuns } from "./widthFractionGroups";
  * entries compete fairly for a column's surplus instead of one of them
  * greedily absorbing all of it, however much is available.
  */
-function singleEntryRowDemand(content: A3BlockContent, widthPt: number): number {
+function singleEntryRowDemand(content: A3BlockContent, widthPt: number, bodyFontPt: number): number {
   if (content.zones) {
     return content.zonesRowSpan ?? Number.POSITIVE_INFINITY;
   }
 
-  const maxCharsPerLine = estimateCharsPerLine(widthPt, ENTRY_CONTENT_FONT_PT);
+  const maxCharsPerLine = estimateCharsPerLine(widthPt, bodyFontPt);
   const lineCount = content.lines.reduce((sum, line) => sum + wrapText(line.text, maxCharsPerLine).length, 0);
 
   if (content.image) {
@@ -75,6 +75,8 @@ export function estimateBlockRowDemand(
   rendererMap: A3EntryRendererMap,
   language: ProjectModel["meta"]["language"],
   aggregateImageMap: A3BlockAggregateImageMap = {},
+  /** The template's own `bodyFontPt`, so the solver's wrap estimate matches what `place.ts` will really do. */
+  bodyFontPt: number = ENTRY_CONTENT_FONT_PT,
 ): number {
   const blockWidthPt = contentColumnWidths.reduce((sum, column) => sum + column.widthPt, 0);
 
@@ -113,7 +115,7 @@ export function estimateBlockRowDemand(
         if (!range) {
           continue;
         }
-        const demand = singleEntryRowDemand(run.items[index]!.content, range.widthPt);
+        const demand = singleEntryRowDemand(run.items[index]!.content, range.widthPt, bodyFontPt);
         if (demand === Number.POSITIVE_INFINITY) {
           return Number.POSITIVE_INFINITY;
         }
@@ -123,7 +125,7 @@ export function estimateBlockRowDemand(
       continue;
     }
 
-    const demand = singleEntryRowDemand(run.items[0]!.content, blockWidthPt);
+    const demand = singleEntryRowDemand(run.items[0]!.content, blockWidthPt, bodyFontPt);
     if (demand === Number.POSITIVE_INFINITY) {
       return Number.POSITIVE_INFINITY;
     }
@@ -383,6 +385,7 @@ export function resolveElasticBlocks(
         rendererMap,
         language,
         aggregateImageMap,
+        template.bodyFontPt,
       );
       const stepId = block.appSteps[0];
       const pinnedRows = stepId === undefined ? undefined : pinnedCanvasRowsByStepId?.get(stepId);

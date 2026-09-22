@@ -97,10 +97,10 @@ describe("5N1K diagram — buildA3Layout two-call survival (BVVL round)", () => 
       kind: "five-n1k-diagram",
     });
     // A solo `widthFraction` entry (no sibling to group with) falls back to
-    // the FULL block width (A:L, 567pt) — the same width a pre-side-by-side
+    // the FULL block width (A:L, 495pt) — the same width a pre-side-by-side
     // entry would have gotten, not a half-width column it has no partner to
     // share with.
-    expect(pendingImages[0]!.widthPt).toBeCloseTo(567, 1);
+    expect(pendingImages[0]!.widthPt).toBeCloseTo(495, 1);
     expect(pendingImages[0]!.heightPt).toBeGreaterThan(0);
   });
 
@@ -196,8 +196,11 @@ describe("5N1K diagram — buildA3Layout two-call survival (BVVL round)", () => 
       steps: {
         ...project.steps,
         1: { entries: [...project.steps[1].entries, gapStatementEntry] },
-        2: { entries: [genericTextEntry("adim2-filler", "Veri Analizi", 25)] },
-        3: { entries: [genericTextEntry("adim3-filler", "Hedef", 5)] },
+        // Rev00's own left-column canvas defaults (2026-09-22): ADIM 2 = 19
+        // rows, ADIM 3 = 5. Each filler is 1 title line + (default − 1) body
+        // lines, saturating its block exactly so ADIM 1 has nothing to borrow.
+        2: { entries: [genericTextEntry("adim2-filler", "Veri Analizi", 18)] },
+        3: { entries: [genericTextEntry("adim3-filler", "Hedef", 4)] },
       },
     };
 

@@ -2,6 +2,7 @@ import { CartesianGrid, ReferenceLine, Scatter, ScatterChart, XAxis, YAxis, ZAxi
 import type { A3ImageSize } from "../../a3/methodContract";
 import type { ImpactEffortChartSpec } from "../chartSpec";
 import { QUADRANT_COLORS, type Quadrant } from "./quadrant";
+import { A3_AXIS_TICK } from "../shared/chartText";
 
 /**
  * P-27: `quadrantOf`'s own split — impact ≥3 is high, effort ≤2 is low — puts
@@ -28,6 +29,7 @@ export function ImpactEffortChart({ spec, size }: { spec: ImpactEffortChartSpec;
     <ScatterChart width={size.widthPx} height={size.heightPx} margin={{ top: 8, right: 16, bottom: 24, left: 8 }}>
       <CartesianGrid strokeDasharray="3 3" />
       <XAxis
+        tick={A3_AXIS_TICK}
         type="number"
         dataKey="effort"
         domain={AXIS_DOMAIN}
@@ -35,6 +37,7 @@ export function ImpactEffortChart({ spec, size }: { spec: ImpactEffortChartSpec;
         label={{ value: spec.xLabel, position: "insideBottom", offset: -16 }}
       />
       <YAxis
+        tick={A3_AXIS_TICK}
         type="number"
         dataKey="impact"
         domain={AXIS_DOMAIN}

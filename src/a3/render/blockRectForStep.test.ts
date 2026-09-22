@@ -53,15 +53,26 @@ function fixtureProject(overrides: Partial<ProjectModel> = {}): ProjectModel {
 }
 
 describe("blockRectForStep", () => {
-  it("computes a static template block's rectangle from its header-through-last-content-row range", () => {
-    const { descriptor } = buildA3Layout(fixtureProject(), farplas7StepTr, { rendererMap });
+  /**
+   * TEK FORMAT KURALI (2026-09-22): the non-elastic fallback below resolves
+   * the block through `getTemplateById(descriptor.templateId)`. Only one
+   * template is registered now, and every one of its blocks is elastic, so
+   * in production this function always takes the `descriptor.elasticBlocks`
+   * path — which is exactly what this asserts, against the geometry the
+   * descriptor itself reports rather than a hardcoded rectangle.
+   */
+  it("computes a block's rectangle from its header row through its last content row", () => {
+    const { descriptor } = buildA3Layout(fixtureProject(), pps8StepAuto, { rendererMap });
     const sheet = descriptor.sheets.a3;
-    // farplas-7step-tr's own Step 4 block (src/a3/templates/farplas-7step-tr.ts):
-    // headerRange "P7:AB7", contentColumns P:AB, contentRows 8-21.
-    const expectedLeft = columnOffsetPx(sheet, "P", 1)!;
-    const expectedTop = rowOffsetPx(sheet, 7, 1)!;
-    const expectedRight = columnOffsetPx(sheet, "AB", 1)! + columnWidthPx(sheet, "AB", 1)!;
-    const expectedBottom = rowOffsetPx(sheet, 21, 1)! + rowHeightPx(sheet, 21, 1)!;
+    const elastic = descriptor.elasticBlocks.find((block) => block.stepIds.includes(4))!;
+    expect(elastic).toBeDefined();
+
+    const expectedLeft = columnOffsetPx(sheet, elastic.contentColumns.first, 1)!;
+    const expectedTop = rowOffsetPx(sheet, Number(elastic.headerRange.match(/\d+/)![0]), 1)!;
+    const expectedRight =
+      columnOffsetPx(sheet, elastic.contentColumns.last, 1)! + columnWidthPx(sheet, elastic.contentColumns.last, 1)!;
+    const expectedBottom =
+      rowOffsetPx(sheet, elastic.contentRows.end, 1)! + rowHeightPx(sheet, elastic.contentRows.end, 1)!;
 
     const rect = blockRectForStep(descriptor, 4);
 

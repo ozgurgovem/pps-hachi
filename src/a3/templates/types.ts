@@ -32,6 +32,23 @@ export interface TemplateStaticCell {
   readonly styleId: string;
 }
 
+/**
+ * Rev00 fidelity (2026-09-22): the reference form draws a light-blue
+ * guidance strip directly under most block titles — "Problemin net tanımı:
+ * Ne? Nerede? Ne zaman? Ne kadar?" under ADIM 1, the "ID · Aksiyon ·
+ * Sorumlu · Termin · Durum" column headers under ADIM 5, and so on. The
+ * strip is part of the block's CHROME, not its canvas: it must travel with
+ * the block whenever the elastic solver moves it, which is exactly why it
+ * cannot be a fixed-ref `TemplateStaticCell` the way the `KAT` divider is.
+ * Declared here, emitted by `buildA3Layout` on the LAST row of the block's
+ * resolved `headerRange`.
+ */
+export interface TemplateSubHeaderCell {
+  readonly firstCol: string;
+  readonly lastCol: string;
+  readonly value: string;
+}
+
 export interface TemplateBlock {
   /** The app's 8-step ids this printed block projects. [5, 6] for the merged countermeasures/implementation block. */
   readonly appSteps: readonly StepId[];
@@ -60,6 +77,14 @@ export interface TemplateBlock {
    * geometry changes.
    */
   readonly elastic?: { readonly minimumCanvasRows: number };
+  /**
+   * Rev00's own guidance/column-header strip for this block. When present,
+   * `headerRange` spans the title row(s) PLUS one strip row, and the title
+   * cell's merge covers everything except that last row. Omitted (every
+   * `farplas-7step-tr` block, plus Rev00's own ADIM 4, which genuinely has
+   * no strip) leaves the header behaving exactly as before.
+   */
+  readonly subHeader?: readonly TemplateSubHeaderCell[];
 }
 
 export interface A3Template {
@@ -80,4 +105,29 @@ export interface A3Template {
   /** Body row height in pt — 1 content line per content row (D-40 legibility floor assumes this). */
   readonly bodyRowHeightPt: number;
   readonly zoomPercent: number;
+  /**
+   * The authored point size of this template's own `entryContent` style —
+   * the single source of truth for line-wrap estimation (`place.ts`,
+   * `elasticAllocation.ts`).
+   *
+   * It used to be one global constant (`ENTRY_CONTENT_FONT_PT = 19`)
+   * derived from `farplas-7step-tr`'s own ~41 % fit scale, which silently
+   * mis-wrapped every other template: `pps-8step-auto` renders its body
+   * text at a completely different size and prints at 100 %, so wrapping it
+   * against 19pt estimated far fewer characters per line than really fit.
+   *
+   * **İçerik okunabilirlik kuralı (Barış, 2026-09-22 — değişmez):** the
+   * PRINTED size of this text is `bodyFontPt × fitScale`, and it must never
+   * fall below `A3_MIN_PRINTED_FONT_PT`. `templates.test.ts` enforces this
+   * mechanically for every registered template — it is a gate, not a
+   * convention.
+   */
+  readonly bodyFontPt: number;
+  /**
+   * Style id painted onto every canvas cell a block leaves empty, so an
+   * unfilled block still shows the reference form's own cream canvas
+   * instead of bare white. Omitted leaves empty cells unpainted (every
+   * pre-Rev00 template's behaviour).
+   */
+  readonly canvasFillStyleId?: string;
 }

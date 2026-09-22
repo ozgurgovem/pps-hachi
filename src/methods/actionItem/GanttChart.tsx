@@ -1,5 +1,6 @@
 import type { A3ImageSize } from "../../a3/methodContract";
 import type { GanttChartSpec } from "../chartSpec";
+import { readableFontPx } from "../../a3/readability";
 
 /**
  * P-22/D-270: hand-rolled SVG, not a Recharts composition — same reasoning
@@ -52,7 +53,8 @@ export function GanttChart({ spec, size }: { spec: GanttChartSpec; size: A3Image
   const trackWidth = Math.max(1, size.widthPx - trackLeft - 4);
   const rowHeight = size.heightPx / count;
   const barHeight = Math.max(3, rowHeight * 0.45);
-  const labelFontSize = Math.max(7, Math.min(11, rowHeight * 0.4));
+  // Okunabilirlik tabanı (readability.ts): a bar label may grow with its row but never shrink under the printed 10pt floor.
+  const labelFontSize = readableFontPx(Math.min(11, rowHeight * 0.4));
 
   const scaleX = (ms: number) => trackLeft + ((ms - timelineMin) / timelineSpan) * trackWidth;
 
