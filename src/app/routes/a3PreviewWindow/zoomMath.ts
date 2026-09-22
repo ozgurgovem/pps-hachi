@@ -110,3 +110,33 @@ export function centeredOrigin(
 export function panBy(current: Viewport, deltaX: number, deltaY: number): Viewport {
   return { ...current, originX: current.originX + deltaX, originY: current.originY + deltaY };
 }
+
+/**
+ * A step's own block is usually NARROWER than the band it sits in — half the
+ * sheet, roughly 660px against a ~970px band. `fitToWindowScale` (the pop-out
+ * window's own helper) deliberately never magnifies past 1:1, which is right
+ * for a whole sheet but wrong here: it left this step's block at 1:1 in a
+ * wider band, so the leftover space showed the NEIGHBOURING blocks under a
+ * heading that says "bu adımın alanı", and threw away readability the band
+ * had room to give.
+ *
+ * This fit may magnify, bounded, and is capped by the band's own height so a
+ * tall block still fits. Kept local rather than changed in `zoomMath.ts` —
+ * the pop-out window's never-magnify convention (D-133) is deliberate and
+ * stays.
+ */
+const MAX_BAND_MAGNIFICATION = 2.5;
+
+export function fitBlockToBandScale(
+  blockWidthPx: number,
+  blockHeightPx: number,
+  containerWidthPx: number,
+  maxHeightPx: number,
+): number {
+  if (blockWidthPx <= 0 || blockHeightPx <= 0 || containerWidthPx <= 0 || maxHeightPx <= 0) {
+    return 1;
+  }
+  const fit = Math.min(containerWidthPx / blockWidthPx, maxHeightPx / blockHeightPx);
+  return Math.min(MAX_BAND_MAGNIFICATION, Math.max(0.05, fit));
+}
+

@@ -8,6 +8,7 @@ import { farplas7StepTr } from "../../../a3/templates/farplas-7step-tr";
 import { blockRectForStep } from "../../../a3/render/blockRectForStep";
 import type { ProjectModel, StepState } from "../../../domain/model";
 import { A3PreviewReservedBand } from "./A3PreviewReservedBand";
+import { fitBlockToBandScale } from "../a3PreviewWindow/zoomMath";
 import type { DescriptorResult } from "./useA3PreviewSync";
 
 const openOrFocusA3PreviewWindow = vi.fn();
@@ -124,5 +125,24 @@ describe("A3PreviewReservedBand", () => {
     await user.click(screen.getByRole("button", { name: "A3 Preview" }));
 
     expect(openOrFocusA3PreviewWindow).toHaveBeenCalledOnce();
+  });
+});
+
+describe("fitBlockToBandScale (D-283) — the step band may magnify, unlike the pop-out window", () => {
+  it("magnifies a block narrower than the band, instead of leaving it at 1:1 with neighbours showing", () => {
+    // A real Rev00 ADIM 1 block (495pt = 660px, short enough that width binds) in a ~970px band.
+    expect(fitBlockToBandScale(660, 280, 970, 420)).toBeCloseTo(970 / 660, 5);
+  });
+
+  it("still shrinks a block taller than the band's own height cap", () => {
+    expect(fitBlockToBandScale(660, 1200, 970, 420)).toBeCloseTo(420 / 1200, 5);
+  });
+
+  it("never magnifies without bound, however small the block", () => {
+    expect(fitBlockToBandScale(10, 10, 4000, 4000)).toBe(2.5);
+  });
+
+  it("falls back to 1 before the container has been measured", () => {
+    expect(fitBlockToBandScale(660, 280, 0, 420)).toBe(1);
   });
 });

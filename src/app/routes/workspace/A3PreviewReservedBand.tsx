@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { fitBlockToBandScale } from "../a3PreviewWindow/zoomMath";
 import type { A3LayoutDescriptor } from "../../../a3/descriptor";
 import { blockRectForStep } from "../../../a3/render/blockRectForStep";
 import { HtmlA3Renderer } from "../../../a3/render/HtmlA3Renderer";
 import type { StepId } from "../../../domain/model";
 import { Button } from "../../../ui";
 import { openOrFocusA3PreviewWindow } from "../a3PreviewWindow/window";
-import { fitToWindowScale } from "../a3PreviewWindow/zoomMath";
 import type { DescriptorResult } from "./useA3PreviewSync";
 
 /**
@@ -88,11 +88,11 @@ export function A3PreviewReservedBand({ stepId, descriptorResult }: A3PreviewRes
   }, []);
 
   const rect = lastGoodDescriptor ? blockRectForStep(lastGoodDescriptor, stepId) : undefined;
-  // `fitToWindowScale` already returns 1 when `containerWidthPx` is still 0
+  // `fitBlockToBandScale` already returns 1 when `containerWidthPx` is still 0
   // (not yet measured — real browsers report this within a frame of mount;
   // jsdom's ResizeObserver stub never reports at all) and never scales up
   // past 1, matching the pop-out window's own "never magnify" convention.
-  const scale = rect ? fitToWindowScale(rect.widthPx, rect.heightPx, containerWidthPx, MAX_PREVIEW_HEIGHT_PX) : 1;
+  const scale = rect ? fitBlockToBandScale(rect.widthPx, rect.heightPx, containerWidthPx, MAX_PREVIEW_HEIGHT_PX) : 1;
   const isRefreshing = descriptorResult.status !== "ok" && lastGoodDescriptor !== null;
 
   return (
@@ -120,18 +120,33 @@ export function A3PreviewReservedBand({ stepId, descriptorResult }: A3PreviewRes
         style={{ height: rect ? Math.max(1, Math.round(rect.heightPx * scale)) : 96 }}
       >
         {lastGoodDescriptor && rect ? (
+          // Clipped to exactly this block's own scaled box, so when the band
+          // is wider or taller than the block nothing from the neighbouring
+          // block can bleed into a panel titled "this step's area".
           <div
-            className="motion-safe:transition-opacity motion-safe:duration-150 motion-safe:ease-out"
+            data-testid="a3-block-crop"
             style={{
               position: "absolute",
               top: 0,
               left: 0,
-              transform: `scale(${scale}) translate(${-rect.leftPx}px, ${-rect.topPx}px)`,
-              transformOrigin: "0 0",
-              opacity: isRefreshing ? 0.6 : 1,
+              width: Math.max(1, Math.round(rect.widthPx * scale)),
+              height: Math.max(1, Math.round(rect.heightPx * scale)),
+              overflow: "hidden",
             }}
           >
-            <HtmlA3Renderer descriptor={lastGoodDescriptor} mode="screen" />
+            <div
+              className="motion-safe:transition-opacity motion-safe:duration-150 motion-safe:ease-out"
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                transform: `scale(${scale}) translate(${-rect.leftPx}px, ${-rect.topPx}px)`,
+                transformOrigin: "0 0",
+                opacity: isRefreshing ? 0.6 : 1,
+              }}
+            >
+              <HtmlA3Renderer descriptor={lastGoodDescriptor} mode="screen" />
+            </div>
           </div>
         ) : (
           <p className="flex h-full items-center justify-center p-4 font-body text-sm text-ink-muted">

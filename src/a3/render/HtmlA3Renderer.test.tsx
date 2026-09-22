@@ -164,3 +164,59 @@ describe("HtmlA3Renderer", () => {
     expect(marker.style.backgroundColor).toBe("");
   });
 });
+
+/**
+ * KÖK NEDEN (2026-09-22, D-283) — Barış'ın "grafikler hâlâ çok küçük,
+ * okunabilir değil" raporunun gerçek sebebi, ve neden D-279/D-280/D-281'in
+ * üçü de kaçırdı.
+ *
+ * Tailwind's Preflight ships `img, video { max-width: 100%; height: auto; }`
+ * (verified in the compiled bundle, not assumed). Every A3 image is a grid
+ * item anchored to ONE grid cell, so `max-width: 100%` resolves against a
+ * single column — 41.25pt / 55px on the Rev00 form — and silently caps the
+ * image there no matter what inline width is set. A chart asking for 330px
+ * rendered at 55px: exactly the 6x shrink seen on screen.
+ *
+ * That is why three consecutive rounds of "make the chart bigger" changed
+ * nothing: every one of them adjusted geometry INSIDE the SVG component,
+ * while the cap was applied from a global stylesheet OUTSIDE it. The
+ * component was always handed the right box and always drew into it; the
+ * browser then shrank the finished image.
+ *
+ * jsdom does not apply Tailwind's stylesheet, so this cannot be caught by
+ * asserting a computed width. What it CAN assert — and what actually
+ * protects the fix — is that the renderer explicitly neutralises the cap.
+ * Removing either line below is what would reintroduce the bug.
+ */
+describe("HtmlA3Renderer — images must not be capped by the global img rule (D-283)", () => {
+  function descriptorWithImage() {
+    const { descriptor } = buildA3Layout(fixtureProject(), farplas7StepTr, {
+      rendererMap,
+      images: [
+        {
+          id: "probe-image",
+          data: "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=",
+          mimeType: "image/png",
+          anchorCell: "B8",
+          widthPt: 247.5,
+          heightPt: 299,
+        },
+      ],
+    });
+    return descriptor;
+  }
+
+  it("renders the image at its full descriptor size, with both global caps explicitly turned off", () => {
+    const { container } = render(<HtmlA3Renderer descriptor={descriptorWithImage()} mode="screen" />);
+    const img = container.querySelector("img");
+    expect(img).not.toBeNull();
+
+    // The cap Preflight would otherwise impose, neutralised.
+    expect(img!.style.maxWidth).toBe("none");
+    expect(img!.style.maxHeight).toBe("none");
+
+    // And the size actually asked for: 247.5pt x 299pt at 96/72 px per pt.
+    expect(img!.style.width).toBe(`${247.5 * (96 / 72)}px`);
+    expect(img!.style.height).toBe(`${299 * (96 / 72)}px`);
+  });
+});

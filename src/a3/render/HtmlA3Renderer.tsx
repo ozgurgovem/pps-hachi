@@ -213,6 +213,23 @@ export function HtmlA3Renderer({ descriptor, mode }: HtmlA3RendererProps) {
               gridRow: `${rowIndex + 1}`,
               width: `${image.widthPt * PT_TO_PX * scale}px`,
               height: `${image.heightPt * PT_TO_PX * scale}px`,
+              // D-283 — DO NOT REMOVE. Tailwind's Preflight ships
+              // `img, video { max-width: 100%; height: auto; }`. An A3 image
+              // is a grid item anchored to ONE cell, so that `100%` resolves
+              // against a single column (41.25pt / 55px on the Rev00 form)
+              // and silently caps every chart there, however large a width is
+              // set above. A chart asking for 330px rendered at 55px — the
+              // exact 6x shrink that survived three separate rounds of
+              // "make the chart bigger", because every one of those rounds
+              // adjusted the SVG's own geometry while the cap was imposed
+              // from outside the component.
+              //
+              // Deliberately spilling out of the anchor cell is correct: it
+              // mirrors how a floating image is anchored in the real .xlsx,
+              // where the picture also starts at one cell and overlaps the
+              // ones beside it.
+              maxWidth: "none",
+              maxHeight: "none",
               marginLeft: `${(image.offsetXPt ?? 0) * PT_TO_PX * scale}px`,
               marginTop: `${(image.offsetYPt ?? 0) * PT_TO_PX * scale}px`,
               objectFit: "contain",

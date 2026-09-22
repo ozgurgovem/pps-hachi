@@ -3131,6 +3131,22 @@ AI layer: Faz 8 fully done (keychain + Vorion connection/model-discovery + strea
   doğrulandı. **Ve: "birebir" iddiası gerçek `.xlsx` üretilmeden yapılmaz** — testler
   `Xlsx(MergeRangeSingleCell)` hatasını göremedi, dosyayı gerçekten yazmak yakaladı.
   Tam kayıt: D-282.
+  **D-283 (aynı gün) — bu kuralların üçüncü ayağı: görselin kutusunu kimse
+  dışarıdan kırpmasın.** Tailwind Preflight `img, video { max-width: 100%;
+  height: auto; }` gönderir. `HtmlA3Renderer`'daki her A3 görseli TEK bir grid
+  hücresine tutturulur, dolayısıyla o `100%` tek bir sütuna (Rev00'da 41.25pt =
+  55px) çözülür ve satır içi genişlik ne yazarsa yazsın görseli oraya kırpar —
+  330px isteyen bir grafik 55px çizilir, tam 6 kat. Bu yüzden `img` stiline
+  `maxWidth: "none"` + `maxHeight: "none"` **zorunludur, silinmez**. Ders daha
+  genel: üç ayrı tur (D-279/D-280/D-281) "grafiği büyüt" diye SVG'nin kendi
+  içini ayarladı ve hiçbiri tutmadı, çünkü kusur bileşenin dışındaydı — bir
+  boyut sorunu tekrar ediyorsa, bileşeni değil **ortak katmanı** ve **gerçek
+  tarayıcıyı** ölç (jsdom stil sayfasını uygulamaz, bu sınıfı asla göremez).
+  Ayrıca: dışa aktarılan `.xlsx` bu hatadan etkilenmiyordu (Rust yazıcı
+  `width_pt × PT_TO_PX` kullanır, CSS'ten bağımsız) — kırpılan yalnızca HTML
+  önizlemeleriydi. Adım bandının kendi ölçeği de düzeltildi: `fitBlockToBandScale`
+  (pop-out'un `fitToWindowScale` geleneğine dokunmadan) bandı bloğun kendi
+  kutusuna kırpar ve sınırlı biçimde büyütür. Tam kayıt: D-283.
 Templates: two company .xls files analysed; see reference/TEMPLATE_ANALYSIS.md
 Template geometry: VERIFIED 2026-08-01 against both .xls files. Five errors found and
   corrected in place — the largest was the column widths: the real split is 49.7/50.3, NOT
