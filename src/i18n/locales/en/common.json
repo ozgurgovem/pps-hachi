@@ -1463,5 +1463,8 @@
       "redactionTermsPlaceholder": "e.g. Acme Corp",
       "redactionNoProject": "Open a project to configure redaction."
     }
+  },
+  "errors": {
+    "cloudFileUnavailable": "“{{file}}” is stored online-only in the cloud and has no copy on this computer. Open its folder in Finder or File Explorer, download the file (right-click → “Always Keep on This Device”), then add it again."
   }
 }

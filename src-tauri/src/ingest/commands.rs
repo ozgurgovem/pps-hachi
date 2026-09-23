@@ -31,7 +31,14 @@ pub fn ingest_table_preview(source_path: String) -> Result<AttachmentPreview, St
         .unwrap_or(&source_path)
         .to_string();
     let file_size_bytes = std::fs::metadata(path).map(|m| m.len()).unwrap_or(0);
-    let table = ingest_table_from_path(path).map_err(|e| e.to_string())?;
+    // Same cloud-placeholder classification as `image_import`/`ppsx_read`
+    // (2026-09-23, `crate::source_file`): a spreadsheet the user attaches is
+    // as likely to be an online-only OneDrive file as a photo is, and
+    // `could not read the file: Operation timed out (os error 60)` tells
+    // them nothing about what to do.
+    let table = ingest_table_from_path(path).map_err(|e| {
+        crate::source_file::cloud_unavailable_message(path).unwrap_or_else(|| e.to_string())
+    })?;
     Ok(AttachmentPreview {
         file_name,
         file_size_bytes,

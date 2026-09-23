@@ -1463,5 +1463,8 @@
       "redactionTermsPlaceholder": "örn. Acme Corp",
       "redactionNoProject": "Gizleme ayarları için önce bir proje aç."
     }
+  },
+  "errors": {
+    "cloudFileUnavailable": "“{{file}}” yalnızca bulutta duruyor, bu bilgisayarda bir kopyası yok. Dosyanın klasörünü Finder veya Dosya Gezgini'nde açın, dosyayı indirin (sağ tık → “Bu aygıtta her zaman tut”), sonra tekrar ekleyin."
   }
 }

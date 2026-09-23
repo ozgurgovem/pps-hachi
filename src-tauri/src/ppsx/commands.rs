@@ -79,10 +79,24 @@ fn to_read_payload(contents: PpsxContents, modified_ms: u64) -> PpsxReadPayload 
 /// keep that distinguishable across the IPC boundary.
 const CONFLICT_ERROR_PREFIX: &str = "CONFLICT:";
 
-fn map_write_error(error: PpsxError) -> String {
-    match error {
+/// Every `PpsxError` that reaches the UI goes through here.
+///
+/// Two failures get a stable marker the frontend translates instead of the
+/// raw Rust text: a write conflict (D-77, long-standing) and — added
+/// 2026-09-23 — a file that lives online-only in OneDrive/iCloud with no
+/// local copy. The second matters as much as the first for this deployment:
+/// Farplas keeps its documents on OneDrive, so a `.ppsx` the user opens is
+/// very often a cloud placeholder, and `io error at <long corporate path>:
+/// Operation timed out (os error 60)` is not something a quality engineer
+/// can act on. See `crate::source_file` for how the detection works and for
+/// the two hypotheses that were measured and ruled out first.
+fn map_ppsx_error(error: PpsxError) -> String {
+    match &error {
         PpsxError::Conflict { .. } => format!("{CONFLICT_ERROR_PREFIX} {error}"),
-        other => other.to_string(),
+        PpsxError::Io { path, .. } => {
+            crate::source_file::cloud_unavailable_message(path).unwrap_or_else(|| error.to_string())
+        }
+        _ => error.to_string(),
     }
 }
 
@@ -93,8 +107,8 @@ fn map_write_error(error: PpsxError) -> String {
 #[tauri::command]
 pub fn ppsx_read(path: String) -> Result<PpsxReadPayload, String> {
     let path = std::path::Path::new(&path);
-    let contents = archive::read_ppsx(path).map_err(|e| e.to_string())?;
-    let modified_ms = archive::file_modified_ms(path).map_err(|e| e.to_string())?;
+    let contents = archive::read_ppsx(path).map_err(map_ppsx_error)?;
+    let modified_ms = archive::file_modified_ms(path).map_err(map_ppsx_error)?;
     Ok(to_read_payload(contents, modified_ms))
 }
 
@@ -115,7 +129,7 @@ pub fn ppsx_write(
         expected_modified_ms,
     )
     .map(|modified_ms| PpsxWritePayload { modified_ms })
-    .map_err(map_write_error)
+    .map_err(map_ppsx_error)
 }
 
 /// D-118/D-193: the frontend never reads or holds the raw source photo's
@@ -166,7 +180,7 @@ pub fn image_import(
     other_entries: Vec<ArchiveEntryPayload>,
     expected_modified_ms: Option<u64>,
 ) -> Result<ImageImportPayload, String> {
-    let source_bytes = std::fs::read(&source_path).map_err(|e| format!("{source_path}: {e}"))?;
+    let source_bytes = crate::source_file::read_source_file(std::path::Path::new(&source_path))?;
     let ingested = crate::images::ingest_image_bytes(&source_bytes).map_err(|e| e.to_string())?;
 
     let asset_name = format!("assets/img_{image_id}.jpg");
@@ -189,7 +203,7 @@ pub fn image_import(
         &entries,
         expected_modified_ms,
     )
-    .map_err(map_write_error)?;
+    .map_err(map_ppsx_error)?;
 
     Ok(ImageImportPayload {
         image_ref: ImageRefPayload {

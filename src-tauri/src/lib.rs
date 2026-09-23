@@ -8,6 +8,7 @@ pub mod ingest;
 /// `project_id`).
 pub(crate) mod path_safety;
 pub mod ppsx;
+pub mod source_file;
 pub mod xlsx;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
