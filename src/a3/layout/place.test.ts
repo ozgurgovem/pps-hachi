@@ -86,16 +86,36 @@ describe("placeBlockContent — image content (D-102)", () => {
     expect(result.pendingImages[0]!.anchorCell).toBe("B24");
   });
 
-  it("drops the whole entry when the image doesn't fit the remaining budget", () => {
+  /**
+   * REVERSED 2026-09-23 (D-285). This used to assert that an image asking
+   * for more rows than the block has is dropped to an appendix outright.
+   * That is what made a defect photo marked "Birincil" vanish from ADIM 1:
+   * `PHOTO_ROW_SPAN` is 10, the two charts beside it had been given most of
+   * the block, and the photo's literal request could not be met — so it was
+   * thrown away rather than drawn smaller.
+   *
+   * A declared `rowSpan` is now read as a PREFERENCE. Shrinking an image is
+   * not the truncation D-100 forbids — it is the same picture, scaled —
+   * whereas dropping a TEXT line genuinely loses content, which is why the
+   * line count below still decides whether an entry fits at all (the next
+   * test).
+   */
+  it("shrinks an image that asks for more rows than the block has, instead of dropping the entry", () => {
     const rendererMap: A3EntryRendererMap = {
       pareto: () => ({ lines: [], image: { kind: "pareto-chart", spec: {}, rowSpan: 50 } }),
     };
     const block = fixtureBlock();
     const result = placeBlockContent([fixtureEntry()], block, contentRows(23, 32), columnWidths, rendererMap, "en", ENTRY_CONTENT_FONT_PT);
 
-    expect(result.placedEntryIds).toEqual([]);
-    expect(result.droppedEntryIds).toEqual(["entry-1"]);
-    expect(result.pendingImages).toEqual([]);
+    expect(result.placedEntryIds).toEqual(["entry-1"]);
+    expect(result.droppedEntryIds).toEqual([]);
+    expect(result.pendingImages).toHaveLength(1);
+    // Clamped to the block's own 10 rows, anchored at its first row.
+    expect(result.pendingImages[0]!.anchorCell).toBe("B23");
+    expect(result.pendingImages[0]!.heightPt).toBeCloseTo(
+      contentRows(23, 32).reduce((sum, row) => sum + row.heightPt, 0),
+      5,
+    );
   });
 
   it("drops the entry when text exactly fills the block, leaving the image no room", () => {

@@ -2,6 +2,7 @@ import type { A3ImageSize } from "../../a3/methodContract";
 import { A3_MIN_PRINTED_FONT_PT, minImageFontPx } from "../../a3/readability";
 import type { GapAnalysisChartSpec } from "../chartSpec";
 import { layoutGapBands } from "./chartLayout";
+import { wrapText } from "../../a3/layout/measure";
 
 /** D-165 Layer A, reused verbatim — never redefined here. */
 const IDEAL_COLOR = "#8FBF4F";
@@ -64,8 +65,25 @@ const CHART_MARGIN_PX = 20;
 const AXIS_LABEL_WIDTH_PX = 34;
 const AXIS_TARGET_TICKS = 7;
 const BRIDGE_MARGIN_PX = 16;
-/** Enough for "Hedeften Sapma" (14 chars) at this file's own floor-clamped label font — see `barsAreaWidth`'s own note. */
-const LABEL_ZONE_WIDTH_PX = Math.ceil(14 * MIN_FONT_PX * 0.52);
+/**
+ * Width the deviation label's own zone needs, measured from the REAL label
+ * text rather than a hardcoded character count.
+ *
+ * It used to be `14 * …`, sized for the Turkish "Hedeften Sapma". The
+ * English "Deviation from Target" is 21 characters, so on an English
+ * project the label started inside the box and ended well outside it —
+ * clipped mid-word, which is what Barış's 2026-09-23 screenshot shows.
+ * A long label now wraps onto a second line instead of widening the zone
+ * without bound and squeezing the bars out.
+ */
+const LABEL_MAX_CHARS_PER_LINE = 14;
+function labelZoneWidthPx(label: string): number {
+  const longest = wrapText(label, LABEL_MAX_CHARS_PER_LINE).reduce(
+    (widest, line) => Math.max(widest, line.length),
+    1,
+  );
+  return Math.ceil(longest * MIN_FONT_PX * 0.56);
+}
 
 /** Rounds `rough` up to the nearest "nice" step (1/2/5 × a power of ten) — standard chart-axis tick spacing. */
 function niceAxisStep(rough: number): number {
@@ -78,21 +96,34 @@ function niceAxisStep(rough: number): number {
   return niceResidual * magnitude;
 }
 
+/**
+ * All three bands share ONE height (BVVL round 4's approved look), but that
+ * height now follows the tallest band's real line count instead of a fixed
+ * constant. With a fixed constant a two-line band's first baseline was
+ * computed ABOVE its own rectangle and its text ran over the band below —
+ * which is exactly what Barış's 2026-09-23 screenshot showed once the
+ * printed-10pt floor made the bands wrap wider.
+ */
+function bandHeightFor(maxLines: number): number {
+  return Math.max(BAND_HEIGHT_PX, maxLines * BAND_LINE_HEIGHT_PX + BAND_LINE_HEIGHT_PX * 0.45);
+}
+
 function drawBands(
   spec: GapAnalysisChartSpec,
   layout: ReturnType<typeof layoutGapBands>,
   boxX: number,
   startY: number,
 ) {
+  const bandHeightPx = bandHeightFor(layout.maxLines);
   let y = startY;
   return layout.wrappedBands.map((lines, index) => {
     const blockHeight = lines.length * BAND_LINE_HEIGHT_PX;
-    const firstBaselineY = y + (BAND_HEIGHT_PX - blockHeight) / 2 + BAND_LINE_HEIGHT_PX * 0.78;
+    const firstBaselineY = y + (bandHeightPx - blockHeight) / 2 + BAND_LINE_HEIGHT_PX * 0.78;
     const rowY = y;
-    y += BAND_HEIGHT_PX;
+    y += bandHeightPx;
     return (
       <g key={spec.bandTexts[index]}>
-        <rect x={boxX} y={rowY} width={layout.widthPx} height={BAND_HEIGHT_PX} fill={BAND_COLORS[index]} />
+        <rect x={boxX} y={rowY} width={layout.widthPx} height={bandHeightPx} fill={BAND_COLORS[index]} />
         {lines.map((line, lineIndex) => (
           <text
             key={line}
@@ -171,11 +202,17 @@ export function GapAnalysisChart({ spec, size }: { spec: GapAnalysisChartSpec; s
   const layout = layoutGapBands(spec.bandTexts, BAND_FONT_PX, compactWidthPx, maxWidthPx);
   const boxX = (size.widthPx - layout.widthPx) / 2;
 
-  const bandsHeightPx = BAND_HEIGHT_PX * spec.bandTexts.length;
+  const bandsHeightPx = bandHeightFor(layout.maxLines) * spec.bandTexts.length;
   const chartHeightPx = Math.max(60, size.heightPx - bandsHeightPx);
 
   const plotTop = 26;
-  const plotBottom = chartHeightPx - 34;
+  // Room under the axis for the two caption lines each bar carries (its
+  // name, then its period in brackets). This was a fixed 34px, tuned when
+  // those captions were 9-10px; at the printed-10pt readability floor
+  // (D-282) two lines no longer fit and the "(W36)"/"(W42)" line pushed
+  // down into the first colour band — the overlap Barış's own screenshot
+  // arrows point at. Derived from the font now, so it cannot drift again.
+  const plotBottom = chartHeightPx - (2 * MIN_FONT_PX + 14);
 
   // Real Y-axis (round 3 follow-up) — a "nice" step/max so ticks land on
   // clean numbers, not the old maxValue*1.3 magic headroom.
@@ -199,7 +236,8 @@ export function GapAnalysisChart({ spec, size }: { spec: GapAnalysisChartSpec; s
    * is sized for "Hedeften Sapma" at this file's own label font — the
    * longest of the two label lines — with a small safety margin.
    */
-  const barsAreaWidth = Math.max(60, plotWidth - LABEL_ZONE_WIDTH_PX - BRIDGE_MARGIN_PX);
+  const deviationLabelLines = wrapText(spec.deviationLabel, LABEL_MAX_CHARS_PER_LINE);
+  const barsAreaWidth = Math.max(60, plotWidth - labelZoneWidthPx(spec.deviationLabel) - BRIDGE_MARGIN_PX);
   const barWidth = barsAreaWidth * 0.26;
   const barGap = barsAreaWidth * 0.3;
   const clusterWidth = barWidth * 2 + barGap;
@@ -326,9 +364,18 @@ export function GapAnalysisChart({ spec, size }: { spec: GapAnalysisChartSpec; s
         markerStart="url(#gapAnalysisArrow)"
         markerEnd="url(#gapAnalysisArrow)"
       />
-      <text x={labelX} y={labelMidY - 4} fontSize={MIN_FONT_PX} textAnchor="start" fill={PROBLEM_COLOR}>
-        {spec.deviationLabel}
-      </text>
+      {deviationLabelLines.map((line, index) => (
+        <text
+          key={line}
+          x={labelX}
+          y={labelMidY - 4 - (deviationLabelLines.length - 1 - index) * MIN_FONT_PX * 1.15}
+          fontSize={MIN_FONT_PX}
+          textAnchor="start"
+          fill={PROBLEM_COLOR}
+        >
+          {line}
+        </text>
+      ))}
       <text x={labelX} y={labelMidY + DEVIATION_VALUE_FONT_PX} fontSize={DEVIATION_VALUE_FONT_PX} fontWeight={700} textAnchor="start" fill={PROBLEM_COLOR}>
         {deviationText}
         {spec.unit}

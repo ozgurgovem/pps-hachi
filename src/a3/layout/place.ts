@@ -11,6 +11,7 @@ import type { TemplateBlock } from "../templates/types";
 import { resolveLineStyleId, type ColumnWidth } from "./contentStyle";
 import { estimateCharsPerLine, wrapText } from "./measure";
 import { placeZonesContent, splitColumnsIntoZones } from "./placeZones";
+import { allocateRunRows, entryRowDemand } from "./rowDemand";
 import { groupIntoRuns } from "./widthFractionGroups";
 
 /**
@@ -97,9 +98,22 @@ function placeEntryContent(
     }
   }
 
-  const imageRowSpan = content.image
-    ? (content.image.rowSpan ?? lastRow - startRow - wrappedLines.length + 1)
-    : 0;
+  // Rows this entry may actually use, after its own text lines.
+  const rowsLeftForImage = lastRow - startRow - wrappedLines.length + 1;
+  // A declared `rowSpan` is a PREFERENCE, not a demand (2026-09-23). It used
+  // to be taken literally, so an entry asking for more rows than its share
+  // of the block was dropped to an appendix outright — a defect photo
+  // marked "Birincil" vanished from ADIM 1 every time, because
+  // `PHOTO_ROW_SPAN` is 10 and the two charts beside it had already been
+  // given most of the block.
+  //
+  // Shrinking an image is not the truncation D-100 forbids: a picture drawn
+  // in fewer rows is the same picture, scaled, while a dropped TEXT line
+  // would genuinely lose content — which is why only the image span is
+  // clamped here and the line count below still decides whether the entry
+  // fits at all.
+  const requestedImageRowSpan = content.image ? (content.image.rowSpan ?? rowsLeftForImage) : 0;
+  const imageRowSpan = content.image ? Math.min(requestedImageRowSpan, rowsLeftForImage) : 0;
   const totalRowSpan = wrappedLines.length + imageRowSpan;
 
   // An image needs at least one row of its own. Without the `<= 0` guard a
@@ -196,7 +210,28 @@ export function placeBlockContent(
 
   const runs = groupIntoRuns(resolved, (item) => item.content);
 
-  for (const run of runs) {
+  // Share the block's rows between its runs BEFORE placing any of them.
+  //
+  // Without this, an entry whose image declares no `rowSpan` takes every
+  // remaining row (Phase 5/D-224's "fills whatever is left" fallback), so
+  // the first such entry starves every entry after it — ADIM 1's two
+  // side-by-side charts consumed all 22 rows and a third entry marked
+  // "Birincil" was dropped to an appendix unconditionally (Barış,
+  // 2026-09-23). A run's own need is the MAX of its members, never the sum:
+  // a side-by-side pair shares one row band.
+  const runDemands = runs.map((run) =>
+    run.items.reduce((widest, item) => {
+      const widthPt = run.sideBySide ? blockWidthPt * (item.content.widthFraction ?? 1) : blockWidthPt;
+      return Math.max(widest, entryRowDemand(item.content, widthPt, bodyFontPt));
+    }, 0),
+  );
+  const runRowBudgets = allocateRunRows(runDemands, lastRow - block.contentRows.start + 1);
+
+  for (const [runIndex, run] of runs.entries()) {
+    // The last row THIS run may use. A run that finishes early hands the
+    // rows it did not need to the next one (`row` advances by what was
+    // actually used, not by the budget), so nothing is wasted.
+    const runLastRow = Math.min(lastRow, row + (runRowBudgets[runIndex] ?? 0) - 1);
     if (run.sideBySide) {
       const groupStartRow = row;
       const ranges = splitColumnsIntoZones(
@@ -220,7 +255,7 @@ export function placeBlockContent(
           item.content,
           { firstCol: zoneRange.firstCol, lastCol: zoneRange.lastCol, widthPt: zoneRange.widthPt },
           groupStartRow,
-          lastRow,
+          runLastRow,
           contentRows,
           bodyFontPt,
         );
@@ -248,6 +283,12 @@ export function placeBlockContent(
       // lets a *second* zoned entry follow in the same block — see
       // `placeZonesContent`'s own doc comment for why this couldn't be
       // inferred from zone content alone.
+      // Deliberately the BLOCK's last row, not this run's share: a zoned
+      // entry lays out TEXT, and squeezing it into fewer rows makes
+      // `placeZonesContent` join lines into one cell that the fixed row
+      // height then clips (D-189's own defect). Shrinking an IMAGE is safe
+      // — it is the same picture, scaled — shrinking text is not, so the
+      // per-run budget bounds images only.
       const requestedSpan = content.zonesRowSpan ?? lastRow - row + 1;
       const zoneLastRow = Math.min(row + requestedSpan - 1, lastRow);
       const placed = placeZonesContent(
@@ -275,7 +316,7 @@ export function placeBlockContent(
       content,
       { firstCol: block.contentColumns.first, lastCol: block.contentColumns.last, widthPt: blockWidthPt },
       row,
-      lastRow,
+      runLastRow,
       contentRows,
       bodyFontPt,
     );

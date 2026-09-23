@@ -229,3 +229,104 @@ describe("GapAnalysisChart — 2026-09-20 follow-up (uses most of a much wider r
     expect(plotSpanPx).toBeGreaterThan(oldCompactCeilingPx * 1.5);
   });
 });
+
+/**
+ * Barış's 2026-09-23 screenshot: the three colour bands under the chart ran
+ * over each other and the last one's text fell off the bottom of the image,
+ * and "Deviation from Target" was clipped by the right edge.
+ *
+ * Both were consequences of the printed-10pt readability floor (D-282)
+ * landing on layout that had been tuned at 8pt: the bands wrapped to four
+ * lines inside a fixed two-line box, and the deviation label's reserved
+ * zone was hardcoded to 14 characters — the length of the Turkish
+ * "Hedeften Sapma", not the 21-character English label.
+ *
+ * These assertions are geometric rather than visual on purpose: they read
+ * the real rendered rects and baselines back out of the SVG, so they fail
+ * for any future change that lets content escape its own box again.
+ */
+describe("GapAnalysisChart — nothing overlaps or escapes the image (D-285)", () => {
+  const LONG_SPEC = {
+    ...realSpec(),
+    deviationLabel: "Deviation from Target",
+    bandTexts: [
+      "Ideal State: Plastik enjeksiyon prosesi fire oranının %3'ün altında olması.",
+      "Current State: EK-5354 kalıbının plastik enjeksiyon prosesindeki fire oranı %18,3",
+      "Problem Statement: EK-5354 kalıbındaki plastik enjeksiyon prosesi fire oranı hedeflenen %3 fire oranında %15,3 daha fazla.",
+    ] as const,
+  };
+  /** The real granted box when ADIM 1 holds three entries (measured through `buildA3Layout`). */
+  const BOX = { widthPx: 330, heightPx: 384 };
+
+  function parse(svg: string) {
+    const bands = [...svg.matchAll(/<rect x="([\d.]+)" y="([\d.]+)" width="([\d.]+)" height="([\d.]+)" fill="(#8FBF4F|#4A90D9|#E0342A)"/g)]
+      .map((m) => ({ x: +m[1]!, y: +m[2]!, w: +m[3]!, h: +m[4]! }))
+      .filter((r) => r.w > BOX.widthPx * 0.5);
+    const texts = [...svg.matchAll(/<text x="([\d.-]+)" y="([\d.-]+)"[^>]*font-size="([\d.]+)"[^>]*>([^<]*)/g)].map((m) => ({
+      x: +m[1]!,
+      y: +m[2]!,
+      size: +m[3]!,
+      text: m[4]!,
+    }));
+    return { bands, texts };
+  }
+
+  it("draws the three bands at one shared height, stacked with no gap and no overlap", () => {
+    const svg = renderToStaticMarkup(<GapAnalysisChart spec={LONG_SPEC} size={BOX} />);
+    const { bands } = parse(svg);
+
+    expect(bands).toHaveLength(3);
+    const heights = new Set(bands.map((b) => Math.round(b.h)));
+    expect(heights.size, "all three bands share one height").toBe(1);
+    for (let i = 1; i < bands.length; i += 1) {
+      expect(Math.round(bands[i]!.y)).toBe(Math.round(bands[i - 1]!.y + bands[i - 1]!.h));
+    }
+  });
+
+  it("keeps every band's own text inside its own band", () => {
+    const svg = renderToStaticMarkup(<GapAnalysisChart spec={LONG_SPEC} size={BOX} />);
+    const { bands, texts } = parse(svg);
+    const bandTop = bands[0]!.y;
+
+    for (const text of texts.filter((t) => t.y >= bandTop)) {
+      const owner = bands.find((b) => text.y > b.y && text.y <= b.y + b.h);
+      expect(owner, `a band line at y=${text.y} ("${text.text}") sits outside every band`).toBeDefined();
+
+      // Not just the baseline — the whole glyph box. A baseline can sit
+      // inside a band while the ascenders above it and the descenders below
+      // it spill over the neighbouring band, which is precisely how the
+      // real overlap looked on screen.
+      const ascent = text.size * 0.8;
+      const descent = text.size * 0.25;
+      expect(text.y - ascent, `"${text.text}" rides up over the band above`).toBeGreaterThanOrEqual(owner!.y - 0.5);
+      expect(text.y + descent, `"${text.text}" hangs below its own band`).toBeLessThanOrEqual(owner!.y + owner!.h + 0.5);
+    }
+  });
+
+  it("keeps everything it draws inside the image it was given", () => {
+    const svg = renderToStaticMarkup(<GapAnalysisChart spec={LONG_SPEC} size={BOX} />);
+    const { bands, texts } = parse(svg);
+
+    for (const band of bands) {
+      expect(band.y + band.h).toBeLessThanOrEqual(BOX.heightPx + 0.5);
+    }
+    for (const text of texts) {
+      expect(text.y, `"${text.text}" is below the bottom edge`).toBeLessThanOrEqual(BOX.heightPx);
+      // Rough advance width; generous enough not to be brittle, tight
+      // enough to catch a label running off the edge the way the real one did.
+      const estimatedRight = text.x + text.text.length * text.size * 0.55;
+      expect(estimatedRight, `"${text.text}" runs past the right edge`).toBeLessThanOrEqual(BOX.widthPx + 2);
+    }
+  });
+
+  it("wraps a long deviation label instead of letting it run off the edge", () => {
+    const svg = renderToStaticMarkup(<GapAnalysisChart spec={LONG_SPEC} size={BOX} />);
+    expect(svg).toContain(">Deviation from<");
+    expect(svg).toContain(">Target<");
+  });
+
+  it("crops an over-long band visibly rather than spilling it over its neighbour", () => {
+    const svg = renderToStaticMarkup(<GapAnalysisChart spec={LONG_SPEC} size={BOX} />);
+    expect(svg).toContain("…");
+  });
+});

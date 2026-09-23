@@ -3,13 +3,12 @@ import { parseRange } from "../cellRef";
 import {
   resolveEntryContent,
   type A3BlockAggregateImageMap,
-  type A3BlockContent,
   type A3EntryRendererMap,
 } from "../methodContract";
 import type { A3Template, TemplateBlock } from "../templates/types";
 import { entriesForBlock, columnWidthsInRange, type EntryWithStep } from "./entriesByBlock";
 import { ENTRY_CONTENT_FONT_PT, type ColumnWidth } from "./contentStyle";
-import { estimateCharsPerLine, wrapText } from "./measure";
+import { entryRowDemand } from "./rowDemand";
 import { splitColumnsIntoZones } from "./placeZones";
 import { groupIntoRuns } from "./widthFractionGroups";
 
@@ -51,23 +50,6 @@ import { groupIntoRuns } from "./widthFractionGroups";
  * entries compete fairly for a column's surplus instead of one of them
  * greedily absorbing all of it, however much is available.
  */
-function singleEntryRowDemand(content: A3BlockContent, widthPt: number, bodyFontPt: number): number {
-  if (content.zones) {
-    return content.zonesRowSpan ?? Number.POSITIVE_INFINITY;
-  }
-
-  const maxCharsPerLine = estimateCharsPerLine(widthPt, bodyFontPt);
-  const lineCount = content.lines.reduce((sum, line) => sum + wrapText(line.text, maxCharsPerLine).length, 0);
-
-  if (content.image) {
-    if (content.image.rowSpan !== undefined) {
-      return lineCount + content.image.rowSpan;
-    }
-    return lineCount + (content.image.maxDemandRowSpan ?? Number.POSITIVE_INFINITY);
-  }
-
-  return lineCount;
-}
 
 export function estimateBlockRowDemand(
   entries: readonly Entry[],
@@ -115,7 +97,7 @@ export function estimateBlockRowDemand(
         if (!range) {
           continue;
         }
-        const demand = singleEntryRowDemand(run.items[index]!.content, range.widthPt, bodyFontPt);
+        const demand = entryRowDemand(run.items[index]!.content, range.widthPt, bodyFontPt);
         if (demand === Number.POSITIVE_INFINITY) {
           return Number.POSITIVE_INFINITY;
         }
@@ -125,7 +107,7 @@ export function estimateBlockRowDemand(
       continue;
     }
 
-    const demand = singleEntryRowDemand(run.items[0]!.content, blockWidthPt, bodyFontPt);
+    const demand = entryRowDemand(run.items[0]!.content, blockWidthPt, bodyFontPt);
     if (demand === Number.POSITIVE_INFINITY) {
       return Number.POSITIVE_INFINITY;
     }
