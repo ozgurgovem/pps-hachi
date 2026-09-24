@@ -29,8 +29,79 @@ function isSideBySide(content: A3BlockContent): boolean {
   return content.widthFraction !== undefined && content.zones === undefined;
 }
 
+/**
+ * Narrowest a horizontally-laid-out entry may get before the block wraps it
+ * onto another row. At the printed-10pt floor (`src/a3/readability.ts`) a
+ * column this wide holds roughly twenty characters — below that, "laid out
+ * horizontally" stops being a layout and starts being a way to make
+ * everything unreadable.
+ */
+export const MIN_HORIZONTAL_ENTRY_WIDTH_PT = 120;
+
+/**
+ * How many entries a block of this width can put beside each other before
+ * they stop being readable. Always at least one.
+ */
+export function horizontalRunCapacity(blockWidthPt: number): number {
+  return Math.max(1, Math.floor(blockWidthPt / MIN_HORIZONTAL_ENTRY_WIDTH_PT));
+}
+
+/**
+ * Splits `count` entries into rows that are as even as possible, none wider
+ * than `capacity`. Four entries in a block that fits four across go 4; in
+ * one that fits three they go 2+2 rather than 3+1, because a lone entry on
+ * its own row is the full-width letterboxing this layout exists to avoid.
+ */
+function evenRowSizes(count: number, capacity: number): number[] {
+  const rows = Math.ceil(count / capacity);
+  const base = Math.floor(count / rows);
+  const remainder = count % rows;
+  return Array.from({ length: rows }, (_unused, index) => base + (index < remainder ? 1 : 0));
+}
+
 /** Segments `items` (in their given, already-placement order) into runs per the rule above. Pure — no layout math, just grouping. */
-export function groupIntoRuns<T>(items: readonly T[], contentOf: (item: T) => A3BlockContent): readonly EntryRun<T>[] {
+export function groupIntoRuns<T>(
+  items: readonly T[],
+  contentOf: (item: T) => A3BlockContent,
+  /**
+   * Set for a block whose own `entryLayout` is `"horizontal"`: every entry
+   * joins a side-by-side row regardless of what its method declared, and
+   * rows wrap at this many entries.
+   */
+  horizontalCapacity?: number,
+): readonly EntryRun<T>[] {
+  if (horizontalCapacity !== undefined && items.length > 0) {
+    // A `zones` entry still stands alone — zones already partition the
+    // block's width themselves, and the two mechanisms are not meant to
+    // compose (`A3BlockContent.widthFraction`'s own doc comment).
+    const runs: EntryRun<T>[] = [];
+    let index = 0;
+    while (index < items.length) {
+      if (contentOf(items[index]!).zones !== undefined) {
+        runs.push({ items: [items[index]!], sideBySide: false });
+        index += 1;
+        continue;
+      }
+      const stretch: T[] = [];
+      while (index < items.length && contentOf(items[index]!).zones === undefined) {
+        stretch.push(items[index]!);
+        index += 1;
+      }
+      for (const size of evenRowSizes(stretch.length, Math.max(1, horizontalCapacity))) {
+        const row = stretch.splice(0, size);
+        runs.push({ items: row, sideBySide: row.length > 1 });
+      }
+    }
+    return runs;
+  }
+
+  return groupByDeclaredWidthFraction(items, contentOf);
+}
+
+function groupByDeclaredWidthFraction<T>(
+  items: readonly T[],
+  contentOf: (item: T) => A3BlockContent,
+): readonly EntryRun<T>[] {
   const runs: EntryRun<T>[] = [];
   let index = 0;
 

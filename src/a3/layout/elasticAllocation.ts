@@ -10,7 +10,7 @@ import { entriesForBlock, columnWidthsInRange, type EntryWithStep } from "./entr
 import { ENTRY_CONTENT_FONT_PT, type ColumnWidth } from "./contentStyle";
 import { entryRowDemand } from "./rowDemand";
 import { splitColumnsIntoZones } from "./placeZones";
-import { groupIntoRuns } from "./widthFractionGroups";
+import { groupIntoRuns, horizontalRunCapacity } from "./widthFractionGroups";
 
 /**
  * Faz 11/L3a (D-158/D-160, both LOCKED): how many canvas rows this block's
@@ -59,6 +59,9 @@ export function estimateBlockRowDemand(
   aggregateImageMap: A3BlockAggregateImageMap = {},
   /** The template's own `bodyFontPt`, so the solver's wrap estimate matches what `place.ts` will really do. */
   bodyFontPt: number = ENTRY_CONTENT_FONT_PT,
+  /** The block's own row height, and its `entryLayout` — both needed to mirror `place.ts` exactly. */
+  bodyRowHeightPt?: number,
+  entryLayout?: "horizontal",
 ): number {
   const blockWidthPt = contentColumnWidths.reduce((sum, column) => sum + column.widthPt, 0);
 
@@ -79,13 +82,20 @@ export function estimateBlockRowDemand(
     }
   }
 
-  const runs = groupIntoRuns(resolved, (item) => item.content);
+  // Exactly the same segmentation and the same widths `place.ts` will use —
+  // the solver sizing a block and the placement filling it must never
+  // disagree about how its entries are arranged.
+  const horizontalCapacity = entryLayout === "horizontal" ? horizontalRunCapacity(blockWidthPt) : undefined;
+  const runs = groupIntoRuns(resolved, (item) => item.content, horizontalCapacity);
 
   let total = 0;
   for (const run of runs) {
     if (run.sideBySide) {
+      const evenShare = 1 / run.items.length;
       const ranges = splitColumnsIntoZones(
-        run.items.map((item) => ({ widthFraction: item.content.widthFraction! })),
+        run.items.map((item) => ({
+          widthFraction: horizontalCapacity === undefined ? item.content.widthFraction! : evenShare,
+        })),
         contentColumnWidths,
       );
 
@@ -97,7 +107,7 @@ export function estimateBlockRowDemand(
         if (!range) {
           continue;
         }
-        const demand = entryRowDemand(run.items[index]!.content, range.widthPt, bodyFontPt);
+        const demand = entryRowDemand(run.items[index]!.content, range.widthPt, bodyFontPt, bodyRowHeightPt);
         if (demand === Number.POSITIVE_INFINITY) {
           return Number.POSITIVE_INFINITY;
         }
@@ -107,7 +117,7 @@ export function estimateBlockRowDemand(
       continue;
     }
 
-    const demand = entryRowDemand(run.items[0]!.content, blockWidthPt, bodyFontPt);
+    const demand = entryRowDemand(run.items[0]!.content, blockWidthPt, bodyFontPt, bodyRowHeightPt);
     if (demand === Number.POSITIVE_INFINITY) {
       return Number.POSITIVE_INFINITY;
     }
@@ -368,6 +378,8 @@ export function resolveElasticBlocks(
         language,
         aggregateImageMap,
         template.bodyFontPt,
+        template.bodyRowHeightPt,
+        block.entryLayout,
       );
       const stepId = block.appSteps[0];
       const pinnedRows = stepId === undefined ? undefined : pinnedCanvasRowsByStepId?.get(stepId);

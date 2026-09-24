@@ -119,23 +119,46 @@ describe("PROBE (D-285) — a third primary entry on ADIM 1 is placed, not dropp
     expect(kinds, "the photo marked Birincil must reach the sheet").toContain("asset-photo");
   });
 
-  it("gives the photo its own rows below the two side-by-side charts, at the block's full width", () => {
+  it("puts the photo BESIDE the charts, not under them, all three sharing the block's width", () => {
     const { pendingImages } = buildA3Layout(fixtureProject(), pps8StepAuto, {
       rendererMap: getA3RendererMap(),
       aggregateImageMap: getA3BlockAggregateImageMap(),
     });
 
-    const charts = pendingImages.filter((slot) => slot.kind !== "asset-photo");
     const photo = pendingImages.find((slot) => slot.kind === "asset-photo")!;
     expect(photo).toBeDefined();
 
-    const chartRow = Number(charts[0]!.anchorCell.match(/\d+/)![0]);
-    const photoRow = Number(photo.anchorCell.match(/\d+/)![0]);
-    expect(photoRow, "the photo sits below the charts, not on top of them").toBeGreaterThan(chartRow);
+    // Barış, 2026-09-24: "her yeni gelen bilginin yatayda yerleştirilmesi".
+    // All three get an equal share of the block, and none is stacked under
+    // another — a stacked entry was letterboxed into a wide, short box.
+    const widths = pendingImages.map((slot) => Math.round(slot.widthPt));
+    expect(new Set(widths).size, `equal shares, got ${widths.join("/")}`).toBe(1);
 
-    // The charts share the block's width between them; the photo gets it all.
-    expect(photo.widthPt).toBeCloseTo(charts[0]!.widthPt * 2, 0);
-    expect(photo.heightPt).toBeGreaterThan(0);
+    const columns = pendingImages.map((slot) => slot.anchorCell.match(/^[A-Z]+/)![0]);
+    expect(new Set(columns).size, "each entry starts in its own column").toBe(3);
+
+    // The photo carries a caption line, so its image starts one row lower —
+    // but it ends level with the charts rather than below them.
+    const ROW_HEIGHT_PT = pps8StepAuto.bodyRowHeightPt;
+    const bottomOf = (slot: (typeof pendingImages)[number]) =>
+      Number(slot.anchorCell.match(/\d+/)![0]) * ROW_HEIGHT_PT + slot.heightPt;
+    const bottoms = pendingImages.map(bottomOf);
+    expect(Math.max(...bottoms) - Math.min(...bottoms)).toBeLessThanOrEqual(1);
+  });
+
+  it("shrinks ADIM 1 to the height its content actually needs, freeing rows for the steps below", () => {
+    const { descriptor } = buildA3Layout(fixtureProject(), pps8StepAuto, {
+      rendererMap: getA3RendererMap(),
+      aggregateImageMap: getA3BlockAggregateImageMap(),
+    });
+    const adim1 = descriptor.elasticBlocks.find((block) => block.stepIds.includes(1))!;
+    const rows = adim1.contentRows.end - adim1.contentRows.start + 1;
+
+    // The left column has 31 canvas rows to share. Stacked, ADIM 1 took all
+    // of them; side by side it needs far fewer, and ADIM 2 starts earlier.
+    expect(rows).toBeLessThan(20);
+    const adim2 = descriptor.elasticBlocks.find((block) => block.stepIds.includes(2))!;
+    expect(adim2.contentRows.start).toBeLessThan(28);
   });
 
   it("still leaves the two charts the larger share — the photo does not squeeze them out", () => {

@@ -18,7 +18,13 @@ import { estimateCharsPerLine, wrapText } from "./measure";
  * `maxDemandRowSpan` turns that into a finite ceiling: past it, more room
  * stops helping.
  */
-export function entryRowDemand(content: A3BlockContent, widthPt: number, bodyFontPt: number): number {
+export function entryRowDemand(
+  content: A3BlockContent,
+  widthPt: number,
+  bodyFontPt: number,
+  /** The block's own row height — needed to turn an image's natural HEIGHT into a row count. */
+  bodyRowHeightPt?: number,
+): number {
   if (content.zones) {
     return content.zonesRowSpan ?? Number.POSITIVE_INFINITY;
   }
@@ -29,6 +35,14 @@ export function entryRowDemand(content: A3BlockContent, widthPt: number, bodyFon
   if (content.image) {
     if (content.image.rowSpan !== undefined) {
       return lineCount + content.image.rowSpan;
+    }
+    // A declared aspect turns "how wide am I" into "how tall do I want to
+    // be", which is what lets a block shrink to its content instead of
+    // always filling its column (2026-09-24).
+    if (content.image.aspectRatio !== undefined && bodyRowHeightPt !== undefined && bodyRowHeightPt > 0) {
+      const naturalRows = Math.ceil(widthPt / content.image.aspectRatio / bodyRowHeightPt);
+      const ceiling = content.image.maxDemandRowSpan ?? Number.POSITIVE_INFINITY;
+      return lineCount + Math.max(1, Math.min(naturalRows, ceiling));
     }
     return lineCount + (content.image.maxDemandRowSpan ?? Number.POSITIVE_INFINITY);
   }

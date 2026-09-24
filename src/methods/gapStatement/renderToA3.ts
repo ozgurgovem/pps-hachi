@@ -84,6 +84,15 @@ function bandLine(label: string, value: string): string {
  */
 const MAX_DEMAND_ROW_SPAN = 24;
 
+/**
+ * Natural shape, width ÷ height: bars and their axis on top, three colour
+ * bands underneath, so it wants to be a little taller than it is wide.
+ * Consulted once a block shares its width between entries (2026-09-24) —
+ * that is what lets ADIM 1 shrink to its content instead of always filling
+ * its column.
+ */
+const GAP_CHART_ASPECT = 0.95;
+
 export function renderGapStatementToA3(payload: GapStatementPayload, entry: A3EntrySummary): A3BlockContent {
   const language = resolveA3Language(entry);
 
@@ -111,7 +120,7 @@ export function renderGapStatementToA3(payload: GapStatementPayload, entry: A3En
 
   return {
     lines: [],
-    image: { kind: "gap-analysis-chart", spec, maxDemandRowSpan: MAX_DEMAND_ROW_SPAN },
+    image: { kind: "gap-analysis-chart", spec, maxDemandRowSpan: MAX_DEMAND_ROW_SPAN, aspectRatio: GAP_CHART_ASPECT },
     widthFraction: 0.5,
   };
 }

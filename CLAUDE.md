@@ -3147,6 +3147,20 @@ AI layer: Faz 8 fully done (keychain + Vorion connection/model-discovery + strea
   önizlemeleriydi. Adım bandının kendi ölçeği de düzeltildi: `fitBlockToBandScale`
   (pop-out'un `fitToWindowScale` geleneğine dokunmadan) bandı bloğun kendi
   kutusuna kırpar ve sınırlı biçimde büyütür. Tam kayıt: D-283.
+  **ADIM 1 yatay yerleşim kuralı (D-286, 2026-09-24).** Barış: "Adım 1'e her
+  yeni gelen bilginin yatayda yerleştirilmesi; dikeyde yerleştirildiğinde
+  ciddi yer kaybı yaratıyor." Yan yana yerleşim artık metodun değil
+  **BLOĞUN** özelliği: `TemplateBlock.entryLayout: "horizontal"`. O bloktaki
+  her giriş genişliği eşit paylaşır, 120pt'nin (10pt tabanında ~20 karakter)
+  altına düşecekse alt satıra sarar ve satırlar eşit bölünür. Ayrıca
+  `A3ImageRequest.aspectRatio` (genişlik ÷ yükseklik) bir görselin doğal
+  şeklini bildirir; `rowSpan`'sız bir görsel eskiden "kaç satırın varsa o
+  kadar" diyip bloğun altında boş bant bırakıyordu, artık genişliğinden
+  yüksekliği türetiliyor ve blok içeriğine göre küçülüyor. `place.ts` ile
+  `elasticAllocation.ts` AYNI gruplamayı ve genişlikleri kullanmak zorunda —
+  çözücünün bloğu boyutlandırması ile yerleştirmenin onu doldurması ayrışırsa
+  giriş sessizce ek sayfaya düşer. Şu an yalnızca ADIM 1 açık; başka bloğa
+  açmak o bloğun tanımına tek satır. Tam kayıt: D-286.
 Templates: two company .xls files analysed; see reference/TEMPLATE_ANALYSIS.md
 Template geometry: VERIFIED 2026-08-01 against both .xls files. Five errors found and
   corrected in place — the largest was the column widths: the real split is 49.7/50.3, NOT

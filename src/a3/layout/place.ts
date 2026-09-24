@@ -12,7 +12,7 @@ import { resolveLineStyleId, type ColumnWidth } from "./contentStyle";
 import { estimateCharsPerLine, wrapText } from "./measure";
 import { placeZonesContent, splitColumnsIntoZones } from "./placeZones";
 import { allocateRunRows, entryRowDemand } from "./rowDemand";
-import { groupIntoRuns } from "./widthFractionGroups";
+import { groupIntoRuns, horizontalRunCapacity } from "./widthFractionGroups";
 
 /**
  * D-102: geometry for a chart/diagram image, discovered in the same pass
@@ -208,7 +208,9 @@ export function placeBlockContent(
     ),
   }));
 
-  const runs = groupIntoRuns(resolved, (item) => item.content);
+  const horizontalCapacity =
+    block.entryLayout === "horizontal" ? horizontalRunCapacity(blockWidthPt) : undefined;
+  const runs = groupIntoRuns(resolved, (item) => item.content, horizontalCapacity);
 
   // Share the block's rows between its runs BEFORE placing any of them.
   //
@@ -219,10 +221,12 @@ export function placeBlockContent(
   // "Birincil" was dropped to an appendix unconditionally (Barış,
   // 2026-09-23). A run's own need is the MAX of its members, never the sum:
   // a side-by-side pair shares one row band.
+  const bodyRowHeightPt = contentRows[0]?.heightPt;
   const runDemands = runs.map((run) =>
     run.items.reduce((widest, item) => {
-      const widthPt = run.sideBySide ? blockWidthPt * (item.content.widthFraction ?? 1) : blockWidthPt;
-      return Math.max(widest, entryRowDemand(item.content, widthPt, bodyFontPt));
+      const share = horizontalCapacity === undefined ? (item.content.widthFraction ?? 1) : 1 / run.items.length;
+      const widthPt = run.sideBySide ? blockWidthPt * share : blockWidthPt;
+      return Math.max(widest, entryRowDemand(item.content, widthPt, bodyFontPt, bodyRowHeightPt));
     }, 0),
   );
   const runRowBudgets = allocateRunRows(runDemands, lastRow - block.contentRows.start + 1);
@@ -234,8 +238,13 @@ export function placeBlockContent(
     const runLastRow = Math.min(lastRow, row + (runRowBudgets[runIndex] ?? 0) - 1);
     if (run.sideBySide) {
       const groupStartRow = row;
+      // In a block-level horizontal layout the members need not declare a
+      // fraction of their own — they simply share the block evenly.
+      const evenShare = 1 / run.items.length;
       const ranges = splitColumnsIntoZones(
-        run.items.map((item) => ({ widthFraction: item.content.widthFraction! })),
+        run.items.map((item) => ({
+          widthFraction: horizontalCapacity === undefined ? item.content.widthFraction! : evenShare,
+        })),
         contentColumnWidths,
       );
 

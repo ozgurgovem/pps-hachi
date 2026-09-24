@@ -101,6 +101,13 @@ const HUB_LABEL = "5N1K";
  * generous target while `rowSpan` itself stays omitted, so placement still
  * self-bounds to the block's real resolved height and can never overflow it.
  */
+/**
+ * Natural shape, width ÷ height: a heading over six stacked label+answer
+ * rows, so it is decidedly taller than it is wide. See
+ * `A3ImageRequest.aspectRatio` for why this exists.
+ */
+const FIVE_N1K_ASPECT = 0.8;
+
 const MAX_DEMAND_ROW_SPAN = 24;
 
 export function renderFiveN1KToA3(payload: FiveN1KPayload, entry: A3EntrySummary): A3BlockContent {
@@ -116,7 +123,7 @@ export function renderFiveN1KToA3(payload: FiveN1KPayload, entry: A3EntrySummary
 
   return {
     lines: [],
-    image: { kind: "five-n1k-diagram", spec, maxDemandRowSpan: MAX_DEMAND_ROW_SPAN },
+    image: { kind: "five-n1k-diagram", spec, maxDemandRowSpan: MAX_DEMAND_ROW_SPAN, aspectRatio: FIVE_N1K_ASPECT },
     widthFraction: 0.5,
   };
 }

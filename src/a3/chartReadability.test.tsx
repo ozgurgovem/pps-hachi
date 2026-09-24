@@ -36,18 +36,22 @@ const SPECS: Readonly<Record<string, unknown>> = {
       { label: "NE ZAMAN?", answer: "Haziran 2026", color: "#8FBF4F" },
     ],
   },
+  // NOTE (2026-09-24): this spec used to carry invented field names
+  // (`idealLabel`/`actualLabel`/`baselinePeriod`) that `GapAnalysisChartSpec`
+  // does not have, so the chart rendered with those parts blank and this
+  // gate only ever checked half of it. Corrected to the real field names.
   "gap-analysis-chart": {
+    kind: "gap-analysis",
     title: "Fire Oranı",
-    idealLabel: "Hedef",
-    idealValue: 1,
-    actualLabel: "Mevcut",
-    actualValue: 4.2,
     unit: "%",
+    actualValue: 4.2,
+    idealValue: 1,
+    actualBarLabel: "Mevcut Durum",
+    idealBarLabel: "Hedef Durum",
+    actualDate: "Q2 2026",
+    idealDate: "Q3 2026",
     deviationLabel: "Hedeften Sapma",
-    deviationValue: 3.2,
     bandTexts: ["Olması gereken", "Mevcut durum", "Problem"],
-    baselinePeriod: "Q2 2026",
-    targetDate: "Q3 2026",
   },
 };
 

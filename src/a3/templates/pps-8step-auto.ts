@@ -415,6 +415,13 @@ const BLOCKS: readonly TemplateBlock[] = [
     contentColumns: { first: "A", last: "L" },
     contentRows: { start: 9, end: 15 },
     elastic: { minimumCanvasRows: 4 },
+    // Barış, 2026-09-24: everything added to ADIM 1 sits beside its
+    // siblings, never stacked under them. Rev00's own guidance strip splits
+    // this block in two (A:F / G:L), so the form already reads as a
+    // side-by-side area; stacking a third entry underneath produced a
+    // full-width, very short box that letterboxed a photo down to a stamp
+    // with cream waste either side.
+    entryLayout: "horizontal",
     subHeader: [
       strip("A", "F", "Problemin net tanımı: Ne? Nerede? Ne zaman? Ne kadar?"),
       strip("G", "L", "Müşteri / güvenlik / kalite / teslimat / maliyet etkisi"),

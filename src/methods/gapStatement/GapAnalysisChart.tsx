@@ -178,13 +178,27 @@ const INSIDE_FONT_PX = Math.max(14, MIN_FONT_PX);
  * this time an explicit choice rather than a guess) at a full, legible
  * 12px, rather than shrinking the font any further.
  */
-function barValueLayout(topY: number, plotBottom: number): BarValueLayout {
-  const barHeightPx = plotBottom - topY;
-  const fontSizeIfInside = Math.min(INSIDE_FONT_PX, barHeightPx - 6);
-  if (fontSizeIfInside < MIN_READABLE_FONT_PX) {
+function barValueLayout(
+  topY: number,
+  plotBottom: number,
+  valueTextLength: number,
+  barWidthPx: number,
+): BarValueLayout {
+  // A value printed inside its bar has to fit the bar in BOTH directions.
+  // Only the height was checked before; once a block started sharing its
+  // width between entries (2026-09-24) the bars got narrow enough that
+  // "18.3%" spilled out over the bar's own edges, so the width is checked
+  // too and the value moves above the bar when it cannot fit inside.
+  const fitsWidth = valueTextLength * INSIDE_FONT_PX * 0.58 <= barWidthPx;
+  const fontSizeIfInside = Math.min(INSIDE_FONT_PX, barHeightOf(topY, plotBottom) - 6);
+  if (!fitsWidth || fontSizeIfInside < MIN_READABLE_FONT_PX) {
     return { y: topY - 6, fontSize: INSIDE_FONT_PX, inside: false };
   }
   return { y: topY + fontSizeIfInside + 2, fontSize: fontSizeIfInside, inside: true };
+}
+
+function barHeightOf(topY: number, plotBottom: number): number {
+  return plotBottom - topY;
 }
 
 /**
@@ -206,13 +220,53 @@ export function GapAnalysisChart({ spec, size }: { spec: GapAnalysisChartSpec; s
   const chartHeightPx = Math.max(60, size.heightPx - bandsHeightPx);
 
   const plotTop = 26;
-  // Room under the axis for the two caption lines each bar carries (its
-  // name, then its period in brackets). This was a fixed 34px, tuned when
-  // those captions were 9-10px; at the printed-10pt readability floor
-  // (D-282) two lines no longer fit and the "(W36)"/"(W42)" line pushed
-  // down into the first colour band — the overlap Barış's own screenshot
-  // arrows point at. Derived from the font now, so it cannot drift again.
-  const plotBottom = chartHeightPx - (2 * MIN_FONT_PX + 14);
+  const plotLeft = boxX + AXIS_LABEL_WIDTH_PX;
+  const plotRight = boxX + layout.widthPx;
+  const plotWidth = plotRight - plotLeft;
+
+  /** Characters of `text` that fit in `widthPx` at the floor font. */
+  const charsThatFit = (widthPx: number) => Math.max(4, Math.floor(widthPx / (MIN_FONT_PX * 0.55)));
+
+  /**
+   * The deviation label's zone is reserved BEFORE the bars are laid out
+   * (round 3 follow-up: left to whatever the bars did not claim, it never
+   * got enough). But it is also CAPPED at a share of the plot — once a
+   * block lays its entries out horizontally (2026-09-24) this chart can be
+   * a third of a half-sheet wide, and a zone sized purely from the label's
+   * own text then ate most of the plot and squeezed the bars into slivers.
+   */
+  const labelZonePx = Math.max(
+    40,
+    Math.min(labelZoneWidthPx(spec.deviationLabel), plotWidth * 0.42),
+  );
+  const deviationLabelLines = wrapText(spec.deviationLabel, charsThatFit(labelZonePx));
+
+  const barsAreaWidth = Math.max(60, plotWidth - labelZonePx - BRIDGE_MARGIN_PX);
+  const barWidth = barsAreaWidth * 0.26;
+  const barGap = barsAreaWidth * 0.3;
+  const clusterWidth = barWidth * 2 + barGap;
+  const clusterX = plotLeft + (barsAreaWidth - clusterWidth) / 2;
+  const actualBarX = clusterX;
+  const idealBarX = clusterX + barWidth + barGap;
+
+  /**
+   * Each bar's caption wraps into its OWN slot — the distance between the
+   * two bar centres — instead of being one centred line that grows until it
+   * runs into its neighbour. At a third of a half-sheet the two captions
+   * printed straight over each other ("CurrentIdealStateState"), which is
+   * what a fixed single line always does once the bars get close.
+   */
+  const captionSlotPx = barWidth + barGap;
+  const captionChars = charsThatFit(captionSlotPx);
+  const actualCaptionLines = wrapText(spec.actualBarLabel, captionChars);
+  const idealCaptionLines = wrapText(spec.idealBarLabel, captionChars);
+  const captionLineCount = Math.max(actualCaptionLines.length, idealCaptionLines.length);
+  const hasDates = Boolean(spec.actualDate || spec.idealDate);
+  const captionLineHeight = MIN_FONT_PX * 1.15;
+  // Room under the axis for however many caption lines the labels really
+  // needed, plus the period in brackets when there is one.
+  const axisCaptionHeight = (captionLineCount + (hasDates ? 1 : 0)) * captionLineHeight + 10;
+  const plotBottom = Math.max(plotTop + 30, chartHeightPx - axisCaptionHeight);
 
   // Real Y-axis (round 3 follow-up) — a "nice" step/max so ticks land on
   // clean numbers, not the old maxValue*1.3 magic headroom.
@@ -223,47 +277,16 @@ export function GapAnalysisChart({ spec, size }: { spec: GapAnalysisChartSpec; s
   const ticks = Array.from({ length: tickCount + 1 }, (_, index) => index * axisStep);
   const scaleY = (value: number) => plotBottom - (value / axisMax) * (plotBottom - plotTop);
 
-  const plotLeft = boxX + AXIS_LABEL_WIDTH_PX;
-  const plotRight = boxX + layout.widthPx;
-  const plotWidth = plotRight - plotLeft;
-
-  /**
-   * Round 3 follow-up: the deviation label's own zone is reserved BEFORE
-   * the bars are laid out, not left to whatever happens to be left over —
-   * round 2's "corner badge"/round-1's "gap midpoint" both learned that
-   * hard the same way (the label only ever got the space bars/gap math
-   * didn't already claim, which was rarely enough). `LABEL_ZONE_WIDTH_PX`
-   * is sized for "Hedeften Sapma" at this file's own label font — the
-   * longest of the two label lines — with a small safety margin.
-   */
-  const deviationLabelLines = wrapText(spec.deviationLabel, LABEL_MAX_CHARS_PER_LINE);
-  const barsAreaWidth = Math.max(60, plotWidth - labelZoneWidthPx(spec.deviationLabel) - BRIDGE_MARGIN_PX);
-  const barWidth = barsAreaWidth * 0.26;
-  const barGap = barsAreaWidth * 0.3;
-  const clusterWidth = barWidth * 2 + barGap;
-  const clusterX = plotLeft + (barsAreaWidth - clusterWidth) / 2;
-  const actualBarX = clusterX;
-  const idealBarX = clusterX + barWidth + barGap;
   const actualTopY = scaleY(spec.actualValue);
   const idealTopY = scaleY(spec.idealValue);
 
   const deviation = Math.abs(spec.actualValue - spec.idealValue);
   const deviationText = deviation.toFixed(1).replace(".", ",");
-  const actualValueLayout = barValueLayout(actualTopY, plotBottom);
-  const idealValueLayout = barValueLayout(idealTopY, plotBottom);
+  const actualValueText = `${spec.actualValue}${spec.unit}`;
+  const idealValueText = `${spec.idealValue}${spec.unit}`;
+  const actualValueLayout = barValueLayout(actualTopY, plotBottom, actualValueText.length, barWidth);
+  const idealValueLayout = barValueLayout(idealTopY, plotBottom, idealValueText.length, barWidth);
 
-  /**
-   * Round 4 follow-up: `bridgeX` now anchors directly to the İDEAL bar's
-   * own right edge (a small, fixed gap) instead of the reserved zone's
-   * own outer boundary — round 3's version left an unexplained,
-   * un-bridged gap between the bar and the arrow (no dash at the bar's
-   * own height closing it), which read as "the arrow floated off to the
-   * right of the bar" exactly as Barış described. TWO dashed segments
-   * now always run — one at each bar's own top, right edge to `bridgeX`
-   * — direction-agnostic (works the same whichever bar happens to be
-   * taller); the vertical arrow carries an arrowhead at BOTH ends again
-   * (round 3 had dropped the top one, per Barış's own correction).
-   */
   const bridgeX = idealBarX + barWidth + BRIDGE_MARGIN_PX;
   const labelX = bridgeX + 10;
   const labelMidY = (actualTopY + idealTopY) / 2;
@@ -306,11 +329,26 @@ export function GapAnalysisChart({ spec, size }: { spec: GapAnalysisChartSpec; s
         {spec.actualValue}
         {spec.unit}
       </text>
-      <text x={actualBarX + barWidth / 2} y={plotBottom + MIN_FONT_PX + 4} fontSize={MIN_FONT_PX} textAnchor="middle" fill="#5A584F">
-        {spec.actualBarLabel}
-      </text>
+      {actualCaptionLines.map((line, index) => (
+        <text
+          key={line}
+          x={actualBarX + barWidth / 2}
+          y={plotBottom + captionLineHeight * (index + 1)}
+          fontSize={MIN_FONT_PX}
+          textAnchor="middle"
+          fill="#5A584F"
+        >
+          {line}
+        </text>
+      ))}
       {spec.actualDate && (
-        <text x={actualBarX + barWidth / 2} y={plotBottom + 2 * MIN_FONT_PX + 8} fontSize={MIN_FONT_PX} textAnchor="middle" fill="#8A877C">
+        <text
+          x={actualBarX + barWidth / 2}
+          y={plotBottom + captionLineHeight * (captionLineCount + 1)}
+          fontSize={MIN_FONT_PX}
+          textAnchor="middle"
+          fill="#8A877C"
+        >
           ({spec.actualDate})
         </text>
       )}
@@ -327,11 +365,26 @@ export function GapAnalysisChart({ spec, size }: { spec: GapAnalysisChartSpec; s
         {spec.idealValue}
         {spec.unit}
       </text>
-      <text x={idealBarX + barWidth / 2} y={plotBottom + MIN_FONT_PX + 4} fontSize={MIN_FONT_PX} textAnchor="middle" fill="#5A584F">
-        {spec.idealBarLabel}
-      </text>
+      {idealCaptionLines.map((line, index) => (
+        <text
+          key={line}
+          x={idealBarX + barWidth / 2}
+          y={plotBottom + captionLineHeight * (index + 1)}
+          fontSize={MIN_FONT_PX}
+          textAnchor="middle"
+          fill="#5A584F"
+        >
+          {line}
+        </text>
+      ))}
       {spec.idealDate && (
-        <text x={idealBarX + barWidth / 2} y={plotBottom + 2 * MIN_FONT_PX + 8} fontSize={MIN_FONT_PX} textAnchor="middle" fill="#8A877C">
+        <text
+          x={idealBarX + barWidth / 2}
+          y={plotBottom + captionLineHeight * (captionLineCount + 1)}
+          fontSize={MIN_FONT_PX}
+          textAnchor="middle"
+          fill="#8A877C"
+        >
           ({spec.idealDate})
         </text>
       )}

@@ -125,6 +125,20 @@ export interface A3ImageRequest {
    */
   readonly maxDemandRowSpan?: number;
   /**
+   * This image's natural shape, as width ÷ height.
+   *
+   * Used to work out how TALL the image wants to be once its width is
+   * known, which only became answerable when a block started sharing its
+   * width between entries (2026-09-24). Without it an image with no
+   * `rowSpan` reports "as many rows as you have", so ADIM 1 always grew to
+   * fill its whole column even when its content needed half of that — the
+   * empty band under the content Barış asked to remove.
+   *
+   * Omitted keeps the old behaviour exactly: unbounded demand, bounded only
+   * by `maxDemandRowSpan` if that is set.
+   */
+  readonly aspectRatio?: number;
+  /**
    * D-118/D-193: omitted (the Phase 5/D-102 default) means `kind`/`spec`
    * must be rasterized by `src/a3/render/rasterize.ts`. `"asset"` means the
    * image already exists as bytes — an ingested photo — and `assetImageId`

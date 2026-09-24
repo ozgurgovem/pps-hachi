@@ -85,6 +85,23 @@ export interface TemplateBlock {
    * no strip) leaves the header behaving exactly as before.
    */
   readonly subHeader?: readonly TemplateSubHeaderCell[];
+  /**
+   * How this block arranges the entries inside it.
+   *
+   * Omitted (every block's behaviour before 2026-09-24) stacks each entry
+   * down the block at full width, and only entries that individually
+   * declare `A3BlockContent.widthFraction` sit beside each other.
+   *
+   * `"horizontal"` makes it a property of the BLOCK instead: every entry in
+   * it shares the width, whatever the method declares. Barış's own
+   * instruction for ADIM 1 (2026-09-24) — "her yeni gelen bilginin yatayda
+   * yerleştirilmesi; dikeyde yerleştirildiğinde ciddi yer kaybı yaratıyor".
+   * A stacked full-width entry is letterboxed into a wide, short box, so a
+   * photo ends up tiny with cream waste on both sides; side by side it gets
+   * a real share of the block. Entries wrap onto a further row once another
+   * column would fall under `MIN_HORIZONTAL_ENTRY_WIDTH_PT`.
+   */
+  readonly entryLayout?: "horizontal";
 }
 
 export interface A3Template {

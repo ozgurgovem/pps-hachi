@@ -25,7 +25,11 @@ describe("renderAnnotatedPhotoBlock", () => {
       spec: undefined,
       source: "asset",
       assetImageId: "img-1",
-      rowSpan: 10,
+      // 2026-09-24: a fixed `rowSpan` became a ceiling plus a natural shape,
+      // so a photo can share a block's width with its siblings and still be
+      // sized sensibly instead of letterboxed into whatever box is left.
+      maxDemandRowSpan: 10,
+      aspectRatio: 4 / 3,
     });
   });
 
@@ -52,7 +56,8 @@ describe("renderAnnotatedPhotoBlock", () => {
     expect(content.image).toEqual({
       kind: "annotated-photo",
       spec: { assetImageId: "img-1", annotations },
-      rowSpan: 10,
+      maxDemandRowSpan: 10,
+      aspectRatio: 4 / 3,
     });
     expect(content.image?.source).toBeUndefined();
   });

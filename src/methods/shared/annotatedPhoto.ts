@@ -5,6 +5,14 @@ import { resolveA3Images } from "../../a3/methodContract";
 export const PHOTO_ROW_SPAN = 10;
 
 /**
+ * A shop-floor photo's natural shape, width ÷ height — the ordinary
+ * landscape frame a phone camera produces. Declared so a block sharing its
+ * width can work out how tall to make the photo instead of letterboxing it
+ * into whatever box is left (2026-09-24).
+ */
+const PHOTO_ASPECT = 4 / 3;
+
+/**
  * D-119: what `renderToA3` emits — a *reference*, never bytes. `place.ts`
  * (pure, D-43/D-94) only ever sees this as opaque `unknown`; the composition
  * root (`a3Preview.ts`/`resolveAssetImages.ts`) resolves `assetImageId` to
@@ -47,14 +55,16 @@ export function renderAnnotatedPhotoBlock(entry: A3EntrySummary): A3BlockContent
       ? {
           kind: "annotated-photo",
           spec: { assetImageId: photo.id, annotations } satisfies AnnotatedPhotoSpec,
-          rowSpan: PHOTO_ROW_SPAN,
+          maxDemandRowSpan: PHOTO_ROW_SPAN,
+          aspectRatio: PHOTO_ASPECT,
         }
       : {
           kind: "asset-photo",
           spec: undefined,
           source: "asset",
           assetImageId: photo.id,
-          rowSpan: PHOTO_ROW_SPAN,
+          maxDemandRowSpan: PHOTO_ROW_SPAN,
+          aspectRatio: PHOTO_ASPECT,
         };
 
   return { lines: [{ text: entry.title, bold: true }], image };
